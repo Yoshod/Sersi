@@ -142,12 +142,20 @@ async def on_message(message):
 		embedVar.set_footer(text="Slur detection written by Hekkland and Melanie")
 		await channel.send(embed=embedVar)
 
-	""""if message.content.startswith ("mb!offences"):
-		modRolePresent=(isMod(user.roles))
-		if modRolePresent==True:
-			channel.message.send("The test was successful!")
-		else:
-			channel.message.send("Only moderators can use this command.")"""
+	  """if message.content.startswith ("mb!offencecheck"):
+    if isMod(message.author.roles):
+      offence=("")
+      print(message.content)
+      for i in range(len(message.content)-16):
+        print(offence)
+        offence=offence+str(message.content[i+16])
+      if offence == offenceMatrix[1][0]:
+        await message.channel.send ("What is the offence instance number?")
+
+        while True:
+          msg=await bot.wait_for("message")
+        if str(msg) == str(1) and msg.author == message.author:
+          await message.channel.send ("The appropriate punishment is "+str(offenceMatrix[1][1]))"""
 
 	await bot.process_commands(message)
 
