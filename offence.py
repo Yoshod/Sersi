@@ -14,6 +14,8 @@ def getOffenceList(ctx):
 				offenceOutput=offenceOutput+offenceList[i]
 			else:
 				offenceOutput=offenceOutput+str("\n")+str(offenceList[i])
-		return(output=("__**Adam Something Central Offence List**__\n"+str(offenceOutput)))
+		output=("__**Adam Something Central Offence List**__\n"+str(offenceOutput))
+		return(output)
 	else:
-		return(output=("Only moderators can use this command."))
+		output=("Only moderators can use this command.")
+		return(output)
