@@ -8,6 +8,8 @@ import os
 import random
 from itertools import product 	#needed for slur obscurity permutations
 import unidecode				#needed for cleaning accents and diacritic marks
+import offence
+from isMod import isMod
 from discord import DMChannel
 from discord.ext import commands
 slurs = []
@@ -85,16 +87,7 @@ async def on_ready():
 
 @bot.command()
 async def offences(ctx):
-	if isMod(ctx.author.roles):
-		offenceOutput=str("")
-		for i in range (len(offenceList)):
-			if i == 0:
-				offenceOutput=offenceOutput+offenceList[i]
-			else:
-				offenceOutput=offenceOutput+str("\n")+str(offenceList[i])
-		await ctx.send("__**Adam Something Central Offence List**__\n"+str(offenceOutput))
-	else:
-		await ctx.send ("Only moderators can use this command.")
+	offence(cfx)
 
 @bot.command()
 async def dmTest(ctx,userId=None,*,args=None):
