@@ -1,5 +1,5 @@
 #Mod Buddy
-#Version 0.1.0
+#Version 0.1.1
 #Written by Hekkland and Melanie
 
 
@@ -126,6 +126,8 @@ async def dmTest(ctx,userId=None,*,args=None):
 			await ctx.send("No message was specified.")
 		else:
 			await ctx.send("How the fuck did this error appear?")
+	else:
+		await ctx.send("You do not have permission to use this command.")
 
 #cleaning up the message by eliminating special characters and making the entire message lowercase    
 def clearString(string):
@@ -181,7 +183,8 @@ async def on_message(message):
 		await message.channel.send(embed=embedVar)
 		
 		#notification for mods
-		channel = bot.get_channel(977377171054166037)
+		channel = bot.get_channel(897874682198511648)
+		print(channel)
 		embedVar = discord.Embed(
 			title="Moderator Ping", 
 			description="A moderation role has been pinged, please investigate the ping and take action as appropriate.\n\n__Channel:__\n"
@@ -197,8 +200,7 @@ async def on_message(message):
 		await channel.send(embed=embedVar)
 	
 	elif slur_heat > 0: #checks slur heat
-		#notification for mods
-		channel = bot.get_channel(977377171054166037)
+		channel = bot.get_channel(897874682198511648)
 		embedVar = discord.Embed(
 			title="Slur(s) Detected", 
 			description="A slur has been detected. Moderation action is advised\n\n__Channel:__\n"
