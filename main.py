@@ -1,3 +1,8 @@
+#Mod Buddy
+#Version 0.1.0
+#Written by Hekkland and Melanie
+
+
 import discord
 import os
 import random
@@ -22,11 +27,13 @@ def leet(word):
 		"u": ("u", "*", "v"),
 		"v": ("v", "*", "u"),
 		"l": ("l", "1"),
-		"e": ("e", "*", "3", "€"),
+		"e": ("e", "*", "3", "€", "ε"),
 		"s": ("s", "$", "5"),
 		"t": ("t", "7"),
 		"y": ("y", "¥"),
 		"n": ("n", "и"),
+		"r": ("r", "я", "®"),
+		"t": ("t", "†"),
 	}
 	possibles = []
 	for char in word.lower():
@@ -59,13 +66,13 @@ def isMod(userRoles):
 			modRolePresent=True
 		elif "977394150494326855" == str(role.id):
 			modRolePresent=True
-	print(modRolePresent)
+	#print(modRolePresent)
 	return (modRolePresent)
 
 @bot.event
 async def on_ready():
 	files = [f for f in os.listdir('.') if os.path.isfile(f)]
-	for f in files:
+	#for f in files:
 		#print (files)
 	with open("slurs.txt", "r") as file:
 		for line in file:
@@ -90,13 +97,35 @@ async def offences(ctx):
 		await ctx.send ("Only moderators can use this command.")
 
 @bot.command()
-async def dmTest(ctx,target,*,message):
+async def dmTest(ctx,userId=None,*,args=None):
 	if isMod (ctx.author.roles):
-		user=bot.get_user_info(target.id)
-		print(target.id)
-		print(user)
-		print(target)
-		await user.send(message)
+		if userId != None and args != None:
+			target=userId
+			targetId="Null"
+			for i in range(len(target)):
+				currentChar=target[i]
+				charTest=currentChar.isdigit()
+				print(charTest)
+				if charTest==True and targetId!="Null":
+					targetId=str(targetId)+str(target[i])
+					print("Character is number")
+				elif charTest==True and targetId=="Null":
+					targetId=str(target[i])
+			targetId=int(targetId)
+			user=bot.get_user(targetId)
+			try:
+				await user.send(args)
+
+			except:
+				await ctx.send("The message failed to send. Reason: Could not DM user.")
+
+		elif userId == None and args != None:
+			await ctx.send("No user was specified.")
+
+		elif userId != None and args == None:
+			await ctx.send("No message was specified.")
+		else:
+			await ctx.send("How the fuck did this error appear?")
 
 #cleaning up the message by eliminating special characters and making the entire message lowercase    
 def clearString(string):
@@ -186,6 +215,7 @@ async def on_message(message):
 		embedVar.set_footer(text="Slur detection written by Hekkland and Melanie")
 		await channel.send(embed=embedVar)
 
+
 	"""if message.content.startswith ("mb!offencecheck"):
     if isMod(message.author.roles):
       offence=("")
@@ -203,4 +233,4 @@ async def on_message(message):
 
 	await bot.process_commands(message)
 
-bot.run("CODE HERE")
+bot.run("CODE HIDDEN")
