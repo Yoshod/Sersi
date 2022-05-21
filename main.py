@@ -3,7 +3,6 @@ import os
 import random
 from discord import DMChannel
 from discord.ext import commands
-from keep_alive import keep_alive
 
 intents = discord.Intents.all()
 intents.members = True
@@ -101,7 +100,7 @@ async def on_message(message):
 		await message.channel.send(embed=embedVar)
 		
 		#notification for mods
-		channel = bot.get_channel(897874682198511648)
+		channel = bot.get_channel(977377171054166037)
 		embedVar = discord.Embed(
 			title="Moderator Ping", 
 			description="A moderation role has been pinged, please investigate the ping and take action as appropriate.\n\n__Channel:__\n"
@@ -118,7 +117,7 @@ async def on_message(message):
 	
 	elif slur_heat > 0: #checks slur heat
 		#notification for mods
-		channel = bot.get_channel(897874682198511648)
+		channel = bot.get_channel(977377171054166037)
 		embedVar = discord.Embed(
 			title="Slur(s) Detected", 
 			description="A slur has been detected. Moderation action is advised\n\n__Channel:__\n"
@@ -152,6 +151,5 @@ async def on_message(message):
 
 	await bot.process_commands(message)
 
-		
-keep_alive()
-bot.run(os.environ['rtoken'])
+
+bot.run("CODE HIDDEN")
