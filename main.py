@@ -52,7 +52,7 @@ async def on_ready():
 
 @bot.command()
 async def offences(ctx):
-	offence(cfx)
+	offence(ctx)
 
 @bot.command()
 async def dmTest(ctx,userId=None,*,args=None):
