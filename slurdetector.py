@@ -4,9 +4,9 @@ slurs = []
 
 def leet(word):
 	substitutions = {
-		"a": ("a", "@", "*", "4"),
+		"a": ("a", "@", "*", "4", "æ", "λ", "δ"),
 		"i": ("i", "*", "l", "1"),
-		"o": ("o", "*", "0", "@"),
+		"o": ("o", "*", "0", "@", "θ"),
 		"u": ("u", "*", "v"),
 		"v": ("v", "*", "u"),
 		"l": ("l", "1"),
@@ -14,9 +14,9 @@ def leet(word):
 		"s": ("s", "$", "5"),
 		"t": ("t", "7"),
 		"y": ("y", "¥"),
-		"n": ("n", "и"),
+		"n": ("n", "и", "η"),
 		"r": ("r", "я", "®"),
-		"t": ("t", "†"),
+		"t": ("t", "†", "ł"),
 	}
 	possibles = []
 	for char in word.lower():
@@ -53,7 +53,7 @@ def detectSlur(messageData):
 	cleanedMessageData = clearString(messageData)
 	messageData = messageData.lower()
 	messageData = messageData.replace(' ', '')
-	#print("scan:", messageData, cleanedMessageData)
+	
 	#if a slur is detected, we increase by 1, if a word that cointains a slur but is safe is found, you get a free pass (substracting that increment), any slur that is not exused that way will be reported
 	slur_counter = 0 #more like based_counter, amirite?
 	slur_list = []
@@ -61,27 +61,21 @@ def detectSlur(messageData):
 	for slur in slurs:
 		s1 = messageData.count(slur)
 		s2 = cleanedMessageData.count(slur)
-		#print("s1:", s1, "s2:", s2)
 		if s1 > 0:
 			slur_list.append(slur)
 			slur_counter += s1
 		elif s2 > 0:
 			slur_list.append(slur)
 			slur_counter += s2
-		#slur_counter += messageData.count(slur)
-		#slur_counter += cleanedMessageData.count(slur)
+
 	for word in goodword:
 		g1 = messageData.count(word)
 		g2 = cleanedMessageData.count(word)
-		#print("g1:", g1, "g2:", g2)
 		if g1 > 0:
-			#slur_list.append(slur)
-			slur_counter -= s1
+			slur_counter -= g1
 		elif g2 > 0:
-			#slur_list.append(slur)
-			slur_counter -= s2
-		#slur_counter -= messageData.count(word)
-		#slur_counter -= cleanedMessageData.count(word)
+			slur_counter -= g2
+
 	if slur_counter > 0:
 		return slur_list
 	else:

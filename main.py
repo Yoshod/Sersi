@@ -122,8 +122,8 @@ async def on_message(message):
 		embedVar.set_footer(text="Ping detection written by Hekkland and Melanie")
 		await channel.send(embed=embedVar)
 	
-	elif slur_heat > 0: #checks slur heat
-		channel = bot.get_channel(897874682198511648)
+	elif len(slur_heat) > 0: #checks slur heat
+		channel = bot.get_channel(977377171054166037)
 		embedVar = discord.Embed(
 			title="Slur(s) Detected", 
 			description="A slur has been detected. Moderation action is advised\n\n__Channel:__\n"
@@ -132,7 +132,7 @@ async def on_message(message):
 				+str(message.author.mention)
 				+"\n\n__Context:__\n"
 				+str(message.content)
-				+"\n\n__Slur Heat:__\n"
+				+"\n\n__Slurs Found:__\n"
 				+str(slur_heat)
 				+"\n\n__URL:__\n"
 				+str(message.jump_url), 
