@@ -12,6 +12,6 @@ def getOffenceList(ctx):
 				offenceOutput=offenceOutput+offenceList[i]
 			else:
 				offenceOutput=offenceOutput+str("\n")+str(offenceList[i])
-		await ctx.send("__**Adam Something Central Offence List**__\n"+str(offenceOutput))
+		ctx.send("__**Adam Something Central Offence List**__\n"+str(offenceOutput))
 	else:
-		await ctx.send ("Only moderators can use this command.")
+		ctx.send ("Only moderators can use this command.")
