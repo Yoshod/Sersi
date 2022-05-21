@@ -39,6 +39,7 @@ def isMod(userRoles):
 @bot.event
 async def on_ready():
 	print('We have logged in as {0.user}'.format(bot))
+	await bot.change_presence(activity=discord.Game('Ban The Tankie'))
 
 @bot.command()
 async def offences(ctx):
@@ -53,22 +54,14 @@ async def offences(ctx):
 	else:
 		await ctx.send ("Only moderators can use this command.")
 
-@bot.command()
-async def offencecheck(ctx,offence):
-	if isMod(ctx.author.roles):
-		
-		else:
-			ctx.send ("Only moderators can use this command.")
-
 #cleaning up the message by eliminating special characters and making the entire message lowercase    
 def clearString(string):
-    special_characters = ['!', '#', '$', '%', '&', '@', '[', ']', ' ', ']', '_', '-']
-    
-    string = string.lower()
+	special_characters = ['!', '#', '$', '%', '&', '@', '[', ']', ' ', ']', '_', '-']
+	
+	string = string.lower()
 	for char in special_characters:
 		string = string.replace(char, '')
-    
-    return string
+	return string
 
 def detectSlur(messageData):
 	#known slurs and safe words; both lists can be amended freely
@@ -94,7 +87,7 @@ def detectSlur(messageData):
 async def on_message(message):
 	slur_heat = detectSlur(message.content)
 	
-	if message.author == client.user: #ignores message if message is by bot
+	if message.author == bot.user: #ignores message if message is by bot
 		return
 
 	elif checkForMods(message.content): #checks moderator ping
@@ -108,7 +101,7 @@ async def on_message(message):
 		await message.channel.send(embed=embedVar)
 		
 		#notification for mods
-		channel = client.get_channel(897874682198511648)
+		channel = bot.get_channel(897874682198511648)
 		embedVar = discord.Embed(
 			title="Moderator Ping", 
 			description="A moderation role has been pinged, please investigate the ping and take action as appropriate.\n\n__Channel:__\n"
@@ -125,7 +118,7 @@ async def on_message(message):
 	
 	elif slur_heat > 0: #checks slur heat
 		#notification for mods
-		channel = client.get_channel(897874682198511648)
+		channel = bot.get_channel(897874682198511648)
 		embedVar = discord.Embed(
 			title="Slur(s) Detected", 
 			description="A slur has been detected. Moderation action is advised\n\n__Channel:__\n"
@@ -142,7 +135,7 @@ async def on_message(message):
 		embedVar.set_footer(text="Slur detection written by Hekkland and Melanie")
 		await channel.send(embed=embedVar)
 
-	  """if message.content.startswith ("mb!offencecheck"):
+	"""if message.content.startswith ("mb!offencecheck"):
     if isMod(message.author.roles):
       offence=("")
       print(message.content)
