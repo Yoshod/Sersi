@@ -5,11 +5,12 @@
 import discord
 import os
 import random
-import offence
 
 from discord import DMChannel
 from discord.ext import commands
+from discord_components import DiscordComponents, ComponentsBot, Button, SelectOption, Select
 from isMod import isMod
+from offence import getOffenceList
 
 from slurdetector import *
 
@@ -17,6 +18,28 @@ intents = discord.Intents.all()
 intents.members = True
 
 bot = commands.Bot(command_prefix="mb!", intents=intents)
+
+#I wish I could move this to slurdetector.py, but the @bot.command() won't work there --Melanie
+@bot.command()
+async def addslur(ctx, slur):
+	if isMod(ctx.author.roles):
+		slur = clearString(slur)
+		await ctx.send(f"Slur to be added: {slur}")
+		with open("slurs.txt", "a") as file:
+			file.write(slur)
+			file.write("\n")
+		await ctx.send("Slur added. Detection will start after the bot has been restarted.")
+
+@bot.command()
+async def addgoodword(ctx, word):
+	if isMod(ctx.author.roles):
+		word = clearString(word)
+		await ctx.send(f"Goodword to be added: {word}")
+		with open("goodword.txt", "a") as file:
+			file.write(word)
+			file.write("\n")
+		await ctx.send("Goodword added. Detection will start after the bot has been restarted.")
+
 
 def checkForMods(messageData):
 	modRoles=["<@&856424878437040168>","<@&963537133589643304>","<@&875805670799179799>","<@&883255791610638366>"]
@@ -28,18 +51,6 @@ def checkForMods(messageData):
 
 	return modDetected
 
-def isMod(userRoles):
-	modRolePresent=False
-	for role in userRoles:
-		if "856424878437040168" == str(role.id):
-			modRolePresent=True
-		elif "883255791610638366" == str(role.id):
-			modRolePresent=True
-		elif "977394150494326855" == str(role.id):
-			modRolePresent=True
-	#print(modRolePresent)
-	return (modRolePresent)
-
 @bot.event
 async def on_ready():
 	files = [f for f in os.listdir('.') if os.path.isfile(f)]
@@ -50,8 +61,19 @@ async def on_ready():
 
 @bot.command()
 async def offences(ctx):
-	offenceList=offence(ctx)
+	offenceList=getOffenceList(ctx)
 	await ctx.send(str(offenceList))
+
+@bot.command()
+async def punishcheck(ctx):
+	embedVar = discord.Embed(
+		title="Moderator Ping", 
+			description="Please select an offence from the options below:", 
+			color=discord.Color.from_rgb(237,91,6))
+	embedVar.set_footer(text="Slur detection written by Hekkland and Melanie")
+	await ctx.send(embed=embedVar,components=[
+		[Button(label="Intentional Bigotry",style=4,custom_id="itentBig")]])
+	
 
 @bot.command()
 async def dmTest(ctx,userId=None,*,args=None):
@@ -157,4 +179,4 @@ async def on_message(message):
 
 	await bot.process_commands(message)
 
-bot.run("CODE HIDDEN")
+bot.run("OTc3Mzc2NzQ5NTQzMzg3MTM3.GHpfv4.WTjZ0Zxxn2Zt1rS7r1Cmvs2qAyHqqicUtyut9E")

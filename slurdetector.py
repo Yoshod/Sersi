@@ -1,6 +1,7 @@
 from itertools import product 	#needed for slur obscurity permutations
 import unidecode				#needed for cleaning accents and diacritic marks
 slurs = []
+goodword = []
 
 def leet(word):
 	substitutions = {
@@ -31,6 +32,10 @@ def load():
 		for line in file:
 			line = line.replace('\n', '')
 			slurs.extend(leet(line))
+	with open("goodword.txt", "r") as file:
+		for line in file:
+			line = line.replace('\n', '')
+			goodword.append(line)
 
 #cleaning up the message by eliminating special characters and making the entire message lowercase    
 def clearString(string):
@@ -48,7 +53,7 @@ def detectSlur(messageData):
 	#known slurs and safe words; both lists can be amended freely
 	#WORDS MUST BE LOWERCASE
 	#slurs = ["spick", "coon", "trann", "fag", "retard", "nigg", "kike", "yid", "chink", "gook", "negro", "shemale", "e621", "killyourself", "kys", "gypsy", "809891646606409779", "spastic", "spas", "spaz", "darky", "gippo", "paki", "spic", "dyke", "shizo", "mong"]
-	goodword = ["skyscraper", "montenegro", "pakistan", "spicy", "among", "mongrel", "schizophrenia", "zelenskys", "tycoon", "suspicious", "racoon", "yiddish"]
+	#goodword = ["skyscraper", "montenegro", "pakistan", "spicy", "among", "mongrel", "schizophrenia", "zelenskys", "tycoon", "suspicious", "racoon", "yiddish"]
 	
 	cleanedMessageData = clearString(messageData)
 	messageData = messageData.lower()
