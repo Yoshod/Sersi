@@ -18,8 +18,6 @@ intents.members = True
 
 bot = commands.Bot(command_prefix="mb!", intents=intents)
 
-offenceList=["Intentional Bigotry","Unintentional Bigotry","Spam","NSFW Content","Channel Misuse"]
-
 def checkForMods(messageData):
 	modRoles=["<@&856424878437040168>","<@&963537133589643304>","<@&875805670799179799>","<@&883255791610638366>"]
 	modDetected=False
@@ -52,7 +50,8 @@ async def on_ready():
 
 @bot.command()
 async def offences(ctx):
-	offence(ctx)
+	offenceList=offence(ctx)
+	ctx.send(str(offenceList))
 
 @bot.command()
 async def dmTest(ctx,userId=None,*,args=None):
