@@ -51,7 +51,7 @@ async def on_ready():
 @bot.command()
 async def offences(ctx):
 	offenceList=offence(ctx)
-	ctx.send(str(offenceList))
+	await ctx.send(str(offenceList))
 
 @bot.command()
 async def dmTest(ctx,userId=None,*,args=None):
