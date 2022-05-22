@@ -144,11 +144,13 @@ async def dmTest(ctx,userId=None,*,args=None):
 @bot.event
 async def on_message(message):
 	slur_heat = detectSlur(message.content)
-	
+    
 	if message.author == bot.user: #ignores message if message is by bot
 		return
-
-	elif message.content == "<@839003324140355585>" or message.content == "<@977376749543387137>":
+	
+	await bot.process_commands(message)
+	
+	if message.content == "<@839003324140355585>" or message.content == "<@977376749543387137>":
 		channel=message.channel
 		await channel.send("Hey there "
 			+str(message.author.mention)
@@ -201,7 +203,6 @@ async def on_message(message):
 		embedVar.set_footer(text="Slur detection written by Hekkland and Melanie")
 		await channel.send(embed=embedVar)
 
-	await bot.process_commands(message)
 	
 token=discordTokens.getToken()
 bot.run(token)
