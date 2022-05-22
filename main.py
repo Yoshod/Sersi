@@ -1,9 +1,9 @@
 """
-Sersi
+Sersi, the ASC moderation helper bot
 
-Version 1.2.0 Development Build 00061
+**Version:** `1.2.0 Development Build 00062`
 
-Hekkland, Melanie, Gombik
+**Authors:** *Hekkland, Melanie, Gombik*
 """
 
 import nextcord
@@ -17,26 +17,31 @@ from nextcord import DMChannel
 from nextcord.ext import commands
 from baseutils import *
 from offence import getOffenceList
+from bothelp import get_help
 
 from slurdetector import *
 
 intents = nextcord.Intents.all()
 intents.members = True
 
-bot = commands.Bot(command_prefix="s!", intents=intents)
+bot = commands.Bot(command_prefix="s!", intents=intents, help_command=None)
 notModFail="Only moderators can use this command."
 
 ### GENERAL COMMANDS ###
-
-@bot.command()
-async def ping(ctx):
-	await ctx.send(f'Pong! {round(bot.latency * 1000)}ms')
 
 @bot.command()
 async def about(ctx):
 	embedVar = nextcord.Embed(
 		title="About Sersi", description=__doc__, color=nextcord.Color.from_rgb(237,91,6))
 	await ctx.send(embed=embedVar)
+
+@bot.command()
+async def help(ctx, command=None):
+	await get_help(ctx, command)
+
+@bot.command()
+async def ping(ctx):
+	await ctx.send(f'Pong! {round(bot.latency * 1000)}ms')
 
 ### MESSAGE FILTER COMMANDS ###
 
