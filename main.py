@@ -35,7 +35,16 @@ async def addslur(ctx, slur):
 		
 		#logging
 		channel = bot.get_channel(getLoggingChannel(ctx.message.guild.id))
-		await channel.send(f"**{ctx.message.author.name}** ({ctx.message.author.id}) has added a new slur: {slur}")
+		embedVar = nextcord.Embed(
+			title="Slur Added",
+				description="A new slur has been added to the filter.\n\n__Added By:__\n"
+				+str(ctx.message.author.mention)
+				+" ("
+				+str(ctx.message.author.id)
+				+")\n\n__Slur Added:__\n"
+				+str(slur),
+				color=nextcord.Color.from_rgb(237,91,6))
+		await channel.send(embed=embedVar)
 		await ctx.send("Slur added. Detection will start now.")
 
 @bot.command()
@@ -50,7 +59,16 @@ async def addgoodword(ctx, word):
 
 		#logging
 		channel = bot.get_channel(getLoggingChannel(ctx.message.guild.id))
-		await channel.send(f"**{ctx.message.author.name}** ({ctx.message.author.id}) has added a new goodword: {word}")
+		embedVar = nextcord.Embed(
+			title="Goodword Added",
+				description="A new goodword has been added to the filter.\n\n__Added By:__\n"
+				+str(ctx.message.author.mention)
+				+" ("
+				+str(ctx.message.author.id)
+				+")\n\n__Goodword Added:__\n"
+				+str(word),
+				color=nextcord.Color.from_rgb(237,91,6))
+		await channel.send(embed=embedVar)
 		await ctx.send("Goodword added. Detection will start now.")
 
 
