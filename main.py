@@ -1,6 +1,6 @@
 """
 Sersi
-Version 1.2.0 Development Build 00051
+Version 1.2.0 Development Build 00052
 Hekkland, Melanie, Gombik
 """
 
@@ -86,7 +86,7 @@ async def removeslur(ctx, slur):
 		slurList=[]
 		slur=clearString(slur)
 		await ctx.send(f"Slur to be removed: {slur}")
-		with open("slurs.txt", "+") as file:
+		with open("slurs.txt", "r+") as file:
 			for line in file:
 				slurList.append(line[0:-1])
 			if slur in slurList:
