@@ -1,21 +1,23 @@
-#Sersi
+#Mod Buddy
 #Version 0.1.2
 #Written by Hekkland and Melanie
 
-import discord
+import nextcord
 import os
 import random
 import discordTokens
+import sys
+import asyncio
 
-from discord import DMChannel
-from discord.ext import commands
-from discord_components import DiscordComponents, ComponentsBot, Button, SelectOption, Select
+from nextcord import DMChannel
+from nextcord.ext import commands
+#from discord_components import discordComponents, ComponentsBot, Button, SelectOption, Select
 from baseutils import isMod, getLoggingChannel
 from offence import getOffenceList
 
 from slurdetector import *
 
-intents = discord.Intents.all()
+intents = nextcord.Intents.all()
 intents.members = True
 
 bot = commands.Bot(command_prefix="s!", intents=intents)
@@ -30,6 +32,10 @@ async def addslur(ctx, slur):
 			file.write(slur)
 			file.write("\n")
 		load_slurs()	#reloads updated list into memory
+		
+		#logging
+		channel = bot.get_channel(getLoggingChannel(ctx.message.guild.id))
+		await channel.send(f"**{ctx.message.author.name}** ({ctx.message.author.id}) has added a new slur: {slur}")
 		await ctx.send("Slur added. Detection will start now.")
 
 @bot.command()
@@ -41,6 +47,10 @@ async def addgoodword(ctx, word):
 			file.write(word)
 			file.write("\n")
 		load_goodwords()	#reloads updated list into memory
+
+		#logging
+		channel = bot.get_channel(getLoggingChannel(ctx.message.guild.id))
+		await channel.send(f"**{ctx.message.author.name}** ({ctx.message.author.id}) has added a new goodword: {word}")
 		await ctx.send("Goodword added. Detection will start now.")
 
 
@@ -58,9 +68,10 @@ def checkForMods(messageData):
 async def on_ready():
 	#files = [f for f in os.listdir('.') if os.path.isfile(f)] #unused
 	load_slurdetector()
+	print (sys.version)
 
 	print('We have logged in as {0.user}'.format(bot))
-	await bot.change_presence(activity=discord.Game('OwO observes you~~~'))
+	await bot.change_presence(activity=nextcord.Game('OwO observes you~~~'))
 
 @bot.command()
 async def offences(ctx):
@@ -69,10 +80,10 @@ async def offences(ctx):
 
 @bot.command()
 async def punishcheck(ctx):
-	embedVar = discord.Embed(
+	embedVar = nextcord.Embed(
 		title="Moderator Ping", 
 			description="Please select an offence from the options below:", 
-			color=discord.Color.from_rgb(237,91,6))
+			color=nextcord.Color.from_rgb(237,91,6))
 	embedVar.set_footer(text="Slur detection written by Hekkland and Melanie")
 	await ctx.send(embed=embedVar,components=[
 		[Button(label="Intentional Bigotry",style=4,custom_id="itentBig")]])
@@ -130,17 +141,17 @@ async def on_message(message):
 	elif checkForMods(message.content): #checks moderator ping
 	
 		#reply to user
-		embedVar = discord.Embed(
+		embedVar = nextcord.Embed(
 			title="Moderator Ping Acknowledgment", 
 			description=(message.author.mention)+" moderators have been notified of your ping and will investigate when able to do so.", 
-			color=discord.Color.from_rgb(237,91,6))
+			color=nextcord.Color.from_rgb(237,91,6))
 		embedVar.set_footer(text="Ping detection written by Hekkland and Melanie")
 		await message.channel.send(embed=embedVar)
 		
 		#notification for mods
 		channel = bot.get_channel(getLoggingChannel(message.guild.id))
 		print(channel)
-		embedVar = discord.Embed(
+		embedVar = nextcord.Embed(
 			title="Moderator Ping", 
 			description="A moderation role has been pinged, please investigate the ping and take action as appropriate.\n\n__Channel:__\n"
 				+str(message.channel.mention)
@@ -150,13 +161,13 @@ async def on_message(message):
 				+str(message.content)
 				+"\n\n__URL:__\n"
 				+str(message.jump_url), 
-			color=discord.Color.from_rgb(237,91,6))
+			color=nextcord.Color.from_rgb(237,91,6))
 		embedVar.set_footer(text="Ping detection written by Hekkland and Melanie")
 		await channel.send(embed=embedVar)
 	
 	elif len(slur_heat) > 0: #checks slur heat
 		channel = bot.get_channel(getLoggingChannel(message.guild.id))
-		embedVar = discord.Embed(
+		embedVar = nextcord.Embed(
 			title="Slur(s) Detected", 
 			description="A slur has been detected. Moderation action is advised\n\n__Channel:__\n"
 				+str(message.channel.mention)
@@ -168,11 +179,11 @@ async def on_message(message):
 				+str(slur_heat)
 				+"\n\n__URL:__\n"
 				+str(message.jump_url), 
-			color=discord.Color.from_rgb(237,91,6))
+			color=nextcord.Color.from_rgb(237,91,6))
 		embedVar.set_footer(text="Slur detection written by Hekkland and Melanie")
 		await channel.send(embed=embedVar)
 
-	await bot.process_commands(message) #Required to have commands acted upon when on_message exists
+	await bot.process_commands(message)
 	
 token=discordTokens.getToken()
 bot.run(token)

@@ -1,7 +1,7 @@
 #Sersi Offences Commands
 #Written by Hekkland
 
-import discord
+import nextcord
 
 def isMod(userRoles):
 	modRolePresent=False

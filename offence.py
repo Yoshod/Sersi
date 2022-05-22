@@ -1,7 +1,7 @@
 #Sersi Offences Commands
 #Written by Hekkland
 
-import discord
+import nextcord
 from baseutils import isMod
 
 offenceList=["Intentional Bigotry","Unintentional Bigotry","Spam","NSFW Content","Channel Misuse"]
