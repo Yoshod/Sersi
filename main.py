@@ -106,7 +106,7 @@ async def removeslur(ctx, slur):
 					file.write(slurList[x])
 					print(slurList[x])
 					file.write("\n")
-				await ctx.send("Slur removed. The word will no longer be detected.")
+				await ctx.send("Slur removed. The bot will need to be restarted for this change to take effect.")
 			else:
 				await ctx.send(f"{slur} is not in the list of slurs.")
 		load_slurs()
