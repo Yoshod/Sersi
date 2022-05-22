@@ -5,6 +5,7 @@
 import discord
 import os
 import random
+import discordTokens
 
 from discord import DMChannel
 from discord.ext import commands
@@ -178,5 +179,5 @@ async def on_message(message):
           await message.channel.send ("The appropriate punishment is "+str(offenceMatrix[1][1]))"""
 
 	await bot.process_commands(message)
-
-bot.run("OTc3Mzc2NzQ5NTQzMzg3MTM3.GHpfv4.WTjZ0Zxxn2Zt1rS7r1Cmvs2qAyHqqicUtyut9E")
+token=discordTokens.getToken()
+bot.run(token)
