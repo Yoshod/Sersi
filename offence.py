@@ -2,12 +2,12 @@
 #Written by Hekkland
 
 import discord
-import isMod
+from baseutils import isMod
 
 offenceList=["Intentional Bigotry","Unintentional Bigotry","Spam","NSFW Content","Channel Misuse"]
 
 def getOffenceList(ctx):
-	if isMod.isMod(ctx.author.roles):
+	if isMod(ctx.author.roles):
 		offenceOutput=str("")
 		for i in range (len(offenceList)):
 			if i == 0:

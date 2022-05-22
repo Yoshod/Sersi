@@ -10,7 +10,7 @@ import discordTokens
 from discord import DMChannel
 from discord.ext import commands
 from discord_components import DiscordComponents, ComponentsBot, Button, SelectOption, Select
-from isMod import isMod
+from baseutils import isMod, getLoggingChannel
 from offence import getOffenceList
 
 from slurdetector import *
@@ -125,6 +125,8 @@ async def on_message(message):
 			+str(message.author.mention)
 			+" I am Serversicherheit, or Sersi for short! My role is to help keep Adam Something Central a safe and enjoyable space.")
 
+
+
 	elif checkForMods(message.content): #checks moderator ping
 	
 		#reply to user
@@ -136,7 +138,7 @@ async def on_message(message):
 		await message.channel.send(embed=embedVar)
 		
 		#notification for mods
-		channel = bot.get_channel(897874682198511648)
+		channel = bot.get_channel(getLoggingChannel(message.guild.id))
 		print(channel)
 		embedVar = discord.Embed(
 			title="Moderator Ping", 
@@ -153,7 +155,7 @@ async def on_message(message):
 		await channel.send(embed=embedVar)
 	
 	elif len(slur_heat) > 0: #checks slur heat
-		channel = bot.get_channel(977377171054166037)
+		channel = bot.get_channel(getLoggingChannel(message.guild.id))
 		embedVar = discord.Embed(
 			title="Slur(s) Detected", 
 			description="A slur has been detected. Moderation action is advised\n\n__Channel:__\n"
@@ -171,5 +173,6 @@ async def on_message(message):
 		await channel.send(embed=embedVar)
 
 	await bot.process_commands(message) #Required to have commands acted upon when on_message exists
+	
 token=discordTokens.getToken()
 bot.run(token)
