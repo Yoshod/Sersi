@@ -1,6 +1,6 @@
 """
 Sersi
-Version 1.0.0 Build 00040
+Version 1.0.0 Build 00041
 Hekkland, Melanie, Gombik
 """
 
@@ -106,6 +106,10 @@ async def punishcheck(ctx):
 	embedVar.set_footer(text="Slur detection written by Hekkland and Melanie")
 	await ctx.send(embed=embedVar,components=[
 		[Button(label="Intentional Bigotry",style=4,custom_id="itentBig")]])
+
+@bot.command()
+async def ping(ctx):
+	await ctx.send(f'Pong! {round(bot.latency * 1000)}ms')
 	
 
 @bot.command()
