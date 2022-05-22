@@ -12,7 +12,7 @@ import asyncio
 from nextcord import DMChannel
 from nextcord.ext import commands
 #from discord_components import discordComponents, ComponentsBot, Button, SelectOption, Select
-from baseutils import isMod, getLoggingChannel
+from baseutils import *
 from offence import getOffenceList
 
 from slurdetector import *
@@ -149,7 +149,7 @@ async def on_message(message):
 		await message.channel.send(embed=embedVar)
 		
 		#notification for mods
-		channel = bot.get_channel(getLoggingChannel(message.guild.id))
+		channel = bot.get_channel(getAlertChannel(message.guild.id))
 		print(channel)
 		embedVar = nextcord.Embed(
 			title="Moderator Ping", 
@@ -166,7 +166,7 @@ async def on_message(message):
 		await channel.send(embed=embedVar)
 	
 	elif len(slur_heat) > 0: #checks slur heat
-		channel = bot.get_channel(getLoggingChannel(message.guild.id))
+		channel = bot.get_channel(getAlertChannel(message.guild.id))
 		embedVar = nextcord.Embed(
 			title="Slur(s) Detected", 
 			description="A slur has been detected. Moderation action is advised\n\n__Channel:__\n"
