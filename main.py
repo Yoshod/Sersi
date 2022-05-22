@@ -1,6 +1,6 @@
 """
 Sersi
-Version 1.2.0 Development Build 00054
+Version 1.2.0 Development Build 00055
 Hekkland, Melanie, Gombik
 """
 
@@ -109,7 +109,7 @@ async def removeslur(ctx, slur):
 @bot.command()
 async def listslurs(ctx, page=1):
 	wordlist = []
-	pages, index = 1
+	pages, index = 1, 0
 	
 	with open("slurs.txt", "r") as file:
 		for line in file:
@@ -149,7 +149,7 @@ async def listslurs(ctx, page=1):
 @bot.command()
 async def listgoodwords(ctx, page=1):
 	wordlist = []
-	pages, index = 1
+	pages, index = 1, 0
 	
 	with open("goodword.txt", "r") as file:
 		for line in file:
