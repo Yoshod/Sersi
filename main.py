@@ -1,6 +1,6 @@
 """
 Sersi
-Version 1.3.0 Development Build 00047
+Version 1.3.0 Development Build 00048
 Hekkland, Melanie, Gombik
 """
 
@@ -22,6 +22,7 @@ intents = nextcord.Intents.all()
 intents.members = True
 
 bot = commands.Bot(command_prefix="s!", intents=intents)
+notModFail=("Only moderators can use this command.")
 
 ### GENERAL COMMANDS ###
 
@@ -55,6 +56,8 @@ async def addslur(ctx, slur):
 				color=nextcord.Color.from_rgb(237,91,6))
 		await channel.send(embed=embedVar)
 		await ctx.send("Slur added. Detection will start now.")
+	else:
+		await ctx.send(notModFail)
 
 @bot.command()
 async def addgoodword(ctx, word):
@@ -79,6 +82,8 @@ async def addgoodword(ctx, word):
 				color=nextcord.Color.from_rgb(237,91,6))
 		await channel.send(embed=embedVar)
 		await ctx.send("Goodword added. Detection will start now.")
+	else:
+		await ctx.send(notModFail)
 
 @bot.command()
 async def reload(ctx):
@@ -96,6 +101,8 @@ async def reload(ctx):
 				+str(ctx.message.author.id),
 				color=nextcord.Color.from_rgb(237,91,6))
 		await channel.send(embed=embedVar)
+	else:
+		await ctx.send(notModFail)
 
 ### PUNISHMENT GUIDELINES COMMANDS ###
 # not yet implemented fully
@@ -148,7 +155,7 @@ async def dmTest(ctx,userId=None,*,args=None):
 		else:
 			await ctx.send("How the fuck did this error appear?")
 	else:
-		await ctx.send("You do not have permission to use this command.")
+		await ctx.send(notModFail)
 
 ### BOT EVENTS ###
 
