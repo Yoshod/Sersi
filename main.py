@@ -1,6 +1,8 @@
-#Mod Buddy
-#Version 0.1.2
-#Written by Hekkland and Melanie
+"""
+Sersi
+Version 0.1.3
+Hekkland, Melanie, Gombik
+"""
 
 import nextcord
 import os
@@ -11,7 +13,6 @@ import asyncio
 
 from nextcord import DMChannel
 from nextcord.ext import commands
-#from discord_components import discordComponents, ComponentsBot, Button, SelectOption, Select
 from baseutils import *
 from offence import getOffenceList
 
