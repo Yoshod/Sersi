@@ -1,6 +1,6 @@
 """
 Sersi
-Version 1.2.0 Build 00044
+Version 1.2.0 Build 00045
 Hekkland, Melanie, Gombik
 """
 
@@ -116,6 +116,18 @@ async def reload(ctx):
 	if isMod (ctx.author.roles):
 		load_goodwords()
 		load_slurs()
+
+		#Logging
+		channel = bot.get_channel(getLoggingChannel(ctx.message.guild.id))
+		embedVar = nextcord.Embed(
+			title="Slurs and Goodwords Reloaded",
+				description="The list of slurs and goodwords in memory has been reloaded.\n\n__Reloaded By:__\n"
+				+str(ctx.message.author.mention)
+				+" ("
+				+str(ctx.message.author.id),
+				color=nextcord.Color.from_rgb(237,91,6))
+		await channel.send(embed=embedVar)
+
 
 @bot.command()
 async def dmTest(ctx,userId=None,*,args=None):
