@@ -148,15 +148,14 @@ async def on_message(message):
 	if message.author == bot.user: #ignores message if message is by bot
 		return
 	
-	await bot.process_commands(message)
-	
-	if message.content == "<@839003324140355585>" or message.content == "<@977376749543387137>":
+	elif message.content == "<@839003324140355585>" or message.content == "<@977376749543387137>":
 		channel=message.channel
 		await channel.send("Hey there "
 			+str(message.author.mention)
 			+" I am Serversicherheit, or Sersi for short! My role is to help keep Adam Something Central a safe and enjoyable space.")
 
-
+	#skips subsequent checks if message sent by moderator
+	elif isMod(message.author.roles): pass
 
 	elif checkForMods(message.content): #checks moderator ping
 	
@@ -203,6 +202,7 @@ async def on_message(message):
 		embedVar.set_footer(text="Slur detection written by Hekkland and Melanie")
 		await channel.send(embed=embedVar)
 
+	await bot.process_commands(message)
 	
 token=discordTokens.getToken()
 bot.run(token)
