@@ -1,6 +1,6 @@
 """
 Sersi
-Version 1.2.0 Development Build 00055
+Version 1.2.0 Development Build 00056
 Hekkland, Melanie, Gombik
 """
 
@@ -108,82 +108,84 @@ async def removeslur(ctx, slur):
 
 @bot.command()
 async def listslurs(ctx, page=1):
-	wordlist = []
-	pages, index = 1, 0
+	if isMod(ctx.author.roles):
+		wordlist = []
+		pages, index = 1, 0
 	
-	with open("slurs.txt", "r") as file:
-		for line in file:
-			wordlist.append(line[0:-1])
-	wordlist.sort()
+		with open("slurs.txt", "r") as file:
+			for line in file:
+				wordlist.append(line[0:-1])
+		wordlist.sort()
 	
-	#check if multiple pages are needed, 100 slurs per page will be listed
-	if len(wordlist) > 100:
-		pages += (len(wordlist) - 1) // 100
+		#check if multiple pages are needed, 100 slurs per page will be listed
+		if len(wordlist) > 100:
+			pages += (len(wordlist) - 1) // 100
 		
-		#get the index of the current page
-		index = int(page) - 1
-		if index < 0:
-			index = 0
-		elif index >= pages:
-			index = pages - 1
+			#get the index of the current page
+			index = int(page) - 1
+			if index < 0:
+				index = 0
+			elif index >= pages:
+				index = pages - 1
 		
-		#update the list to a subsection according to the index
-		if index == (pages - 1):
-			templist = wordlist[index*100:]
-		else:
-			templist = wordlist[index*100: index*100 + 100]
-		wordlist = templist
+			#update the list to a subsection according to the index
+			if index == (pages - 1):
+				templist = wordlist[index*100:]
+			else:
+				templist = wordlist[index*100: index*100 + 100]
+			wordlist = templist
 	
-	#post the list as embed
-	embedVar = nextcord.Embed(
-		title="List of currently detected slurs",
-			description=str(wordlist)
-				   + "\n\n**page "
-				   + str(index + 1)
-				   + "/"
-				   + str(pages)
-				   + "**",
-				   color=nextcord.Color.from_rgb(237,91,6))
-	await ctx.send(embed=embedVar)
+		#post the list as embed
+		embedVar = nextcord.Embed(
+			title="List of currently detected slurs",
+				description=str(wordlist)
+					 + "\n\n**page "
+					 + str(index + 1)
+					 + "/"
+					 + str(pages)
+					 + "**",
+					color=nextcord.Color.from_rgb(237,91,6))
+		await ctx.send(embed=embedVar)
 	
 @bot.command()
 async def listgoodwords(ctx, page=1):
-	wordlist = []
-	pages, index = 1, 0
+	if isMod(ctx.author.roles):
+		wordlist = []
+		pages, index = 1, 0
 	
-	with open("goodword.txt", "r") as file:
-		for line in file:
-			wordlist.append(line[0:-1])
-	wordlist.sort()
+		with open("goodword.txt", "r") as file:
+			for line in file:
+				wordlist.append(line[0:-1])
+		wordlist.sort()
 	
-	#check if multiple pages are needed, 100 goodwords per page will be listed
-	if len(wordlist) > 100:
-		pages += (len(wordlist) - 1) // 100
+		#check if multiple pages are needed, 100 goodwords per page will be listed
+		if len(wordlist) > 100:
+			pages += (len(wordlist) - 1) // 100
 		
-		#get the index of the current page
-		index = int(page) - 1
-		if index < 0:
-			index = 0
-		elif index >= pages:
-			index = pages - 1
+			#get the index of the current page
+			index = int(page) - 1
+			if index < 0:
+				index = 0
+			elif index >= pages:
+				index = pages - 1
 		
-		#update the list to a subsection according to the index
-		if index == (pages - 1):
-			templist = wordlist[index*100:]
-		else:
-			templist = wordlist[index*100: index*100 + 100]
-		wordlist = templist
+			#update the list to a subsection according to the index
+			if index == (pages - 1):
+				templist = wordlist[index*100:]
+			else:
+				templist = wordlist[index*100: index*100 + 100]
+			wordlist = templist
 	
-	embedVar = nextcord.Embed(
-		title="List of words currently whitelisted from slur detection",
-			description=str(wordlist)
-				   + "\n\n**page "
-				   + str(index + 1)
-				   + "/"
-				   + str(pages)
-				   + "**",
-				   color=nextcord.Color.from_rgb(237,91,6))
-	await ctx.send(embed=embedVar)
+		embedVar = nextcord.Embed(
+			title="List of words currently whitelisted from slur detection",
+				description=str(wordlist)
+					 + "\n\n**page "
+					 + str(index + 1)
+					 + "/"
+					 + str(pages)
+					 + "**",
+					 color=nextcord.Color.from_rgb(237,91,6))
+		await ctx.send(embed=embedVar)
 
 @bot.command()
 async def reload(ctx):
