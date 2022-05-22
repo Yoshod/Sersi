@@ -1,7 +1,7 @@
 """
 Sersi
 
-Version 1.3.0 Development Build 00057
+Version 1.2.0 Development Build 00058
 
 Hekkland, Melanie, Gombik
 """
@@ -110,7 +110,8 @@ async def removeslur(ctx, slur):
 			else:
 				await ctx.send(f"{slur} is not in the list of slurs.")
 		load_slurs()
-			
+	else:
+		await ctx.send(notModFail)
 				
 
 @bot.command()
@@ -153,6 +154,8 @@ async def listslurs(ctx, page=1):
 					 + "**",
 					color=nextcord.Color.from_rgb(237,91,6))
 		await ctx.send(embed=embedVar)
+	else:
+		await ctx.send(notModFail)
 	
 @bot.command()
 async def listgoodwords(ctx, page=1):
@@ -193,6 +196,8 @@ async def listgoodwords(ctx, page=1):
 					 + "**",
 					 color=nextcord.Color.from_rgb(237,91,6))
 		await ctx.send(embed=embedVar)
+	else:
+		await ctx.send(notModFail)
 
 @bot.command()
 async def reload(ctx):
