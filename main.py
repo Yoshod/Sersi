@@ -1,6 +1,6 @@
 """
 Sersi
-Version 1.2.0 Build 00045
+Version 1.2.0 Development Build 00046
 Hekkland, Melanie, Gombik
 """
 
@@ -22,6 +22,14 @@ intents = nextcord.Intents.all()
 intents.members = True
 
 bot = commands.Bot(command_prefix="s!", intents=intents)
+
+### GENERAL COMMANDS ###
+
+@bot.command()
+async def ping(ctx):
+	await ctx.send(f'Pong! {round(bot.latency * 1000)}ms')
+
+### MESSAGE FILTER COMMANDS ###
 
 #I wish I could move this to slurdetector.py, but the @bot.command() won't work there --Melanie
 @bot.command()
@@ -72,45 +80,6 @@ async def addgoodword(ctx, word):
 		await channel.send(embed=embedVar)
 		await ctx.send("Goodword added. Detection will start now.")
 
-
-def checkForMods(messageData):
-	modRoles=["<@&856424878437040168>","<@&963537133589643304>","<@&875805670799179799>","<@&883255791610638366>","<@&977939552641613864>"]
-	modDetected=False
-	
-	for modmention in modRoles:
-		if modmention in messageData:
-			modDetected=True
-
-	return modDetected
-
-@bot.event
-async def on_ready():
-	#files = [f for f in os.listdir('.') if os.path.isfile(f)] #unused
-	load_slurdetector()
-	print (sys.version)
-
-	print('We have logged in as {0.user}'.format(bot))
-	await bot.change_presence(activity=nextcord.Game('OwO observes you~~~'))
-
-@bot.command()
-async def offences(ctx):
-	offenceList=getOffenceList(ctx)
-	await ctx.send(str(offenceList))
-
-@bot.command()
-async def punishcheck(ctx):
-	embedVar = nextcord.Embed(
-		title="Moderator Ping", 
-			description="Please select an offence from the options below:", 
-			color=nextcord.Color.from_rgb(237,91,6))
-	embedVar.set_footer(text="Slur detection written by Hekkland and Melanie")
-	await ctx.send(embed=embedVar,components=[
-		[Button(label="Intentional Bigotry",style=4,custom_id="itentBig")]])
-
-@bot.command()
-async def ping(ctx):
-	await ctx.send(f'Pong! {round(bot.latency * 1000)}ms')
-	
 @bot.command()
 async def reload(ctx):
 	if isMod (ctx.author.roles):
@@ -128,6 +97,25 @@ async def reload(ctx):
 				color=nextcord.Color.from_rgb(237,91,6))
 		await channel.send(embed=embedVar)
 
+### PUNISHMENT GUIDELINES COMMANDS ###
+# not yet implemented fully
+
+@bot.command()
+async def offences(ctx):
+	offenceList=getOffenceList(ctx)
+	await ctx.send(str(offenceList))
+
+@bot.command()
+async def punishcheck(ctx):
+	embedVar = nextcord.Embed(
+		title="Moderator Ping", 
+			description="Please select an offence from the options below:", 
+			color=nextcord.Color.from_rgb(237,91,6))
+	embedVar.set_footer(text="Slur detection written by Hekkland and Melanie")
+	await ctx.send(embed=embedVar,components=[
+		[Button(label="Intentional Bigotry",style=4,custom_id="itentBig")]])
+
+### DEBUG AND MISC COMMANDS ###
 
 @bot.command()
 async def dmTest(ctx,userId=None,*,args=None):
@@ -162,6 +150,16 @@ async def dmTest(ctx,userId=None,*,args=None):
 	else:
 		await ctx.send("You do not have permission to use this command.")
 
+### BOT EVENTS ###
+
+@bot.event
+async def on_ready():
+	#files = [f for f in os.listdir('.') if os.path.isfile(f)] #unused
+	load_slurdetector()
+	print (sys.version)
+
+	print('We have logged in as {0.user}'.format(bot))
+	await bot.change_presence(activity=nextcord.Game('OwO observes you~~~'))
 
 @bot.event
 async def on_message(message):

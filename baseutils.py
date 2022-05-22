@@ -3,6 +3,16 @@
 
 import nextcord
 
+def checkForMods(messageData):
+	modRoles=["<@&856424878437040168>","<@&963537133589643304>","<@&875805670799179799>","<@&883255791610638366>","<@&977939552641613864>"]
+	modDetected=False
+	
+	for modmention in modRoles:
+		if modmention in messageData:
+			modDetected=True
+
+	return modDetected
+
 def isMod(userRoles):
 	modRolePresent=False
 	for role in userRoles:
