@@ -55,7 +55,7 @@ async def addgoodword(ctx, word):
 
 
 def checkForMods(messageData):
-	modRoles=["<@&856424878437040168>","<@&963537133589643304>","<@&875805670799179799>","<@&883255791610638366>"]
+	modRoles=["<@&856424878437040168>","<@&963537133589643304>","<@&875805670799179799>","<@&883255791610638366>","<@&977939552641613864>"]
 	modDetected=False
 	
 	for modmention in modRoles:
@@ -126,18 +126,19 @@ async def dmTest(ctx,userId=None,*,args=None):
 @bot.event
 async def on_message(message):
 	slur_heat = detectSlur(message.content)
-	
+    
 	if message.author == bot.user: #ignores message if message is by bot
 		return
-
+	
 	elif message.content == "<@839003324140355585>" or message.content == "<@977376749543387137>":
 		channel=message.channel
 		await channel.send("Hey there "
 			+str(message.author.mention)
 			+" I am Serversicherheit, or Sersi for short! My role is to help keep Adam Something Central a safe and enjoyable space.")
-
-
-
+	
+	#skips subsequent checks if message sent by moderator
+	elif isMod(message.author.roles): pass
+	
 	elif checkForMods(message.content): #checks moderator ping
 	
 		#reply to user
@@ -182,7 +183,7 @@ async def on_message(message):
 			color=nextcord.Color.from_rgb(237,91,6))
 		embedVar.set_footer(text="Slur detection written by Hekkland and Melanie")
 		await channel.send(embed=embedVar)
-
+		
 	await bot.process_commands(message)
 	
 token=discordTokens.getToken()
