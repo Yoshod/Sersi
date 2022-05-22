@@ -1,6 +1,6 @@
 """
 Sersi
-Version 1.0.0
+Version 1.0.0 Build 00040
 Hekkland, Melanie, Gombik
 """
 
