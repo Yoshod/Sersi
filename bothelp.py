@@ -27,6 +27,7 @@ async def get_help(ctx, command):
 		if command in docs.keys():
 			embedVar = nextcord.Embed(
 				title=f"Sersi help: {command}", description=docs[command], color=nextcord.Color.from_rgb(237,91,6))
+			embedVar.set_footer(text="Sersi help written by Gombik")
 			await ctx.send(embed=embedVar)
 		elif command is None:
 			embedVar = nextcord.Embed(
@@ -35,10 +36,12 @@ async def get_help(ctx, command):
 					 + str(", ".join(docs.keys()))
 					 + "`"
 					 , color=nextcord.Color.from_rgb(237,91,6))
+			embedVar.set_footer(text="Sersi help written by Gombik")
 			await ctx.send(embed=embedVar)
 		else:
 			embedVar = nextcord.Embed(
 				title=f"Sersi help: {command}", description="unknown command, use `s!help` to get list of commands", color=nextcord.Color.from_rgb(237,91,6))
+			embedVar.set_footer(text="Sersi help written by Gombik")
 			await ctx.send(embed=embedVar)
 	else:
 		await ctx.send("https://en.wikipedia.org/wiki/Nineteen_Eighty-Four")

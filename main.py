@@ -1,7 +1,7 @@
 """
 Sersi, the ASC moderation helper bot
 
-**Version:** `1.2.0 Development Build 00062`
+**Version:** `1.2.0 Development Build 00063`
 
 **Authors:** *Hekkland, Melanie, Gombik*
 """
@@ -102,6 +102,16 @@ async def addgoodword(ctx, word):
 async def removeslur(ctx, slur):
 	if isMod(ctx.author.roles):
 		rmSlur(ctx, slur)
+		embedVar = nextcord.Embed(
+			title="Slur Removed",
+			description="A slur has been removed from the filter.\n\n__Removed By:__\n"
+				+str(ctx.message.author.mention)
+				+" ("
+				+str(ctx.message.author.id)
+				+")\n\n__Slur Removed:__\n"
+				+str(slur),
+			color=nextcord.Color.from_rgb(237,91,6))
+		await channel.send(embed=embedVar)
 		await ctx.send(f"Slur {slur} is no longer in the list")
 	else:
 		await ctx.send(notModFail)
@@ -110,6 +120,15 @@ async def removeslur(ctx, slur):
 async def removegoodword(ctx, word):
 	if isMod(ctx.author.roles):
 		rmGoodword(ctx, word)
+		embedVar = nextcord.Embed(
+			title="Goodword Removed",
+			description="A goodword has been removed from the filter.\n\n__Removed By:__\n"
+				+str(ctx.message.author.mention)
+				+" ("
+				+str(ctx.message.author.id)
+				+")\n\n__Goodword Removed:__\n"
+				+str(slur),
+			color=nextcord.Color.from_rgb(237,91,6))
 		await ctx.send(f"Goodword {word} is no longer in the list")
 	else:
 		await ctx.send(notModFail)
