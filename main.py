@@ -1,9 +1,9 @@
 """
-Sersi, the ASC moderation helper bot
+Sersi
 
-**Version:** `1.2.0 Development Build 00060`
+Version 1.2.0 Development Build 00061
 
-**Authors:** *Hekkland, Melanie, Gombik*
+Hekkland, Melanie, Gombik
 """
 
 import nextcord
@@ -24,7 +24,7 @@ intents = nextcord.Intents.all()
 intents.members = True
 
 bot = commands.Bot(command_prefix="s!", intents=intents)
-notModFail=("Only moderators can use this command.")
+notModFail="Only moderators can use this command."
 
 ### GENERAL COMMANDS ###
 
@@ -55,13 +55,13 @@ async def addslur(ctx, slur):
 		channel = bot.get_channel(getLoggingChannel(ctx.message.guild.id))
 		embedVar = nextcord.Embed(
 			title="Slur Added",
-				description="A new slur has been added to the filter.\n\n__Added By:__\n"
+			description="A new slur has been added to the filter.\n\n__Added By:__\n"
 				+str(ctx.message.author.mention)
 				+" ("
 				+str(ctx.message.author.id)
 				+")\n\n__Slur Added:__\n"
 				+str(slur),
-				color=nextcord.Color.from_rgb(237,91,6))
+			color=nextcord.Color.from_rgb(237,91,6))
 		await channel.send(embed=embedVar)
 		await ctx.send("Slur added. Detection will start now.")
 	else:
@@ -81,13 +81,13 @@ async def addgoodword(ctx, word):
 		channel = bot.get_channel(getLoggingChannel(ctx.message.guild.id))
 		embedVar = nextcord.Embed(
 			title="Goodword Added",
-				description="A new goodword has been added to the filter.\n\n__Added By:__\n"
+			description="A new goodword has been added to the filter.\n\n__Added By:__\n"
 				+str(ctx.message.author.mention)
 				+" ("
 				+str(ctx.message.author.id)
 				+")\n\n__Goodword Added:__\n"
 				+str(word),
-				color=nextcord.Color.from_rgb(237,91,6))
+			color=nextcord.Color.from_rgb(237,91,6))
 		await channel.send(embed=embedVar)
 		await ctx.send("Goodword added. Detection will start now.")
 	else:
@@ -96,49 +96,18 @@ async def addgoodword(ctx, word):
 @bot.command()
 async def removeslur(ctx, slur):
 	if isMod(ctx.author.roles):
-		slurList=[]
-		slur=clearString(slur)
-		await ctx.send(f"Slur to be removed: {slur}")
-		with open("slurs.txt", "r+") as file:
-			for line in file:
-				slurList.append(line[:-1])
-			if slur in slurList:
-				detected=True
-				slurList.remove(slur)
-				file.truncate(0)
-				file.seek(0)
-				for x in range(len(slurList)):
-					file.write(slurList[x])
-					print(slurList[x])
-					file.write("\n")
-				await ctx.send("Slur removed. The bot will need to be restarted for this change to take effect.")
-			else:
-				await ctx.send(f"{slur} is not in the list of slurs.")
-		load_slurs()
+		rmSlur(ctx, slur)
+		await ctx.send(f"Slur {slur} is no longer in the list")
 	else:
-		await ctx.send(notModFail)							
+		await ctx.send(notModFail)
 
 @bot.command()
 async def removegoodword(ctx, word):
 	if isMod(ctx.author.roles):
-		goodwordList=[]
-		word=clearString(word)
-		await ctx.send(f"Goodword to be removed: {word}")
-		with open("goodword.txt", "r+") as file:
-			for line in file:
-				goodwordList.append(line[:-1])
-			if word in goodwordList:
-				detected=True
-				goodwordList.remove(word)
-				file.truncate(0)
-				file.seek(0)
-				for x in range(len(goodwordList)):
-					file.write(goodwordList[x])
-					file.write("\n")
-				await ctx.send("Goodword removed. The bot will need to be restarted for this change to take effect.")
-			else:
-				await ctx.send(f"{word} is not in the list of goodwords.")
-		load_goodwords()
+		rmGoodword(ctx, word)
+		await ctx.send(f"Goodword {word} is no longer in the list")
+	else:
+		await ctx.send(notModFail)
 
 @bot.command()
 async def listslurs(ctx, page=1):
@@ -321,9 +290,6 @@ async def on_message(message):
 		await channel.send("Hey there "
 			+str(message.author.mention)
 			+" I am Serversicherheit, or Sersi for short! My role is to help keep Adam Something Central a safe and enjoyable space.")
-	
-	#skips subsequent checks if message sent by moderator
-	elif isMod(message.author.roles): pass
 	
 	elif checkForMods(message.content): #checks moderator ping
 	
