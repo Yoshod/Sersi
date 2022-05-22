@@ -132,7 +132,7 @@ async def removegoodword(ctx, word):
 				await ctx.send("Goodword removed. The bot will need to be restarted for this change to take effect.")
 			else:
 				await ctx.send(f"{word} is not in the list of goodwords.")
-		load_slurs()
+		load_goodwords()
 
 @bot.command()
 async def listslurs(ctx, page=1):
