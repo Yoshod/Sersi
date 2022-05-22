@@ -1,6 +1,6 @@
 """
 Sersi
-Version 1.1.0 Build 00042
+Version 1.1.1 Build 00043
 Hekkland, Melanie, Gombik
 """
 
@@ -28,6 +28,10 @@ bot = commands.Bot(command_prefix="s!", intents=intents)
 async def addslur(ctx, slur):
 	if isMod(ctx.author.roles):
 		slur = clearString(slur)
+		if slur in slurs:
+			await ctx.send(f"{slur} is already on the list of slurs")
+			return
+		
 		await ctx.send(f"Slur to be added: {slur}")
 		with open("slurs.txt", "a") as file:
 			file.write(slur)
@@ -52,6 +56,10 @@ async def addslur(ctx, slur):
 async def addgoodword(ctx, word):
 	if isMod(ctx.author.roles):
 		word = clearString(word)
+		if word in goodword:
+			await ctx.send(f"{word} is already on the whitelist")
+			return
+		
 		await ctx.send(f"Goodword to be added: {word}")
 		with open("goodword.txt", "a") as file:
 			file.write(word)
@@ -71,7 +79,6 @@ async def addgoodword(ctx, word):
 				color=nextcord.Color.from_rgb(237,91,6))
 		await channel.send(embed=embedVar)
 		await ctx.send("Goodword added. Detection will start now.")
-
 
 def checkForMods(messageData):
 	modRoles=["<@&856424878437040168>","<@&963537133589643304>","<@&875805670799179799>","<@&883255791610638366>","<@&977939552641613864>"]
