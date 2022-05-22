@@ -1,6 +1,6 @@
 """
 Sersi
-Version 1.2.0 Development Build 00047
+Version 1.2.0 Development Build 00048
 Hekkland, Melanie, Gombik
 """
 
@@ -82,15 +82,28 @@ async def addgoodword(ctx, word):
 
 @bot.command()
 async def listslurs(ctx):
-	slurlist = []
+	wordlist = []
 	with open("slurs.txt", "r") as file:
 		for line in file:
-			slurlist.append(line[0:-1])
+			wordlist.append(line[0:-1])
 	embedVar = nextcord.Embed(
 		title="List of currently detected slurs",
-			description=str(sorted(slurlist)),
+			description=str(sorted(wordlist)),
 			color=nextcord.Color.from_rgb(237,91,6))
 	await ctx.send(embed=embedVar)
+	
+@bot.command()
+async def listgoodwords(ctx):
+	wordlist = []
+	with open("goodword.txt", "r") as file:
+		for line in file:
+			wordlist.append(line[0:-1])
+	embedVar = nextcord.Embed(
+		title="List of words currently whitelisted from slur detection",
+			description=str(sorted(wordlist)),
+			color=nextcord.Color.from_rgb(237,91,6))
+	await ctx.send(embed=embedVar)
+
 
 @bot.command()
 async def reload(ctx):
