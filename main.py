@@ -1,7 +1,7 @@
 """
 Sersi
 
-Version 1.3.0 Development Build 00057
+Version 1.3.0 Development Build 00058
 
 Hekkland, Melanie, Gombik
 """
@@ -96,7 +96,6 @@ async def removeslur(ctx, slur):
 		with open("slurs.txt", "r+") as file:
 			for line in file:
 				slurList.append(line[:-1])
-			print(slurList)
 			if slur in slurList:
 				detected=True
 				slurList.remove(slur)
@@ -111,7 +110,29 @@ async def removeslur(ctx, slur):
 				await ctx.send(f"{slur} is not in the list of slurs.")
 		load_slurs()
 			
-				
+
+@bot.command()
+async def removegoodword(ctx, word):
+	if isMod(ctx.author.roles):
+		goodwordList=[]
+		word=clearString(word)
+		await ctx.send(f"Goodword to be removed: {word}")
+		with open("goodword.txt", "r+") as file:
+			for line in file:
+				goodwordList.append(line[:-1])
+			if word in goodwordList:
+				detected=True
+				goodwordList.remove(word)
+				file.truncate(0)
+				file.seek(0)
+				for x in range(len(goodwordList)):
+					file.write(goodwordList[x])
+					file.write("\n")
+				await ctx.send("Goodword removed. The bot will need to be restarted for this change to take effect.")
+			else:
+				await ctx.send(f"{word} is not in the list of goodwords.")
+		load_slurs()
+
 
 @bot.command()
 async def listslurs(ctx, page=1):
