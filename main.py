@@ -1,6 +1,6 @@
 """
 Sersi
-Version 1.2.0 Development Build 00046
+Version 1.3.0 Development Build 00047
 Hekkland, Melanie, Gombik
 """
 
