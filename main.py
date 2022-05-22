@@ -1,6 +1,6 @@
 """
 Sersi
-Version 1.2.0 Development Build 00048
+Version 1.2.0 Development Build 00049
 Hekkland, Melanie, Gombik
 """
 
@@ -79,6 +79,26 @@ async def addgoodword(ctx, word):
 				color=nextcord.Color.from_rgb(237,91,6))
 		await channel.send(embed=embedVar)
 		await ctx.send("Goodword added. Detection will start now.")
+
+@bot.command()
+async def removeslur(ctx, slur):
+	if isMod(ctx.author.roles):
+		slurList=[]
+		slur=clearString(slur)
+		await ctx.send(f"Slur to be removed: {slur}")
+		with open("slurs.txt", "r+w") as file:
+			for line in file:
+				slurList.append(line[0:-1])
+			if slur in slurList:
+				del slurList(slur)
+				for line in file:
+					file.write(slurList[line])
+					file.write("\n")
+				load_slurs()
+				await ctx.send("Slur removed. The word will no longer be detected.")
+			else:
+				ctx.send(f"{slur} is not in the list of slurs.")
+				
 
 @bot.command()
 async def listslurs(ctx):
