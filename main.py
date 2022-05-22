@@ -18,7 +18,7 @@ from slurdetector import *
 intents = discord.Intents.all()
 intents.members = True
 
-bot = commands.Bot(command_prefix="mb!", intents=intents)
+bot = commands.Bot(command_prefix="s!", intents=intents)
 
 #I wish I could move this to slurdetector.py, but the @bot.command() won't work there --Melanie
 @bot.command()
