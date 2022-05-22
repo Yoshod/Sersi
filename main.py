@@ -1,6 +1,6 @@
 """
 Sersi
-Version 1.2.0 Development Build 00052
+Version 1.2.0 Development Build 00053
 Hekkland, Melanie, Gombik
 """
 
@@ -97,7 +97,7 @@ async def removeslur(ctx, slur):
 				load_slurs()
 				await ctx.send("Slur removed. The word will no longer be detected.")
 			else:
-				ctx.send(f"{slur} is not in the list of slurs.")
+				await ctx.send(f"{slur} is not in the list of slurs.")
 				
 
 @bot.command()
