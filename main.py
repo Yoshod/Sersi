@@ -1,6 +1,6 @@
 """
 Sersi
-Version 1.2.0 Build 00043
+Version 1.2.0 Build 00044
 Hekkland, Melanie, Gombik
 """
 
@@ -113,7 +113,9 @@ async def ping(ctx):
 	
 @bot.command()
 async def reload(ctx):
-
+	if isMod (ctx.author.roles):
+		load_goodwords()
+		load_slurs()
 
 @bot.command()
 async def dmTest(ctx,userId=None,*,args=None):
