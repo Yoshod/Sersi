@@ -1,6 +1,6 @@
 """
 Sersi
-Version 1.1.0 Build 00042
+Version 1.2.0 Build 00043
 Hekkland, Melanie, Gombik
 """
 
@@ -111,6 +111,9 @@ async def punishcheck(ctx):
 async def ping(ctx):
 	await ctx.send(f'Pong! {round(bot.latency * 1000)}ms')
 	
+@bot.command()
+async def reload(ctx):
+
 
 @bot.command()
 async def dmTest(ctx,userId=None,*,args=None):
