@@ -27,11 +27,18 @@ def leet(word):
 	#print(possibles)
 	return [''.join(permutations) for permutations in product(*possibles)]
 
-def load():
+def load_slurdetector():
+	load_slurs()
+	load_goodwords()
+	
+
+def load_slurs():
 	with open("slurs.txt", "r") as file:
 		for line in file:
 			line = line.replace('\n', '')
 			slurs.extend(leet(line))
+
+def load_goodwords():
 	with open("goodword.txt", "r") as file:
 		for line in file:
 			line = line.replace('\n', '')

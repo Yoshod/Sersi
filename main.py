@@ -29,7 +29,8 @@ async def addslur(ctx, slur):
 		with open("slurs.txt", "a") as file:
 			file.write(slur)
 			file.write("\n")
-		await ctx.send("Slur added. Detection will start after the bot has been restarted.")
+		load_slurs()	#reloads updated list into memory
+		await ctx.send("Slur added. Detection will start now.")
 
 @bot.command()
 async def addgoodword(ctx, word):
@@ -39,7 +40,8 @@ async def addgoodword(ctx, word):
 		with open("goodword.txt", "a") as file:
 			file.write(word)
 			file.write("\n")
-		await ctx.send("Goodword added. Detection will start after the bot has been restarted.")
+		load_goodwords()	#reloads updated list into memory
+		await ctx.send("Goodword added. Detection will start now.")
 
 
 def checkForMods(messageData):
@@ -54,8 +56,8 @@ def checkForMods(messageData):
 
 @bot.event
 async def on_ready():
-	files = [f for f in os.listdir('.') if os.path.isfile(f)]
-	load()
+	#files = [f for f in os.listdir('.') if os.path.isfile(f)] #unused
+	load_slurdetector()
 
 	print('We have logged in as {0.user}'.format(bot))
 	await bot.change_presence(activity=discord.Game('OwO observes you~~~'))
