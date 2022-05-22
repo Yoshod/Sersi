@@ -1,6 +1,6 @@
 """
 Sersi
-Version 1.2.0 Development Build 00049
+Version 1.2.0 Development Build 00050
 Hekkland, Melanie, Gombik
 """
 
@@ -90,7 +90,7 @@ async def removeslur(ctx, slur):
 			for line in file:
 				slurList.append(line[0:-1])
 			if slur in slurList:
-				del slurList(slur)
+				slurList.remove(slur)
 				for line in file:
 					file.write(slurList[line])
 					file.write("\n")
