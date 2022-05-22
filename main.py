@@ -1,9 +1,9 @@
 """
-Sersi
+Sersi, the ASC moderation helper bot
 
-Version 1.2.0 Development Build 00059
+**Version:** `1.2.0 Development Build 00060`
 
-Hekkland, Melanie, Gombik
+**Authors:** *Hekkland, Melanie, Gombik*
 """
 
 import nextcord
@@ -31,6 +31,12 @@ notModFail=("Only moderators can use this command.")
 @bot.command()
 async def ping(ctx):
 	await ctx.send(f'Pong! {round(bot.latency * 1000)}ms')
+
+@bot.command()
+async def about(ctx):
+	embedVar = nextcord.Embed(
+		title="About Sersi", description=__doc__, color=nextcord.Color.from_rgb(237,91,6))
+	await ctx.send(embed=embedVar)
 
 ### MESSAGE FILTER COMMANDS ###
 
