@@ -88,19 +88,22 @@ async def removeslur(ctx, slur):
 		await ctx.send(f"Slur to be removed: {slur}")
 		with open("slurs.txt", "r+") as file:
 			for line in file:
-				slurList.append(line[0:-1])
+				slurList.append(line[:-1])
+			print(slurList)
 			if slur in slurList:
+				detected=True
 				slurList.remove(slur)
 				file.truncate(0)
+				file.seek(0)
 				for x in range(len(slurList)):
 					file.write(slurList[x])
 					print(slurList[x])
 					file.write("\n")
-				load_slurs()
 				await ctx.send("Slur removed. The word will no longer be detected.")
-				print(slurList)
 			else:
 				await ctx.send(f"{slur} is not in the list of slurs.")
+		load_slurs()
+			
 				
 
 @bot.command()
@@ -195,7 +198,8 @@ async def reload(ctx):
 				description="The list of slurs and goodwords in memory has been reloaded.\n\n__Reloaded By:__\n"
 				+str(ctx.message.author.mention)
 				+" ("
-				+str(ctx.message.author.id),
+				+str(ctx.message.author.id)
+				+")",
 				color=nextcord.Color.from_rgb(237,91,6))
 		await channel.send(embed=embedVar)
 
