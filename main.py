@@ -1,4 +1,4 @@
-#Mod Buddy
+#Sersi
 #Version 0.1.2
 #Written by Hekkland and Melanie
 
