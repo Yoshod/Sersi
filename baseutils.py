@@ -22,8 +22,14 @@ def isMod(userRoles):
 			modRolePresent=True
 		elif "977394150494326855" == str(role.id):	#proving ground role "certified bot tester"
 			modRolePresent=True
-	#print(modRolePresent)
 	return (modRolePresent)
+
+def isDarkMod(userRoles):
+	darkModPresent=False
+	for role in userRoles:
+		if "875805670799179799" == str(role.id):
+			darkModPresent=True
+	return (darkModPresent)
 
 def getAlertChannel(guild_id):
 	if guild_id == 856262303795380224:		#asc
