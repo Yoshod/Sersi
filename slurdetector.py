@@ -61,7 +61,6 @@ def load_slurs():
 	with open("slurs.txt", "r") as file:
 		for line in file:
 			line = line.replace('\n', '')
-			print(line)
 			slurs.extend(leet(line))
 
 def load_goodwords():
