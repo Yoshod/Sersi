@@ -49,6 +49,18 @@ def getFalsePositivesChannel(guild_id):
 	elif guild_id == 977377117895536640:	#the proving grounds
 		return 978079399066882059			#logging
 
+def getReformationRole(guild_id):
+	if guild_id == 856262303795380224:
+		return 878289857527562310
+	elif guild_id == 977377117895536640:
+		return 978334782968721468
+	
+def getModlogsChannel(guild_id):
+	if guild_id == 856262303795380224:
+		return 903367950554259466
+	elif guild_id == 977377117895536640:
+		return 978346814904336484
+
 def load_authors():
 	authors=[]
 	with open("authors.txt", "r") as file:
