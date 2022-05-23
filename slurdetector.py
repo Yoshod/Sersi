@@ -57,7 +57,6 @@ def rmGoodword(ctx, word):
 				fp.write(line)
 
 def load_slurs():
-	print("Load Slurs running")
 	with open("slurs.txt", "r") as file:
 		for line in file:
 			line = line.replace('\n', '')
