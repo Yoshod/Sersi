@@ -1,7 +1,7 @@
 """
 Sersi, the ASC moderation helper bot
 
-**Version:** `2.0.0 Development Build 00091`
+**Version:** `2.0.0 Development Build 00095`
 
 **Authors:** *Hekkland, Melanie, Gombik*
 """
@@ -234,7 +234,7 @@ async def on_message(message):
 			+str(message.author.mention)
 			+" I am Serversicherheit, or Sersi for short! My role is to help keep Adam Something Central a safe and enjoyable space.")
 	
-	elif checkForMods(message.content): #checks moderator ping
+	"""elif checkForMods(message.content): #checks moderator ping
 	
 		#reply to user
 		embedVar = nextcord.Embed(
@@ -274,7 +274,7 @@ async def on_message(message):
 		button_view.add_item(action_not_neccesary)
 		button_view.add_item(bad_faith_ping)
 
-		await channel.send(embed=embedVar, view=button_view)
+		await channel.send(embed=embedVar, view=button_view)"""
 		
 	await bot.process_commands(message)
 	
