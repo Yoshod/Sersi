@@ -38,7 +38,7 @@ def isSersiContrib(userRoles):
 			sersiContrib=True
 		elif "977394150494326855" == str(role.id):
 			sersiContrib=True
-		return sersiContrib
+	return sersiContrib
 
 def getAlertChannel(guild_id):
 	if guild_id == 856262303795380224:		#asc
