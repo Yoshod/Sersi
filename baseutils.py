@@ -31,6 +31,15 @@ def isDarkMod(userRoles):
 			darkModPresent=True
 	return (darkModPresent)
 
+def isSersiContrib(userRoles):
+	sersiContrib=False
+	for role in userRoles:
+		if "977602747786493972" == str(role.id):
+			sersiContrib=True
+	elif "977394150494326855" == str(role.id):
+			sersiContrib=True
+	return sersiContrib
+
 def getAlertChannel(guild_id):
 	if guild_id == 856262303795380224:		#asc
 		return 897874682198511648			#information-centre

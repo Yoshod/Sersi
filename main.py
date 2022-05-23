@@ -22,19 +22,22 @@ notModFail="Only moderators can use this command."
 
 @bot.command()
 async def load(ctx, extension):
-	bot.load_extension(f"cogs.{extension}")
-	await ctx.reply(f"Cog {extension} loaded.")
+	if isSersiContrib(ctx.author.roles):
+		bot.load_extension(f"cogs.{extension}")
+		await ctx.reply(f"Cog {extension} loaded.")
 
 @bot.command()
 async def unload(ctx, extension):
-	bot.unload_extension(f"cogs.{extension}")
-	await ctx.reply(f"Cog {extension} unloaded.")
+	if isSersiContrib(ctx.author.roles):
+		bot.unload_extension(f"cogs.{extension}")
+		await ctx.reply(f"Cog {extension} unloaded.")
 
 @bot.command()
 async def reload(ctx, extension):
-	bot.unload_extension(f"cogs.{extension}")
-	bot.load_extension(f"cogs.{extension}")
-	await ctx.reply(f"Cog {extension} reloaded.")
+	if isSersiContrib(ctx.author.roles):
+		bot.unload_extension(f"cogs.{extension}")
+		bot.load_extension(f"cogs.{extension}")
+		await ctx.reply(f"Cog {extension} reloaded.")
 
 ### GENERAL COMMANDS ###
 
