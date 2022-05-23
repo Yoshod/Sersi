@@ -1,7 +1,7 @@
 """
 Sersi, the ASC moderation helper bot
 
-**Version:** `1.2.0 Development Build (RC) 00080`
+**Version:** `1.2.0 Development Build (RC) 00081`
 
 **Authors:** *Hekkland, Melanie, Gombik*
 """
@@ -322,7 +322,6 @@ async def cb_action_taken(interaction):
 	new_embed.colour=nextcord.Colour.brand_green()
 	await interaction.message.edit(embed=new_embed, view=None)
 	#Logging
-	"""
 	channel = bot.get_channel(getLoggingChannel(interaction.guild.id))
 	embedLogVar = nextcord.Embed(
 		title="Action Taken Pressed", 
@@ -333,14 +332,20 @@ async def cb_action_taken(interaction):
 		color=nextcord.Color.from_rgb(237,91,6))
 	await channel.send(embed=embedLogVar)
 
-	Idk, for some damn reason this makes Action Taken By appear twice and it's rather frustrating.
-	Maybe I'll return to this, so I'm going to comment this out instead of deleting it.
-	"""
-
 async def cb_acceptable_use(interaction):
 	new_embed = interaction.message.embeds[0]
 	new_embed.add_field(name="Usage Deemed Acceptable By", value=interaction.user.mention, inline=True)
 	await interaction.message.edit(embed=new_embed, view=None)
+	#Logging
+	channel = bot.get_channel(getLoggingChannel(interaction.guild.id))
+	embedLogVar = nextcord.Embed(
+		title="Acceptable Use Pressed", 
+		description="Usage of a slur has been deemed acceptable by a moderator in response to a report.\n\n__Report:__\n"
+		+str(interaction.message.jump_url)
+		+"\n\n__Moderator:__\n"
+		+str(interaction.user.mention), 
+		color=nextcord.Color.from_rgb(237,91,6))
+	await channel.send(embed=embedLogVar)
 
 async def cb_false_positive(interaction):
 	new_embed = interaction.message.embeds[0]
@@ -348,18 +353,48 @@ async def cb_false_positive(interaction):
 	await interaction.message.edit(embed=new_embed, view=None)
 	channel = bot.get_channel(getFalsePositivesChannel(interaction.guild_id))
 	await channel.send((interaction.message.embeds[0].description.split('\n'))[9])
+	#Logging
+	channel = bot.get_channel(getLoggingChannel(interaction.guild.id))
+	embedLogVar = nextcord.Embed(
+		title="False Positive Pressed", 
+		description="Detected slur has been deemed a false positive by a moderator in response to a report.\n\n__Report:__\n"
+		+str(interaction.message.jump_url)
+		+"\n\n__Moderator:__\n"
+		+str(interaction.user.mention), 
+		color=nextcord.Color.from_rgb(237,91,6))
+	await channel.send(embed=embedLogVar)
 
 async def cb_action_not_neccesary(interaction):
 	new_embed = interaction.message.embeds[0]
 	new_embed.add_field(name="Action Not Neccesary", value=interaction.user.mention, inline=True)
 	new_embed.colour=nextcord.Colour.light_grey()
 	await interaction.message.edit(embed=new_embed, view=None)
+	#Logging
+	channel = bot.get_channel(getLoggingChannel(interaction.guild.id))
+	embedLogVar = nextcord.Embed(
+		title="Action Not Necessary Pressed", 
+		description="A Moderator has deemed that no action is needed in response to a report.\n\n__Report:__\n"
+		+str(interaction.message.jump_url)
+		+"\n\n__Moderator:__\n"
+		+str(interaction.user.mention), 
+		color=nextcord.Color.from_rgb(237,91,6))
+	await channel.send(embed=embedLogVar)
 
 async def cb_bad_faith_ping(interaction):
 	new_embed = interaction.message.embeds[0]
 	new_embed.add_field(name="Bad Faith Ping", value=interaction.user.mention, inline=True)
 	new_embed.colour=nextcord.Colour.brand_green()
 	await interaction.message.edit(embed=new_embed, view=None)
+	#Logging
+	channel = bot.get_channel(getLoggingChannel(interaction.guild.id))
+	embedLogVar = nextcord.Embed(
+		title="Bad Faith Ping Pressed", 
+		description="A moderation ping has been deemed bad faith by a moderator in response to a report.\n\n__Report:__\n"
+		+str(interaction.message.jump_url)
+		+"\n\n__Moderator:__\n"
+		+str(interaction.user.mention), 
+		color=nextcord.Color.from_rgb(237,91,6))
+	await channel.send(embed=embedLogVar)
 
 @bot.event
 async def on_message(message):
