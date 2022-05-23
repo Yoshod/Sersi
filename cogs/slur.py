@@ -51,7 +51,7 @@ class Slur(commands.Cog):
         new_embed.add_field(name="Deemed As False Positive By", value=interaction.user.mention, inline=True)
         new_embed.colour=nextcord.Colour.brand_red()
         await interaction.message.edit(embed=new_embed, view=None)
-        channel = bot.get_channel(getFalsePositivesChannel(interaction.guild_id))
+        channel = self.bot.get_channel(getFalsePositivesChannel(interaction.guild_id))
         await channel.send((interaction.message.embeds[0].description.split('\n'))[9])
         #Logging
         channel = self.bot.get_channel(getLoggingChannel(interaction.guild.id))
@@ -112,7 +112,7 @@ class Slur(commands.Cog):
             load_slurs()    #reloads updated list into memory
             
             #logging
-            channel = bot.get_channel(getLoggingChannel(ctx.message.guild.id))
+            channel = self.bot.get_channel(getLoggingChannel(ctx.message.guild.id))
             embedVar = nextcord.Embed(
                 title="Slur Added",
                 description="A new slur has been added to the filter.\n\n__Added By:__\n"
@@ -143,7 +143,7 @@ class Slur(commands.Cog):
             load_goodwords()    #reloads updated list into memory
 
             #logging
-            channel = bot.get_channel(getLoggingChannel(ctx.message.guild.id))
+            channel = self.bot.get_channel(getLoggingChannel(ctx.message.guild.id))
             embedVar = nextcord.Embed(
                 title="Goodword Added",
                 description="A new goodword has been added to the filter.\n\n__Added By:__\n"
@@ -165,7 +165,7 @@ class Slur(commands.Cog):
             rmSlur(ctx, slur)
             
             #logging
-            channel = bot.get_channel(getLoggingChannel(ctx.message.guild.id))
+            channel = self.bot.get_channel(getLoggingChannel(ctx.message.guild.id))
             embedVar = nextcord.Embed(
                 title="Slur Removed",
                 description="A slur has been removed from the filter.\n\n__Removed By:__\n"
@@ -187,7 +187,7 @@ class Slur(commands.Cog):
             rmGoodword(ctx, word)
             
             #logging
-            channel = bot.get_channel(getLoggingChannel(ctx.message.guild.id))
+            channel = self.bot.get_channel(getLoggingChannel(ctx.message.guild.id))
             embedVar = nextcord.Embed(
                 title="Goodword Removed",
                 description="A goodword has been removed from the filter.\n\n__Removed By:__\n"
@@ -298,7 +298,7 @@ class Slur(commands.Cog):
             load_slurs()
 
             #Logging
-            channel = bot.get_channel(getLoggingChannel(ctx.message.guild.id))
+            channel = self.bot.get_channel(getLoggingChannel(ctx.message.guild.id))
             embedVar = nextcord.Embed(
                 title="Slurs and Goodwords Reloaded",
                     description="The list of slurs and goodwords in memory has been reloaded.\n\n__Reloaded By:__\n"
