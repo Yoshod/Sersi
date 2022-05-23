@@ -306,6 +306,7 @@ async def on_ready():
 async def cb_action_taken(interaction):
 	new_embed = interaction.message.embeds[0]
 	new_embed.add_field(name="Action Taken By", value=interaction.user.mention, inline=True)
+	new_embed.colour=nextcord.Colour.brand_green()
 	await interaction.message.edit(embed=new_embed, view=None)
 
 async def cb_acceptable_use(interaction):
@@ -323,11 +324,13 @@ async def cb_false_positive(interaction):
 async def cb_action_not_neccesary(interaction):
 	new_embed = interaction.message.embeds[0]
 	new_embed.add_field(name="Action Not Neccesary", value=interaction.user.mention, inline=True)
+	new_embed.colour=nextcord.Colour.light_grey()
 	await interaction.message.edit(embed=new_embed, view=None)
 
 async def cb_bad_faith_ping(interaction):
 	new_embed = interaction.message.embeds[0]
 	new_embed.add_field(name="Bad Faith Ping", value=interaction.user.mention, inline=True)
+	new_embed.colour=nextcord.Colour.brand_green()
 	await interaction.message.edit(embed=new_embed, view=None)
 
 @bot.event
