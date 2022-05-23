@@ -1,12 +1,13 @@
 """
-Sersi, the ASC moderation helper bot
+Sersi
 
-**Version:** `1.2.0 Development Build 00062`
+Version 1.2.0 Development Build 00063
 
-**Authors:** *Hekkland, Melanie, Gombik*
+Hekkland, Melanie, Gombik
 """
 
 import nextcord
+from nextcord.ui import Button, View
 import os
 import random
 import discordTokens
@@ -17,31 +18,26 @@ from nextcord import DMChannel
 from nextcord.ext import commands
 from baseutils import *
 from offence import getOffenceList
-from bothelp import get_help
 
 from slurdetector import *
 
 intents = nextcord.Intents.all()
 intents.members = True
 
-bot = commands.Bot(command_prefix="s!", intents=intents, help_command=None)
+bot = commands.Bot(command_prefix="s!", intents=intents)
 notModFail="Only moderators can use this command."
 
 ### GENERAL COMMANDS ###
+
+@bot.command()
+async def ping(ctx):
+	await ctx.send(f'Pong! {round(bot.latency * 1000)}ms')
 
 @bot.command()
 async def about(ctx):
 	embedVar = nextcord.Embed(
 		title="About Sersi", description=__doc__, color=nextcord.Color.from_rgb(237,91,6))
 	await ctx.send(embed=embedVar)
-
-@bot.command()
-async def help(ctx, command=None):
-	await get_help(ctx, command)
-
-@bot.command()
-async def ping(ctx):
-	await ctx.send(f'Pong! {round(bot.latency * 1000)}ms')
 
 ### MESSAGE FILTER COMMANDS ###
 
@@ -283,6 +279,33 @@ async def on_ready():
 	print('We have logged in as {0.user}'.format(bot))
 	await bot.change_presence(activity=nextcord.Game('OwO observes you~~~'))
 
+async def cb_action_taken(interaction):
+	new_embed = interaction.message.embeds[0]
+	new_embed.add_field(name="Action Taken By", value=interaction.user.mention, inline=True)
+	await interaction.message.edit(embed=new_embed, view=None)
+
+async def cb_acceptable_use(interaction):
+	new_embed = interaction.message.embeds[0]
+	new_embed.add_field(name="Usage Deemed Acceptable By", value=interaction.user.mention, inline=True)
+	await interaction.message.edit(embed=new_embed, view=None)
+
+async def cb_false_positive(interaction):
+	new_embed = interaction.message.embeds[0]
+	new_embed.add_field(name="Deemed As False Positive By", value=interaction.user.mention, inline=True)
+	await interaction.message.edit(embed=new_embed, view=None)
+	channel = bot.get_channel(getFalsePositivesChannel(interaction.guild_id))
+	await channel.send((interaction.message.embeds[0].description.split('\n'))[9])
+
+async def cb_action_not_neccesary(interaction):
+	new_embed = interaction.message.embeds[0]
+	new_embed.add_field(name="Action Not Neccesary", value=interaction.user.mention, inline=True)
+	await interaction.message.edit(embed=new_embed, view=None)
+
+async def cb_bad_faith_ping(interaction):
+	new_embed = interaction.message.embeds[0]
+	new_embed.add_field(name="Bad Faith Ping", value=interaction.user.mention, inline=True)
+	await interaction.message.edit(embed=new_embed, view=None)
+
 @bot.event
 async def on_message(message):
 	slur_heat = detectSlur(message.content)
@@ -321,7 +344,22 @@ async def on_message(message):
 				+str(message.jump_url), 
 			color=nextcord.Color.from_rgb(237,91,6))
 		embedVar.set_footer(text="Ping detection written by Hekkland and Melanie")
-		await channel.send(embed=embedVar)
+		
+		action_taken = Button(label="Action Taken")
+		action_taken.callback = cb_action_taken
+		
+		action_not_neccesary = Button(label="Action Not Neccesary")
+		action_not_neccesary.callback = cb_action_not_neccesary
+
+		bad_faith_ping = Button(label="Bad Faith Ping")
+		bad_faith_ping.callback = cb_bad_faith_ping
+
+		button_view = View()
+		button_view.add_item(action_taken)
+		button_view.add_item(action_not_neccesary)
+		button_view.add_item(bad_faith_ping)
+
+		await channel.send(embed=embedVar, view=button_view)
 	
 	elif len(slur_heat) > 0: #checks slur heat
 		channel = bot.get_channel(getAlertChannel(message.guild.id))
@@ -339,7 +377,22 @@ async def on_message(message):
 				+str(message.jump_url), 
 			color=nextcord.Color.from_rgb(237,91,6))
 		embedVar.set_footer(text="Slur detection written by Hekkland and Melanie")
-		await channel.send(embed=embedVar)
+
+		action_taken = Button(label="Action Taken")
+		action_taken.callback = cb_action_taken
+		
+		acceptable_use = Button(label="Acceptable Use")
+		acceptable_use.callback = cb_acceptable_use
+
+		false_positive = Button(label="False Positive")
+		false_positive.callback = cb_false_positive
+
+		button_view = View()
+		button_view.add_item(action_taken)
+		button_view.add_item(acceptable_use)
+		button_view.add_item(false_positive)
+
+		await channel.send(embed=embedVar, view=button_view)
 		
 	await bot.process_commands(message)
 	
