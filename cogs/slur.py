@@ -336,7 +336,7 @@ class Slur(commands.Cog):
                     +"\n\n__URL:__\n"
                     +str(message.jump_url), 
                 color=nextcord.Color.from_rgb(237,91,6))
-            embedVar.set_footer(text="Slur detection written by Hekkland and Melanie")
+            embedVar.set_footer(text="Sersi Slur Detection Alert")
 
             action_taken = Button(label="Action Taken")
             action_taken.callback = self.cb_action_taken

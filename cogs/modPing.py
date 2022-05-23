@@ -70,7 +70,7 @@ class ModPing(commands.Cog):
 				title="Moderator Ping Acknowledgment", 
 				description=(message.author.mention)+" moderators have been notified of your ping and will investigate when able to do so.", 
 				color=nextcord.Color.from_rgb(237,91,6))
-			embedVar.set_footer(text="Ping detection written by Hekkland and Melanie")
+			embedVar.set_footer(text="Sersi Ping Detection Alert")
 			await message.channel.send(embed=embedVar)
 		
 			#notification for mods
@@ -87,7 +87,7 @@ class ModPing(commands.Cog):
 					+"\n\n__URL:__\n"
 					+str(message.jump_url), 
 				color=nextcord.Color.from_rgb(237,91,6))
-			embedVar.set_footer(text="Ping detection written by Hekkland and Melanie")
+			embedVar.set_footer(text="Sersi Ping Detection Alert")
 			
 			action_taken = Button(label="Action Taken")
 			action_taken.callback = self.cb_action_taken
