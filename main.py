@@ -1,7 +1,7 @@
 """
 Sersi, the ASC moderation helper bot
 
-**Version:** `1.2.0 Development Build 00066`
+**Version:** `1.2.0 Development Build 00078`
 
 **Authors:** *Hekkland, Melanie, Gombik*
 """
@@ -282,6 +282,19 @@ async def dmTest(ctx,userId=None,*,args=None):
 			except:
 				await ctx.send("The message failed to send. Reason: Could not DM user.")
 
+			#Logging
+			channel = bot.get_channel(getLoggingChannel(ctx.message.guild.id))
+			embedVar = nextcord.Embed(
+				title="DM Sent", 
+				description="A DM has been sent.\n\n__Sender:__\n"
+					+str(ctx.author.mention)
+					+"\n\n__Recipient:__\n"
+					+str(userId)
+					+"\n\n__Message Content:__\n"
+					+str(args), 
+				color=nextcord.Color.from_rgb(237,91,6))
+			await channel.send(embed=embedVar)
+
 		elif userId == None and args != None:
 			await ctx.send("No user was specified.")
 
@@ -392,7 +405,7 @@ async def on_message(message):
 		channel = bot.get_channel(getAlertChannel(message.guild.id))
 		embedVar = nextcord.Embed(
 			title="Slur(s) Detected", 
-			description="A slur has been detected. Moderation action is advised\n\n__Channel:__\n"
+			description="A slur has been detected. Moderation action is advised.\n\n__Channel:__\n"
 				+str(message.channel.mention)
 				+"\n\n__User:__\n"
 				+str(message.author.mention)
