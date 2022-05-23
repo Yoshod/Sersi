@@ -103,6 +103,9 @@ async def addgoodword(ctx, word):
 async def removeslur(ctx, slur):
 	if isMod(ctx.author.roles):
 		rmSlur(ctx, slur)
+		
+		#logging
+		channel = bot.get_channel(getLoggingChannel(ctx.message.guild.id))
 		embedVar = nextcord.Embed(
 			title="Slur Removed",
 			description="A slur has been removed from the filter.\n\n__Removed By:__\n"
@@ -121,6 +124,9 @@ async def removeslur(ctx, slur):
 async def removegoodword(ctx, word):
 	if isMod(ctx.author.roles):
 		rmGoodword(ctx, word)
+		
+		#logging
+		channel = bot.get_channel(getLoggingChannel(ctx.message.guild.id))
 		embedVar = nextcord.Embed(
 			title="Goodword Removed",
 			description="A goodword has been removed from the filter.\n\n__Removed By:__\n"
@@ -128,8 +134,9 @@ async def removegoodword(ctx, word):
 				+" ("
 				+str(ctx.message.author.id)
 				+")\n\n__Goodword Removed:__\n"
-				+str(slur),
+				+str(word),
 			color=nextcord.Color.from_rgb(237,91,6))
+		await channel.send(embed=embedVar)
 		await ctx.send(f"Goodword {word} is no longer in the list")
 	else:
 		await ctx.send(notModFail)
