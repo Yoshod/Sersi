@@ -48,3 +48,11 @@ def getFalsePositivesChannel(guild_id):
 		return 978078399635550269			#sersi-logs
 	elif guild_id == 977377117895536640:	#the proving grounds
 		return 978079399066882059			#logging
+
+def load_authors():
+	authors=[]
+	with open("authors.txt", "r") as file:
+		for line in file:
+			line = line.replace('\n', '')
+			authors.append(line)
+	return authors

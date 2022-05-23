@@ -1,11 +1,3 @@
-"""
-Sersi, the ASC moderation helper bot
-
-**Version:** `2.0.0 Development Build 00095`
-
-**Authors:** *Hekkland, Melanie, Gombik*
-"""
-
 import nextcord
 from nextcord.ui import Button, View
 import os
@@ -38,14 +30,13 @@ async def unload(ctx, extension):
 	bot.unload_extension(f"cogs.{extension}")
 	await ctx.reply(f"Cog {extension} unloaded.")
 
-### GENERAL COMMANDS ###
-
 @bot.command()
-async def about(ctx):
-	"""shows basic information about the bot"""
-	embedVar = nextcord.Embed(
-		title="About Sersi", description=__doc__, color=nextcord.Color.from_rgb(237,91,6))
-	await ctx.send(embed=embedVar)
+async def reload(ctx, extension):
+	bot.unload_extension(f"cogs.{extension}")
+	bot.load_extension(f"cogs.{extension}")
+	await ctx.reply(f"Cog {extension} reloaded.")
+
+### GENERAL COMMANDS ###
 
 @bot.command()
 async def hilfe(ctx, command=None):
@@ -139,88 +130,6 @@ async def on_ready():
 	print('We have logged in as {0.user}'.format(bot))
 	await bot.change_presence(activity=nextcord.Game('OwO observes you~~~'))
 
-async def cb_action_taken(interaction):
-	new_embed = interaction.message.embeds[0]
-	new_embed.add_field(name="Action Taken By", value=interaction.user.mention, inline=True)
-	new_embed.colour=nextcord.Colour.brand_green()
-	await interaction.message.edit(embed=new_embed, view=None)
-	#Logging
-	channel = bot.get_channel(getLoggingChannel(interaction.guild.id))
-	embedLogVar = nextcord.Embed(
-		title="Action Taken Pressed", 
-		description="Action has been taken by a moderator in response to a report.\n\n__Report:__\n"
-		+str(interaction.message.jump_url)
-		+"\n\n__Moderator:__\n"
-		+f"{interaction.user.mention} ({interaction.user.id})",
-		color=nextcord.Color.from_rgb(237,91,6))
-	await channel.send(embed=embedLogVar)
-
-async def cb_acceptable_use(interaction):
-	new_embed = interaction.message.embeds[0]
-	new_embed.add_field(name="Usage Deemed Acceptable By", value=interaction.user.mention, inline=True)
-	new_embed.colour=nextcord.Colour.light_grey()
-	await interaction.message.edit(embed=new_embed, view=None)
-	#Logging
-	channel = bot.get_channel(getLoggingChannel(interaction.guild.id))
-	embedLogVar = nextcord.Embed(
-		title="Acceptable Use Pressed", 
-		description="Usage of a slur has been deemed acceptable by a moderator in response to a report.\n\n__Report:__\n"
-		+str(interaction.message.jump_url)
-		+"\n\n__Moderator:__\n"
-		+f"{interaction.user.mention} ({interaction.user.id})",
-		color=nextcord.Color.from_rgb(237,91,6))
-	await channel.send(embed=embedLogVar)
-
-async def cb_false_positive(interaction):
-	new_embed = interaction.message.embeds[0]
-	new_embed.add_field(name="Deemed As False Positive By", value=interaction.user.mention, inline=True)
-	new_embed.colour=nextcord.Colour.brand_red()
-	await interaction.message.edit(embed=new_embed, view=None)
-	channel = bot.get_channel(getFalsePositivesChannel(interaction.guild_id))
-	await channel.send((interaction.message.embeds[0].description.split('\n'))[9])
-	#Logging
-	channel = bot.get_channel(getLoggingChannel(interaction.guild.id))
-	embedLogVar = nextcord.Embed(
-		title="False Positive Pressed", 
-		description="Detected slur has been deemed a false positive by a moderator in response to a report.\n\n__Report:__\n"
-		+str(interaction.message.jump_url)
-		+"\n\n__Moderator:__\n"
-		+f"{interaction.user.mention} ({interaction.user.id})", 
-		color=nextcord.Color.from_rgb(237,91,6))
-	await channel.send(embed=embedLogVar)
-
-async def cb_action_not_neccesary(interaction):
-	new_embed = interaction.message.embeds[0]
-	new_embed.add_field(name="Action Not Neccesary", value=interaction.user.mention, inline=True)
-	new_embed.colour=nextcord.Colour.light_grey()
-	await interaction.message.edit(embed=new_embed, view=None)
-	#Logging
-	channel = bot.get_channel(getLoggingChannel(interaction.guild.id))
-	embedLogVar = nextcord.Embed(
-		title="Action Not Necessary Pressed", 
-		description="A Moderator has deemed that no action is needed in response to a report.\n\n__Report:__\n"
-		+str(interaction.message.jump_url)
-		+"\n\n__Moderator:__\n"
-		+f"{interaction.user.mention} ({interaction.user.id})",
-		color=nextcord.Color.from_rgb(237,91,6))
-	await channel.send(embed=embedLogVar)
-
-async def cb_bad_faith_ping(interaction):
-	new_embed = interaction.message.embeds[0]
-	new_embed.add_field(name="Bad Faith Ping", value=interaction.user.mention, inline=True)
-	new_embed.colour=nextcord.Colour.brand_red()
-	await interaction.message.edit(embed=new_embed, view=None)
-	#Logging
-	channel = bot.get_channel(getLoggingChannel(interaction.guild.id))
-	embedLogVar = nextcord.Embed(
-		title="Bad Faith Ping Pressed", 
-		description="A moderation ping has been deemed bad faith by a moderator in response to a report.\n\n__Report:__\n"
-		+str(interaction.message.jump_url)
-		+"\n\n__Moderator:__\n"
-		+f"{interaction.user.mention} ({interaction.user.id})",
-		color=nextcord.Color.from_rgb(237,91,6))
-	await channel.send(embed=embedLogVar)
-
 @bot.event
 async def on_message(message):
 	#slur_heat = detectSlur(message.content)
@@ -233,48 +142,6 @@ async def on_message(message):
 		await channel.send("Hey there "
 			+str(message.author.mention)
 			+" I am Serversicherheit, or Sersi for short! My role is to help keep Adam Something Central a safe and enjoyable space.")
-	
-	"""elif checkForMods(message.content): #checks moderator ping
-	
-		#reply to user
-		embedVar = nextcord.Embed(
-			title="Moderator Ping Acknowledgment", 
-			description=(message.author.mention)+" moderators have been notified of your ping and will investigate when able to do so.", 
-			color=nextcord.Color.from_rgb(237,91,6))
-		embedVar.set_footer(text="Ping detection written by Hekkland and Melanie")
-		await message.channel.send(embed=embedVar)
-		
-		#notification for mods
-		channel = bot.get_channel(getAlertChannel(message.guild.id))
-		print(channel)
-		embedVar = nextcord.Embed(
-			title="Moderator Ping", 
-			description="A moderation role has been pinged, please investigate the ping and take action as appropriate.\n\n__Channel:__\n"
-				+str(message.channel.mention)
-				+"\n\n__User:__\n"
-				+str(message.author.mention)
-				+"\n\n__Context:__\n"
-				+str(message.content)
-				+"\n\n__URL:__\n"
-				+str(message.jump_url), 
-			color=nextcord.Color.from_rgb(237,91,6))
-		embedVar.set_footer(text="Ping detection written by Hekkland and Melanie")
-		
-		action_taken = Button(label="Action Taken")
-		action_taken.callback = cb_action_taken
-		
-		action_not_neccesary = Button(label="Action Not Neccesary")
-		action_not_neccesary.callback = cb_action_not_neccesary
-
-		bad_faith_ping = Button(label="Bad Faith Ping")
-		bad_faith_ping.callback = cb_bad_faith_ping
-
-		button_view = View()
-		button_view.add_item(action_taken)
-		button_view.add_item(action_not_neccesary)
-		button_view.add_item(bad_faith_ping)
-
-		await channel.send(embed=embedVar, view=button_view)"""
 		
 	await bot.process_commands(message)
 	

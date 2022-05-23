@@ -42,7 +42,7 @@ class ModPing(commands.Cog):
 			color=nextcord.Color.from_rgb(237,91,6))
 		await channel.send(embed=embedLogVar)
 
-async def cb_bad_faith_ping(self, interaction):
+	async def cb_bad_faith_ping(self, interaction):
 		new_embed = interaction.message.embeds[0]
 		new_embed.add_field(name="Bad Faith Ping", value=interaction.user.mention, inline=True)
 		new_embed.colour=nextcord.Colour.brand_red()
@@ -104,7 +104,6 @@ async def cb_bad_faith_ping(self, interaction):
 			button_view.add_item(bad_faith_ping)
 
 			await channel.send(embed=embedVar, view=button_view)
-	await self.bot.process_commands(message)
 
 def setup(bot):
 	bot.add_cog(ModPing(bot))
