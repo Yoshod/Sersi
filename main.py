@@ -1,7 +1,7 @@
 """
 Sersi, the ASC moderation helper bot
 
-**Version:** `1.2.0 Development Build 00079`
+**Version:** `1.2.0 Development Build (RC) 00080`
 
 **Authors:** *Hekkland, Melanie, Gombik*
 """
@@ -321,6 +321,21 @@ async def cb_action_taken(interaction):
 	new_embed.add_field(name="Action Taken By", value=interaction.user.mention, inline=True)
 	new_embed.colour=nextcord.Colour.brand_green()
 	await interaction.message.edit(embed=new_embed, view=None)
+	#Logging
+	"""
+	channel = bot.get_channel(getLoggingChannel(interaction.guild.id))
+	embedLogVar = nextcord.Embed(
+		title="Action Taken Pressed", 
+		description="Action has been taken by a moderator in response to a report.\n\n__Report:__\n"
+		+str(interaction.message.jump_url)
+		+"\n\n__Moderator:__\n"
+		+str(interaction.user.mention), 
+		color=nextcord.Color.from_rgb(237,91,6))
+	await channel.send(embed=embedLogVar)
+
+	Idk, for some damn reason this makes Action Taken By appear twice and it's rather frustrating.
+	Maybe I'll return to this, so I'm going to comment this out instead of deleting it.
+	"""
 
 async def cb_acceptable_use(interaction):
 	new_embed = interaction.message.embeds[0]
