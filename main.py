@@ -1,7 +1,7 @@
 """
 Sersi, the ASC moderation helper bot
 
-**Version:** `1.2.0 Development Build (RC) 00081`
+**Version:** `1.2.0  Build 00082`
 
 **Authors:** *Hekkland, Melanie, Gombik*
 """
@@ -51,6 +51,10 @@ async def ping(ctx):
 async def addslur(ctx, slur):
 	if isMod(ctx.author.roles):
 		slur = clearString(slur)
+		if slur in slurs:
+			await ctx.send(f"{slur} is already on the list of slurs")
+			return
+		
 		await ctx.send(f"Slur to be added: {slur}")
 		with open("slurs.txt", "a") as file:
 			file.write(slur)
@@ -77,6 +81,10 @@ async def addslur(ctx, slur):
 async def addgoodword(ctx, word):
 	if isMod(ctx.author.roles):
 		word = clearString(word)
+		if word in goodword:
+			await ctx.send(f"{word} is already on the whitelist")
+			return
+		
 		await ctx.send(f"Goodword to be added: {word}")
 		with open("goodword.txt", "a") as file:
 			file.write(word)
