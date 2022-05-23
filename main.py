@@ -1,7 +1,7 @@
 """
 Sersi, the ASC moderation helper bot
 
-**Version:** `1.2.0  Build 00086`
+**Version:** `1.2.1  Build 00087`
 
 **Authors:** *Hekkland, Melanie, Gombik*
 """
@@ -343,7 +343,7 @@ async def cb_action_taken(interaction):
 		description="Action has been taken by a moderator in response to a report.\n\n__Report:__\n"
 		+str(interaction.message.jump_url)
 		+"\n\n__Moderator:__\n"
-		+str(interaction.user.mention), 
+		+f"{interaction.user.mention} ({interaction.user.id})",
 		color=nextcord.Color.from_rgb(237,91,6))
 	await channel.send(embed=embedLogVar)
 
@@ -358,7 +358,7 @@ async def cb_acceptable_use(interaction):
 		description="Usage of a slur has been deemed acceptable by a moderator in response to a report.\n\n__Report:__\n"
 		+str(interaction.message.jump_url)
 		+"\n\n__Moderator:__\n"
-		+str(interaction.user.mention), 
+		+f"{interaction.user.mention} ({interaction.user.id})",
 		color=nextcord.Color.from_rgb(237,91,6))
 	await channel.send(embed=embedLogVar)
 
@@ -375,7 +375,7 @@ async def cb_false_positive(interaction):
 		description="Detected slur has been deemed a false positive by a moderator in response to a report.\n\n__Report:__\n"
 		+str(interaction.message.jump_url)
 		+"\n\n__Moderator:__\n"
-		+str(interaction.user.mention), 
+		+f"{interaction.user.mention} ({interaction.user.id})", 
 		color=nextcord.Color.from_rgb(237,91,6))
 	await channel.send(embed=embedLogVar)
 
@@ -391,7 +391,7 @@ async def cb_action_not_neccesary(interaction):
 		description="A Moderator has deemed that no action is needed in response to a report.\n\n__Report:__\n"
 		+str(interaction.message.jump_url)
 		+"\n\n__Moderator:__\n"
-		+str(interaction.user.mention), 
+		+f"{interaction.user.mention} ({interaction.user.id})",
 		color=nextcord.Color.from_rgb(237,91,6))
 	await channel.send(embed=embedLogVar)
 
@@ -407,7 +407,7 @@ async def cb_bad_faith_ping(interaction):
 		description="A moderation ping has been deemed bad faith by a moderator in response to a report.\n\n__Report:__\n"
 		+str(interaction.message.jump_url)
 		+"\n\n__Moderator:__\n"
-		+str(interaction.user.mention), 
+		+f"{interaction.user.mention} ({interaction.user.id})",
 		color=nextcord.Color.from_rgb(237,91,6))
 	await channel.send(embed=embedLogVar)
 

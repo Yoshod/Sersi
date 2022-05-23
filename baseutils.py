@@ -37,3 +37,8 @@ def getLoggingChannel(guild_id):
 	elif guild_id == 977377117895536640:	#the proving grounds
 		return 977925156330672198			#logging
 
+def getFalsePositivesChannel(guild_id):
+	if guild_id == 856262303795380224:		#asc
+		return 978078399635550269			#sersi-logs
+	elif guild_id == 977377117895536640:	#the proving grounds
+		return 978079399066882059			#logging
