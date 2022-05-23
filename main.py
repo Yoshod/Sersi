@@ -1,7 +1,7 @@
 """
 Sersi, the ASC moderation helper bot
 
-**Version:** `1.2.0 Development Build 00065`
+**Version:** `1.2.0 Development Build 00066`
 
 **Authors:** *Hekkland, Melanie, Gombik*
 """
@@ -31,8 +31,10 @@ notModFail="Only moderators can use this command."
 ### GENERAL COMMANDS ###
 
 @bot.command()
-async def ping(ctx):
-	await ctx.send(f'Pong! {round(bot.latency * 1000)}ms')
+async def about(ctx):
+	embedVar = nextcord.Embed(
+		title="About Sersi", description=__doc__, color=nextcord.Color.from_rgb(237,91,6))
+	await ctx.send(embed=embedVar)
 
 @bot.command()
 async def help(ctx, command=None):
