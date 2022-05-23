@@ -126,7 +126,7 @@ async def on_ready():
 	print (sys.version)
 
 	print('We have logged in as {0.user}'.format(bot))
-	await bot.change_presence(activity=nextcord.Game('OwO observes you~~~'))
+	await bot.change_presence(activity=nextcord.Game('Sword and Shield of the Server'))
 
 @bot.event
 async def on_message(message):
