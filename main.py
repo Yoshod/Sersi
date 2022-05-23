@@ -1,7 +1,7 @@
 """
 Sersi, the ASC moderation helper bot
 
-**Version:** `1.2.1  Build 00087`
+**Version:** `2.0.0 Development Build 00090`
 
 **Authors:** *Hekkland, Melanie, Gombik*
 """
@@ -27,6 +27,18 @@ intents.members = True
 
 bot = commands.Bot(command_prefix="s!", intents=intents, help_command=None)
 notModFail="Only moderators can use this command."
+
+### COGS ###
+
+@bot.command()
+async def load(ctx, extension):
+	bot.load_extension(f"cogs.{extension}")
+	await ctx.reply(f"Cog {extension} loaded.")
+
+@bot.command()
+async def unload(ctx, extension):
+	bot.unload_extension(f"cogs.{extension}")
+	await ctx.reply(f"Cog {extension} unloaded.")
 
 ### GENERAL COMMANDS ###
 
@@ -324,6 +336,13 @@ async def dmTest(ctx,userId=None,*,args=None):
 
 @bot.event
 async def on_ready():
+	# load all cogs
+	for filename in os.listdir('./cogs'):
+		print("found file", filename)
+		if filename.endswith('.py'):
+			bot.load_extension(f'cogs.{filename[:-3]}')
+			print(f"Cog {filename[:-3]} loaded.")
+
 	#files = [f for f in os.listdir('.') if os.path.isfile(f)] #unused
 	load_slurdetector()
 	print (sys.version)
@@ -350,6 +369,7 @@ async def cb_action_taken(interaction):
 async def cb_acceptable_use(interaction):
 	new_embed = interaction.message.embeds[0]
 	new_embed.add_field(name="Usage Deemed Acceptable By", value=interaction.user.mention, inline=True)
+	new_embed.colour=nextcord.Colour.light_grey()
 	await interaction.message.edit(embed=new_embed, view=None)
 	#Logging
 	channel = bot.get_channel(getLoggingChannel(interaction.guild.id))
@@ -365,6 +385,7 @@ async def cb_acceptable_use(interaction):
 async def cb_false_positive(interaction):
 	new_embed = interaction.message.embeds[0]
 	new_embed.add_field(name="Deemed As False Positive By", value=interaction.user.mention, inline=True)
+	new_embed.colour=nextcord.Colour.brand_red()
 	await interaction.message.edit(embed=new_embed, view=None)
 	channel = bot.get_channel(getFalsePositivesChannel(interaction.guild_id))
 	await channel.send((interaction.message.embeds[0].description.split('\n'))[9])
@@ -398,7 +419,7 @@ async def cb_action_not_neccesary(interaction):
 async def cb_bad_faith_ping(interaction):
 	new_embed = interaction.message.embeds[0]
 	new_embed.add_field(name="Bad Faith Ping", value=interaction.user.mention, inline=True)
-	new_embed.colour=nextcord.Colour.brand_green()
+	new_embed.colour=nextcord.Colour.brand_red()
 	await interaction.message.edit(embed=new_embed, view=None)
 	#Logging
 	channel = bot.get_channel(getLoggingChannel(interaction.guild.id))
@@ -463,39 +484,6 @@ async def on_message(message):
 		button_view.add_item(action_taken)
 		button_view.add_item(action_not_neccesary)
 		button_view.add_item(bad_faith_ping)
-
-		await channel.send(embed=embedVar, view=button_view)
-	
-	elif len(slur_heat) > 0: #checks slur heat
-		channel = bot.get_channel(getAlertChannel(message.guild.id))
-		embedVar = nextcord.Embed(
-			title="Slur(s) Detected", 
-			description="A slur has been detected. Moderation action is advised.\n\n__Channel:__\n"
-				+str(message.channel.mention)
-				+"\n\n__User:__\n"
-				+str(message.author.mention)
-				+"\n\n__Context:__\n"
-				+str(message.content)
-				+"\n\n__Slurs Found:__\n"
-				+str(slur_heat)
-				+"\n\n__URL:__\n"
-				+str(message.jump_url), 
-			color=nextcord.Color.from_rgb(237,91,6))
-		embedVar.set_footer(text="Slur detection written by Hekkland and Melanie")
-
-		action_taken = Button(label="Action Taken")
-		action_taken.callback = cb_action_taken
-		
-		acceptable_use = Button(label="Acceptable Use")
-		acceptable_use.callback = cb_acceptable_use
-
-		false_positive = Button(label="False Positive")
-		false_positive.callback = cb_false_positive
-
-		button_view = View()
-		button_view.add_item(action_taken)
-		button_view.add_item(acceptable_use)
-		button_view.add_item(false_positive)
 
 		await channel.send(embed=embedVar, view=button_view)
 		
