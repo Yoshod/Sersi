@@ -1,7 +1,7 @@
 """
 Sersi, the ASC moderation helper bot
 
-**Version:** `1.2.0  Build 00082`
+**Version:** `1.2.0  Build 00086`
 
 **Authors:** *Hekkland, Melanie, Gombik*
 """
