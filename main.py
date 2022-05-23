@@ -10,7 +10,6 @@ from nextcord import DMChannel
 from nextcord.ext import commands
 from baseutils import *
 from offence import getOffenceList
-from bothelp import get_help
 
 intents = nextcord.Intents.all()
 intents.members = True
@@ -40,10 +39,6 @@ async def reload(ctx, extension):
 		await ctx.reply(f"Cog {extension} reloaded.")
 
 ### GENERAL COMMANDS ###
-
-@bot.command()
-async def hilfe(ctx, command=None):
-	await get_help(ctx, command)
 
 @bot.command()
 async def ping(ctx):
