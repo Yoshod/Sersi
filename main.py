@@ -1,7 +1,7 @@
 """
 Sersi, the ASC moderation helper bot
 
-**Version:** `1.2.1  Build 00087`
+**Version:** `1.2.2  Build 00091`
 
 **Authors:** *Hekkland, Melanie, Gombik*
 """
@@ -459,7 +459,7 @@ async def on_message(message):
 		bad_faith_ping = Button(label="Bad Faith Ping")
 		bad_faith_ping.callback = cb_bad_faith_ping
 
-		button_view = View()
+		button_view = View(timeout=None)
 		button_view.add_item(action_taken)
 		button_view.add_item(action_not_neccesary)
 		button_view.add_item(bad_faith_ping)
@@ -492,7 +492,7 @@ async def on_message(message):
 		false_positive = Button(label="False Positive")
 		false_positive.callback = cb_false_positive
 
-		button_view = View()
+		button_view = View(timeout=None)
 		button_view.add_item(action_taken)
 		button_view.add_item(acceptable_use)
 		button_view.add_item(false_positive)
