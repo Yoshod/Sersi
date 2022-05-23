@@ -1,7 +1,7 @@
 """
 Sersi, the ASC moderation helper bot
 
-**Version:** `1.2.0 Development Build 00078`
+**Version:** `1.2.0 Development Build 00079`
 
 **Authors:** *Hekkland, Melanie, Gombik*
 """
@@ -166,7 +166,7 @@ async def listslurs(ctx, page=1):
 		#post the list as embed
 		embedVar = nextcord.Embed(
 			title="List of currently detected slurs",
-				description=str(wordlist)
+				description=str(", ".join(wordlist))
 					 + "\n\n**page "
 					 + str(index + 1)
 					 + "/"
@@ -208,7 +208,7 @@ async def listgoodwords(ctx, page=1):
 	
 		embedVar = nextcord.Embed(
 			title="List of words currently whitelisted from slur detection",
-				description=str(wordlist)
+				description=str(", ".join(wordlist))
 					 + "\n\n**page "
 					 + str(index + 1)
 					 + "/"
