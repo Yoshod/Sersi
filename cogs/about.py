@@ -8,7 +8,7 @@ class About(commands.Cog):
 	def __init__(self, bot):
 		self.bot = bot
 		self.verNum=str("`2.0.0`")
-		self.buildNum=str("`Development Build 00097`")
+		self.buildNum=str("`Development Build 00098 (RC)`")
 		self.authorsList=load_authors()
 
 	@commands.command()
