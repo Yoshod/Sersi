@@ -173,6 +173,7 @@ class Reformation(commands.Cog):
 		if isMod(interaction.user.roles):
 			embed = interaction.message.embeds[0]
 			embed.add_field(name="User was or is banned:", value=interaction.user.mention, inline=True)
+			embed.color=nextcord.Color.from_rgb(0,255,0)
 			await interaction.message.edit(embed=embed)
 		
 	
