@@ -13,6 +13,7 @@ class Slur(commands.Cog):
         self.bot = bot
         print("Slur cog __init__()")
         load_slurdetector()
+		self.notModFail = "Insufficient Permissions to use command."
 
     async def cb_action_taken(self, interaction):
         new_embed = interaction.message.embeds[0]
@@ -100,7 +101,7 @@ class Slur(commands.Cog):
             await channel.send(embed=embedVar)
             await ctx.send("Slur added. Detection will start now.")
         else:
-            await ctx.send(notModFail)
+            await ctx.send(self.notModFail)
 
     @commands.command()
     async def addgoodword(self, ctx, word):
@@ -131,7 +132,7 @@ class Slur(commands.Cog):
             await channel.send(embed=embedVar)
             await ctx.send("Goodword added. Detection will start now.")
         else:
-            await ctx.send(notModFail)
+            await ctx.send(self.notModFail)
 
     @commands.command()
     async def removeslur(self, ctx, slur):
@@ -153,7 +154,7 @@ class Slur(commands.Cog):
             await channel.send(embed=embedVar)
             await ctx.send(f"Slur {slur} is no longer in the list")
         else:
-            await ctx.send(notModFail)
+            await ctx.send(self.notModFail)
 
     @commands.command()
     async def removegoodword(self, ctx, word):
@@ -175,7 +176,7 @@ class Slur(commands.Cog):
             await channel.send(embed=embedVar)
             await ctx.send(f"Goodword {word} is no longer in the list")
         else:
-            await ctx.send(notModFail)
+            await ctx.send(self.notModFail)
 
     @commands.command()
     async def listslurs(self, ctx, page=1):
@@ -219,7 +220,7 @@ class Slur(commands.Cog):
                 color=nextcord.Color.from_rgb(237, 91, 6))
             await ctx.send(embed=embedVar)
         else:
-            await ctx.send(notModFail)
+            await ctx.send(self.notModFail)
 
     @commands.command()
     async def listgoodwords(self, ctx, page=1):
@@ -262,7 +263,7 @@ class Slur(commands.Cog):
                 color=nextcord.Color.from_rgb(237, 91, 6))
             await ctx.send(embed=embedVar)
         else:
-            await ctx.send(notModFail)
+            await ctx.send(self.notModFail)
 
     @commands.command()
     async def reloadslurs(self, ctx):
@@ -283,7 +284,7 @@ class Slur(commands.Cog):
                 color=nextcord.Color.from_rgb(237, 91, 6))
             await channel.send(embed=embedVar)
         else:
-            await ctx.send(notModFail)
+            await ctx.send(self.notModFail)
 
     @commands.Cog.listener()
     async def on_ready(self):
