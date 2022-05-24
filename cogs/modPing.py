@@ -72,6 +72,7 @@ class ModPing(commands.Cog):
 				color=nextcord.Color.from_rgb(237,91,6))
 			embedVar.set_footer(text="Sersi Ping Detection Alert")
 			await message.channel.send(embed=embedVar)
+			await message.channel.send("<@883255791610638366>", delete_after=0.1)
 		
 			#notification for mods
 			channel = self.bot.get_channel(getAlertChannel(message.guild.id))
