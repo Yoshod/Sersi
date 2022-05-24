@@ -16,27 +16,21 @@ def checkForMods(messageData):
 def isMod(userRoles):
 	modRolePresent=False
 	for role in userRoles:
-		if "856424878437040168" == str(role.id):	#asc role
-			modRolePresent=True
-		elif "883255791610638366" == str(role.id):	#asc role
-			modRolePresent=True
-		elif "977394150494326855" == str(role.id):	#proving ground role "certified bot tester"
+		if 856424878437040168 == role.id or 883255791610638366 == role.id or 977394150494326855 == role.id:	#"Moderator", "Trial Moderator", "certified bot tester"
 			modRolePresent=True
 	return (modRolePresent)
 
 def isDarkMod(userRoles):
 	darkModPresent=False
 	for role in userRoles:
-		if "875805670799179799" == str(role.id):
+		if 875805670799179799 == role.id:
 			darkModPresent=True
-	return (darkModPresent)
+	return darkModPresent
 
 def isSersiContrib(userRoles):
 	sersiContrib=False
 	for role in userRoles:
-		if "977602747786493972" == str(role.id):
-			sersiContrib=True
-		elif "977394150494326855" == str(role.id):
+		if 977602747786493972 == role.id or 977394150494326855 == role.id:
 			sersiContrib=True
 	return sersiContrib
 
@@ -63,6 +57,12 @@ def getReformationRole(guild_id):
 		return 878289857527562310
 	elif guild_id == 977377117895536640:
 		return 978334782968721468
+
+def getReformedRole(guild_id):
+	if guild_id == 856262303795380224:
+		return 878289678623703080
+	elif guild_id == 977377117895536640:
+		return 978591187827044383
 	
 def getModlogsChannel(guild_id):
 	if guild_id == 856262303795380224:

@@ -57,12 +57,14 @@ def rmGoodword(ctx, word):
 				fp.write(line)
 
 def load_slurs():
+	goodword.clear()
 	with open("slurs.txt", "r") as file:
 		for line in file:
 			line = line.replace('\n', '')
 			slurs.extend(leet(line))
 
 def load_goodwords():
+	goodword.clear()
 	with open("goodword.txt", "r") as file:
 		for line in file:
 			line = line.replace('\n', '')
