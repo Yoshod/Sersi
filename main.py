@@ -22,21 +22,43 @@ notModFail="Only moderators can use this command."
 @bot.command()
 async def load(ctx, extension):
 	if isSersiContrib(ctx.author.roles):
-		bot.load_extension(f"cogs.{extension}")
-		await ctx.reply(f"Cog {extension} loaded.")
+		try:
+			bot.load_extension(f"cogs.{extension}")
+			await ctx.reply(f"Cog {extension} loaded.")
+		except commands.errors.ExtensionNotFound:
+			await ctx.reply("Cog not found.")
+        except commands.errors.ExtensionAlreadyLoaded:
+            await ctx.reply("Cog already loaded.")
 
 @bot.command()
 async def unload(ctx, extension):
 	if isSersiContrib(ctx.author.roles):
-		bot.unload_extension(f"cogs.{extension}")
-		await ctx.reply(f"Cog {extension} unloaded.")
+		try:
+			bot.unload_extension(f"cogs.{extension}")
+			await ctx.reply(f"Cog {extension} unloaded.")
+		except commands.errors.ExtensionNotFound:
+			await ctx.reply("Cog not found.")
+		except commands.errors.ExtensionNotLoaded:
+			await ctx.reply(f"Cog {extension} was not loaded.")
 
 @bot.command()
 async def reload(ctx, extension):
 	if isSersiContrib(ctx.author.roles):
-		bot.unload_extension(f"cogs.{extension}")
-		bot.load_extension(f"cogs.{extension}")
-		await ctx.reply(f"Cog {extension} reloaded.")
+		try:
+			bot.unload_extension(f"cogs.{extension}")
+			bot.load_extension(f"cogs.{extension}")
+			await ctx.reply(f"Cog {extension} reloaded.")
+		except commands.errors.ExtensionNotFound:
+			await ctx.reply("Cog not found.")
+		except commands.errors.ExtensionNotLoaded:
+			try:
+				bot.load_extension(f"cogs.{extension}")
+				await ctx.reply(f"Cog {extension} loaded.")
+			except commands.errors.ExtensionNotFound:
+				await ctx.reply("Cog not found.") 
+		
+#except commands.ExtensionAlreadyLoaded:
+#		await ctx.send("Cog is loaded")		
 
 ### GENERAL COMMANDS ###
 
@@ -131,7 +153,7 @@ async def on_ready():
 @bot.event
 async def on_message(message):
 	#slur_heat = detectSlur(message.content)
-    
+	
 	if message.author == bot.user: #ignores message if message is by bot
 		return
 	
