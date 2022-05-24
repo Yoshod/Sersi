@@ -57,6 +57,12 @@ def getReformationRole(guild_id):
 		return 878289857527562310
 	elif guild_id == 977377117895536640:
 		return 978334782968721468
+
+def getReformedRole(guild_id):
+	if guild_id == 856262303795380224:
+		return 878289678623703080
+	elif guild_id == 977377117895536640:
+		return 978591187827044383
 	
 def getModlogsChannel(guild_id):
 	if guild_id == 856262303795380224:
