@@ -37,17 +37,17 @@ class Reformation(commands.Cog):
                 await ctx.send(f"Memeber {member.mention} has been sent to reformation by {ctx.author.mention} for reson: {reason_string}")
 
                 # # LOGGING
-                embedLogVar = nextcord.Embed(
+                embed = nextcord.Embed(
                     title="User Has Been Sent to Reformation",
                     description=f"Moderator {ctx.author.mention} ({ctx.author.id}) has sent user {member.mention} ({member.id}) to reformation.\n\n"
                                 + f"**__Reason:__** {reason_string}",
                     color=nextcord.Color.from_rgb(237, 91, 6))
 
                 channel = self.bot.get_channel(getLoggingChannel(ctx.guild.id))
-                await channel.send(embed=embedLogVar)
+                await channel.send(embed=embed)
 
                 channel = self.bot.get_channel(getModlogsChannel(ctx.guild.id))
-                await channel.send(embed=embedLogVar)
+                await channel.send(embed=embed)
 
             except MemberNotFound:
                 await ctx.send("Member not found!")
@@ -160,6 +160,7 @@ class Reformation(commands.Cog):
 
             # make vote visible
             new_embed.add_field(name="Voted No:", value=interaction.user.mention, inline=True)
+            await interaction.message.edit(embed=new_embed)
 
     async def cb_maybe(self, interaction):
         if isMod(interaction.user.roles):
@@ -172,6 +173,7 @@ class Reformation(commands.Cog):
 
             # make vote visible
             new_embed.add_field(name="Voted Maybe:", value=interaction.user.mention, inline=True)
+            await interaction.message.edit(embed=new_embed)
 
     @commands.command()
     async def rq(self, ctx, member: nextcord.Member):
@@ -228,10 +230,11 @@ class Reformation(commands.Cog):
         Permission Needed: Moderator, Trial Moderator
         """
         if isMod(ctx.author.roles):
+            # TODO: do member have reformation role
             try:
                 embedVar = nextcord.Embed(
                     title=f"Reformation Failed Query: **{member.name}** ({member.id})",
-                    description=f"Reformation Inmate {member.name} has not shown themselves to be able to be reformed. They are therefore elligible to be banned.\nQuery started by {ctx.author.mention} ({ctx.author.id})\n\nYes Votes: 0",
+                    description=f"Reformation Inmate {member.name} seems to not be able to be reformed. Should the reformation process therefore be given up and the user be banned?\nQuery started by {ctx.author.mention} ({ctx.author.id})\n\nYes Votes: 0",
                     color=nextcord.Color.from_rgb(237, 91, 6))
                 embedVar.set_footer(text=f"{member.id}")
             except MemberNotFound:
