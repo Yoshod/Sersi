@@ -52,7 +52,14 @@ class Slur(commands.Cog):
         new_embed.colour=nextcord.Colour.brand_red()
         await interaction.message.edit(embed=new_embed, view=None)
         channel = self.bot.get_channel(getFalsePositivesChannel(interaction.guild_id))
-        await channel.send((interaction.message.embeds[0].description.split('\n'))[9])
+        embedVar = nextcord.Embed(
+            title="Marked as false positive",
+            description="__Context:__\n"
+            +str(interaction.message.embeds[0].description.split('\n')[9])
+            +"\n\n__Slurs Found:__\n"
+            +str(interaction.message.embeds[0].description.split('\n')[12]),
+            color=nextcord.Color.from_rgb(237,91,6))
+        await channel.send(embed=embedVar)
         #Logging
         channel = self.bot.get_channel(getLoggingChannel(interaction.guild.id))
         embedLogVar = nextcord.Embed(
@@ -61,38 +68,6 @@ class Slur(commands.Cog):
             +str(interaction.message.jump_url)
             +"\n\n__Moderator:__\n"
             +f"{interaction.user.mention} ({interaction.user.id})", 
-            color=nextcord.Color.from_rgb(237,91,6))
-        await channel.send(embed=embedLogVar)
-
-    async def cb_action_not_neccesary(self, interaction):
-        new_embed = interaction.message.embeds[0]
-        new_embed.add_field(name="Action Not Neccesary", value=interaction.user.mention, inline=True)
-        new_embed.colour=nextcord.Colour.light_grey()
-        await interaction.message.edit(embed=new_embed, view=None)
-        #Logging
-        channel = self.bot.get_channel(getLoggingChannel(interaction.guild.id))
-        embedLogVar = nextcord.Embed(
-            title="Action Not Necessary Pressed", 
-            description="A Moderator has deemed that no action is needed in response to a report.\n\n__Report:__\n"
-            +str(interaction.message.jump_url)
-            +"\n\n__Moderator:__\n"
-            +f"{interaction.user.mention} ({interaction.user.id})",
-            color=nextcord.Color.from_rgb(237,91,6))
-        await channel.send(embed=embedLogVar)
-
-    async def cb_bad_faith_ping(self, interaction):
-        new_embed = interaction.message.embeds[0]
-        new_embed.add_field(name="Bad Faith Ping", value=interaction.user.mention, inline=True)
-        new_embed.colour=nextcord.Colour.brand_red()
-        await interaction.message.edit(embed=new_embed, view=None)
-        #Logging
-        channel = self.bot.get_channel(getLoggingChannel(interaction.guild.id))
-        embedLogVar = nextcord.Embed(
-            title="Bad Faith Ping Pressed", 
-            description="A moderation ping has been deemed bad faith by a moderator in response to a report.\n\n__Report:__\n"
-            +str(interaction.message.jump_url)
-            +"\n\n__Moderator:__\n"
-            +f"{interaction.user.mention} ({interaction.user.id})",
             color=nextcord.Color.from_rgb(237,91,6))
         await channel.send(embed=embedLogVar)
     
@@ -319,6 +294,9 @@ class Slur(commands.Cog):
     # events
     @commands.Cog.listener()
     async def on_message(self, message):
+        if message.author == self.bot.user: #ignores message if message is by bot
+            return
+        
         detected_slurs = detectSlur(message.content)
 
         if len(detected_slurs) > 0: #checks slur heat
@@ -332,7 +310,7 @@ class Slur(commands.Cog):
                     +"\n\n__Context:__\n"
                     +str(message.content)
                     +"\n\n__Slurs Found:__\n"
-                    +str(detected_slurs)
+                    +", ".join(set(detected_slurs))
                     +"\n\n__URL:__\n"
                     +str(message.jump_url), 
                 color=nextcord.Color.from_rgb(237,91,6))
