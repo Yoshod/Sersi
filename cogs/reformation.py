@@ -54,7 +54,7 @@ class Reformation(commands.Cog):
         else:
             ctx.reply("__**No Permissions**__\nTo get the issue investigates, please open a Mod-Ticket or ping @moderator.")
 
-    async def cb_yes(self, interaction):
+    async def cb_rq_yes(self, interaction):
         if isMod(interaction.user.roles):
             new_embed = interaction.message.embeds[0]
             # check if user has already voted
@@ -96,7 +96,7 @@ class Reformation(commands.Cog):
                 # logs
                 log_embed = nextcord.Embed(
                     title=f"Release: **{member.name}** ({member.id})",
-                    description=f"Reformation Inmate {member.name} was deemed well enough to be released back into the server.\nRelease has been approved by {', '.join(yes_men)}\n",
+                    description=f"Reformation Inmate {member.name} was deemed well enough to be released back into the server.\nRelease has been approved by {', '.join(yes_men)}",
                     color=nextcord.Color.from_rgb(237, 91, 6))
                 channel = self.bot.get_channel(getModlogsChannel(interaction.guild.id))
                 await channel.send(embed=log_embed)
@@ -104,6 +104,48 @@ class Reformation(commands.Cog):
 
                 # updates embed and removed buttons
                 await interaction.message.edit(embed=new_embed, view=None)
+
+            new_embed.description = f"{new_embed.description[:-1]}{yes_votes}"
+            await interaction.message.edit(embed=new_embed)
+
+    async def cb_rf_yes(self, interaction):
+        if isMod(interaction.user.roles):
+            new_embed = interaction.message.embeds[0]
+            # check if user has already voted
+            for field in new_embed.fields:
+                if field.value == interaction.user.mention:
+                    await interaction.response.send_message("You already voted", ephemeral=True)
+                    return
+
+            # make vote visible
+            new_embed.add_field(name="Voted Yes:", value=interaction.user.mention, inline=True)
+            # retrieve current amount of votes and iterate by 1
+            yes_votes = new_embed.description[-1]
+            yes_votes = int(yes_votes) + 1
+
+            # automatically releases inmate at 3 yes votes
+            if (yes_votes >= 3):
+
+                member_string   = new_embed.footer.text
+                member_id       = int(member_string)
+                member          = interaction.guild.get_member(member_id)
+
+                yes_men = []
+                for field in new_embed.fields:
+                    if field.name == "Voted Yes:":
+                        yes_men.append(field.value)
+
+                embed = nextcord.Embed(
+                    title="Reformation Failed",
+                    description=f"Reformation Inmate {member.name} has been deemed unreformable by {', '.join(yes_men)}\n\nThey can be banned **given appropiate reason** by a moderators discretion.",
+                    color=nextcord.Color.from_rgb(0, 0, 0))
+
+                channel = self.bot.get_channel(getLoggingChannel(interaction.guild.id))
+                await channel.send(embed=embed)
+
+                channel = self.bot.get_channel(getModlogsChannel(interaction.guild.id))
+                await channel.send(embed=embed)
+
             new_embed.description = f"{new_embed.description[:-1]}{yes_votes}"
             await interaction.message.edit(embed=new_embed)
 
@@ -135,7 +177,7 @@ class Reformation(commands.Cog):
     async def rq(self, ctx, member: nextcord.Member):
         """Reformation Query.
 
-        Sends query for releaso out of reformation centre for [member] into the information centre.
+        Sends query for release out of reformation centre for [member] into the information centre.
         Three 'Yes' votes will result in an automatic release.
         Permission Needed: Moderator, Trial Moderator
         """
@@ -150,7 +192,7 @@ class Reformation(commands.Cog):
                 await ctx.send("Member not found!")
 
             yes = Button(label="Yes", style=nextcord.ButtonStyle.green)
-            yes.callback = self.cb_yes
+            yes.callback = self.cb_rq_yes
 
             no = Button(label="No", style=nextcord.ButtonStyle.red)
             no.callback = self.cb_no
@@ -175,6 +217,45 @@ class Reformation(commands.Cog):
             embed.add_field(name="User was or is banned:", value=interaction.user.mention, inline=True)
             embed.color = nextcord.Color.from_rgb(0, 255, 0)
             await interaction.message.edit(embed=embed)
+
+    @commands.command()
+    async def rf(self, ctx, member: nextcord.Member):
+        """Reformation Failed.
+
+        Sends query for ban of a [member] who is currently in the reformation centre.
+        Members should have been in reformation of at least 14 Days.
+        Three 'Yes' votes will result in a greenlight for a ban.
+        Permission Needed: Moderator, Trial Moderator
+        """
+        if isMod(ctx.author.roles):
+            try:
+                embedVar = nextcord.Embed(
+                    title=f"Reformation Failed Query: **{member.name}** ({member.id})",
+                    description=f"Reformation Inmate {member.name} has not shown themselves to be able to be reformed. They are therefore elligible to be banned.\nQuery started by {ctx.author.mention} ({ctx.author.id})\n\nYes Votes: 0",
+                    color=nextcord.Color.from_rgb(237, 91, 6))
+                embedVar.set_footer(text=f"{member.id}")
+            except MemberNotFound:
+                await ctx.send("Member not found!")
+
+            yes = Button(label="Yes", style=nextcord.ButtonStyle.green)
+            yes.callback = self.cb_rf_yes
+
+            no = Button(label="No", style=nextcord.ButtonStyle.red)
+            no.callback = self.cb_no
+
+            maybe = Button(label="Maybe")
+            maybe.callback = self.cb_maybe
+
+            button_view = View(timeout=None)
+            button_view.add_item(yes)
+            button_view.add_item(no)
+            button_view.add_item(maybe)
+
+            channel = self.bot.get_channel(getAlertChannel(ctx.guild.id))
+            await channel.send(embed=embedVar, view=button_view)
+
+        else:
+            ctx.reply("Only Moderators can start Reformation Queries.")
 
     @commands.Cog.listener()
     async def on_member_remove(self, member):
