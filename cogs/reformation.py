@@ -136,6 +136,7 @@ class Reformation(commands.Cog):
 		
 		Sends query for releaso out of reformation centre for [member] into the information centre.
 		Three 'Yes' votes will result in an automatic release.
+		Permission Needed: Moderator, Trial Moderator
 		"""
 		if isMod(ctx.author.roles):
 			try:
@@ -179,10 +180,8 @@ class Reformation(commands.Cog):
 	
 	@commands.Cog.listener()
 	async def on_member_remove(self, member):
-		print(f"Member {member} has left the server")
 		
 		reformation_role = member.get_role(getReformationRole(member.guild.id))
-		print(reformation_role)
 		
 		if reformation_role != None:
 			channel = self.bot.get_channel(getAlertChannel(member.guild.id))
