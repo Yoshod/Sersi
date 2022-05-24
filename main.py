@@ -27,8 +27,8 @@ async def load(ctx, extension):
 			await ctx.reply(f"Cog {extension} loaded.")
 		except commands.errors.ExtensionNotFound:
 			await ctx.reply("Cog not found.")
-        except commands.errors.ExtensionAlreadyLoaded:
-            await ctx.reply("Cog already loaded.")
+		except commands.errors.ExtensionAlreadyLoaded:
+			await ctx.reply("Cog already loaded.")
 
 @bot.command()
 async def unload(ctx, extension):
