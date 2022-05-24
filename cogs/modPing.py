@@ -4,6 +4,7 @@ from baseutils import *
 from nextcord.ext import commands
 from nextcord.ui import Button, View
 
+
 class ModPing(commands.Cog):
 
 	def __init__(self, bot):
@@ -105,5 +106,6 @@ class ModPing(commands.Cog):
 
 			await channel.send(embed=embedVar, view=button_view)
 
+
 def setup(bot):
-	bot.add_cog(ModPing(bot))
+    bot.add_cog(ModPing(bot))

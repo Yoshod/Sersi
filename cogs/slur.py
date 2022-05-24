@@ -1,13 +1,14 @@
 import nextcord
 from slurdetector import *
 from baseutils import *
-#from buttoncallbacks import *
+# from buttoncallbacks import *
 
 from nextcord.ext import commands
 from nextcord.ui import Button, View
 
 
 class Slur(commands.Cog):
+
 
 	def __init__(self, bot):
 		self.bot = bot
@@ -315,6 +316,7 @@ class Slur(commands.Cog):
 	async def on_message(self, message):
 		detected_slurs = detectSlur(message.content)
 
+
 		if len(detected_slurs) > 0: #checks slur heat
 			channel = self.bot.get_channel(getAlertChannel(message.guild.id))
 			embedVar = nextcord.Embed(
@@ -341,6 +343,7 @@ class Slur(commands.Cog):
 			false_positive = Button(label="False Positive")
 			false_positive.callback = self.cb_false_positive
 
+
 			button_view = View()
 			button_view.add_item(action_taken)
 			button_view.add_item(acceptable_use)
@@ -348,5 +351,8 @@ class Slur(commands.Cog):
 
 			await channel.send(embed=embedVar, view=button_view)
 
+
+
 def setup(bot):
 	bot.add_cog(Slur(bot))
+
