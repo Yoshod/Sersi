@@ -324,7 +324,7 @@ class Slur(commands.Cog):
             false_positive = Button(label="False Positive")
             false_positive.callback = self.cb_false_positive
 
-            button_view = View()
+            button_view = View(timeout=None)
             button_view.add_item(action_taken)
             button_view.add_item(acceptable_use)
             button_view.add_item(false_positive)
