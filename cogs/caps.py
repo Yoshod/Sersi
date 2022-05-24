@@ -16,12 +16,11 @@ class Caps(commands.Cog):
 			#remove nums and non-alpanumeric
 			msg_string = unidecode.unidecode(msg_string)
 			new_msg_string = re.sub(r'[^a-zA-Z]', '', msg_string)
-			print("cleaned message:", new_msg_string)
 
 			uppercase = sum(1 for char in new_msg_string if char.isupper())
 
 			percentage = uppercase/len(new_msg_string)
-			print("percentage:", percentage)
+			
 			if percentage > 0.7:
 				print("Caps detected; opinion rejected")
 				#await replace(self, message, message.author, msg_string)
