@@ -13,7 +13,7 @@ class Slur(commands.Cog):
         self.bot = bot
         print("Slur cog __init__()")
         load_slurdetector()
-		self.notModFail = "Insufficient Permissions to use command."
+        self.notModFail = "Insufficient Permissions to use command."
 
     async def cb_action_taken(self, interaction):
         new_embed = interaction.message.embeds[0]
