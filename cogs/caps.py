@@ -2,7 +2,8 @@ import nextcord
 from nextcord.ext import commands
 import re
 import unidecode
-#from nextcord.ext.commands.errors import MemberNotFound
+# from nextcord.ext.commands.errors import MemberNotFound
+
 
 class Caps(commands.Cog):
 	def __init__(self, bot):
@@ -25,7 +26,7 @@ class Caps(commands.Cog):
 				print("Caps detected; opinion rejected")
 				#await replace(self, message, message.author, msg_string)
 				await message.delete(delay=None)
-		
+
 				webhook = await message.channel.create_webhook(name=message.author.name)
 				await webhook.send(str(msg_string.lower()), username=message.author.display_name, avatar_url=message.author.display_avatar.url)
 				await webhook.delete()
