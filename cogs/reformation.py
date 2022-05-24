@@ -54,78 +54,81 @@ class Reformation(commands.Cog):
 			ctx.reply("__**No Permissions**__\nTo get the issue investigates, please open a Mod-Ticket or ping @moderator.")
 
 	async def cb_yes(self, interaction):
-		new_embed = interaction.message.embeds[0]
-		#check if user has already voted
-		for field in new_embed.fields:
-			if field.value == interaction.user.mention:
-				await interaction.response.send_message("You already voted", ephemeral=True)
-				return 
-
-		#make vote visible
-		new_embed.add_field(name="Voted Yes:", value=interaction.user.mention, inline=True)
-		#retrieve current amount of votes and iterate by 1
-		yes_votes = new_embed.description[-1]
-		yes_votes = int(yes_votes) + 1
-		
-		#automatically releases inmate at 3 yes votes
-		if (yes_votes >= 3):
-
-			#get member object of member to be released
-			member_string	= new_embed.footer.text
-			member_id		= int(member_string)
-			member			= interaction.guild.get_member(member_id)
-			
-			#fetch yes voters
-			yes_men = []
+		if isMod(interaction.user.roles):
+			new_embed = interaction.message.embeds[0]
+			#check if user has already voted
 			for field in new_embed.fields:
-				if field.name == "Voted Yes:":
-					yes_men.append(field.value)
+				if field.value == interaction.user.mention:
+					await interaction.response.send_message("You already voted", ephemeral=True)
+					return 
+
+			#make vote visible
+			new_embed.add_field(name="Voted Yes:", value=interaction.user.mention, inline=True)
+			#retrieve current amount of votes and iterate by 1
+			yes_votes = new_embed.description[-1]
+			yes_votes = int(yes_votes) + 1
 			
-			#roles
-			try:
-				civil_enginerring_initiate	= interaction.guild.get_role(878040658244403253)
-				reformed					= interaction.guild.get_role(878289678623703080)
-				await member.add_roles(civil_enginerring_initiate, reformed, reason="Released out of the Reformation Centre", atomic=True)
-			except AttributeError:
-				await interaction.send("Could not assign roles.")		
-			await member.remove_roles(interaction.guild.get_role(getReformationRole(interaction.guild.id)), reason="Released out of the Reformation Centre", atomic=True)
-			
-			#logs
-			log_embed = nextcord.Embed(
-				title=f"Release: **{member.name}** ({member.id})", 
-				description=f"Reformation Inmate {member.name} was deemed well enough to be released back into the server.\n"
-							+f"Release has been approved by {', '.join(yes_men)}\n",
-				color=nextcord.Color.from_rgb(237,91,6))
-			channel = self.bot.get_channel(getModlogsChannel(interaction.guild.id))
-			await channel.send(embed=log_embed)
-			await interaction.send(f"**{member.name}** ({member.id}) will now be freed.")
-			
-			#updates embed and removed buttons
-			await interaction.message.edit(embed=new_embed, view=None)
-		new_embed.description = f"{new_embed.description[:-1]}{yes_votes}"
-		await interaction.message.edit(embed=new_embed)
+			#automatically releases inmate at 3 yes votes
+			if (yes_votes >= 3):
+
+				#get member object of member to be released
+				member_string	= new_embed.footer.text
+				member_id		= int(member_string)
+				member			= interaction.guild.get_member(member_id)
+				
+				#fetch yes voters
+				yes_men = []
+				for field in new_embed.fields:
+					if field.name == "Voted Yes:":
+						yes_men.append(field.value)
+				
+				#roles
+				try:
+					civil_enginerring_initiate	= interaction.guild.get_role(878040658244403253)
+					reformed					= interaction.guild.get_role(878289678623703080)
+					await member.add_roles(civil_enginerring_initiate, reformed, reason="Released out of the Reformation Centre", atomic=True)
+				except AttributeError:
+					await interaction.send("Could not assign roles.")		
+				await member.remove_roles(interaction.guild.get_role(getReformationRole(interaction.guild.id)), reason="Released out of the Reformation Centre", atomic=True)
+				
+				#logs
+				log_embed = nextcord.Embed(
+					title=f"Release: **{member.name}** ({member.id})", 
+					description=f"Reformation Inmate {member.name} was deemed well enough to be released back into the server.\n"
+								+f"Release has been approved by {', '.join(yes_men)}\n",
+					color=nextcord.Color.from_rgb(237,91,6))
+				channel = self.bot.get_channel(getModlogsChannel(interaction.guild.id))
+				await channel.send(embed=log_embed)
+				await interaction.send(f"**{member.name}** ({member.id}) will now be freed.")
+				
+				#updates embed and removed buttons
+				await interaction.message.edit(embed=new_embed, view=None)
+			new_embed.description = f"{new_embed.description[:-1]}{yes_votes}"
+			await interaction.message.edit(embed=new_embed)
 	
 	async def cb_no(self, interaction):
-		new_embed = interaction.message.embeds[0]
-		#check if user has already voted
-		for field in new_embed.fields:
-			if field.value == interaction.user.mention:
-				await interaction.response.send_message("You already voted", ephemeral=True)
-				return 
-		
-		#make vote visible
-		new_embed.add_field(name="Voted No:", value=interaction.user.mention, inline=True)
+		if isMod(interaction.user.roles):
+			new_embed = interaction.message.embeds[0]
+			#check if user has already voted
+			for field in new_embed.fields:
+				if field.value == interaction.user.mention:
+					await interaction.response.send_message("You already voted", ephemeral=True)
+					return 
+			
+			#make vote visible
+			new_embed.add_field(name="Voted No:", value=interaction.user.mention, inline=True)
 	
 	async def cb_maybe(self, interaction):
-		new_embed = interaction.message.embeds[0]
-		#check if user has already voted
-		for field in new_embed.fields:
-			if field.value == interaction.user.mention:
-				await interaction.response.send_message("You already voted", ephemeral=True)
-				return 
+		if isMod(interaction.user.roles):
+			new_embed = interaction.message.embeds[0]
+			#check if user has already voted
+			for field in new_embed.fields:
+				if field.value == interaction.user.mention:
+					await interaction.response.send_message("You already voted", ephemeral=True)
+					return 
 
-		#make vote visible
-		new_embed.add_field(name="Voted Maybe:", value=interaction.user.mention, inline=True)
+			#make vote visible
+			new_embed.add_field(name="Voted Maybe:", value=interaction.user.mention, inline=True)
 	
 	@commands.command()  
 	async def rq(self, ctx, member: nextcord.Member):
@@ -165,7 +168,32 @@ class Reformation(commands.Cog):
 			
 		else:
 			ctx.reply("Only Moderators can start Reformation Queries.")
+	
+	async def cb_done(self, interaction):
+		if isMod(interaction.user.roles):
+			embed = interaction.message.embeds[0]
+			embed.add_field(name="User was or is banned:", value=interaction.user.mention, inline=True)
+			await interaction.message.edit(embed=embed)
 		
+	
+	@commands.Cog.listener()
+	async def on_member_remove(self, member):
+		print(f"Member {member} has left the server")
+		
+		reformation_role = member.get_role(getReformationRole(member.guild.id))
+		print(reformation_role)
+		
+		if reformation_role != None:
+			channel = self.bot.get_channel(getAlertChannel(member.guild.id))
+			embed = nextcord.Embed(
+				title=f"User **{member}** ({member.id}) has left the server while in the reformation centre!", 
+				description=f"User has left the server while having the @reformation role. If they have not been banned, they should be hack-banned using wick now.",
+				color=nextcord.Color.from_rgb(255,255,0))
+			done = Button(label="User was or is banned", style=nextcord.ButtonStyle.green)
+			done.callback = self.cb_done
+			button_view = View(timeout=None)
+			button_view.add_item(done)
+			await channel.send(embed=embed, view=button_view)
 
 def setup(bot):
 	bot.add_cog(Reformation(bot))
