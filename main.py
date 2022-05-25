@@ -136,7 +136,7 @@ async def on_message(message):
 
     elif message.content == "<@839003324140355585>" or message.content == "<@977376749543387137>":
         channel = message.channel
-        await channel.send("Hey there {message.author.mention} I am Serversicherheit, or Sersi for short! My role is to help keep Adam Something Central a safe and enjoyable space.")
+        await channel.send(f"Hey there {message.author.mention} I am Serversicherheit, or Sersi for short! My role is to help keep Adam Something Central a safe and enjoyable space.")
 
     await bot.process_commands(message)
 
