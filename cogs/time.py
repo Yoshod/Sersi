@@ -5,7 +5,7 @@ import time
 from nextcord.ext import commands
 
 
-class Uptime(commands.Cog):
+class Time(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
@@ -21,6 +21,11 @@ class Uptime(commands.Cog):
             color=nextcord.Color.from_rgb(237, 91, 6))
         await ctx.send(embed=embedVar)
 
+    @commands.command()
+    async def ping(self, ctx):
+        """test the response time of the bot"""
+        await ctx.send(f'Pong! {round(self.bot.latency * 1000)}ms')
+
 
 def setup(bot):
-    bot.add_cog(Uptime(bot))
+    bot.add_cog(Time(bot))

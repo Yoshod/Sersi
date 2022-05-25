@@ -2,8 +2,6 @@ import nextcord
 import os
 import discordTokens
 import sys
-
-
 from nextcord.ext import commands
 from baseutils import *
 
@@ -70,14 +68,6 @@ async def reload(ctx, extension):
     else:
         await ctx.reply("<:sersifail:979070135799279698> Only Sersi contributors are able to reload cogs.")
 
-
-### GENERAL COMMANDS ###
-
-
-@bot.command()
-async def ping(ctx):
-    """test the response time of the bot"""
-    await ctx.send(f'Pong! {round(bot.latency * 1000)}ms')
 
 ### DEBUG AND MISC COMMANDS ###
 
