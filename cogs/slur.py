@@ -313,7 +313,7 @@ class Slur(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message):
         detected_slurs = detectSlur(message.content)
-        if message.author == bot.user:  # ignores message if message is by bot
+        if message.author == self.bot.user:  # ignores message if message is by bot
             return
 
         elif len(detected_slurs) > 0:  # checks slur heat
