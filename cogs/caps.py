@@ -1,19 +1,22 @@
+import nextcord
 from nextcord.ext import commands
 import re
 import unidecode
+from baseutils import getLoggingChannel
 # from nextcord.ext.commands.errors import MemberNotFound
 
 
 class Caps(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.MIN_CHARS_FOR_DETECTION = 3
 
     # events
     @commands.Cog.listener()
     async def on_message(self, message):
         msg_string = message.content
 
-        if len(msg_string) > 3:
+        if len(msg_string) > self.MIN_CHARS_FOR_DETECTION:
             # remove nums and non-alpanumeric
             msg_string = unidecode.unidecode(msg_string)
 
@@ -36,7 +39,17 @@ class Caps(commands.Cog):
 
                     webhook = await message.channel.create_webhook(name="caps webhook by sersi")
                     await webhook.send(str(msg_string.lower()), username=message.author.display_name, avatar_url=message.author.display_avatar.url)
-                    # await webhook.delete()
+
+                    channel = self.bot.get_channel(getLoggingChannel(message.guild.id))
+                    logging_embed = nextcord.Embed(
+                        title=f"Caps Lock Message replaced",
+                        description="",
+                        color=nextcord.Color.from_rgb(237, 91, 6)
+                    )
+                    logging_embed.add_field(name="User:", value=message.author.mention, inline=False)
+                    logging_embed.add_field(name="Original Message:", value=msg_string, inline=False)
+                    logging_embed.add_field(name="Replacement Message:", value=str(msg_string.lower()), inline=False)
+                    await channel.send(embed=logging_embed)
 
 
 def setup(bot):
