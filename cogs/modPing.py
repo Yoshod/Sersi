@@ -98,7 +98,7 @@ class ModPing(commands.Cog):
             bad_faith_ping = Button(label="Bad Faith Ping")
             bad_faith_ping.callback = self.cb_bad_faith_ping
 
-            button_view = View()
+            button_view = View(timeout=None)
             button_view.add_item(action_taken)
             button_view.add_item(action_not_neccesary)
             button_view.add_item(bad_faith_ping)
