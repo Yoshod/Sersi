@@ -37,6 +37,18 @@ class Reformation(commands.Cog):
 
                 await ctx.send(f"Memeber {member.mention} has been sent to reformation by {ctx.author.mention} for reson: {reason_string}")
 
+                # Giving a welcome to the person sent to reformation
+                try:
+                    channel = 943180985632169984
+                    welcome_embed = nextcord.Embed(
+                        tile="Welcome to Reformation",
+                        description=f"Hello {member.mention}, you have been sent to reformation by {ctx.author.mention}. The reason given for this is `{reason_string}`. \n\nFor more information on reformation check out <#878292548785958982> or talk to a <@&943193811574751314>.",
+                        color=nextcord.Color.from_rgb(237, 91, 6))
+                    await channel.send(embed=welcome_embed)
+
+                except AttributeError:
+                    return
+
                 # # LOGGING
                 embed = nextcord.Embed(
                     title="User Has Been Sent to Reformation",
