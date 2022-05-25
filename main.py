@@ -26,6 +26,8 @@ async def load(ctx, extension):
             await ctx.reply("Cog not found.")
         except commands.errors.ExtensionAlreadyLoaded:
             await ctx.reply("Cog already loaded.")
+    else:
+        await ctx.reply("<:sersifail:979070135799279698> Only Sersi contributors are able to load cogs.")
 
 
 @bot.command()
@@ -38,6 +40,8 @@ async def unload(ctx, extension):
             await ctx.reply("Cog not found.")
         except commands.errors.ExtensionNotLoaded:
             await ctx.reply(f"Cog {extension} was not loaded.")
+    else:
+        await ctx.reply("<:sersifail:979070135799279698> Only Sersi contributors are able to unload cogs.")
 
 
 @bot.command()
@@ -55,6 +59,8 @@ async def reload(ctx, extension):
                 await ctx.reply(f"Cog {extension} loaded.")
             except commands.errors.ExtensionNotFound:
                 await ctx.reply("Cog not found.")
+    else:
+        await ctx.reply("<:sersifail:979070135799279698> Only Sersi contributors are able to reload cogs.")
 
 
 ### GENERAL COMMANDS ###
@@ -107,7 +113,7 @@ async def dmTest(ctx, userId=None, *, args=None):
         else:
             await ctx.send("How the fuck did this error appear?")
     else:
-        await ctx.send("Only moderators can use this command.")
+        await ctx.send("<:sersifail:979070135799279698> Only moderators can use this command.")
 
 ### BOT EVENTS ###
 

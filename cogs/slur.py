@@ -11,6 +11,7 @@ class Slur(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        self.notModFail = "<:sersifail:979070135799279698> Only moderators can use this command."
         load_slurdetector()
 
     async def cb_action_taken(self, interaction):
@@ -97,9 +98,9 @@ class Slur(commands.Cog):
                 + str(slur),
                 color=nextcord.Color.from_rgb(237, 91, 6))
             await channel.send(embed=embedVar)
-            await ctx.send("Slur added. Detection will start now.")
+            await ctx.send("<:sersisuccess:979066662856822844> Slur added. Detection will start now.")
         else:
-            await ctx.send(notModFail)
+            await ctx.send(self.notModFail)
 
     @commands.command()
     async def addgoodword(self, ctx, word):
@@ -128,9 +129,9 @@ class Slur(commands.Cog):
                 + str(word),
                 color=nextcord.Color.from_rgb(237, 91, 6))
             await channel.send(embed=embedVar)
-            await ctx.send("Goodword added. Detection will start now.")
+            await ctx.send("<:sersisuccess:979066662856822844> Goodword added. Detection will start now.")
         else:
-            await ctx.send(notModFail)
+            await ctx.send(self.notModFail)
 
     @commands.command()
     async def removeslur(self, ctx, slur):
@@ -150,9 +151,9 @@ class Slur(commands.Cog):
                 + str(slur),
                 color=nextcord.Color.from_rgb(237, 91, 6))
             await channel.send(embed=embedVar)
-            await ctx.send(f"Slur {slur} is no longer in the list")
+            await ctx.send(f"<:sersisuccess:979066662856822844> Slur {slur} is no longer in the list")
         else:
-            await ctx.send(notModFail)
+            await ctx.send(self.notModFail)
 
     @commands.command()
     async def removegoodword(self, ctx, word):
@@ -172,9 +173,9 @@ class Slur(commands.Cog):
                 + str(word),
                 color=nextcord.Color.from_rgb(237, 91, 6))
             await channel.send(embed=embedVar)
-            await ctx.send(f"Goodword {word} is no longer in the list")
+            await ctx.send(f"<:sersisuccess:979066662856822844> Goodword {word} is no longer in the list")
         else:
-            await ctx.send(notModFail)
+            await ctx.send(self.notModFail)
 
     @commands.command()
     async def listslurs(self, ctx, page=1):
@@ -218,7 +219,7 @@ class Slur(commands.Cog):
                 color=nextcord.Color.from_rgb(237, 91, 6))
             await ctx.send(embed=embedVar)
         else:
-            await ctx.send(notModFail)
+            await ctx.send(self.notModFail)
 
     @commands.command()
     async def listgoodwords(self, ctx, page=1):
@@ -261,7 +262,7 @@ class Slur(commands.Cog):
                 color=nextcord.Color.from_rgb(237, 91, 6))
             await ctx.send(embed=embedVar)
         else:
-            await ctx.send(notModFail)
+            await ctx.send(self.notModFail)
 
     @commands.command()
     async def reloadslurs(self, ctx):
@@ -282,7 +283,7 @@ class Slur(commands.Cog):
                 color=nextcord.Color.from_rgb(237, 91, 6))
             await channel.send(embed=embedVar)
         else:
-            await ctx.send(notModFail)
+            await ctx.send(self.notModFail)
 
     # events
     @commands.Cog.listener()

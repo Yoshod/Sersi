@@ -8,6 +8,7 @@ from baseutils import *
 class Reformation(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.notModFail = "<:sersifail:979070135799279698> Only moderators can use this command."
 
     # command
     @commands.command()
@@ -52,7 +53,7 @@ class Reformation(commands.Cog):
             except MemberNotFound:
                 await ctx.send("Member not found!")
         else:
-            ctx.reply("__**No Permissions**__\nTo get the issue investigates, please open a Mod-Ticket or ping @moderator.")
+            ctx.reply(self.notModFail)
 
     async def cb_rq_yes(self, interaction):
         if isMod(interaction.user.roles):
@@ -211,7 +212,7 @@ class Reformation(commands.Cog):
             await channel.send(embed=embedVar, view=button_view)
 
         else:
-            ctx.reply("Only Moderators can start Reformation Queries.")
+            ctx.reply(self.notModFail)
 
     async def cb_done(self, interaction):
         if isMod(interaction.user.roles):
@@ -258,7 +259,7 @@ class Reformation(commands.Cog):
             await channel.send(embed=embedVar, view=button_view)
 
         else:
-            ctx.reply("Only Moderators can start Reformation Queries.")
+            ctx.reply(self.notModFail)
 
     @commands.Cog.listener()
     async def on_member_remove(self, member):
