@@ -18,6 +18,10 @@ bot = commands.Bot(command_prefix="s!", intents=intents)
 
 @bot.command()
 async def load(ctx, extension):
+    """Logs Cog
+
+    Loads cog.
+    Permission needed: Sersi contributor"""
     if isSersiContrib(ctx.author.roles):
         try:
             bot.load_extension(f"cogs.{extension}")
@@ -32,6 +36,10 @@ async def load(ctx, extension):
 
 @bot.command()
 async def unload(ctx, extension):
+    """Unload Cog
+
+    Unloads cog.
+    Permission needed: Sersi contributor"""
     if isSersiContrib(ctx.author.roles):
         try:
             bot.unload_extension(f"cogs.{extension}")
@@ -46,6 +54,10 @@ async def unload(ctx, extension):
 
 @bot.command()
 async def reload(ctx, extension):
+    """Reload Cog
+
+    Reloads cog. If cog wasn't loaded, loads cog.
+    Permission needed: Sersi contributor"""
     if isSersiContrib(ctx.author.roles):
         try:
             bot.unload_extension(f"cogs.{extension}")
@@ -54,11 +66,7 @@ async def reload(ctx, extension):
         except commands.errors.ExtensionNotFound:
             await ctx.reply("Cog not found.")
         except commands.errors.ExtensionNotLoaded:
-            try:
-                bot.load_extension(f"cogs.{extension}")
-                await ctx.reply(f"Cog {extension} loaded.")
-            except commands.errors.ExtensionNotFound:
-                await ctx.reply("Cog not found.")
+            load(extension)
     else:
         await ctx.reply("<:sersifail:979070135799279698> Only Sersi contributors are able to reload cogs.")
 
