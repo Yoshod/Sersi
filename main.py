@@ -2,6 +2,10 @@ import nextcord
 import os
 import discordTokens
 import sys
+import datetime
+import time
+
+
 from nextcord.ext import commands
 from baseutils import *
 
@@ -9,7 +13,7 @@ intents = nextcord.Intents.all()
 intents.members = True
 
 bot = commands.Bot(command_prefix="s!", intents=intents)
-
+start_time = time.time()
 
 ### COGS ###
 
@@ -17,7 +21,6 @@ bot = commands.Bot(command_prefix="s!", intents=intents)
 @bot.command()
 async def load(ctx, extension):
     """Loads Cog
-
     Loads cog.
     Permission needed: Sersi contributor"""
     if isSersiContrib(ctx.author.roles):
@@ -35,7 +38,6 @@ async def load(ctx, extension):
 @bot.command()
 async def unload(ctx, extension):
     """Unload Cog
-
     Unloads cog.
     Permission needed: Sersi contributor"""
     if isSersiContrib(ctx.author.roles):
@@ -53,7 +55,6 @@ async def unload(ctx, extension):
 @bot.command()
 async def reload(ctx, extension):
     """Reload Cog
-
     Reloads cog. If cog wasn't loaded, loads cog.
     Permission needed: Sersi contributor"""
     if isSersiContrib(ctx.author.roles):
@@ -68,6 +69,24 @@ async def reload(ctx, extension):
     else:
         await ctx.reply("<:sersifail:979070135799279698> Only Sersi contributors are able to reload cogs.")
 
+
+### GENERAL COMMANDS ###
+
+@bot.command()
+async def uptime(ctx):
+    """Displays Sersi's uptime"""
+    sersi_uptime = str(datetime.timedelta(seconds=int(round(time.time() - start_time))))
+    embedVar = nextcord.Embed(
+        title="Sersi Uptime",
+        description=f"Sersi has been online for:\n`{sersi_uptime}`",
+        color=nextcord.Color.from_rgb(237, 91, 6))
+    await ctx.send(embed=embedVar)
+
+
+@bot.command()
+async def ping(ctx):
+    """test the response time of the bot"""
+    await ctx.send(f'Pong! {round(bot.latency * 1000)}ms')
 
 ### DEBUG AND MISC COMMANDS ###
 
