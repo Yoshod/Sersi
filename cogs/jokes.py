@@ -28,6 +28,20 @@ class Jokes(commands.Cog):
             else:
                 return
 
+        elif str(message.content) == "nyah" or str(message.content) == "Nyah":
+            randomValue = random.randint(1, 10)
+            if randomValue == 10:
+                await message.channel.send(f"Nyah... nyah? What are you, a fucking weeb {message.author.mention}?")
+            else:
+                return
+
+        elif str(message.content) == "meow" or str(message.content) == "Meow":
+            randomValue = random.randint(1, 10)
+            if randomValue == 10:
+                await message.channel.send(f"Meow meow meow, we get it you have a prissy attitude {message.author.mention}, we already noticed.")
+            else:
+                return
+
 
 def setup(bot):
     bot.add_cog(Jokes(bot))
