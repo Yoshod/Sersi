@@ -18,7 +18,7 @@ class Uptime(commands.Cog):
     @commands.command()
     async def uptime(self, ctx):
         """Displays Sersi's uptime"""
-        sersi_uptime = str(datetime.timedelta(second=int(round(time.time() - start_time))))
+        sersi_uptime = str(datetime.timedelta(second=int(round(time.time() - sersi_uptime))))
         embedVar = nextcord.Embed(
             title="Moderator Ping",
             description=f"Sersi has been online for:`\n{sersi_uptime}`",
