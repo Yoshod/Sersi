@@ -313,8 +313,10 @@ class Slur(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message):
         detected_slurs = detectSlur(message.content)
+        if message.author == self.bot.user:  # ignores message if message is by bot
+            return
 
-        if len(detected_slurs) > 0:  # checks slur heat
+        elif len(detected_slurs) > 0:  # checks slur heat
             channel = self.bot.get_channel(getAlertChannel(message.guild.id))
             embedVar = nextcord.Embed(
                 title="Slur(s) Detected",
@@ -325,7 +327,7 @@ class Slur(commands.Cog):
                 + "\n\n__Context:__\n"
                 + str(message.content)
                 + "\n\n__Slurs Found:__\n"
-                + str(detected_slurs)
+                + ", ".join(set(detected_slurs))
                 + "\n\n__URL:__\n"
                 + str(message.jump_url),
                 color=nextcord.Color.from_rgb(237, 91, 6))

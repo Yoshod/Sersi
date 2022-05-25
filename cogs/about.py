@@ -10,6 +10,7 @@ class About(commands.Cog):
         self.bot = bot
         self.verNum = str("`2.0.2`")
         self.buildNum = str("`Build 00151`")
+
         self.authorsList = load_authors()
 
     @commands.command()
