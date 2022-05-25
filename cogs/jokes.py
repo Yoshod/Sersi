@@ -28,7 +28,7 @@ class Jokes(commands.Cog):
             else:
                 return
 
-        elif str(message.content) == "nyah" or str(message.content) == "Nyah":
+        elif str(message.content) == "nya" or str(message.content) == "Nya":
             randomValue = random.randint(1, 10)
             if randomValue == 10:
                 await message.channel.send(f"Nyah... nyah? What are you, a fucking weeb {message.author.mention}?")
