@@ -327,7 +327,7 @@ class Slur(commands.Cog):
                 + "\n\n__Context:__\n"
                 + str(message.content)
                 + "\n\n__Slurs Found:__\n"
-                + str(detected_slurs)
+                + ", ".join(set(detected_slurs))
                 + "\n\n__URL:__\n"
                 + str(message.jump_url),
                 color=nextcord.Color.from_rgb(237, 91, 6))
