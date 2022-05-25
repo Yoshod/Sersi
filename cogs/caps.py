@@ -13,7 +13,7 @@ class Caps(commands.Cog):
     async def on_message(self, message):
         msg_string = message.content
 
-        if len(msg_string) > 10:
+        if len(msg_string) > 3:
             # remove nums and non-alpanumeric
             msg_string = unidecode.unidecode(msg_string)
 
