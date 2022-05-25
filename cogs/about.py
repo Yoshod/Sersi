@@ -18,15 +18,15 @@ class About(commands.Cog):
         authorString = ""
         for authors in self.authorsList:
             authorString = (str(authorString) + str(authors) + str("\n"))
-            embedVar = nextcord.Embed(
-                title="About Sersi",
-                description="Sersi is the custom moderation help bot for Adam Something Central.\n\nVersion:\n"
-                + str(self.verNum)
-                + str("\n\nBuild Number:\n")
-                + str(self.buildNum)
-                + str("\n\nAuthors:\n")
-                + str(authorString),
-                color=nextcord.Color.from_rgb(237, 91, 6))
+        embedVar = nextcord.Embed(
+            title="About Sersi",
+            description="Sersi is the custom moderation help bot for Adam Something Central.\n\nVersion:\n"
+            + str(self.verNum)
+            + str("\n\nBuild Number:\n")
+            + str(self.buildNum)
+            + str("\n\nAuthors:\n")
+            + str(authorString),
+            color=nextcord.Color.from_rgb(237, 91, 6))
         await ctx.send(embed=embedVar)
 
 
