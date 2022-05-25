@@ -218,7 +218,7 @@ class Reformation(commands.Cog):
             embed = interaction.message.embeds[0]
             embed.add_field(name="User was or is banned:", value=interaction.user.mention, inline=True)
             embed.color = nextcord.Color.from_rgb(0, 255, 0)
-            await interaction.message.edit(embed=embed)
+            await interaction.message.edit(embed=embed, view=None)
 
     @commands.command()
     async def rf(self, ctx, member: nextcord.Member):

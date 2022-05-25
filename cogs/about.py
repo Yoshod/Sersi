@@ -9,7 +9,7 @@ class About(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.verNum = str("`3.1.1`")
-        self.buildNum = str("`Build 00160`")
+        self.buildNum = str("`Build 00161`")
         self.authorsList = load_authors()
 
     @commands.command()
