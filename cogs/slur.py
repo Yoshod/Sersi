@@ -54,9 +54,10 @@ class Slur(commands.Cog):
         channel = self.bot.get_channel(getFalsePositivesChannel(interaction.guild_id))
         embedVar = nextcord.Embed(
             title="Marked as false positive",
-            description="\n".join(interaction.message.embeds[0].description.split('\n')[8:-3])
-            + "\n\n__Report URL__\n"
-            + str(interaction.message.jump_url),
+            description="__Context:__\n"
+            + str(interaction.message.embeds[0].description.split('\n')[9])
+            + "\n\n__Slurs Found:__\n"
+            + str(interaction.message.embeds[0].description.split('\n')[12]),
             color=nextcord.Color.from_rgb(237, 91, 6))
         await channel.send(embed=embedVar)
         # Logging
