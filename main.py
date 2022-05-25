@@ -18,7 +18,7 @@ bot = commands.Bot(command_prefix="s!", intents=intents)
 
 @bot.command()
 async def load(ctx, extension):
-    """Logs Cog
+    """Loads Cog
 
     Loads cog.
     Permission needed: Sersi contributor"""
