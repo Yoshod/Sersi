@@ -21,6 +21,18 @@ class Jokes(commands.Cog):
             else:
                 return
 
+        elif "admin furry stash" in message.content.lower():
+            randomValue = random.randint(1, 10)
+            if randomValue == 10:
+                embed = nextcord.Embed(
+                    title="Admin Furry Stash Rumour",
+                    description="The so called \"Admin Furry Stash\" channel does not exist. It has never existed, and never will exist, as there are no furry admins on this server. Please remain calm as our specialist anti-disinformation team arrives at your address in order to further educate you on this matter.",
+                    colour=nextcord.Colour.from_rgb(138, 43, 226)
+                )
+                await message.channel.send(embed=embed)
+            else:
+                return
+
         elif message.content.lower() == "literally 1984":
             randomValue = random.randint(1, 10)
             if randomValue >= 9:
@@ -41,6 +53,9 @@ class Jokes(commands.Cog):
                 await message.channel.send(f"Meow meow meow, we get it you have a prissy attitude {message.author.mention}, we already noticed.")
             else:
                 return
+
+        elif ("it's coming home" in message.content.lower() or "it will come home" in message.content.lower()) and message.author.id == 362340623992356864:
+            await message.reply("No it won't be coming home Solar, and it likely never will in the future.")
 
 
 def setup(bot):

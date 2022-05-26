@@ -21,6 +21,7 @@ start_time = time.time()
 @bot.command()
 async def load(ctx, extension):
     """Loads Cog
+
     Loads cog.
     Permission needed: Sersi contributor"""
     if isSersiContrib(ctx.author.roles):
@@ -38,6 +39,7 @@ async def load(ctx, extension):
 @bot.command()
 async def unload(ctx, extension):
     """Unload Cog
+
     Unloads cog.
     Permission needed: Sersi contributor"""
     if isSersiContrib(ctx.author.roles):
@@ -55,6 +57,7 @@ async def unload(ctx, extension):
 @bot.command()
 async def reload(ctx, extension):
     """Reload Cog
+
     Reloads cog. If cog wasn't loaded, loads cog.
     Permission needed: Sersi contributor"""
     if isSersiContrib(ctx.author.roles):
@@ -65,7 +68,7 @@ async def reload(ctx, extension):
         except commands.errors.ExtensionNotFound:
             await ctx.reply("Cog not found.")
         except commands.errors.ExtensionNotLoaded:
-            load(extension)
+            await load(extension)
     else:
         await ctx.reply("<:sersifail:979070135799279698> Only Sersi contributors are able to reload cogs.")
 
@@ -101,10 +104,10 @@ async def dmTest(ctx, userId=None, *, args=None):
                 currentChar = target[i]
                 charTest = currentChar.isdigit()
                 print(charTest)
-                if charTest is True and targetId is not "Null":
+                if charTest is True and targetId != "Null":
                     targetId = str(targetId) + str(target[i])
                     print("Character is number")
-                elif charTest is True and targetId is "Null":
+                elif charTest is True and targetId == "Null":
                     targetId = str(target[i])
             targetId = int(targetId)
             user = bot.get_user(targetId)
