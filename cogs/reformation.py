@@ -39,7 +39,7 @@ class Reformation(commands.Cog):
 
                 # Giving a welcome to the person sent to reformation
                 try:
-                    channel = 943180985632169984
+                    channel = self.bot.get_channel(943180985632169984)
                     welcome_embed = nextcord.Embed(
                         tile="Welcome to Reformation",
                         description=f"Hello {member.mention}, you have been sent to reformation by {ctx.author.mention}. The reason given for this is `{reason_string}`. \n\nFor more information on reformation check out <#878292548785958982> or talk to a <@&943193811574751314>.",
@@ -47,7 +47,7 @@ class Reformation(commands.Cog):
                     await channel.send(embed=welcome_embed)
 
                 except AttributeError:
-                    return
+                    pass
 
                 # # LOGGING
                 embed = nextcord.Embed(
