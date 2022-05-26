@@ -7,7 +7,7 @@ goodword = []
 def leet(word):
     substitutions = {
         "a": ("a", "@", "*", "4", "æ", "λ", "δ"),
-        "i": ("i", "*", "l", "1"),
+        "i": ("i", "*", "l", "1", "!", "¡"),
         "o": ("o", "*", "0", "@", "θ"),
         "u": ("u", "*", "v"),
         "v": ("v", "*", "u"),
@@ -78,7 +78,7 @@ def load_goodwords():
 
 def clearString(string):
     """cleaning up the message by eliminating special characters and making the entire message lowercase"""
-    special_characters = ['!', '#', '%', '&', '[', ']', ' ', ']', '_', '-', '<', '>']
+    special_characters = ['#', '%', '&', '[', ']', ' ', ']', '_', '-', '<', '>']
 
     string = string.lower()
     string = unidecode.unidecode(string)
@@ -123,5 +123,6 @@ def detectSlur(messageData):
             return []
     else:
         return []
+
 
 # I sure hope My pakistani friends and myself will be able to enjoy our spicy noodles among the beautiful skyscrapers of Montenegro    --Pando
