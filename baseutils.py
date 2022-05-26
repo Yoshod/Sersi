@@ -1,18 +1,15 @@
 
 def checkForMods(messageData):
-    modRoles = ["<@&856424878437040168>", "<@&963537133589643304>", "<@&875805670799179799>", "<@&883255791610638366>", "<@&977939552641613864>"]
-    modDetected = False
-
-    for modmention in modRoles:
+    for modmention in ["<@&856424878437040168>", "<@&963537133589643304>", "<@&875805670799179799>", "<@&883255791610638366>", "<@&977939552641613864>"]:
         if modmention in messageData:
-            modDetected = True
-    return modDetected
+            return True
+    return False
 
 
 def isMod(userRoles):
     modRolePresent = False
     for role in userRoles:
-        if 856424878437040168 == role.id or 883255791610638366 == role.id or 977394150494326855 == role.id:  # "Moderator", "Trial Moderator", "certified bot tester"
+        if role.id in [856424878437040168, 883255791610638366, 977394150494326855]:  # "Moderator", "Trial Moderator", "certified bot tester"
             modRolePresent = True
     return (modRolePresent)
 
