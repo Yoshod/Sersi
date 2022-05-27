@@ -100,8 +100,7 @@ async def ping(ctx):
 
 @bot.event
 async def on_ready():
-    ajustCommandPrefix(bot) # change prefix to cs! if Sersi(cracked)
-    
+    ajustCommandPrefix(bot)  # change prefix to cs! if Sersi(cracked)
     # load all cogs
     for filename in os.listdir('./cogs'):
         print("found file", filename)
