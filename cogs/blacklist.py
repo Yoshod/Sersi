@@ -20,6 +20,7 @@ class Blacklist(commands.Cog):
 
     @commands.command(aliases=['bl', 'bluser', 'addbl', 'modblacklist'])
     async def blacklistuser(self, ctx, member: nextcord.Member, *reason):
+        """sets user onto moderator blacklist"""
         if not isMod(ctx.author.roles):
             await ctx.send(f"<:sersifail:979070135799279698> Insufficient permission!")
             return
@@ -35,11 +36,19 @@ class Blacklist(commands.Cog):
 
         self.loadblacklist()
         await ctx.send("<:sersisuccess:979066662856822844> User added to blacklist.")
-        return
+
+        # LOGGING
+        channel = ctx.guild.get_channel(getLoggingChannel(ctx.guild.id))
+        logging = nextcord.Embed(
+            title="User added to Blacklist"
+        )
+        logging.add_field(name="Moderator:", value=ctx.author.mention, inline=False)
+        logging.add_field(name="User Added:", value=member.mention, inline=False)
+        await channel.send(embed=logging)
 
     @commands.command(aliases=['lbl', 'bllist', 'listbl', 'bll', 'showblacklist'])
     async def listblacklist(self, ctx):
-        # await ctx.send(self.blacklist)
+        """lists all members currently on the blacklist"""
         nicelist = ""
         for entry in self.blacklist:
 
@@ -54,22 +63,15 @@ class Blacklist(commands.Cog):
             description=nicelist
         )
         await ctx.send(embed=listembed)
-        return
-
-    @commands.command(aliases=['rlbl', 'blrawlist', 'rawlistbl', 'rbll'])
-    async def rawlistblacklist(self, ctx):
-        await ctx.send(self.blacklist)
-        return
 
     @commands.command(aliases=['rmbl', 'removeuserfromblacklist', 'blrmuser', 'blremoveuser'])
     async def removefromblacklist(self, ctx, member: nextcord.Member):
-        await ctx.reply("removefromblacklist")
+        """removes user from moderator blacklist"""
         if not isMod(ctx.author.roles):
             await ctx.send(f"<:sersifail:979070135799279698> Insufficient permission!")
             return
         if member.id not in self.blacklist:
             await ctx.send(f"<:sersifail:979070135799279698> Member {member} not found on list!")
-            return
 
         self.blacklist.pop(member.id)
 
@@ -83,6 +85,15 @@ class Blacklist(commands.Cog):
                     fp.write(line)
 
         await ctx.send("<:sersisuccess:979066662856822844> User has been removed from blacklist.")
+
+        # LOGGING
+        channel = ctx.guild.get_channel(getLoggingChannel(ctx.guild.id))
+        logging = nextcord.Embed(
+            title="User Removed from Blacklist"
+        )
+        logging.add_field(name="Moderator:", value=ctx.author.mention, inline=False)
+        logging.add_field(name="User Removed:", value=member.mention, inline=False)
+        await channel.send(embed=logging)
 
 
 def setup(bot):
