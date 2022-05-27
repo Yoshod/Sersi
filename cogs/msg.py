@@ -19,7 +19,7 @@ class Messages(commands.Cog):
             return
 
         await recipient.send(msg)
-        await ctx.send(f"Direkt Message sent to {recipient}!")
+        await ctx.send(f"<:sersisuccess:979066662856822844> Direkt Message sent to {recipient}!")
 
     @commands.command()
     async def dmTest(self, ctx, userId=None, *, args=None):
