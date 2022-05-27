@@ -32,11 +32,11 @@ class Caps(commands.Cog):
 
                     channel_webhooks = await message.channel.webhooks()
 
-                    for wh in channel_webhooks:
+                    for wh in channel_webhooks:                  # tries to find existing webhook
                         if wh.name == "caps webhook by sersi":
                             webhook = wh
 
-                    if webhook is None:
+                    if webhook is None:                          # creates webhook if none found
                         webhook = await message.channel.create_webhook(name="caps webhook by sersi")
 
                     replacement_message = await webhook.send(str(msg_string.lower()), username=message.author.display_name, avatar_url=message.author.display_avatar.url, wait=True)
