@@ -27,7 +27,7 @@ class Blacklist(commands.Cog):
             await ctx.send(f"<:sersifail:979070135799279698> {member} already on list!")
             return
 
-        reason_string = " ".join(args)
+        reason_string = " ".join(reason)
         # self.blacklist[member.id] = reason
 
         with open("blacklist.txt", "a") as file:
@@ -67,7 +67,7 @@ class Blacklist(commands.Cog):
         if not isMod(ctx.author.roles):
             await ctx.send(f"<:sersifail:979070135799279698> Insufficient permission!")
             return
-        if member.id not in blacklist:
+        if member.id not in self.blacklist:
             await ctx.send(f"<:sersifail:979070135799279698> Member {member} not found on list!")
             return
 
@@ -79,8 +79,10 @@ class Blacklist(commands.Cog):
 
         with open("blacklist.txt", "w") as fp:
             for line in lines:
-                if not line.startswith(member.id):
+                if not line.startswith(str(member.id)):  # explicit type conversion cuz exeption otherwise
                     fp.write(line)
+
+        await ctx.send("<:sersisuccess:979066662856822844> User has been removed from blacklist.")
 
 
 def setup(bot):
