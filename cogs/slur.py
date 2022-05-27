@@ -61,7 +61,7 @@ class Slur(commands.Cog):
             if field.name in ["Context:", "Slurs Found:"]:
                 embedVar.add_field(name=field.name, value=field.value, inline=False)
 
-        embedVar.add_field(name="Report URL:", value="interaction.message.jump_url", inline=False)
+        embedVar.add_field(name="Report URL:", value=interaction.message.jump_url, inline=False)
         await channel.send(embed=embedVar)
 
         # Logging
