@@ -1,7 +1,6 @@
 import nextcord
 from nextcord.ext import commands
 from baseutils import *
-# Doesn't do anything yet, got plans for this
 
 
 class Voice(commands.Cog):

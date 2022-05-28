@@ -1,7 +1,6 @@
 import nextcord
 from nextcord.ext import commands
 import re
-import unidecode
 from baseutils import getLoggingChannel
 # from nextcord.ext.commands.errors import MemberNotFound
 
@@ -18,9 +17,12 @@ class Caps(commands.Cog):
 
         if len(msg_string) > self.MIN_CHARS_FOR_DETECTION:
             # remove nums and non-alpanumeric
-            msg_string = unidecode.unidecode(msg_string)
+            # msg_string = unidecode.unidecode(msg_string)
 
-            new_msg_string = re.sub(r'[^a-zA-Z]', '', msg_string)
+            # remove emotes
+            new_msg_string = re.sub(r'(<a?)?:\w+:(\d{18}>)?', '', msg_string)
+
+            new_msg_string = re.sub(r'[^a-zA-Z]', '', new_msg_string)
             uppercase = sum(1 for char in new_msg_string if char.isupper())
 
             if len(new_msg_string) != 0:
