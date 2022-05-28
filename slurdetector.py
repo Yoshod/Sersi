@@ -1,6 +1,7 @@
 from itertools import product   # needed for slur obscurity permutations
 import unidecode                # needed for cleaning accents and diacritic marks
 slurs = []
+slur_list = []
 goodword = []
 
 
@@ -35,9 +36,11 @@ def load_slurdetector():
 
 def rmSlur(ctx, slur):
     lines = []
-    if slur in slurs:
-        for slurvariant in leet(slur):
-            slurs.remove(slurvariant)
+    if slur in slur_list:
+        slur_list.remove(slur)
+        slurs.clear()
+        for item in slur_list:
+            slurs.extend(leet(item))
     with open("slurs.txt", "r") as fp:
         lines = fp.readlines()
 
@@ -61,10 +64,12 @@ def rmGoodword(ctx, word):
 
 
 def load_slurs():
-    goodword.clear()
+    slurs.clear()
+    slur_list.clear()
     with open("slurs.txt", "r") as file:
         for line in file:
             line = line.replace('\n', '')
+            slur_list.append(line)
             slurs.extend(leet(line))
 
 
