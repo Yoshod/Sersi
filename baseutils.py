@@ -25,7 +25,7 @@ def isDarkMod(userRoles):
 def isSersiContrib(userRoles):
     sersiContrib = False
     for role in userRoles:
-        if 977602747786493972 == role.id or 977394150494326855 == role.id:
+        if role.id in [977602747786493972, 977394150494326855]:
             sersiContrib = True
     return sersiContrib
 
