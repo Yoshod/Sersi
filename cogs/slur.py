@@ -74,6 +74,54 @@ class Slur(commands.Cog):
         embedLogVar.add_field(name="Moderator:", value=f"{interaction.user.mention} ({interaction.user.id})", inline=False)
         await channel.send(embed=embedLogVar)
 
+    async def cb_slur_list_next_page(self, interaction):
+        new_embed = interaction.message.embeds[0]
+        for field in new_embed.fields:
+            if field.name.lower() == "page:":
+                page_field = field
+        page = int(page_field.value.split('/')[0][2:]) + 1
+        wordlist, pages, page = get_slurs(page)
+        new_embed.description = ", ".join(wordlist)
+        new_embed.clear_fields()
+        new_embed.add_field(name="page:", value=f"**{page}/{pages}**")
+        await interaction.message.edit(embed=new_embed)
+        
+    async def cb_slur_list_prev_page(self, interaction):
+        new_embed = interaction.message.embeds[0]
+        for field in new_embed.fields:
+            if field.name.lower() == "page:":
+                page_field = field
+        page = int(page_field.value.split('/')[0][2:]) - 1
+        wordlist, pages, page = get_slurs(page)
+        new_embed.description = ", ".join(wordlist)
+        new_embed.clear_fields()
+        new_embed.add_field(name="page:", value=f"**{page}/{pages}**")
+        await interaction.message.edit(embed=new_embed)
+        
+    async def cb_goodword_list_next_page(self, interaction):
+        new_embed = interaction.message.embeds[0]
+        for field in new_embed.fields:
+            if field.name.lower() == "page:":
+                page_field = field
+        page = int(page_field.value.split('/')[0][2:]) + 1
+        wordlist, pages, page = get_goodwords(page)
+        new_embed.description = ", ".join(wordlist)
+        new_embed.clear_fields()
+        new_embed.add_field(name="page:", value=f"**{page}/{pages}**")
+        await interaction.message.edit(embed=new_embed)
+        
+    async def cb_goodword_list_prev_page(self, interaction):
+        new_embed = interaction.message.embeds[0]
+        for field in new_embed.fields:
+            if field.name.lower() == "page:":
+                page_field = field
+        page = int(page_field.value.split('/')[0][2:]) - 1
+        wordlist, pages, page = get_goodwords(page)
+        new_embed.description = ", ".join(wordlist)
+        new_embed.clear_fields()
+        new_embed.add_field(name="page:", value=f"**{page}/{pages}**")
+        await interaction.message.edit(embed=new_embed)
+
     @commands.command(aliases=["addsl"])
     async def addslur(self, ctx, *slur):
         """adds a new slur to the list of slurs to detect."""
@@ -174,39 +222,25 @@ class Slur(commands.Cog):
     async def listslurs(self, ctx, page=1):
         """lists slurs currently being detected by the bot, 100 slurs listed per page."""
         if isMod(ctx.author.roles):
-            wordlist = []
-            pages, index = 1, 0
-
-            with open("slurs.txt", "r") as file:
-                for line in file:
-                    wordlist.append(line[0:-1])
+            wordlist, pages, page = get_slurs(page)
             wordlist.sort()
-
-            # check if multiple pages are needed, 100 slurs per page will be listed
-            if len(wordlist) > 100:
-                pages += (len(wordlist) - 1) // 100
-
-                # get the index of the current page
-                index = int(page) - 1
-                if index < 0:
-                    index = 0
-                elif index >= pages:
-                    index = pages - 1
-
-                # update the list to a subsection according to the index
-                if index == (pages - 1):
-                    templist = wordlist[index * 100:]
-                else:
-                    templist = wordlist[index * 100: index * 100 + 100]
-                wordlist = templist
 
             # post the list as embed
             embedVar = nextcord.Embed(
                 title="List of currently detected slurs",
-                description=str(", ".join(wordlist)),
+                description=", ".join(wordlist),
                 color=nextcord.Color.from_rgb(237, 91, 6))
-            embedVar.add_field(name="page:", value=f"**{index+1}/{pages}**")
-            await ctx.send(embed=embedVar)
+            embedVar.add_field(name="page:", value=f"**{page}/{pages}**")
+            btn_view = None
+            if (pages > 1):
+                btn_prev = Button(label="< prev")
+                btn_prev.callback = self.cb_slur_list_prev_page
+                btn_next = Button(label="next >")
+                btn_next.callback = self.cb_slur_list_next_page
+                btn_view = View()
+                btn_view.add_item(btn_prev)
+                btn_view.add_item(btn_next)
+            await ctx.send(embed=embedVar, view=btn_view)
         else:
             await ctx.send(self.notModFail)
 
@@ -214,38 +248,25 @@ class Slur(commands.Cog):
     async def listgoodwords(self, ctx, page=1):
         """lists goodwords currently whitlested from slur detection, 100 words listed per page"""
         if isMod(ctx.author.roles):
-            wordlist = []
-            pages, index = 1, 0
-
-            with open("goodword.txt", "r") as file:
-                for line in file:
-                    wordlist.append(line[0:-1])
+            wordlist, pages, page = get_goodwords(page)
             wordlist.sort()
 
-            # check if multiple pages are needed, 100 goodwords per page will be listed
-            if len(wordlist) > 100:
-                pages += (len(wordlist) - 1) // 100
-
-                # get the index of the current page
-                index = int(page) - 1
-                if index < 0:
-                    index = 0
-                elif index >= pages:
-                    index = pages - 1
-
-                # update the list to a subsection according to the index
-                if index == (pages - 1):
-                    templist = wordlist[index * 100:]
-                else:
-                    templist = wordlist[index * 100: index * 100 + 100]
-                wordlist = templist
-
+            # post the list as embed
             embedVar = nextcord.Embed(
                 title="List of goodwords currently whitelisted from slur detection",
                 description=str(", ".join(wordlist)),
                 color=nextcord.Color.from_rgb(237, 91, 6))
-            embedVar.add_field(name="page:", value=f"**{index+1}/{pages}**")
-            await ctx.send(embed=embedVar)
+            embedVar.add_field(name="page:", value=f"**{page}/{pages}**")
+            btn_view = None
+            if (pages > 1):
+                btn_prev = Button(label="< prev")
+                btn_prev.callback = self.cb_goodword_list_prev_page
+                btn_next = Button(label="next >")
+                btn_next.callback = self.cb_goodword_list_next_page
+                btn_view = View()
+                btn_view.add_item(btn_prev)
+                btn_view.add_item(btn_next)
+            await ctx.send(embed=embedVar, view=btn_view)
         else:
             await ctx.send(self.notModFail)
 

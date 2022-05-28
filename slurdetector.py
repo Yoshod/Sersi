@@ -1,7 +1,7 @@
 from itertools import product   # needed for slur obscurity permutations
 import unidecode                # needed for cleaning accents and diacritic marks
 slurs = []
-slur_list = []
+slurs_list = []
 goodword = []
 
 
@@ -29,6 +29,42 @@ def leet(word):
     return [''.join(permutations) for permutations in product(*possibles)]
 
 
+def get_slurs(page=None):
+    if page is None:
+        return slurs_list
+    else:
+        pages = 1 + (len(slurs_list) - 1) // 100
+
+        index = page - 1
+        if index < 0:
+            index = 0
+        elif index >= pages:
+            index = pages - 1
+
+        if index == (pages - 1):
+            return slurs_list[index * 100:], pages, index + 1
+        else:
+            return slurs_list[index * 100: index * 100 + 100], pages, index + 1
+
+
+def get_goodwords(page=None):
+    if page is None:
+        return goodword
+    else:
+        pages = 1 + (len(goodword) - 1) // 100
+
+        index = page - 1
+        if index < 0:
+            index = 0
+        elif index >= pages:
+            index = pages - 1
+
+        if index == (pages - 1):
+            return goodword[index * 100:], pages, index + 1
+        else:
+            return goodword[index * 100: index * 100 + 100], pages, index + 1
+
+
 def load_slurdetector():
     load_slurs()
     load_goodwords()
@@ -36,10 +72,10 @@ def load_slurdetector():
 
 def rmSlur(ctx, slur):
     lines = []
-    if slur in slur_list:
-        slur_list.remove(slur)
+    if slur in slurs_list:
+        slurs_list.remove(slur)
         slurs.clear()
-        for item in slur_list:
+        for item in slurs_list:
             slurs.extend(leet(item))
     with open("slurs.txt", "r") as fp:
         lines = fp.readlines()
@@ -65,11 +101,11 @@ def rmGoodword(ctx, word):
 
 def load_slurs():
     slurs.clear()
-    slur_list.clear()
+    slurs_list.clear()
     with open("slurs.txt", "r") as file:
         for line in file:
             line = line.replace('\n', '')
-            slur_list.append(line)
+            slurs_list.append(line)
             slurs.extend(leet(line))
 
 
