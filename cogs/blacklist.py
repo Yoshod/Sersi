@@ -12,7 +12,7 @@ class Blacklist(commands.Cog):
         self.loadblacklist()
 
     def loadblacklist(self):
-        with open("blacklist.txt", "r") as file:
+        with open("blacklist.csv", "r") as file:
             for line in file:
                 line = line.replace('\n', '')
                 [user_id, reason] = line.split(";", maxsplit=1)
@@ -31,7 +31,7 @@ class Blacklist(commands.Cog):
         reason_string = " ".join(reason)
         # self.blacklist[member.id] = reason
 
-        with open("blacklist.txt", "a") as file:
+        with open("blacklist.csv", "a") as file:
             file.write(f"{member.id};{reason_string}\n")
 
         self.loadblacklist()
@@ -75,7 +75,7 @@ class Blacklist(commands.Cog):
 
         self.blacklist.pop(member.id)
 
-        with open("blacklist.txt", "w") as file:
+        with open("blacklist.csv", "w") as file:
             for entry in self.blacklist:
                 file.write(f"{entry};{self.blacklist[entry]}\n")
 
