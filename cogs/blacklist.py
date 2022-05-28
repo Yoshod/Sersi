@@ -21,7 +21,7 @@ class Blacklist(commands.Cog):
     @commands.command(aliases=['bl', 'bluser', 'addbl', 'modblacklist'])
     async def blacklistuser(self, ctx, member: nextcord.Member, *reason):
         """sets user onto moderator blacklist"""
-        if not isMod(ctx.author.roles):
+        if not isDarkMod(ctx.author.roles):
             await ctx.send(f"<:sersifail:979070135799279698> Insufficient permission!")
             return
         elif member.id in self.blacklist:
@@ -67,7 +67,7 @@ class Blacklist(commands.Cog):
     @commands.command(aliases=['rmbl', 'removeuserfromblacklist', 'blrmuser', 'blremoveuser'])
     async def removefromblacklist(self, ctx, member: nextcord.Member):
         """removes user from moderator blacklist"""
-        if not isMod(ctx.author.roles):
+        if not isDarkMod(ctx.author.roles):
             await ctx.send(f"<:sersifail:979070135799279698> Insufficient permission!")
             return
         if member.id not in self.blacklist:
@@ -75,14 +75,9 @@ class Blacklist(commands.Cog):
 
         self.blacklist.pop(member.id)
 
-        lines = []
-        with open("blacklist.txt", "r") as fp:
-            lines = fp.readlines()
-
-        with open("blacklist.txt", "w") as fp:
-            for line in lines:
-                if not line.startswith(str(member.id)):  # explicit type conversion cuz exeption otherwise
-                    fp.write(line)
+        with open("blacklist.txt", "w") as file:
+            for entry in self.blacklist:
+                file.write(f"{entry};{self.blacklist[entry]}\n")
 
         await ctx.send("<:sersisuccess:979066662856822844> User has been removed from blacklist.")
 
@@ -94,6 +89,18 @@ class Blacklist(commands.Cog):
         logging.add_field(name="Moderator:", value=ctx.author.mention, inline=False)
         logging.add_field(name="User Removed:", value=member.mention, inline=False)
         await channel.send(embed=logging)
+
+    @commands.command(aliases=['checklb', 'ckbl'])
+    async def checkblacklist(self, ctx, member: nextcord.Member):
+        if not isDarkMod(ctx.author.roles):
+            await ctx.send(f"<:sersifail:979070135799279698> Insufficient permission!")
+            return
+        if member.id in self.blacklist:
+            await ctx.send(f"<:sersifail:979070135799279698> Member {member} found on blacklist!")
+            return True
+        else:
+            await ctx.send(f"<:sersisuccess:979066662856822844> Member {member} not found on blacklist!")
+            return False
 
 
 def setup(bot):
