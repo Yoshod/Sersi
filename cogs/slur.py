@@ -75,9 +75,10 @@ class Slur(commands.Cog):
         await channel.send(embed=embedLogVar)
 
     @commands.command()
-    async def addslur(self, ctx, slur):
+    async def addslur(self, ctx, *slur):
         """adds a new slur to the list of slurs to detect."""
         if isMod(ctx.author.roles):
+            slur = "".join(slur)
             slur = clearString(slur)
             if slur in slurs:
                 await ctx.send(f"{slur} is already on the list of slurs")
@@ -103,9 +104,10 @@ class Slur(commands.Cog):
             await ctx.send(self.notModFail)
 
     @commands.command()
-    async def addgoodword(self, ctx, word):
+    async def addgoodword(self, ctx, *word):
         """adds a new goodword into the whitelist to not detect substring slurs in."""
         if isMod(ctx.author.roles):
+            word = "".join(word)
             word = clearString(word)
             if word in goodword:
                 await ctx.send(f"{word} is already on the whitelist")
