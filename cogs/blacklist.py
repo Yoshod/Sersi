@@ -1,5 +1,4 @@
 import nextcord
-
 from nextcord.ext import commands
 from baseutils import *
 
@@ -7,12 +6,18 @@ from baseutils import *
 class Blacklist(commands.Cog):
 
     def __init__(self, bot):
+        self.filename = "blacklist.csv"
         self.bot = bot
         self.blacklist = {}
         self.loadblacklist()
+        try:
+            with open(self.filename, 'x'):  # creates CSV file if not exists
+                pass
+        except FileExistsError:
+            pass
 
     def loadblacklist(self):
-        with open("blacklist.csv", "r") as file:
+        with open(self.filename, "r") as file:
             for line in file:
                 line = line.replace('\n', '')
                 [user_id, reason] = line.split(";", maxsplit=1)
@@ -31,7 +36,7 @@ class Blacklist(commands.Cog):
         reason_string = " ".join(reason)
         # self.blacklist[member.id] = reason
 
-        with open("blacklist.csv", "a") as file:
+        with open(self.filename, "a") as file:
             file.write(f"{member.id};{reason_string}\n")
 
         self.loadblacklist()
@@ -75,7 +80,7 @@ class Blacklist(commands.Cog):
 
         self.blacklist.pop(member.id)
 
-        with open("blacklist.csv", "w") as file:
+        with open(self.filename, "w") as file:
             for entry in self.blacklist:
                 file.write(f"{entry};{self.blacklist[entry]}\n")
 
