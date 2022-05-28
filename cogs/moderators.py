@@ -12,9 +12,9 @@ class Moderators(commands.Cog):
     async def addtrialmod(self, ctx, member: nextcord.Member):
         is_blacklisted = await ctx.invoke(self.bot.get_command('checkblacklist'), member=member)
         if is_blacklisted:
-            ctx.send(f"Member {member} cannot be given Trial Mod! Reason: Is on blacklist")
+            await ctx.send(f"Member {member} cannot be given Trial Mod! Reason: Is on blacklist")
             return
-        
+
 
 
 def setup(bot):
