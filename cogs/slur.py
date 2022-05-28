@@ -203,13 +203,9 @@ class Slur(commands.Cog):
             # post the list as embed
             embedVar = nextcord.Embed(
                 title="List of currently detected slurs",
-                description=str(", ".join(wordlist))
-                + "\n\n**page "
-                + str(index + 1)
-                + "/"
-                + str(pages)
-                + "**",
+                description=str(", ".join(wordlist)),
                 color=nextcord.Color.from_rgb(237, 91, 6))
+            embedVar.add_field(name="page:", value=f"**{index+1}/{pages}**")
             await ctx.send(embed=embedVar)
         else:
             await ctx.send(self.notModFail)
@@ -245,14 +241,10 @@ class Slur(commands.Cog):
                 wordlist = templist
 
             embedVar = nextcord.Embed(
-                title="List of words currently whitelisted from slur detection",
-                description=str(", ".join(wordlist))
-                + "\n\n**page "
-                + str(index + 1)
-                + "/"
-                + str(pages)
-                + "**",
+                title="List of goodwords currently whitelisted from slur detection",
+                description=str(", ".join(wordlist)),
                 color=nextcord.Color.from_rgb(237, 91, 6))
+            embedVar.add_field(name="page:", value=f"**{index+1}/{pages}**")
             await ctx.send(embed=embedVar)
         else:
             await ctx.send(self.notModFail)
