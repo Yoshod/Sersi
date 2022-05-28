@@ -74,7 +74,7 @@ class Slur(commands.Cog):
         embedLogVar.add_field(name="Moderator:", value=f"{interaction.user.mention} ({interaction.user.id})", inline=False)
         await channel.send(embed=embedLogVar)
 
-    @commands.command()
+    @commands.command(aliases=["addsl"])
     async def addslur(self, ctx, *slur):
         """adds a new slur to the list of slurs to detect."""
         if isMod(ctx.author.roles):
@@ -103,7 +103,7 @@ class Slur(commands.Cog):
         else:
             await ctx.send(self.notModFail)
 
-    @commands.command()
+    @commands.command(aliases=["addgw"])
     async def addgoodword(self, ctx, *word):
         """adds a new goodword into the whitelist to not detect substring slurs in."""
         if isMod(ctx.author.roles):
@@ -132,7 +132,7 @@ class Slur(commands.Cog):
         else:
             await ctx.send(self.notModFail)
 
-    @commands.command()
+    @commands.command(aliases=["rmsl", "rmslur", "removesl"])
     async def removeslur(self, ctx, slur):
         """removes a slur from the list to no longer be detected."""
         if isMod(ctx.author.roles):
@@ -151,7 +151,7 @@ class Slur(commands.Cog):
         else:
             await ctx.send(self.notModFail)
 
-    @commands.command()
+    @commands.command(aliases=["rmgw", "rmgoodword", "removegw"])
     async def removegoodword(self, ctx, word):
         """removes a goodword from the whitelist."""
         if isMod(ctx.author.roles):
@@ -170,7 +170,7 @@ class Slur(commands.Cog):
         else:
             await ctx.send(self.notModFail)
 
-    @commands.command()
+    @commands.command(aliases=["lssl", "listsl", "lsslurs"])
     async def listslurs(self, ctx, page=1):
         """lists slurs currently being detected by the bot, 100 slurs listed per page."""
         if isMod(ctx.author.roles):
@@ -210,7 +210,7 @@ class Slur(commands.Cog):
         else:
             await ctx.send(self.notModFail)
 
-    @commands.command()
+    @commands.command(aliases=["lsgw", "lsgoodwords", "listgw"])
     async def listgoodwords(self, ctx, page=1):
         """lists goodwords currently whitlested from slur detection, 100 words listed per page"""
         if isMod(ctx.author.roles):
