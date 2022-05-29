@@ -85,7 +85,7 @@ class Slur(commands.Cog):
         new_embed.clear_fields()
         new_embed.add_field(name="page:", value=f"**{page}/{pages}**")
         await interaction.message.edit(embed=new_embed)
-        
+
     async def cb_slur_list_prev_page(self, interaction):
         new_embed = interaction.message.embeds[0]
         for field in new_embed.fields:
@@ -97,7 +97,7 @@ class Slur(commands.Cog):
         new_embed.clear_fields()
         new_embed.add_field(name="page:", value=f"**{page}/{pages}**")
         await interaction.message.edit(embed=new_embed)
-        
+
     async def cb_goodword_list_next_page(self, interaction):
         new_embed = interaction.message.embeds[0]
         for field in new_embed.fields:
@@ -109,7 +109,7 @@ class Slur(commands.Cog):
         new_embed.clear_fields()
         new_embed.add_field(name="page:", value=f"**{page}/{pages}**")
         await interaction.message.edit(embed=new_embed)
-        
+
     async def cb_goodword_list_prev_page(self, interaction):
         new_embed = interaction.message.embeds[0]
         for field in new_embed.fields:
@@ -125,103 +125,107 @@ class Slur(commands.Cog):
     @commands.command(aliases=["addsl"])
     async def addslur(self, ctx, *slur):
         """adds a new slur to the list of slurs to detect."""
-        if isMod(ctx.author.roles):
-            slur = "".join(slur)
-            slur = clearString(slur)
-            if slur in slurs:
-                await ctx.send(f"{slur} is already on the list of slurs")
-                return
-
-            await ctx.send(f"Slur to be added: {slur}")
-            with open("slurs.txt", "a") as file:
-                file.write(slur)
-                file.write("\n")
-            load_slurs()    # reloads updated list into memory
-
-            # logging
-            channel = self.bot.get_channel(getLoggingChannel(ctx.message.guild.id))
-            embedVar = nextcord.Embed(
-                title="Slur Added",
-                description="A new slur has been added to the filter.",
-                color=nextcord.Color.from_rgb(237, 91, 6))
-            embedVar.add_field(name="Added By:", value=f"{ctx.message.author.mention} ({ctx.message.author.id})", inline=False)
-            embedVar.add_field(name="Slur Added:", value=slur, inline=False)
-            await channel.send(embed=embedVar)
-            await ctx.send("<:sersisuccess:979066662856822844> Slur added. Detection will start now.")
-        else:
+        if not isMod(ctx.author.roles):
             await ctx.send(self.notModFail)
+            return
+
+        slur = "".join(slur)
+        slur = clearString(slur)
+        if slur in slurs:
+            await ctx.send(f"{slur} is already on the list of slurs")
+            return
+
+        await ctx.send(f"Slur to be added: {slur}")
+        with open("slurs.txt", "a") as file:
+            file.write(slur)
+            file.write("\n")
+        load_slurs()    # reloads updated list into memory
+
+        # logging
+        channel = self.bot.get_channel(getLoggingChannel(ctx.message.guild.id))
+        embedVar = nextcord.Embed(
+            title="Slur Added",
+            description="A new slur has been added to the filter.",
+            color=nextcord.Color.from_rgb(237, 91, 6))
+        embedVar.add_field(name="Added By:", value=f"{ctx.message.author.mention} ({ctx.message.author.id})", inline=False)
+        embedVar.add_field(name="Slur Added:", value=slur, inline=False)
+        await channel.send(embed=embedVar)
+        await ctx.send("<:sersisuccess:979066662856822844> Slur added. Detection will start now.")
 
     @commands.command(aliases=["addgw"])
     async def addgoodword(self, ctx, *word):
         """adds a new goodword into the whitelist to not detect substring slurs in."""
-        if isMod(ctx.author.roles):
-            word = "".join(word)
-            word = clearString(word)
-            if word in goodword:
-                await ctx.send(f"{word} is already on the whitelist")
-                return
-
-            await ctx.send(f"Goodword to be added: {word}")
-            with open("goodword.txt", "a") as file:
-                file.write(word)
-                file.write("\n")
-            load_goodwords()    # reloads updated list into memory
-
-            # logging
-            channel = self.bot.get_channel(getLoggingChannel(ctx.message.guild.id))
-            embedVar = nextcord.Embed(
-                title="Goodword Added",
-                description="A new goodword has been added to the filter.",
-                color=nextcord.Color.from_rgb(237, 91, 6))
-            embedVar.add_field(name="Added By:", value=f"{ctx.message.author.mention} ({ctx.message.author.id})", inline=False)
-            embedVar.add_field(name="Goodword Added:", value=word, inline=False)
-            await channel.send(embed=embedVar)
-            await ctx.send("<:sersisuccess:979066662856822844> Goodword added. Detection will start now.")
-        else:
+        if not isMod(ctx.author.roles):
             await ctx.send(self.notModFail)
+            return
+
+        word = "".join(word)
+        word = clearString(word)
+        if word in goodword:
+            await ctx.send(f"{word} is already on the whitelist")
+            return
+
+        await ctx.send(f"Goodword to be added: {word}")
+        with open("goodword.txt", "a") as file:
+            file.write(word)
+            file.write("\n")
+        load_goodwords()    # reloads updated list into memory
+
+        # logging
+        channel = self.bot.get_channel(getLoggingChannel(ctx.message.guild.id))
+        embedVar = nextcord.Embed(
+            title="Goodword Added",
+            description="A new goodword has been added to the filter.",
+            color=nextcord.Color.from_rgb(237, 91, 6))
+        embedVar.add_field(name="Added By:", value=f"{ctx.message.author.mention} ({ctx.message.author.id})", inline=False)
+        embedVar.add_field(name="Goodword Added:", value=word, inline=False)
+        await channel.send(embed=embedVar)
+        await ctx.send("<:sersisuccess:979066662856822844> Goodword added. Detection will start now.")
 
     @commands.command(aliases=["rmsl", "rmslur", "removesl"])
     async def removeslur(self, ctx, slur):
         """removes a slur from the list to no longer be detected."""
-        if isMod(ctx.author.roles):
-            rmSlur(ctx, slur)
-
-            # logging
-            channel = self.bot.get_channel(getLoggingChannel(ctx.message.guild.id))
-            embedVar = nextcord.Embed(
-                title="Slur Removed",
-                description="A slur has been removed from the filter.",
-                color=nextcord.Color.from_rgb(237, 91, 6))
-            embedVar.add_field(name="Removed By:", value=f"{ctx.message.author.mention} ({ctx.message.author.id})", inline=False)
-            embedVar.add_field(name="Slur Removed:", value=slur, inline=False)
-            await channel.send(embed=embedVar)
-            await ctx.send(f"<:sersisuccess:979066662856822844> Slur {slur} is no longer in the list")
-        else:
+        if not isMod(ctx.author.roles):
             await ctx.send(self.notModFail)
+            return
+
+        rmSlur(ctx, slur)
+
+        # logging
+        channel = self.bot.get_channel(getLoggingChannel(ctx.message.guild.id))
+        embedVar = nextcord.Embed(
+            title="Slur Removed",
+            description="A slur has been removed from the filter.",
+            color=nextcord.Color.from_rgb(237, 91, 6))
+        embedVar.add_field(name="Removed By:", value=f"{ctx.message.author.mention} ({ctx.message.author.id})", inline=False)
+        embedVar.add_field(name="Slur Removed:", value=slur, inline=False)
+        await channel.send(embed=embedVar)
+        await ctx.send(f"<:sersisuccess:979066662856822844> Slur {slur} is no longer in the list")
 
     @commands.command(aliases=["rmgw", "rmgoodword", "removegw"])
     async def removegoodword(self, ctx, word):
         """removes a goodword from the whitelist."""
-        if isMod(ctx.author.roles):
-            rmGoodword(ctx, word)
-
-            # logging
-            channel = self.bot.get_channel(getLoggingChannel(ctx.message.guild.id))
-            embedVar = nextcord.Embed(
-                title="Goodword Removed",
-                description="A goodword has been removed from the filter.",
-                color=nextcord.Color.from_rgb(237, 91, 6))
-            embedVar.add_field(name="Removed By:", value=f"{ctx.message.author.mention} ({ctx.message.author.id})", inline=False)
-            embedVar.add_field(name="Goodword Removed:", value=word, inline=False)
-            await channel.send(embed=embedVar)
-            await ctx.send(f"<:sersisuccess:979066662856822844> Goodword {word} is no longer in the list")
-        else:
+        if not isMod(ctx.author.roles):
             await ctx.send(self.notModFail)
+            return
+
+        rmGoodword(ctx, word)
+
+        # logging
+        channel = self.bot.get_channel(getLoggingChannel(ctx.message.guild.id))
+        embedVar = nextcord.Embed(
+            title="Goodword Removed",
+            description="A goodword has been removed from the filter.",
+            color=nextcord.Color.from_rgb(237, 91, 6))
+        embedVar.add_field(name="Removed By:", value=f"{ctx.message.author.mention} ({ctx.message.author.id})", inline=False)
+        embedVar.add_field(name="Goodword Removed:", value=word, inline=False)
+        await channel.send(embed=embedVar)
+        await ctx.send(f"<:sersisuccess:979066662856822844> Goodword {word} is no longer in the list")
 
     @commands.command(aliases=["lssl", "listsl", "lsslurs"])
     async def listslurs(self, ctx, page=1):
         """lists slurs currently being detected by the bot, 100 slurs listed per page."""
-        if isMod(ctx.author.roles):
+        if not isMod(ctx.author.roles):
             wordlist, pages, page = get_slurs(page)
             wordlist.sort()
 
@@ -247,49 +251,51 @@ class Slur(commands.Cog):
     @commands.command(aliases=["lsgw", "lsgoodwords", "listgw"])
     async def listgoodwords(self, ctx, page=1):
         """lists goodwords currently whitlested from slur detection, 100 words listed per page"""
-        if isMod(ctx.author.roles):
-            wordlist, pages, page = get_goodwords(page)
-            wordlist.sort()
-
-            # post the list as embed
-            embedVar = nextcord.Embed(
-                title="List of goodwords currently whitelisted from slur detection",
-                description=str(", ".join(wordlist)),
-                color=nextcord.Color.from_rgb(237, 91, 6))
-            embedVar.add_field(name="page:", value=f"**{page}/{pages}**")
-            btn_view = None
-            if (pages > 1):
-                btn_prev = Button(label="< prev")
-                btn_prev.callback = self.cb_goodword_list_prev_page
-                btn_next = Button(label="next >")
-                btn_next.callback = self.cb_goodword_list_next_page
-                btn_view = View()
-                btn_view.add_item(btn_prev)
-                btn_view.add_item(btn_next)
-            await ctx.send(embed=embedVar, view=btn_view)
-        else:
+        if not isMod(ctx.author.roles):
             await ctx.send(self.notModFail)
+            return
+
+        wordlist, pages, page = get_goodwords(page)
+        wordlist.sort()
+
+        # post the list as embed
+        embedVar = nextcord.Embed(
+            title="List of goodwords currently whitelisted from slur detection",
+            description=str(", ".join(wordlist)),
+            color=nextcord.Color.from_rgb(237, 91, 6))
+        embedVar.add_field(name="page:", value=f"**{page}/{pages}**")
+        btn_view = None
+        if (pages > 1):
+            btn_prev = Button(label="< prev")
+            btn_prev.callback = self.cb_goodword_list_prev_page
+            btn_next = Button(label="next >")
+            btn_next.callback = self.cb_goodword_list_next_page
+            btn_view = View()
+            btn_view.add_item(btn_prev)
+            btn_view.add_item(btn_next)
+        await ctx.send(embed=embedVar, view=btn_view)
 
     @commands.command()
     async def reloadslurs(self, ctx):
         """reloads the lists of detected slurs and whitelisted goodwords from files"""
-        if isMod(ctx.author.roles):
-            load_goodwords()
-            load_slurs()
-
-            # Logging
-            channel = self.bot.get_channel(getLoggingChannel(ctx.message.guild.id))
-            embedVar = nextcord.Embed(
-                title="Slurs and Goodwords Reloaded",
-                description="The list of slurs and goodwords in memory has been reloaded.\n\n__Reloaded By:__\n"
-                + str(ctx.message.author.mention)
-                + " ("
-                + str(ctx.message.author.id)
-                + ")",
-                color=nextcord.Color.from_rgb(237, 91, 6))
-            await channel.send(embed=embedVar)
-        else:
+        if not isMod(ctx.author.roles):
             await ctx.send(self.notModFail)
+            return
+
+        load_goodwords()
+        load_slurs()
+
+        # Logging
+        channel = self.bot.get_channel(getLoggingChannel(ctx.message.guild.id))
+        embedVar = nextcord.Embed(
+            title="Slurs and Goodwords Reloaded",
+            description="The list of slurs and goodwords in memory has been reloaded.\n\n__Reloaded By:__\n"
+            + str(ctx.message.author.mention)
+            + " ("
+            + str(ctx.message.author.id)
+            + ")",
+            color=nextcord.Color.from_rgb(237, 91, 6))
+        await channel.send(embed=embedVar)
 
     # events
     @commands.Cog.listener()
