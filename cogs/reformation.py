@@ -212,14 +212,14 @@ class Reformation(commands.Cog):
         Three 'Yes' votes will result in an automatic release.
         Permission Needed: Moderator, Trial Moderator
         """
-        if isMod(ctx.author.roles):
+        if not isMod(ctx.author.roles):
             await ctx.reply(self.notModFail)
             return
 
         # member have reformation role check
         is_in_reformation = False
         for role in member.roles:
-            if role.id is getReformationRole(ctx.guild.id):
+            if role.id == getReformationRole(ctx.guild.id):
                 is_in_reformation = True
         if not is_in_reformation:
             await ctx.send("Member is not in reformation.")
@@ -277,7 +277,7 @@ class Reformation(commands.Cog):
         # member have reformation role check
         is_in_reformation = False
         for role in member.roles:
-            if role.id is getReformationRole(ctx.guild.id):
+            if role.id == getReformationRole(ctx.guild.id):
                 is_in_reformation = True
         if not is_in_reformation:
             await ctx.send("Member is not in reformation.")
