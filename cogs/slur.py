@@ -226,27 +226,28 @@ class Slur(commands.Cog):
     async def listslurs(self, ctx, page=1):
         """lists slurs currently being detected by the bot, 100 slurs listed per page."""
         if not isMod(ctx.author.roles):
-            wordlist, pages, page = get_slurs(page)
-            wordlist.sort()
-
-            # post the list as embed
-            embedVar = nextcord.Embed(
-                title="List of currently detected slurs",
-                description=", ".join(wordlist),
-                color=nextcord.Color.from_rgb(237, 91, 6))
-            embedVar.add_field(name="page:", value=f"**{page}/{pages}**")
-            btn_view = None
-            if (pages > 1):
-                btn_prev = Button(label="< prev")
-                btn_prev.callback = self.cb_slur_list_prev_page
-                btn_next = Button(label="next >")
-                btn_next.callback = self.cb_slur_list_next_page
-                btn_view = View()
-                btn_view.add_item(btn_prev)
-                btn_view.add_item(btn_next)
-            await ctx.send(embed=embedVar, view=btn_view)
-        else:
             await ctx.send(self.notModFail)
+            return
+
+        wordlist, pages, page = get_slurs(page)
+        wordlist.sort()
+
+        # post the list as embed
+        embedVar = nextcord.Embed(
+            title="List of currently detected slurs",
+            description=", ".join(wordlist),
+            color=nextcord.Color.from_rgb(237, 91, 6))
+        embedVar.add_field(name="page:", value=f"**{page}/{pages}**")
+        btn_view = None
+        if (pages > 1):
+            btn_prev = Button(label="< prev")
+            btn_prev.callback = self.cb_slur_list_prev_page
+            btn_next = Button(label="next >")
+            btn_next.callback = self.cb_slur_list_next_page
+            btn_view = View()
+            btn_view.add_item(btn_prev)
+            btn_view.add_item(btn_next)
+        await ctx.send(embed=embedVar, view=btn_view)
 
     @commands.command(aliases=["lsgw", "lsgoodwords", "listgw"])
     async def listgoodwords(self, ctx, page=1):
