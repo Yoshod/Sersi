@@ -91,12 +91,19 @@ async def ping(ctx):
     """test the response time of the bot"""
     await ctx.send(f'Pong! {round(bot.latency * 1000)}ms')
 
-### DEBUG AND MISC COMMANDS ###
-
-
 
 ### BOT EVENTS ###
 
+
+@bot.event
+async def on_message_edit(before, after):
+    bot.dispatch('message', after)
+
+@bot.event
+async def on_command_error(ctx, error):
+    await ctx.send(f"Shit is busted: {error}")
+    (error_type, value, traceback) = sys.exc_info()
+    await ctx.send(f"Shit is busted: {error_type}")
 
 @bot.event
 async def on_ready():
