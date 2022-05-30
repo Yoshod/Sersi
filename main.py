@@ -97,13 +97,15 @@ async def ping(ctx):
 
 @bot.event
 async def on_message_edit(before, after):
+    """treats edited messages like new messages when it comes to scanning"""
     bot.dispatch('message', after)
+
 
 @bot.event
 async def on_command_error(ctx, error):
-    await ctx.send(f"Shit is busted: {error}")
-    (error_type, value, traceback) = sys.exc_info()
-    await ctx.send(f"Shit is busted: {error_type}")
+    """brings command errors to the frontend"""
+    await ctx.send(f"Error while executing command: `{error}`")
+
 
 @bot.event
 async def on_ready():
