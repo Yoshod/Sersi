@@ -110,9 +110,9 @@ async def on_command_error(ctx, error):
 @bot.event
 async def on_ready():
     ajustCommandPrefix(bot)  # change prefix to cs! if Sersi(cracked)
+
     # load all cogs
     for filename in os.listdir('./cogs'):
-        print("found file", filename)
         if filename.endswith('.py'):
             bot.load_extension(f'cogs.{filename[:-3]}')
             print(f"Cog {filename[:-3]} loaded.")
@@ -120,7 +120,7 @@ async def on_ready():
     # files = [f for f in os.listdir('.') if os.path.isfile(f)] #unused
     print(sys.version)
 
-    print('We have logged in as {0.user}'.format(bot))
+    print(f"We have logged in as {bot}")
     await bot.change_presence(activity=nextcord.Game('Sword and Shield of the Server'))
 
 
