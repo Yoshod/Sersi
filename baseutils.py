@@ -71,9 +71,11 @@ def getModlogsChannel(guild_id):
     elif guild_id == 977377117895536640:
         return 978346814904336484
 
+
 def ajustCommandPrefix(bot):
     if bot.user.id == 978259801844879373:   # Sersi(cracked)
         bot.command_prefix = "cs!"
+
 
 def load_authors():
     authors = []
