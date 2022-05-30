@@ -15,6 +15,10 @@ class Slur(commands.Cog):
         load_slurdetector()
 
     async def cb_action_taken(self, interaction):
+        if not isMod(interaction.user.roles):
+            await interaction.response.send_message("You don't get to decide on this", ephemeral=True)
+            return
+
         new_embed = interaction.message.embeds[0]
         new_embed.add_field(name="Action Taken By", value=interaction.user.mention, inline=False)
         new_embed.colour = nextcord.Colour.brand_green()
@@ -31,6 +35,10 @@ class Slur(commands.Cog):
         await channel.send(embed=embedLogVar)
 
     async def cb_acceptable_use(self, interaction):
+        if not isMod(interaction.user.roles):
+            await interaction.response.send_message("You don't get to decide on this", ephemeral=True)
+            return
+
         new_embed = interaction.message.embeds[0]
         new_embed.add_field(name="Usage Deemed Acceptable By", value=interaction.user.mention, inline=False)
         new_embed.colour = nextcord.Colour.light_grey()
@@ -47,6 +55,10 @@ class Slur(commands.Cog):
         await channel.send(embed=embedLogVar)
 
     async def cb_false_positive(self, interaction):
+        if not isMod(interaction.user.roles):
+            await interaction.response.send_message("You don't get to decide on this", ephemeral=True)
+            return
+
         new_embed = interaction.message.embeds[0]
         new_embed.add_field(name="Deemed As False Positive By:", value=interaction.user.mention, inline=False)
         new_embed.colour = nextcord.Colour.brand_red()
