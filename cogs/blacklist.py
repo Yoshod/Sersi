@@ -13,7 +13,7 @@ class Blacklist(commands.Cog):
         try:
             with open(self.filename, 'x'):  # creates CSV file if not exists
                 pass
-        except FileExistsError:
+        except FileExistsError:             # ignores error if it does
             pass
 
     def loadblacklist(self):
@@ -34,7 +34,6 @@ class Blacklist(commands.Cog):
             return
 
         reason_string = " ".join(reason)
-        # self.blacklist[member.id] = reason
 
         with open(self.filename, "a") as file:
             file.write(f"{member.id};{reason_string}\n")
