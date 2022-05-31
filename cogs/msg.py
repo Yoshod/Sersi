@@ -11,9 +11,6 @@ class Messages(commands.Cog):
 
     @commands.command()
     async def dm(self, ctx, recipient: nextcord.Member, *message):
-        if not isMod(ctx.author.roles):
-            await ctx.send(f"<:sersifail:979070135799279698> Insufficient permission!")
-            return
         msg = " ".join(message)
         if msg == "":
             return

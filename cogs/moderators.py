@@ -17,5 +17,4 @@ class Moderators(commands.Cog):
 
 
 def setup(bot):
-    pass
-    #bot.add_cog(Moderators(bot))
+    bot.add_cog(Moderators(bot))
