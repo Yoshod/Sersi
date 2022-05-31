@@ -2,6 +2,8 @@ import nextcord
 import os
 import discordTokens
 import sys
+import datetime
+import time
 
 
 from nextcord.ext import commands
@@ -11,13 +13,17 @@ intents = nextcord.Intents.all()
 intents.members = True
 
 bot = commands.Bot(command_prefix="s!", intents=intents)
-
+start_time = time.time()
 
 ### COGS ###
 
 
 @bot.command()
 async def load(ctx, extension):
+    """Loads Cog
+
+    Loads cog.
+    Permission needed: Sersi contributor"""
     if isSersiContrib(ctx.author.roles):
         try:
             bot.load_extension(f"cogs.{extension}")
@@ -26,10 +32,16 @@ async def load(ctx, extension):
             await ctx.reply("Cog not found.")
         except commands.errors.ExtensionAlreadyLoaded:
             await ctx.reply("Cog already loaded.")
+    else:
+        await ctx.reply("<:sersifail:979070135799279698> Only Sersi contributors are able to load cogs.")
 
 
 @bot.command()
 async def unload(ctx, extension):
+    """Unload Cog
+
+    Unloads cog.
+    Permission needed: Sersi contributor"""
     if isSersiContrib(ctx.author.roles):
         try:
             bot.unload_extension(f"cogs.{extension}")
@@ -38,10 +50,16 @@ async def unload(ctx, extension):
             await ctx.reply("Cog not found.")
         except commands.errors.ExtensionNotLoaded:
             await ctx.reply(f"Cog {extension} was not loaded.")
+    else:
+        await ctx.reply("<:sersifail:979070135799279698> Only Sersi contributors are able to unload cogs.")
 
 
 @bot.command()
 async def reload(ctx, extension):
+    """Reload Cog
+
+    Reloads cog. If cog wasn't loaded, loads cog.
+    Permission needed: Sersi contributor"""
     if isSersiContrib(ctx.author.roles):
         try:
             bot.unload_extension(f"cogs.{extension}")
@@ -50,14 +68,22 @@ async def reload(ctx, extension):
         except commands.errors.ExtensionNotFound:
             await ctx.reply("Cog not found.")
         except commands.errors.ExtensionNotLoaded:
-            try:
-                bot.load_extension(f"cogs.{extension}")
-                await ctx.reply(f"Cog {extension} loaded.")
-            except commands.errors.ExtensionNotFound:
-                await ctx.reply("Cog not found.")
+            await load(extension)
+    else:
+        await ctx.reply("<:sersifail:979070135799279698> Only Sersi contributors are able to reload cogs.")
 
 
 ### GENERAL COMMANDS ###
+
+@bot.command()
+async def uptime(ctx):
+    """Displays Sersi's uptime"""
+    sersi_uptime = str(datetime.timedelta(seconds=int(round(time.time() - start_time))))
+    embedVar = nextcord.Embed(
+        title="Sersi Uptime",
+        description=f"Sersi has been online for:\n`{sersi_uptime}`",
+        color=nextcord.Color.from_rgb(237, 91, 6))
+    await ctx.send(embed=embedVar)
 
 
 @bot.command()
@@ -65,58 +91,28 @@ async def ping(ctx):
     """test the response time of the bot"""
     await ctx.send(f'Pong! {round(bot.latency * 1000)}ms')
 
-### DEBUG AND MISC COMMANDS ###
-
-
-@bot.command()
-async def dmTest(ctx, userId=None, *, args=None):
-    if isMod(ctx.author.roles):
-        if userId is not None and args is not None:
-            target = userId
-            targetId = "Null"
-            for i in range(len(target)):
-                currentChar = target[i]
-                charTest = currentChar.isdigit()
-                print(charTest)
-                if charTest is True and targetId is not "Null":
-                    targetId = str(targetId) + str(target[i])
-                    print("Character is number")
-                elif charTest is True and targetId is "Null":
-                    targetId = str(target[i])
-            targetId = int(targetId)
-            user = bot.get_user(targetId)
-            try:
-                await user.send(args)
-
-            except:
-                await ctx.send("The message failed to send. Reason: Could not DM user.")
-
-            # Logging
-            channel = bot.get_channel(getLoggingChannel(ctx.message.guild.id))
-            embedVar = nextcord.Embed(
-                title="DM Sent",
-                description="A DM has been sent.\n\n__Sender:__\n{ctx.author.mention}\n\n__Recipient:__\n{userId}\n\n__Message Content:__\n{args}",
-                color=nextcord.Color.from_rgb(237, 91, 6))
-            await channel.send(embed=embedVar)
-
-        elif userId is None and args is not None:
-            await ctx.send("No user was specified.")
-
-        elif userId is not None and args is None:
-            await ctx.send("No message was specified.")
-        else:
-            await ctx.send("How the fuck did this error appear?")
-    else:
-        await ctx.send("Only moderators can use this command.")
 
 ### BOT EVENTS ###
 
 
 @bot.event
+async def on_message_edit(before, after):
+    """treats edited messages like new messages when it comes to scanning"""
+    bot.dispatch('message', after)
+
+
+@bot.event
+async def on_command_error(ctx, error):
+    """brings command errors to the frontend"""
+    await ctx.send(f"Error while executing command: `{error}`")
+
+
+@bot.event
 async def on_ready():
+    ajustCommandPrefix(bot)  # change prefix to cs! if Sersi(cracked)
+
     # load all cogs
     for filename in os.listdir('./cogs'):
-        print("found file", filename)
         if filename.endswith('.py'):
             bot.load_extension(f'cogs.{filename[:-3]}')
             print(f"Cog {filename[:-3]} loaded.")
@@ -124,7 +120,7 @@ async def on_ready():
     # files = [f for f in os.listdir('.') if os.path.isfile(f)] #unused
     print(sys.version)
 
-    print('We have logged in as {0.user}'.format(bot))
+    print(f"We have logged in as {bot}")
     await bot.change_presence(activity=nextcord.Game('Sword and Shield of the Server'))
 
 

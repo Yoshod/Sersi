@@ -1,18 +1,15 @@
 
 def checkForMods(messageData):
-    modRoles = ["<@&856424878437040168>", "<@&963537133589643304>", "<@&875805670799179799>", "<@&883255791610638366>", "<@&977939552641613864>"]
-    modDetected = False
-
-    for modmention in modRoles:
+    for modmention in ["<@&856424878437040168>", "<@&963537133589643304>", "<@&875805670799179799>", "<@&883255791610638366>", "<@&977939552641613864>"]:
         if modmention in messageData:
-            modDetected = True
-    return modDetected
+            return True
+    return False
 
 
 def isMod(userRoles):
     modRolePresent = False
     for role in userRoles:
-        if 856424878437040168 == role.id or 883255791610638366 == role.id or 977394150494326855 == role.id:  # "Moderator", "Trial Moderator", "certified bot tester"
+        if role.id in [856424878437040168, 883255791610638366, 977394150494326855]:  # "Moderator", "Trial Moderator", "certified bot tester"
             modRolePresent = True
     return (modRolePresent)
 
@@ -28,7 +25,7 @@ def isDarkMod(userRoles):
 def isSersiContrib(userRoles):
     sersiContrib = False
     for role in userRoles:
-        if 977602747786493972 == role.id or 977394150494326855 == role.id:
+        if role.id in [977602747786493972, 977394150494326855]:
             sersiContrib = True
     return sersiContrib
 
@@ -73,6 +70,11 @@ def getModlogsChannel(guild_id):
         return 903367950554259466
     elif guild_id == 977377117895536640:
         return 978346814904336484
+
+
+def ajustCommandPrefix(bot):
+    if bot.user.id == 978259801844879373:   # Sersi(cracked)
+        bot.command_prefix = "cs!"
 
 
 def load_authors():

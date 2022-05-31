@@ -1,13 +1,14 @@
 from itertools import product   # needed for slur obscurity permutations
 import unidecode                # needed for cleaning accents and diacritic marks
 slurs = []
+slurs_list = []
 goodword = []
 
 
 def leet(word):
     substitutions = {
         "a": ("a", "@", "*", "4", "æ", "λ", "δ"),
-        "i": ("i", "*", "l", "1"),
+        "i": ("i", "*", "l", "1", "!", "¡"),
         "o": ("o", "*", "0", "@", "θ"),
         "u": ("u", "*", "v"),
         "v": ("v", "*", "u"),
@@ -28,6 +29,42 @@ def leet(word):
     return [''.join(permutations) for permutations in product(*possibles)]
 
 
+def get_slurs(page=None):
+    if page is None:
+        return slurs_list
+    else:
+        pages = 1 + (len(slurs_list) - 1) // 100
+
+        index = page - 1
+        if index < 0:
+            index = 0
+        elif index >= pages:
+            index = pages - 1
+
+        if index == (pages - 1):
+            return slurs_list[index * 100:], pages, index + 1
+        else:
+            return slurs_list[index * 100: index * 100 + 100], pages, index + 1
+
+
+def get_goodwords(page=None):
+    if page is None:
+        return goodword
+    else:
+        pages = 1 + (len(goodword) - 1) // 100
+
+        index = page - 1
+        if index < 0:
+            index = 0
+        elif index >= pages:
+            index = pages - 1
+
+        if index == (pages - 1):
+            return goodword[index * 100:], pages, index + 1
+        else:
+            return goodword[index * 100: index * 100 + 100], pages, index + 1
+
+
 def load_slurdetector():
     load_slurs()
     load_goodwords()
@@ -35,9 +72,11 @@ def load_slurdetector():
 
 def rmSlur(ctx, slur):
     lines = []
-    if slur in slurs:
-        for slurvariant in leet(slur):
-            slurs.remove(slurvariant)
+    if slur in slurs_list:
+        slurs_list.remove(slur)
+        slurs.clear()
+        for item in slurs_list:
+            slurs.extend(leet(item))
     with open("slurs.txt", "r") as fp:
         lines = fp.readlines()
 
@@ -61,10 +100,12 @@ def rmGoodword(ctx, word):
 
 
 def load_slurs():
-    goodword.clear()
+    slurs.clear()
+    slurs_list.clear()
     with open("slurs.txt", "r") as file:
         for line in file:
             line = line.replace('\n', '')
+            slurs_list.append(line)
             slurs.extend(leet(line))
 
 
@@ -78,7 +119,7 @@ def load_goodwords():
 
 def clearString(string):
     """cleaning up the message by eliminating special characters and making the entire message lowercase"""
-    special_characters = ['!', '#', '%', '&', '[', ']', ' ', ']', '_', '-', '<', '>']
+    special_characters = ['#', '%', '&', '[', ']', ' ', ']', '_', '-', '<', '>']
 
     string = string.lower()
     string = unidecode.unidecode(string)
@@ -123,5 +164,6 @@ def detectSlur(messageData):
             return []
     else:
         return []
+
 
 # I sure hope My pakistani friends and myself will be able to enjoy our spicy noodles among the beautiful skyscrapers of Montenegro    --Pando
