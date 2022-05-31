@@ -9,12 +9,12 @@ class Blacklist(commands.Cog):
         self.filename = "blacklist.csv"
         self.bot = bot
         self.blacklist = {}
-        self.loadblacklist()
         try:
             with open(self.filename, 'x'):  # creates CSV file if not exists
                 pass
         except FileExistsError:             # ignores error if it does
             pass
+        self.loadblacklist()
 
     def loadblacklist(self):
         with open(self.filename, "r") as file:
