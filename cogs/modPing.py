@@ -11,6 +11,10 @@ class ModPing(commands.Cog):
         self.bot = bot
 
     async def cb_action_taken(self, interaction):
+        if not isMod(interaction.user.roles):
+            await interaction.response.send_message("You don't get to decide on this", ephemeral=True)
+            return
+
         new_embed = interaction.message.embeds[0]
         new_embed.add_field(name="Action Taken By", value=interaction.user.mention, inline=True)
         new_embed.colour = nextcord.Colour.brand_green()
@@ -19,14 +23,17 @@ class ModPing(commands.Cog):
         channel = self.bot.get_channel(getLoggingChannel(interaction.guild.id))
         embedLogVar = nextcord.Embed(
             title="Action Taken Pressed",
-            description="Action has been taken by a moderator in response to a report.\n\n__Report:__\n"
-            + str(interaction.message.jump_url)
-            + "\n\n__Moderator:__\n"
-            + f"{interaction.user.mention} ({interaction.user.id})",
+            description="Action has been taken by a moderator in response to a report.",
             color=nextcord.Color.from_rgb(237, 91, 6))
+        embedLogVar.add_field(name="Report:", value=interaction.message.jump_url, inline=False)
+        embedLogVar.add_field(name="Moderator:", value=f"{interaction.user.mention} ({interaction.user.id})", inline=False)
         await channel.send(embed=embedLogVar)
 
     async def cb_action_not_neccesary(self, interaction):
+        if not isMod(interaction.user.roles):
+            await interaction.response.send_message("You don't get to decide on this", ephemeral=True)
+            return
+
         new_embed = interaction.message.embeds[0]
         new_embed.add_field(name="Action Not Neccesary", value=interaction.user.mention, inline=True)
         new_embed.colour = nextcord.Colour.light_grey()
@@ -35,14 +42,17 @@ class ModPing(commands.Cog):
         channel = self.bot.get_channel(getLoggingChannel(interaction.guild.id))
         embedLogVar = nextcord.Embed(
             title="Action Not Necessary Pressed",
-            description="A Moderator has deemed that no action is needed in response to a report.\n\n__Report:__\n"
-            + str(interaction.message.jump_url)
-            + "\n\n__Moderator:__\n"
-            + f"{interaction.user.mention} ({interaction.user.id})",
+            description="A Moderator has deemed that no action is needed in response to a report.",
             color=nextcord.Color.from_rgb(237, 91, 6))
+        embedLogVar.add_field(name="Report:", value=interaction.message.jump_url, inline=False)
+        embedLogVar.add_field(name="Moderator:", value=f"{interaction.user.mention} ({interaction.user.id})", inline=False)
         await channel.send(embed=embedLogVar)
 
     async def cb_bad_faith_ping(self, interaction):
+        if not isMod(interaction.user.roles):
+            await interaction.response.send_message("You don't get to decide on this", ephemeral=True)
+            return
+
         new_embed = interaction.message.embeds[0]
         new_embed.add_field(name="Bad Faith Ping", value=interaction.user.mention, inline=True)
         new_embed.colour = nextcord.Colour.brand_red()
@@ -51,11 +61,10 @@ class ModPing(commands.Cog):
         channel = self.bot.get_channel(getLoggingChannel(interaction.guild.id))
         embedLogVar = nextcord.Embed(
             title="Bad Faith Ping Pressed",
-            description="A moderation ping has been deemed bad faith by a moderator in response to a report.\n\n__Report:__\n"
-            + str(interaction.message.jump_url)
-            + "\n\n__Moderator:__\n"
-            + f"{interaction.user.mention} ({interaction.user.id})",
+            description="A moderation ping has been deemed bad faith by a moderator in response to a report.",
             color=nextcord.Color.from_rgb(237, 91, 6))
+        embedLogVar.add_field(name="Report:", value=interaction.message.jump_url, inline=False)
+        embedLogVar.add_field(name="Moderator:", value=f"{interaction.user.mention} ({interaction.user.id})", inline=False)
         await channel.send(embed=embedLogVar)
 
     # events
@@ -68,7 +77,7 @@ class ModPing(commands.Cog):
             # Reply to user
             embedVar = nextcord.Embed(
                 title="Moderator Ping Acknowledgment",
-                description=(message.author.mention) + " moderators have been notified of your ping and will investigate when able to do so.",
+                description=f"{message.author.mention} moderators have been notified of your ping and will investigate when able to do so.",
                 color=nextcord.Color.from_rgb(237, 91, 6))
             embedVar.set_footer(text="Sersi Ping Detection Alert")
             await message.channel.send(embed=embedVar)
@@ -78,15 +87,12 @@ class ModPing(commands.Cog):
             channel = self.bot.get_channel(getAlertChannel(message.guild.id))
             embedVar = nextcord.Embed(
                 title="Moderator Ping",
-                description="A moderation role has been pinged, please investigate the ping and take action as appropriate.\n\n__Channel:__\n"
-                + str(message.channel.mention)
-                + "\n\n__User:__\n"
-                + str(message.author.mention)
-                + "\n\n__Context:__\n"
-                + str(message.content)
-                + "\n\n__URL:__\n"
-                + str(message.jump_url),
+                description="A moderation role has been pinged, please investigate the ping and take action as appropriate."
                 color=nextcord.Color.from_rgb(237, 91, 6))
+            embedVar.add_field(name="Channel:", value=message.channel.mention, inline=False)
+            embedVar.add_field(name="User:", value=message.author.mention, inline=False)
+            embedVar.add_field(name="Context:", value=message.content, inline=False)
+            embedVar.add_field(name="URL:", value=message.jump_url, inline=False)
             embedVar.set_footer(text="Sersi Ping Detection Alert")
 
             action_taken = Button(label="Action Taken")
