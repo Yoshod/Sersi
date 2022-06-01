@@ -144,7 +144,7 @@ class Slur(commands.Cog):
         slur = "".join(slur)
         slur = clearString(slur)
         if slur in slurs:
-            await ctx.send(f"{slur} is already on the list of slurs")
+            await ctx.send(f"<:sersifail:979070135799279698> {slur} is already on the list of slurs")
             return
 
         await ctx.send(f"Slur to be added: {slur}")
@@ -174,8 +174,25 @@ class Slur(commands.Cog):
         word = "".join(word)
         word = clearString(word)
         if word in goodword:
-            await ctx.send(f"{word} is already on the whitelist")
+            await ctx.send(f"<:sersifail:979070135799279698> {word} is already on the whitelist")
             return
+
+        word_contains_slur = False
+        for slur in slurs:
+            if slur in word:
+                word_contains_slur = True
+
+        if not word_contains_slur:
+            await ctx.send(f"<:sersifail:979070135799279698> {word} does not contain any slurs; cannot be added.")
+            return
+
+        for existing_word in goodword:
+            if word in existing_word:
+                await ctx.send(f"<:sersifail:979070135799279698> {word} is substring to existing goodword {existing_word}; cannot be added.")
+                return
+            elif existing_word in word:
+                await ctx.send(f"<:sersifail:979070135799279698> existing goodword {existing_word} is substring to {word}; cannot be added.")
+                return
 
         await ctx.send(f"Goodword to be added: {word}")
         with open("goodword.txt", "a") as file:
