@@ -120,7 +120,7 @@ async def on_ready():
     # files = [f for f in os.listdir('.') if os.path.isfile(f)] #unused
     print(sys.version)
 
-    print(f"We have logged in as {bot}")
+    print(f"We have logged in as {bot.user}")
     await bot.change_presence(activity=nextcord.Game('Sword and Shield of the Server'))
 
 
