@@ -11,7 +11,7 @@ class Jokes(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message):
 
-        if message.author == self.bot.user:  # ignores message if message is by bot
+        if message.author.bot:  # ignores message if message is by bot
             return
 
         elif "pythonic" in message.content.lower():
@@ -56,6 +56,10 @@ class Jokes(commands.Cog):
 
         elif ("it's coming home" in message.content.lower() or "it will come home" in message.content.lower()) and message.author.id == 362340623992356864:
             await message.reply("No it won't be coming home Solar, and it likely never will in the future.")
+
+
+        elif message.content.lower() == "test":
+            await message.reply("test")
 
 
 def setup(bot):
