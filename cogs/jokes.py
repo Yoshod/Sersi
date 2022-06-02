@@ -58,9 +58,5 @@ class Jokes(commands.Cog):
             await message.reply("No it won't be coming home Solar, and it likely never will in the future.")
 
 
-        elif message.content.lower() == "test":
-            await message.reply("test")
-
-
 def setup(bot):
     bot.add_cog(Jokes(bot))
