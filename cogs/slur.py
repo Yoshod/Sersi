@@ -93,7 +93,7 @@ class Slur(commands.Cog):
                 page_field = field
         page = int(page_field.value.split('/')[0][2:]) + 1
         wordlist, pages, page = get_slurs(page)
-        new_embed.description = ", ".join(wordlist)
+        new_embed.description = "**•**\u00A0" + "\n**•**\u00A0".join(wordlist)
         new_embed.clear_fields()
         new_embed.add_field(name="page:", value=f"**{page}/{pages}**")
         await interaction.message.edit(embed=new_embed)
@@ -105,7 +105,7 @@ class Slur(commands.Cog):
                 page_field = field
         page = int(page_field.value.split('/')[0][2:]) - 1
         wordlist, pages, page = get_slurs(page)
-        new_embed.description = ", ".join(wordlist)
+        new_embed.description = "**•**\u00A0" + "\n**•**\u00A0".join(wordlist)
         new_embed.clear_fields()
         new_embed.add_field(name="page:", value=f"**{page}/{pages}**")
         await interaction.message.edit(embed=new_embed)
@@ -117,7 +117,7 @@ class Slur(commands.Cog):
                 page_field = field
         page = int(page_field.value.split('/')[0][2:]) + 1
         wordlist, pages, page = get_goodwords(page)
-        new_embed.description = ", ".join(wordlist)
+        new_embed.description = "**•**\u00A0" + "\n**•**\u00A0".join(wordlist)
         new_embed.clear_fields()
         new_embed.add_field(name="page:", value=f"**{page}/{pages}**")
         await interaction.message.edit(embed=new_embed)
@@ -129,7 +129,7 @@ class Slur(commands.Cog):
                 page_field = field
         page = int(page_field.value.split('/')[0][2:]) - 1
         wordlist, pages, page = get_goodwords(page)
-        new_embed.description = ", ".join(wordlist)
+        new_embed.description = "**•**\u00A0" + "\n**•**\u00A0".join(wordlist)
         new_embed.clear_fields()
         new_embed.add_field(name="page:", value=f"**{page}/{pages}**")
         await interaction.message.edit(embed=new_embed)
@@ -259,12 +259,11 @@ class Slur(commands.Cog):
             return
 
         wordlist, pages, page = get_slurs(page)
-        wordlist.sort()
 
         # post the list as embed
         embedVar = nextcord.Embed(
             title="List of currently detected slurs",
-            description=", ".join(wordlist),
+            description="**•**\u00A0" + "\n**•**\u00A0".join(wordlist),
             color=nextcord.Color.from_rgb(237, 91, 6))
         embedVar.add_field(name="page:", value=f"**{page}/{pages}**")
         btn_view = None
@@ -286,12 +285,11 @@ class Slur(commands.Cog):
             return
 
         wordlist, pages, page = get_goodwords(page)
-        wordlist.sort()
 
         # post the list as embed
         embedVar = nextcord.Embed(
             title="List of goodwords currently whitelisted from slur detection",
-            description=str(", ".join(wordlist)),
+            description="**•**\u00A0" + "\n**•**\u00A0".join(wordlist),
             color=nextcord.Color.from_rgb(237, 91, 6))
         embedVar.add_field(name="page:", value=f"**{page}/{pages}**")
         btn_view = None
