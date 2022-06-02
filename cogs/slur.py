@@ -92,10 +92,14 @@ class Slur(commands.Cog):
             if field.name.lower() == "page:":
                 page_field = field
         page = int(page_field.value.split('/')[0][2:]) + 1
-        wordlist, pages, page = get_slurs(page)
-        new_embed.description = "**•**\u00A0" + "\n**•**\u00A0".join(wordlist)
+        wordlist, pages, page = get_slurs(page, 20)
         new_embed.clear_fields()
-        new_embed.add_field(name="page:", value=f"**{page}/{pages}**")
+        if len(wordlist) > 10:
+            new_embed.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist[0:10]))
+            new_embed.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist[10:]))
+        else:
+            new_embed.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist))
+        new_embed.add_field(name="page:", value=f"**{page}/{pages}**", inline=False)
         await interaction.message.edit(embed=new_embed)
 
     async def cb_slur_list_prev_page(self, interaction):
@@ -104,10 +108,14 @@ class Slur(commands.Cog):
             if field.name.lower() == "page:":
                 page_field = field
         page = int(page_field.value.split('/')[0][2:]) - 1
-        wordlist, pages, page = get_slurs(page)
-        new_embed.description = "**•**\u00A0" + "\n**•**\u00A0".join(wordlist)
+        wordlist, pages, page = get_slurs(page, 20)
         new_embed.clear_fields()
-        new_embed.add_field(name="page:", value=f"**{page}/{pages}**")
+        if len(wordlist) > 10:
+            new_embed.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist[0:10]))
+            new_embed.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist[10:]))
+        else:
+            new_embed.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist))
+        new_embed.add_field(name="page:", value=f"**{page}/{pages}**", inline=False)
         await interaction.message.edit(embed=new_embed)
 
     async def cb_goodword_list_next_page(self, interaction):
@@ -116,10 +124,14 @@ class Slur(commands.Cog):
             if field.name.lower() == "page:":
                 page_field = field
         page = int(page_field.value.split('/')[0][2:]) + 1
-        wordlist, pages, page = get_goodwords(page)
-        new_embed.description = "**•**\u00A0" + "\n**•**\u00A0".join(wordlist)
+        wordlist, pages, page = get_goodwords(page, 20)
         new_embed.clear_fields()
-        new_embed.add_field(name="page:", value=f"**{page}/{pages}**")
+        if len(wordlist) > 10:
+            new_embed.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist[0:10]))
+            new_embed.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist[10:]))
+        else:
+            new_embed.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist))
+        new_embed.add_field(name="page:", value=f"**{page}/{pages}**", inline=False)
         await interaction.message.edit(embed=new_embed)
 
     async def cb_goodword_list_prev_page(self, interaction):
@@ -128,10 +140,14 @@ class Slur(commands.Cog):
             if field.name.lower() == "page:":
                 page_field = field
         page = int(page_field.value.split('/')[0][2:]) - 1
-        wordlist, pages, page = get_goodwords(page)
-        new_embed.description = "**•**\u00A0" + "\n**•**\u00A0".join(wordlist)
+        wordlist, pages, page = get_goodwords(page, 20)
         new_embed.clear_fields()
-        new_embed.add_field(name="page:", value=f"**{page}/{pages}**")
+        if len(wordlist) > 10:
+            new_embed.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist[0:10]))
+            new_embed.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist[10:]))
+        else:
+            new_embed.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist))
+        new_embed.add_field(name="page:", value=f"**{page}/{pages}**", inline=False)
         await interaction.message.edit(embed=new_embed)
 
     @commands.command(aliases=["addsl"])
@@ -258,14 +274,19 @@ class Slur(commands.Cog):
             await ctx.send(self.notModFail)
             return
 
-        wordlist, pages, page = get_slurs(page)
-
+        wordlist, pages, page = get_slurs(page, 20)
+        
         # post the list as embed
         embedVar = nextcord.Embed(
             title="List of currently detected slurs",
-            description="**•**\u00A0" + "\n**•**\u00A0".join(wordlist),
+            # description="**•**\u00A0" + "\n**•**\u00A0".join(wordlist),
             color=nextcord.Color.from_rgb(237, 91, 6))
-        embedVar.add_field(name="page:", value=f"**{page}/{pages}**")
+        if len(wordlist) > 10:
+            embedVar.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist[0:10]))
+            embedVar.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist[10:]))
+        else:
+            embedVar.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist))
+        embedVar.add_field(name="page:", value=f"**{page}/{pages}**", inline=False)
         btn_view = None
         if (pages > 1):
             btn_prev = Button(label="< prev")
@@ -284,14 +305,19 @@ class Slur(commands.Cog):
             await ctx.send(self.notModFail)
             return
 
-        wordlist, pages, page = get_goodwords(page)
+        wordlist, pages, page = get_goodwords(page, 20)
 
         # post the list as embed
         embedVar = nextcord.Embed(
             title="List of goodwords currently whitelisted from slur detection",
-            description="**•**\u00A0" + "\n**•**\u00A0".join(wordlist),
+            # description="**•**\u00A0" + "\n**•**\u00A0".join(wordlist),
             color=nextcord.Color.from_rgb(237, 91, 6))
-        embedVar.add_field(name="page:", value=f"**{page}/{pages}**")
+        if len(wordlist) > 10:
+            embedVar.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist[0:10]))
+            embedVar.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist[10:]))
+        else:
+            embedVar.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist))
+        embedVar.add_field(name="page:", value=f"**{page}/{pages}**", inline=False)
         btn_view = None
         if (pages > 1):
             btn_prev = Button(label="< prev")
