@@ -159,6 +159,16 @@ class Slur(commands.Cog):
 
         slur = "".join(slur)
         slur = clearString(slur)
+
+        existing_slur = None
+        for s in slurs:
+            if s in slur:
+                existing_slur = True
+
+        if existing_slur is not None:
+            await ctx.send(f"<:sersifail:979070135799279698> {word} is in conflict with existing slur {existing_slur}; cannot be added.")
+            return
+
         if slur in slurs:
             await ctx.send(f"<:sersifail:979070135799279698> {slur} is already on the list of slurs")
             return
