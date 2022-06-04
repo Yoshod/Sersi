@@ -23,6 +23,10 @@ class Reformation(commands.Cog):
             return
 
         reason_string = " ".join(args)
+
+        if reason_string.startswith("?r "):     # splices away the "?r" that moderators accustomed to wick might put in there
+            reason_string = reason_string[3:]
+
         reformation_role = ctx.guild.get_role(getReformationRole(ctx.guild.id))
 
         await member.add_roles(reformation_role, reason=reason_string, atomic=True)
@@ -37,7 +41,7 @@ class Reformation(commands.Cog):
         except AttributeError:
             await ctx.reply("Could not remove roles.")
 
-        await ctx.send(f"Memeber {member.mention} has been sent to reformation by {ctx.author.mention} for reson: {reason_string}")
+        await ctx.send(f"Member {member.mention} has been sent to reformation by {ctx.author.mention} for reson: `{reason_string}`")
 
         # Giving a welcome to the person sent to reformation
         channel = self.bot.get_channel(943180985632169984)
