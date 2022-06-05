@@ -285,7 +285,7 @@ class Slur(commands.Cog):
             return
 
         wordlist, pages, page = get_slurs(page, 20)
-        
+
         # post the list as embed
         embedVar = nextcord.Embed(
             title="List of currently detected slurs",
@@ -340,7 +340,7 @@ class Slur(commands.Cog):
         await ctx.send(embed=embedVar, view=btn_view)
 
     @commands.command()
-    async def reloadslurs(self, ctx):
+    async def reloadslur(self, ctx):
         """reloads the lists of detected slurs and whitelisted goodwords from files"""
         if not isMod(ctx.author.roles):
             await ctx.send(self.notModFail)
@@ -353,12 +353,9 @@ class Slur(commands.Cog):
         channel = self.bot.get_channel(getLoggingChannel(ctx.message.guild.id))
         embedVar = nextcord.Embed(
             title="Slurs and Goodwords Reloaded",
-            description="The list of slurs and goodwords in memory has been reloaded.\n\n__Reloaded By:__\n"
-            + str(ctx.message.author.mention)
-            + " ("
-            + str(ctx.message.author.id)
-            + ")",
+            description="The list of slurs and goodwords in memory has been reloaded.",
             color=nextcord.Color.from_rgb(237, 91, 6))
+        embedVar.add_field(name="Reloaded By:", value=f"{ctx.message.author.mention} ({ctx.message.author.id})")
         await channel.send(embed=embedVar)
 
     # events
