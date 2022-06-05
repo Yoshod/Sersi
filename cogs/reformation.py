@@ -11,62 +11,58 @@ class Reformation(commands.Cog):
         self.notModFail = "<:sersifail:979070135799279698> Only moderators can use this command."
 
     # command
-    @commands.command()
-    async def rn(self, ctx, member: nextcord.Member, *args):
-        """Reform Needed.
+    @commands.command(aliases=['rn', 'reformneeded', 'reform'])
+    async def reformationneeded(self, ctx, member: nextcord.Member, *args):
+        """send a user to reformation centre
 
-        Sends a user to reformation centre for reform by giving said user the @Reformation role. Removes @Civil Engineering Initiate and all Opt-In-Roles.
+        Sends a [member] to reformation centre for reform by giving said [member] the @Reformation role. Removes @Civil Engineering Initiate and all Opt-In-Roles.
         Permission Needed: Moderator, Trial Moderator
         """
         if not isMod(ctx.author.roles):
             await ctx.reply(self.notModFail)
             return
 
+        reason_string = " ".join(args)
+
+        if reason_string.startswith("?r "):     # splices away the "?r" that moderators accustomed to wick might put in there
+            reason_string = reason_string[3:]
+
+        reformation_role = ctx.guild.get_role(getReformationRole(ctx.guild.id))
+
+        await member.add_roles(reformation_role, reason=reason_string, atomic=True)
         try:
-            reason_string = " ".join(args)
-            reformation_role = ctx.guild.get_role(getReformationRole(ctx.guild.id))
+            role_ids = [878040658244403253, 960558372837523476, 960558399471378483,
+                        960558452109885450, 960558507403382784, 960558557332406293,
+                        960558615209582672, 960558657672732712, 960558722839642212,
+                        960558757463605298, 960558800442646578, 960558452109885450,
+                        902291483040837684]
+            for role in role_ids:
+                await member.remove_roles(ctx.guild.get_role(role), reason=reason_string, atomic=True)
+        except AttributeError:
+            await ctx.reply("Could not remove roles.")
 
-            await member.add_roles(reformation_role, reason=reason_string, atomic=True)
-            try:
-                role_ids = [878040658244403253, 960558372837523476, 960558399471378483,
-                            960558452109885450, 960558507403382784, 960558557332406293,
-                            960558615209582672, 960558657672732712, 960558722839642212,
-                            960558757463605298, 960558800442646578, 960558452109885450,
-                            902291483040837684]
-                for role in role_ids:
-                    await member.remove_roles(ctx.guild.get_role(role), reason=reason_string, atomic=True)
-            except AttributeError:
-                await ctx.reply("Could not remove roles.")
+        await ctx.send(f"Member {member.mention} has been sent to reformation by {ctx.author.mention} for reson: `{reason_string}`")
 
-            await ctx.send(f"Memeber {member.mention} has been sent to reformation by {ctx.author.mention} for reson: {reason_string}")
+        # Giving a welcome to the person sent to reformation
+        channel = self.bot.get_channel(943180985632169984)
+        welcome_embed = nextcord.Embed(
+            title="Welcome to Reformation",
+            description=f"Hello {member.mention}, you have been sent to reformation by {ctx.author.mention}. The reason given for this is `{reason_string}`. \n\nFor more information on reformation check out <#878292548785958982> or talk to a <@&943193811574751314>.",
+            color=nextcord.Color.from_rgb(237, 91, 6))
+        await channel.send(embed=welcome_embed)
 
-            # Giving a welcome to the person sent to reformation
-            try:
-                channel = self.bot.get_channel(943180985632169984)
-                welcome_embed = nextcord.Embed(
-                    tile="Welcome to Reformation",
-                    description=f"Hello {member.mention}, you have been sent to reformation by {ctx.author.mention}. The reason given for this is `{reason_string}`. \n\nFor more information on reformation check out <#878292548785958982> or talk to a <@&943193811574751314>.",
-                    color=nextcord.Color.from_rgb(237, 91, 6))
-                await channel.send(embed=welcome_embed)
+        # # LOGGING
+        embed = nextcord.Embed(
+            title="User Has Been Sent to Reformation",
+            description=f"Moderator {ctx.author.mention} ({ctx.author.id}) has sent user {member.mention} ({member.id}) to reformation.\n\n"
+                        + f"**__Reason:__** {reason_string}",
+            color=nextcord.Color.from_rgb(237, 91, 6))
 
-            except AttributeError:
-                pass
+        channel = self.bot.get_channel(getLoggingChannel(ctx.guild.id))
+        await channel.send(embed=embed)
 
-            # # LOGGING
-            embed = nextcord.Embed(
-                title="User Has Been Sent to Reformation",
-                description=f"Moderator {ctx.author.mention} ({ctx.author.id}) has sent user {member.mention} ({member.id}) to reformation.\n\n"
-                            + f"**__Reason:__** {reason_string}",
-                color=nextcord.Color.from_rgb(237, 91, 6))
-
-            channel = self.bot.get_channel(getLoggingChannel(ctx.guild.id))
-            await channel.send(embed=embed)
-
-            channel = self.bot.get_channel(getModlogsChannel(ctx.guild.id))
-            await channel.send(embed=embed)
-
-        except MemberNotFound:
-            await ctx.send("Member not found!")
+        channel = self.bot.get_channel(getModlogsChannel(ctx.guild.id))
+        await channel.send(embed=embed)
 
     async def cb_rq_yes(self, interaction):
         if not isMod(interaction.user.roles):
@@ -74,6 +70,7 @@ class Reformation(commands.Cog):
             return
 
         new_embed = interaction.message.embeds[0]
+
         # check if user has already voted
         for field in new_embed.fields:
             if field.value == interaction.user.mention:
@@ -82,6 +79,7 @@ class Reformation(commands.Cog):
 
         # make vote visible
         new_embed.add_field(name="Voted Yes:", value=interaction.user.mention, inline=True)
+
         # retrieve current amount of votes and iterate by 1
         yes_votes = new_embed.description[-1]
         yes_votes = int(yes_votes) + 1
@@ -204,9 +202,9 @@ class Reformation(commands.Cog):
         new_embed.add_field(name="Voted Maybe:", value=interaction.user.mention, inline=True)
         await interaction.message.edit(embed=new_embed)
 
-    @commands.command()
-    async def rq(self, ctx, member: nextcord.Member):
-        """Reformation Query.
+    @commands.command(aliases=['rq', 'reformquery', 'reformq'])
+    async def reformationquery(self, ctx, member: nextcord.Member):
+        """query releasing a user from reformation centre
 
         Sends query for release out of reformation centre for [member] into the information centre.
         Three 'Yes' votes will result in an automatic release.
@@ -261,9 +259,9 @@ class Reformation(commands.Cog):
         embed.color = nextcord.Color.from_rgb(0, 255, 0)
         await interaction.message.edit(embed=embed, view=None)
 
-    @commands.command()
-    async def rf(self, ctx, member: nextcord.Member):
-        """Reformation Failed.
+    @commands.command(aliases=['rf', 'reformfailed', 'reformfail', 'reformf'])
+    async def reformationfailed(self, ctx, member: nextcord.Member):
+        """query banning a user in reformation centre
 
         Sends query for ban of a [member] who is currently in the reformation centre.
         Members should have been in reformation of at least 14 Days.

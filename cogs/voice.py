@@ -7,7 +7,7 @@ class Voice(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command()
+    @commands.command(aliases=['mvc', 'movevc', 'vcmove', 'mm'])
     async def massmove(self, ctx, current: nextcord.VoiceChannel, target: nextcord.VoiceChannel):
         if not isMod(ctx.author.roles):
             await ctx.send(f"<:sersifail:979070135799279698> Insufficient permission!")

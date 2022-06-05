@@ -92,10 +92,14 @@ class Slur(commands.Cog):
             if field.name.lower() == "page:":
                 page_field = field
         page = int(page_field.value.split('/')[0][2:]) + 1
-        wordlist, pages, page = get_slurs(page)
-        new_embed.description = ", ".join(wordlist)
+        wordlist, pages, page = get_slurs(page, 20)
         new_embed.clear_fields()
-        new_embed.add_field(name="page:", value=f"**{page}/{pages}**")
+        if len(wordlist) > 10:
+            new_embed.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist[0:10]))
+            new_embed.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist[10:]))
+        else:
+            new_embed.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist))
+        new_embed.add_field(name="page:", value=f"**{page}/{pages}**", inline=False)
         await interaction.message.edit(embed=new_embed)
 
     async def cb_slur_list_prev_page(self, interaction):
@@ -104,10 +108,14 @@ class Slur(commands.Cog):
             if field.name.lower() == "page:":
                 page_field = field
         page = int(page_field.value.split('/')[0][2:]) - 1
-        wordlist, pages, page = get_slurs(page)
-        new_embed.description = ", ".join(wordlist)
+        wordlist, pages, page = get_slurs(page, 20)
         new_embed.clear_fields()
-        new_embed.add_field(name="page:", value=f"**{page}/{pages}**")
+        if len(wordlist) > 10:
+            new_embed.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist[0:10]))
+            new_embed.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist[10:]))
+        else:
+            new_embed.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist))
+        new_embed.add_field(name="page:", value=f"**{page}/{pages}**", inline=False)
         await interaction.message.edit(embed=new_embed)
 
     async def cb_goodword_list_next_page(self, interaction):
@@ -116,10 +124,14 @@ class Slur(commands.Cog):
             if field.name.lower() == "page:":
                 page_field = field
         page = int(page_field.value.split('/')[0][2:]) + 1
-        wordlist, pages, page = get_goodwords(page)
-        new_embed.description = ", ".join(wordlist)
+        wordlist, pages, page = get_goodwords(page, 20)
         new_embed.clear_fields()
-        new_embed.add_field(name="page:", value=f"**{page}/{pages}**")
+        if len(wordlist) > 10:
+            new_embed.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist[0:10]))
+            new_embed.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist[10:]))
+        else:
+            new_embed.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist))
+        new_embed.add_field(name="page:", value=f"**{page}/{pages}**", inline=False)
         await interaction.message.edit(embed=new_embed)
 
     async def cb_goodword_list_prev_page(self, interaction):
@@ -128,10 +140,14 @@ class Slur(commands.Cog):
             if field.name.lower() == "page:":
                 page_field = field
         page = int(page_field.value.split('/')[0][2:]) - 1
-        wordlist, pages, page = get_goodwords(page)
-        new_embed.description = ", ".join(wordlist)
+        wordlist, pages, page = get_goodwords(page, 20)
         new_embed.clear_fields()
-        new_embed.add_field(name="page:", value=f"**{page}/{pages}**")
+        if len(wordlist) > 10:
+            new_embed.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist[0:10]))
+            new_embed.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist[10:]))
+        else:
+            new_embed.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist))
+        new_embed.add_field(name="page:", value=f"**{page}/{pages}**", inline=False)
         await interaction.message.edit(embed=new_embed)
 
     @commands.command(aliases=["addsl"])
@@ -143,8 +159,18 @@ class Slur(commands.Cog):
 
         slur = "".join(slur)
         slur = clearString(slur)
+
+        existing_slur = None
+        for s in slurs:
+            if s in slur:
+                existing_slur = True
+
+        if existing_slur is not None:
+            await ctx.send(f"<:sersifail:979070135799279698> {word} is in conflict with existing slur {existing_slur}; cannot be added.")
+            return
+
         if slur in slurs:
-            await ctx.send(f"{slur} is already on the list of slurs")
+            await ctx.send(f"<:sersifail:979070135799279698> {slur} is already on the list of slurs")
             return
 
         await ctx.send(f"Slur to be added: {slur}")
@@ -174,8 +200,25 @@ class Slur(commands.Cog):
         word = "".join(word)
         word = clearString(word)
         if word in goodword:
-            await ctx.send(f"{word} is already on the whitelist")
+            await ctx.send(f"<:sersifail:979070135799279698> {word} is already on the whitelist")
             return
+
+        word_contains_slur = False
+        for slur in slurs:
+            if slur in word:
+                word_contains_slur = True
+
+        if not word_contains_slur:
+            await ctx.send(f"<:sersifail:979070135799279698> {word} does not contain any slurs; cannot be added.")
+            return
+
+        for existing_word in goodword:
+            if word in existing_word:
+                await ctx.send(f"<:sersifail:979070135799279698> {word} is substring to existing goodword {existing_word}; cannot be added.")
+                return
+            elif existing_word in word:
+                await ctx.send(f"<:sersifail:979070135799279698> existing goodword {existing_word} is substring to {word}; cannot be added.")
+                return
 
         await ctx.send(f"Goodword to be added: {word}")
         with open("goodword.txt", "a") as file:
@@ -241,15 +284,19 @@ class Slur(commands.Cog):
             await ctx.send(self.notModFail)
             return
 
-        wordlist, pages, page = get_slurs(page)
-        wordlist.sort()
+        wordlist, pages, page = get_slurs(page, 20)
 
         # post the list as embed
         embedVar = nextcord.Embed(
             title="List of currently detected slurs",
-            description=", ".join(wordlist),
+            # description="**•**\u00A0" + "\n**•**\u00A0".join(wordlist),
             color=nextcord.Color.from_rgb(237, 91, 6))
-        embedVar.add_field(name="page:", value=f"**{page}/{pages}**")
+        if len(wordlist) > 10:
+            embedVar.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist[0:10]))
+            embedVar.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist[10:]))
+        else:
+            embedVar.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist))
+        embedVar.add_field(name="page:", value=f"**{page}/{pages}**", inline=False)
         btn_view = None
         if (pages > 1):
             btn_prev = Button(label="< prev")
@@ -268,15 +315,19 @@ class Slur(commands.Cog):
             await ctx.send(self.notModFail)
             return
 
-        wordlist, pages, page = get_goodwords(page)
-        wordlist.sort()
+        wordlist, pages, page = get_goodwords(page, 20)
 
         # post the list as embed
         embedVar = nextcord.Embed(
             title="List of goodwords currently whitelisted from slur detection",
-            description=str(", ".join(wordlist)),
+            # description="**•**\u00A0" + "\n**•**\u00A0".join(wordlist),
             color=nextcord.Color.from_rgb(237, 91, 6))
-        embedVar.add_field(name="page:", value=f"**{page}/{pages}**")
+        if len(wordlist) > 10:
+            embedVar.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist[0:10]))
+            embedVar.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist[10:]))
+        else:
+            embedVar.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist))
+        embedVar.add_field(name="page:", value=f"**{page}/{pages}**", inline=False)
         btn_view = None
         if (pages > 1):
             btn_prev = Button(label="< prev")
@@ -289,7 +340,7 @@ class Slur(commands.Cog):
         await ctx.send(embed=embedVar, view=btn_view)
 
     @commands.command()
-    async def reloadslurs(self, ctx):
+    async def reloadslur(self, ctx):
         """reloads the lists of detected slurs and whitelisted goodwords from files"""
         if not isMod(ctx.author.roles):
             await ctx.send(self.notModFail)
@@ -302,12 +353,9 @@ class Slur(commands.Cog):
         channel = self.bot.get_channel(getLoggingChannel(ctx.message.guild.id))
         embedVar = nextcord.Embed(
             title="Slurs and Goodwords Reloaded",
-            description="The list of slurs and goodwords in memory has been reloaded.\n\n__Reloaded By:__\n"
-            + str(ctx.message.author.mention)
-            + " ("
-            + str(ctx.message.author.id)
-            + ")",
+            description="The list of slurs and goodwords in memory has been reloaded.",
             color=nextcord.Color.from_rgb(237, 91, 6))
+        embedVar.add_field(name="Reloaded By:", value=f"{ctx.message.author.mention} ({ctx.message.author.id})")
         await channel.send(embed=embedVar)
 
     # events
@@ -326,7 +374,10 @@ class Slur(commands.Cog):
             )
             slurembed.add_field(name="Channel:", value=message.channel.mention, inline=False)
             slurembed.add_field(name="User:", value=message.author.mention)
-            slurembed.add_field(name="Context:", value=message.content, inline=False)
+            if len(message.content) < 1024:
+                slurembed.add_field(name="Context:", value=message.content, inline=False)
+            else:
+                slurembed.add_field(name="Context:", value="`MESSAGE TOO LONG`", inline=False)
             slurembed.add_field(name="Slurs Found:", value=", ".join(set(detected_slurs)), inline=False)
             slurembed.add_field(name="URL:", value=message.jump_url, inline=False)
             slurembed.set_footer(text="Sersi Slur Detection Alert")

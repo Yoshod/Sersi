@@ -11,7 +11,7 @@ class Jokes(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message):
 
-        if message.author == self.bot.user:  # ignores message if message is by bot
+        if message.author.bot:  # ignores message if message is by bot
             return
 
         elif "pythonic" in message.content.lower():

@@ -29,11 +29,11 @@ def leet(word):
     return [''.join(permutations) for permutations in product(*possibles)]
 
 
-def get_slurs(page=None):
+def get_slurs(page=None, wpp=10):
     if page is None:
         return slurs_list
     else:
-        pages = 1 + (len(slurs_list) - 1) // 100
+        pages = 1 + (len(slurs_list) - 1) // wpp
 
         index = page - 1
         if index < 0:
@@ -42,16 +42,16 @@ def get_slurs(page=None):
             index = pages - 1
 
         if index == (pages - 1):
-            return slurs_list[index * 100:], pages, index + 1
+            return sorted(slurs_list)[index * wpp:], pages, index + 1
         else:
-            return slurs_list[index * 100: index * 100 + 100], pages, index + 1
+            return sorted(slurs_list)[index * wpp: index * wpp + wpp], pages, index + 1
 
 
-def get_goodwords(page=None):
+def get_goodwords(page=None, wpp=10):
     if page is None:
         return goodword
     else:
-        pages = 1 + (len(goodword) - 1) // 100
+        pages = 1 + (len(goodword) - 1) // wpp
 
         index = page - 1
         if index < 0:
@@ -60,9 +60,9 @@ def get_goodwords(page=None):
             index = pages - 1
 
         if index == (pages - 1):
-            return goodword[index * 100:], pages, index + 1
+            return sorted(goodword)[index * wpp:], pages, index + 1
         else:
-            return goodword[index * 100: index * 100 + 100], pages, index + 1
+            return sorted(goodword)[index * wpp: index * wpp + wpp], pages, index + 1
 
 
 def load_slurdetector():
@@ -119,7 +119,7 @@ def load_goodwords():
 
 def clearString(string):
     """cleaning up the message by eliminating special characters and making the entire message lowercase"""
-    special_characters = ['#', '%', '&', '[', ']', ' ', ']', '_', '-', '<', '>']
+    special_characters = ['#', '%', '&', '[', ']', ' ', ']', '_', '-', '<', '>', '\'']
 
     string = string.lower()
     string = unidecode.unidecode(string)
