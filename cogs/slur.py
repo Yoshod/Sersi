@@ -374,7 +374,10 @@ class Slur(commands.Cog):
             )
             slurembed.add_field(name="Channel:", value=message.channel.mention, inline=False)
             slurembed.add_field(name="User:", value=message.author.mention)
-            slurembed.add_field(name="Context:", value=message.content, inline=False)
+            if len(message.content) < 1024:
+                slurembed.add_field(name="Context:", value=message.content, inline=False)
+            else:
+                slurembed.add_field(name="Context:", value="`MESSAGE TOO LONG`", inline=False)
             slurembed.add_field(name="Slurs Found:", value=", ".join(set(detected_slurs)), inline=False)
             slurembed.add_field(name="URL:", value=message.jump_url, inline=False)
             slurembed.set_footer(text="Sersi Slur Detection Alert")
