@@ -79,6 +79,7 @@ class Reformation(commands.Cog):
 
         # make vote visible
         new_embed.add_field(name="Voted Yes:", value=interaction.user.mention, inline=True)
+
         # retrieve current amount of votes and iterate by 1
         yes_votes = new_embed.description[-1]
         yes_votes = int(yes_votes) + 1
