@@ -87,7 +87,7 @@ class ModPing(commands.Cog):
             channel = self.bot.get_channel(getAlertChannel(message.guild.id))
             embedVar = nextcord.Embed(
                 title="Moderator Ping",
-                description="A moderation role has been pinged, please investigate the ping and take action as appropriate."
+                description="A moderation role has been pinged, please investigate the ping and take action as appropriate.",
                 color=nextcord.Color.from_rgb(237, 91, 6))
             embedVar.add_field(name="Channel:", value=message.channel.mention, inline=False)
             embedVar.add_field(name="User:", value=message.author.mention, inline=False)
@@ -108,6 +108,28 @@ class ModPing(commands.Cog):
             button_view.add_item(action_taken)
             button_view.add_item(action_not_neccesary)
             button_view.add_item(bad_faith_ping)
+
+            await channel.send(embed=embedVar, view=button_view)
+
+        elif "809891646606409779" in message.content:   # adam something ping
+
+            # notification for mods
+            channel = self.bot.get_channel(getAlertChannel(message.guild.id))
+            embedVar = nextcord.Embed(
+                title="Adam Something Ping",
+                description="Adam Something has been pinged, please take appropriate action.",
+                color=nextcord.Color.from_rgb(237, 91, 6))
+            embedVar.add_field(name="Channel:", value=message.channel.mention, inline=False)
+            embedVar.add_field(name="User:", value=message.author.mention, inline=False)
+            embedVar.add_field(name="Context:", value=message.content, inline=False)
+            embedVar.add_field(name="URL:", value=message.jump_url, inline=False)
+            embedVar.set_footer(text="Sersi Ping Detection Alert")
+
+            action_taken = Button(label="Action Taken")
+            action_taken.callback = self.cb_action_taken
+
+            button_view = View(timeout=None)
+            button_view.add_item(action_taken)
 
             await channel.send(embed=embedVar, view=button_view)
 
