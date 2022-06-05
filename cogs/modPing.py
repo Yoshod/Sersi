@@ -73,6 +73,9 @@ class ModPing(commands.Cog):
         if message.author == self.bot.user:  # ignores message if message is by bot
             return
 
+        elif message.channel.id in [875807914802176020, 963893512141692958, 856430951630110740]:  # ignores certain channels on ASC, given by Juniper
+            return
+
         elif checkForMods(message.content):
             # Reply to user
             embedVar = nextcord.Embed(
@@ -111,7 +114,7 @@ class ModPing(commands.Cog):
 
             await channel.send(embed=embedVar, view=button_view)
 
-        elif "809891646606409779" in message.content:   # adam something ping
+        elif "<@809891646606409779>" in message.content:   # adam something ping
 
             # notification for mods
             channel = self.bot.get_channel(getAlertChannel(message.guild.id))
