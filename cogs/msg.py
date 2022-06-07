@@ -8,6 +8,7 @@ class Messages(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        self.recdms = False
 
     @commands.command()
     async def dm(self, ctx, recipient: nextcord.Member, *message):
@@ -61,6 +62,38 @@ class Messages(commands.Cog):
                 await ctx.send("How the fuck did this error appear?")
         else:
             await ctx.send("<:sersifail:979070135799279698> Only moderators can use this command.")
+
+    @commands.command()
+    async def receivedms(self, ctx):
+        if ctx.guild.id == 977377117895536640:
+            if self.recdms:
+                self.recdms = False
+                await ctx.send("received DMs will no longer be posted to <#982057670594928660>")
+            else:
+                self.recdms = True
+                await ctx.send("received DMs will now be posted to <#982057670594928660>")
+        else:
+            await ctx.send("experimental functionality is not available on ASC")
+
+    @commands.Cog.listener()
+    async def on_message(self, message):
+        if not self.recdms:
+            return
+        
+        dm_channel = self.bot.get_channel(982057670594928660)
+        if message.guild is None and message.author != self.bot.user:
+            channel_webhooks = await dm_channel.webhooks()
+            msg_sent = False
+
+            for webhook in channel_webhooks:                  # tries to find existing webhook
+                if webhook.name == "dm webhook by sersi":
+                    await webhook.send(message.content, username=message.author.display_name, avatar_url=message.author.display_avatar.url)
+                    msg_sent = True
+
+            if not msg_sent:                          # creates webhook if none found
+                webhook = await dm_channel.create_webhook(name="dm webhook by sersi")
+                await webhook.send(message.content, username=message.author.display_name, avatar_url=message.author.display_avatar.url)
+                msg_sent = True
 
 
 def setup(bot):
