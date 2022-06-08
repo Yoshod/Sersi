@@ -6,6 +6,14 @@ def checkForMods(messageData):
     return False
 
 
+def isStaff(userRoles):
+    staffRolePresent = False
+    for role in userRoles:
+        if role.id in [974166116618350642, 977394150494326855]:  # "Staff", "certified bot tester"
+            staffRolePresent = True
+    return (staffRolePresent)
+
+
 def isMod(userRoles):
     modRolePresent = False
     for role in userRoles:
@@ -63,6 +71,13 @@ def getReformedRole(guild_id):
         return 878289678623703080
     elif guild_id == 977377117895536640:
         return 978591187827044383
+
+
+def getProbationRole(guild_id):
+    if guild_id == 856262303795380224:
+        return 957671793844445204
+    elif guild_id == 977377117895536640:
+        return 984195306038124558
 
 
 def getModlogsChannel(guild_id):
