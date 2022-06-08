@@ -8,26 +8,32 @@ class About(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.verNum = str("`3.1.5`")
-        self.buildNum = str("`Build 00240`")
-        self.authorsList = load_authors()
+        self.verNum = "`3.1.5`"
+
+        authors = []
+        with open("authors.txt", "r") as file:
+            for line in file:
+                line = line.replace('\n', '')
+                authors.append(line)
+        return authors
+
+        self.authorsList = authors
 
     @commands.command()
     async def about(self, ctx):
         """Displays basic information about the bot."""
+
         authorString = ""
-        for authors in self.authorsList:
-            authorString = (str(authorString) + str(authors) + str("\n"))
-        embedVar = nextcord.Embed(
+        for author in self.authorsList:
+            authorString = authorString + f"{author}\n"
+
+        about = nextcord.Embed(
             title="About Sersi",
-            description="Sersi is the custom moderation help bot for Adam Something Central.\n\nVersion:\n"
-            + str(self.verNum)
-            + str("\n\nBuild Number:\n")
-            + str(self.buildNum)
-            + str("\n\nAuthors:\n")
-            + str(authorString),
+            description="Sersi is the custom moderation help bot for Adam Something Central.",
             color=nextcord.Color.from_rgb(237, 91, 6))
-        await ctx.send(embed=embedVar)
+        about.add_field(name="Version:", value=self.verNum, inline=False)
+        about.add_field(name="Authors:", value=authorString, inline=False)
+        await ctx.send(embed=about)
 
 
 def setup(bot):
