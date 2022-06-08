@@ -1,7 +1,6 @@
 import nextcord
 from slurdetector import *
 from baseutils import *
-# from buttoncallbacks import *
 
 from nextcord.ext import commands
 from nextcord.ui import Button, View

@@ -22,6 +22,16 @@ class Messages(commands.Cog):
         await recipient.send(msg)
         await ctx.send(f"<:sersisuccess:979066662856822844> Direkt Message sent to {recipient}!")
 
+        channel = self.bot.get_channel(getLoggingChannel(ctx.message.guild.id))
+        logging = nextcord.Embed(
+            title="DM Sent",
+            description="A DM has been sent.",
+            color=nextcord.Color.from_rgb(237, 91, 6))
+        logging.add_field(name="Sender:", value=ctx.author.mention, inline=False)
+        logging.add_field(name="Recipient:", value=recipient.mention, inline=False)
+        logging.add_field(name="Message Content:", value=msg, inline=False)
+        await channel.send(embed=logging)
+
     @commands.command()
     async def dmTest(self, ctx, userId=None, *, args=None):
         if isMod(ctx.author.roles):
@@ -49,7 +59,7 @@ class Messages(commands.Cog):
                 channel = self.bot.get_channel(getLoggingChannel(ctx.message.guild.id))
                 embedVar = nextcord.Embed(
                     title="DM Sent",
-                    description="A DM has been sent.\n\n__Sender:__\n{ctx.author.mention}\n\n__Recipient:__\n{userId}\n\n__Message Content:__\n{args}",
+                    description=f"A DM has been sent.\n\n__Sender:__\n{ctx.author.mention}\n\n__Recipient:__\n{userId}\n\n__Message Content:__\n{args}",
                     color=nextcord.Color.from_rgb(237, 91, 6))
                 await channel.send(embed=embedVar)
 
@@ -79,7 +89,7 @@ class Messages(commands.Cog):
     async def on_message(self, message):
         if not self.recdms:
             return
-        
+
         dm_channel = self.bot.get_channel(982057670594928660)
         if message.guild is None and message.author != self.bot.user:
             channel_webhooks = await dm_channel.webhooks()
