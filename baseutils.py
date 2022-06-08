@@ -75,12 +75,3 @@ def getModlogsChannel(guild_id):
 def ajustCommandPrefix(bot):
     if bot.user.id == 978259801844879373:   # Sersi(cracked)
         bot.command_prefix = "cs!"
-
-
-def load_authors():
-    authors = []
-    with open("authors.txt", "r") as file:
-        for line in file:
-            line = line.replace('\n', '')
-            authors.append(line)
-    return authors

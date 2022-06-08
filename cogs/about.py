@@ -1,7 +1,6 @@
 import nextcord
 
 from nextcord.ext import commands
-from baseutils import *
 
 
 class About(commands.Cog):
