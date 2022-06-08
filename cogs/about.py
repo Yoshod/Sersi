@@ -7,7 +7,7 @@ class About(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.verNum = "`3.1.5`"
+        self.verNum = "`3.2.0`"
 
         authors = []
         with open("authors.txt", "r") as file:

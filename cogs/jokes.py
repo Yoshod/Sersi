@@ -1,11 +1,33 @@
 import nextcord
 import random
 from nextcord.ext import commands
-
+from baseutils import *
 
 class Jokes(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.notModFail = "<:sersifail:979070135799279698> Only moderators can use this command."
+        
+    @commands.command()
+    async def nevermod(self, ctx, member: nextcord.Member):
+        if not isMod(ctx.author.roles):
+            await ctx.reply(self.notModFail)
+            return
+
+        if ctx.guild.id == 856262303795380224:      # asc
+            nevermod_role = ctx.guild.get_role(878045315784114216)
+        elif ctx.guild.id == 977377117895536640:    # mfs
+            nevermod_role = ctx.guild.get_role(984106366954274886)
+
+        if nevermod_role in member.roles:
+            await ctx.reply("User already nevermodded")
+        else:
+            await member.add_roles(nevermod_role, reason="asked for mod in a public channel", atomic=True)
+            nevermod_embed = nextcord.Embed(
+                title="Never Getting Mod",
+                description=f"Oh no! {member.mention} asked for mod in a public channel instead of applying through our application form! Now you’re never going to get mod… In fact, we even gave you a nice shiny new role just to make sure you know that you {nevermod_role.mention}.",
+                colour=nextcord.Colour.brand_red())
+            await ctx.send(embed=nevermod_embed)
 
     # events
     @commands.Cog.listener()
