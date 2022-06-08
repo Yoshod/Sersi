@@ -14,8 +14,6 @@ class About(commands.Cog):
             for line in file:
                 line = line.replace('\n', '')
                 authors.append(line)
-        return authors
-
         self.authorsList = authors
 
     @commands.command()
