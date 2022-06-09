@@ -1,18 +1,14 @@
 import nextcord
 from nextcord.ext import commands
 import re
-import configparser
 from baseutils import getLoggingChannel, isMod
+from config import get_config, get_config_int, set_config
 # from nextcord.ext.commands.errors import MemberNotFound
 
 
 class Caps(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-
-        config = configparser.ConfigParser()
-        config.read('config.ini')
-        self.MIN_CHARS_FOR_DETECTION = int(config['CAPS']['capslength'])
 
     @commands.command()
     async def setcapslength(self, ctx, number):
@@ -30,12 +26,7 @@ class Caps(commands.Cog):
             await ctx.send(f"<:sersifail:979070135799279698> {number} must be greater than **0**.")
             return
 
-        self.MIN_CHARS_FOR_DETECTION = value
-
-        config = configparser.ConfigParser()
-        config['CAPS']['capslength'] = str(value)
-        with open('config.ini', 'w') as configfile:
-            config.write(configfile)
+        set_config('CAPS', 'capslength', str(value))
 
         await ctx.send(f"<:sersisuccess:979066662856822844> Caps lock detection starts now at messages longer than **{value}**.")
 
@@ -45,14 +36,14 @@ class Caps(commands.Cog):
             await ctx.send(f"<:sersifail:979070135799279698> Insufficient permission!")
             return
 
-        await ctx.send(f"Current caps lock detection starts at messages longer than **{self.MIN_CHARS_FOR_DETECTION}**.")
+        await ctx.send(f"Current caps lock detection starts at messages longer than **{get_config('CAPS', 'capslength', 5)}**.")
 
     # events
     @commands.Cog.listener()
     async def on_message(self, message):
         msg_string = message.content
 
-        if len(msg_string) > self.MIN_CHARS_FOR_DETECTION:
+        if len(msg_string) > get_config_int('CAPS', 'capslength', 5):
             # remove nums and non-alpanumeric
             # msg_string = unidecode.unidecode(msg_string)
 

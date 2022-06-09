@@ -8,6 +8,7 @@ import time
 
 from nextcord.ext import commands
 from baseutils import *
+from config import *
 
 intents = nextcord.Intents.all()
 intents.members = True
@@ -73,7 +74,17 @@ async def reload(ctx, extension):
         await ctx.reply("<:sersifail:979070135799279698> Only Sersi contributors are able to reload cogs.")
 
 
+@bot.command()
+async def reloadconfig(ctx):
+    """Reloads configuration from config.ini"""
+    if isSersiContrib(ctx.author.roles):
+        load_config()
+        await ctx.send(f"<:sersisuccess:979066662856822844> configuration has been reloaded form 'config.ini'")
+    else:
+        await ctx.reply("<:sersifail:979070135799279698> Only Sersi contributors are able to reload cogs.")
+
 ### GENERAL COMMANDS ###
+
 
 @bot.command()
 async def uptime(ctx):
@@ -109,6 +120,8 @@ async def on_command_error(ctx, error):
 
 @bot.event
 async def on_ready():
+    load_config()    # load configuration
+
     ajustCommandPrefix(bot)  # change prefix to cs! if Sersi(cracked)
 
     # load all cogs
