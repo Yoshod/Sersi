@@ -8,14 +8,10 @@ class Probation(commands.Cog):
         self.bot = bot
         self.notModFail = "<:sersifail:979070135799279698> Only moderators can use this command."
 
-    @commands.command(aliases=['addp','addprob'])
+    @commands.command(aliases=['addp', 'addprob'])
     async def addprobation(self, ctx, member: nextcord.Member, *args):
         if not isMod(ctx.author.roles):
             await ctx.reply(self.notModFail)
-            return
-
-        if isStaff(member.roles):
-            await ctx.reply("<:sersifail:979070135799279698> Staff members cannot be put into probation.")
             return
 
         probation_role = ctx.guild.get_role(getProbationRole(ctx.guild.id))
@@ -33,7 +29,7 @@ class Probation(commands.Cog):
                 description=f"{member.mention} has been put into probation, continued rule breaking may result in a ban",
                 colour=nextcord.Colour.brand_red())
             await ctx.send(embed=confirmation_embed)
-            
+
             log_embed = nextcord.Embed(
                 title="Member put into Probation",
                 color=nextcord.Color.from_rgb(237, 91, 6)
@@ -50,9 +46,8 @@ class Probation(commands.Cog):
                 colour=nextcord.Colour.brand_red())
             dm_embed.add_field(name="Reason specified by moderator:", value=reason, inline=False)
             await member.send(embed=dm_embed)
-            
-        
-    @commands.command(aliases=['rmp','rmprob'])
+
+    @commands.command(aliases=['rmp', 'rmprob'])
     async def removeprobation(self, ctx, member: nextcord.Member, *args):
         if not isMod(ctx.author.roles):
             await ctx.reply(self.notModFail)
@@ -71,7 +66,7 @@ class Probation(commands.Cog):
                 description=f"{member.mention} was succesfully removed from probation!",
                 colour=nextcord.Colour.brand_red())
             await ctx.send(embed=confirmation_embed)
-            
+
             log_embed = nextcord.Embed(
                 title="Member removed from Probation",
                 color=nextcord.Color.from_rgb(237, 91, 6)

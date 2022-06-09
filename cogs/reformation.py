@@ -21,10 +21,6 @@ class Reformation(commands.Cog):
         if not isMod(ctx.author.roles):
             await ctx.reply(self.notModFail)
             return
-        
-        if isStaff(member.roles):
-            await ctx.reply("<:sersifail:979070135799279698> Staff members cannot be put into reformation.")
-            return
 
         reason_string = " ".join(args)
 
