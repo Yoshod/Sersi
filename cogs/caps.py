@@ -1,6 +1,7 @@
 import nextcord
 from nextcord.ext import commands
 import re
+import configparser
 from baseutils import getLoggingChannel, isMod
 # from nextcord.ext.commands.errors import MemberNotFound
 
@@ -8,7 +9,10 @@ from baseutils import getLoggingChannel, isMod
 class Caps(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.MIN_CHARS_FOR_DETECTION = 3
+
+        config = configparser.ConfigParser()
+        config.read('config.ini')
+        self.MIN_CHARS_FOR_DETECTION = int(config['CAPS']['capslength'])
 
     @commands.command()
     async def setcapslength(self, ctx, number):
@@ -27,6 +31,11 @@ class Caps(commands.Cog):
             return
 
         self.MIN_CHARS_FOR_DETECTION = value
+
+        config = configparser.ConfigParser()
+        config['CAPS']['capslength'] = str(value)
+        with open('config.ini', 'w') as configfile:
+            config.write(configfile)
 
         await ctx.send(f"<:sersisuccess:979066662856822844> Caps lock detection starts now at messages longer than **{value}**.")
 
