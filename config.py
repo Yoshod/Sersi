@@ -12,6 +12,13 @@ def save_config():
         config.write(fp)
 
 
+def get_config_sections():
+    section_list = []
+    for section in config.sections():
+        section_list.append(config[section])
+    return section_list
+
+
 def get_config(module, var, default):
     if module in config:
         if var in config[module]:

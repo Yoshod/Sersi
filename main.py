@@ -73,15 +73,53 @@ async def reload(ctx, extension):
     else:
         await ctx.reply("<:sersifail:979070135799279698> Only Sersi contributors are able to reload cogs.")
 
+### CONFIGURATION COMMANDS ###
 
-@bot.command()
-async def reloadconfig(ctx):
+@bot.command(aliases=['config', 'conf'])
+async def configuration(ctx):
+    if not isStaff(ctx.author.roles):
+        await ctx.reply("<:sersifail:979070135799279698> Only staff members can view configuration")
+        return
+
+    config_embed = nextcord.Embed(
+        title="Available Configuration Options:",
+        color=nextcord.Color.from_rgb(237, 91, 6))
+    for subsection in get_config_sections():
+        sub_config_str = ""
+        for field in subsection:
+            if subsection.name == "CHANNELS":
+                channel = ctx.guild.get_channel(int(subsection[field]))
+                sub_config_str += f"__**{field}**__\n"
+
+                if channel is None:
+                    sub_config_str += f"`{subsection[field]}`\n*channel not found!*\n"
+                else:
+                    sub_config_str += f"{channel.mention}\n"
+
+            elif subsection.name == "ROLES":
+                role = ctx.guild.get_role(int(subsection[field]))
+                sub_config_str += f"__**{field}**__\n"
+
+                if role is None:
+                    sub_config_str += f"`{subsection[field]}`\n*role not found!*\n"
+                else:
+                    sub_config_str += f"{role.mention}\n"
+            else:
+                sub_config_str += f"__**{field}**__\n`{subsection[field]}\n`"
+        config_embed.add_field(name=subsection.name, value = sub_config_str)
+    await ctx.send(embed=config_embed)
+
+
+@bot.command(aliases=['reloadconfig', 'reloadconf', 'relconfig', 'relconf'])
+async def reloadconfiguration(ctx):
     """Reloads configuration from config.ini"""
-    if isSersiContrib(ctx.author.roles):
-        load_config()
-        await ctx.send(f"<:sersisuccess:979066662856822844> configuration has been reloaded form 'config.ini'")
-    else:
-        await ctx.reply("<:sersifail:979070135799279698> Only Sersi contributors are able to reload cogs.")
+    if not isSersiContrib(ctx.author.roles):
+        await ctx.reply("<:sersifail:979070135799279698> Only Sersi contributors are able to change configuration.")
+        return
+        
+    load_config()
+    await ctx.send(f"<:sersisuccess:979066662856822844> configuration has been reloaded form 'config.ini'")
+        
 
 ### GENERAL COMMANDS ###
 
