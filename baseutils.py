@@ -1,3 +1,4 @@
+import configparser
 
 def checkForMods(messageData):
     for modmention in ["<@&856424878437040168>", "<@&963537133589643304>", "<@&875805670799179799>", "<@&883255791610638366>", "<@&977939552641613864>"]:
@@ -39,52 +40,45 @@ def isSersiContrib(userRoles):
 
 
 def getAlertChannel(guild_id):
-    if guild_id == 856262303795380224:      # asc
-        return 897874682198511648           # information-centre
-    elif guild_id == 977377117895536640:    # the proving grounds
-        return 977377171054166037           # replies
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+    return int(config['CHANNELS']['alert'])
 
 
 def getLoggingChannel(guild_id):
-    if guild_id == 856262303795380224:      # asc
-        return 977609240107700244           # sersi-logs
-    elif guild_id == 977377117895536640:    # the proving grounds
-        return 977925156330672198           # logging
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+    return int(config['CHANNELS']['logging'])
 
 
 def getFalsePositivesChannel(guild_id):
-    if guild_id == 856262303795380224:      # asc
-        return 978078399635550269           # sersi-logs
-    elif guild_id == 977377117895536640:    # the proving grounds
-        return 978079399066882059           # logging
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+    return int(config['CHANNELS']['false positives'])
 
 
 def getReformationRole(guild_id):
-    if guild_id == 856262303795380224:
-        return 878289857527562310
-    elif guild_id == 977377117895536640:
-        return 978334782968721468
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+    return int(config['ROLES']['reformation'])
 
 
 def getReformedRole(guild_id):
-    if guild_id == 856262303795380224:
-        return 878289678623703080
-    elif guild_id == 977377117895536640:
-        return 978591187827044383
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+    return int(config['ROLES']['reformed'])
 
 
 def getProbationRole(guild_id):
-    if guild_id == 856262303795380224:
-        return 957671793844445204
-    elif guild_id == 977377117895536640:
-        return 984195306038124558
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+    return int(config['ROLES']['probation'])
 
 
 def getModlogsChannel(guild_id):
-    if guild_id == 856262303795380224:
-        return 903367950554259466
-    elif guild_id == 977377117895536640:
-        return 978346814904336484
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+    return int(config['CHANNELS']['modlogs'])
 
 
 def ajustCommandPrefix(bot):
