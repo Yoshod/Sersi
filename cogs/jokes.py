@@ -53,6 +53,13 @@ class Jokes(commands.Cog):
             else:
                 return
 
+        elif "question of life the universe and everything" in message.content.lower().replace(",", "") or "ultimate question" in message.content.lower():
+            randomValue = random.randint(1, 5)
+            if randomValue == 1:
+                await message.channel.send("The answer is ||42||")
+            else:
+                return
+
         elif message.content.lower() == "literally 1984":
             randomValue = random.randint(1, 10)
             if randomValue >= 9:
@@ -76,6 +83,13 @@ class Jokes(commands.Cog):
 
         elif ("it's coming home" in message.content.lower() or "it will come home" in message.content.lower()) and message.author.id == 362340623992356864:
             await message.reply("No it won't be coming home Solar, and it likely never will in the future.")
+
+        elif message.author.is_on_mobile():
+            randomValue = random.randint(1, 100000)
+            if randomValue == 1:
+                await message.reply("Discord mobile was the greatest mistake in the history of mankind")
+            elif randomValue in [2, 3, 4, 5]:
+                await message.reply("Phone user detected, opinion rejected")
 
 
 def setup(bot):
