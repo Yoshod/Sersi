@@ -4,11 +4,10 @@ import discordTokens
 import sys
 import datetime
 import time
-
+import configparser
 
 from nextcord.ext import commands
 from baseutils import *
-from config import *
 
 intents = nextcord.Intents.all()
 intents.members = True
@@ -73,71 +72,6 @@ async def reload(ctx, extension):
     else:
         await ctx.reply("<:sersifail:979070135799279698> Only Sersi contributors are able to reload cogs.")
 
-### CONFIGURATION ###
-
-@bot.command(aliases=['config', 'conf'])
-async def configuration(ctx, *args):
-    if not isStaff(ctx.author.roles):
-        await ctx.reply("<:sersifail:979070135799279698> Only staff members can view configuration")
-        return
-    
-    if len(args) == 0:
-        config_embed = nextcord.Embed(
-            title="Available Configuration Options:",
-            color=nextcord.Color.from_rgb(237, 91, 6))
-        for subsection in get_config_sections():
-            sub_config_str = ""
-            for field in subsection:
-                if subsection.name == "CHANNELS":
-                    channel = ctx.guild.get_channel(int(subsection[field]))
-                    sub_config_str += f"__**{field}**__\n"
-
-                    if channel is None:
-                        sub_config_str += f"`{subsection[field]}`\n*channel not found!*\n"
-                    else:
-                        sub_config_str += f"{channel.mention}\n"
-
-                elif subsection.name == "ROLES":
-                    role = ctx.guild.get_role(int(subsection[field]))
-                    sub_config_str += f"__**{field}**__\n"
-
-                    if role is None:
-                        sub_config_str += f"`{subsection[field]}`\n*role not found!*\n"
-                    else:
-                        sub_config_str += f"{role.mention}\n"
-                else:
-                    sub_config_str += f"__**{field}**__\n`{subsection[field]}\n`"
-
-            config_embed.add_field(name=subsection.name, value = sub_config_str)
-        await ctx.send(embed=config_embed)
-        return
-
-    if args[0].upper() == "RELOAD":     # reload configuration from config.ini
-        if not isSersiContrib(ctx.author.roles):
-            await ctx.reply("<:sersifail:979070135799279698> Only Sersi contributors are able to reload configuration.")
-            return
-
-        load_config()
-        await ctx.send("<:sersisuccess:979066662856822844> configuration has been reloaded form 'config.ini'")
-        return
-    
-    if args[0].upper() == "SET":
-        if len(args) < 4:
-            await ctx.reply(f"<:sersifail:979070135799279698> Error: missing argument(s) in SET operation")
-
-        # sections only modifiable by dark moderators
-        if not isDarkMod(ctx.author.roles) and section.upper() in ["CHANNELS", "ROLES"]:
-            await ctx.send(f"<:sersifail:979070135799279698> Only dark moderators can modify settings in this section!")
-            return
-
-        if not isMod(ctx.author.roles):
-            await ctx.reply(f"<:sersifail:979070135799279698> Only moderators can modify configuration")
-            return
-
-        set_config(section, var, value)
-        return
-
-    await ctx.reply(f"<:sersifail:979070135799279698> unknown operation {args[0].upper}")
 
 ### GENERAL COMMANDS ###
 
@@ -168,15 +102,15 @@ async def on_message_edit(before, after):
     bot.dispatch('message', after)
 
 
-@bot.event
-async def on_command_error(ctx, error):
-    """brings command errors to the frontend"""
-    await ctx.send(f"Error while executing command: `{error}`")
+#@bot.event
+#async def on_command_error(ctx, error):
+#    """brings command errors to the frontend"""
+#    await ctx.send(f"Error while executing command: `{error}`")
 
 
 @bot.event
 async def on_ready():
-    load_config()    # load configuration
+    # load_config()    # load configuration
 
     ajustCommandPrefix(bot)  # change prefix to cs! if Sersi(cracked)
 
