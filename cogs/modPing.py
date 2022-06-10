@@ -70,7 +70,7 @@ class ModPing(commands.Cog):
     # events
     @commands.Cog.listener()
     async def on_message(self, message):
-        if message.author == self.bot.user:  # ignores message if message is by bot
+        if message.author.bot:  # ignores message if message is by bot
             return
 
         elif message.channel.id in [875807914802176020, 963893512141692958, 856430951630110740]:  # ignores certain channels on ASC, given by Juniper
