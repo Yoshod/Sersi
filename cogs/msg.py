@@ -76,7 +76,7 @@ class Messages(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        if not get_config("MSG", "forward dms", "false").lower() == "true":
+        if not get_config_bool("MSG", "forward dms", "false"):
             return
 
         dm_channel = self.bot.get_channel(get_config_int("CHANNELS", "dm forward"))   # please name and config

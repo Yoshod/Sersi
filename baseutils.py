@@ -52,6 +52,10 @@ def get_config(module, var, default=None):
         return module.get(var, default)
 
 
+def get_config_bool(module, var, default=None):
+    return get_config(module, var, default).lower() == "true"
+
+
 def get_config_int(module, var, default=None):
     return int(get_config(module, var, default))
 
