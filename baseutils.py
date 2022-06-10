@@ -96,7 +96,7 @@ def get_config(module, var, default=None):
     config.read("config.ini")
     if module in config:
         module = config[module]
-        return module.get(var, default)
+        return int(module.get(var, default))
 
 
 def set_config(module, var, value):

@@ -1,3 +1,4 @@
 .spyproject
 cogs/.DS_Store
 /__pycache__
+*.ini
