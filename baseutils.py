@@ -39,56 +39,10 @@ def isSersiContrib(userRoles):
             return True
     return False
 
-# LEGACY COMMANDS
-
-
-def getAlertChannel(guild_id):
-    config = configparser.ConfigParser()
-    config.read('config.ini')
-    return int(config['CHANNELS']['alert'])
-
-
-def getLoggingChannel(guild_id):
-    config = configparser.ConfigParser()
-    config.read('config.ini')
-    return int(config['CHANNELS']['logging'])
-
-
-def getFalsePositivesChannel(guild_id):
-    config = configparser.ConfigParser()
-    config.read('config.ini')
-    return int(config['CHANNELS']['false positives'])
-
-
-def getReformationRole(guild_id):
-    config = configparser.ConfigParser()
-    config.read('config.ini')
-    return int(config['ROLES']['reformation'])
-
-
-def getReformedRole(guild_id):
-    config = configparser.ConfigParser()
-    config.read('config.ini')
-    return int(config['ROLES']['reformed'])
-
-
-def getProbationRole(guild_id):
-    config = configparser.ConfigParser()
-    config.read('config.ini')
-    return int(config['ROLES']['probation'])
-
-
-def getModlogsChannel(guild_id):
-    config = configparser.ConfigParser()
-    config.read('config.ini')
-    return int(config['CHANNELS']['modlogs'])
-
 
 def ajustCommandPrefix(bot):
     if bot.user.id == 978259801844879373:   # Sersi(cracked)
         bot.command_prefix = "cs!"
-
-# config base
 
 
 def get_config(module, var, default=None):
