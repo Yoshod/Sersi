@@ -20,7 +20,7 @@ class ModPing(commands.Cog):
         new_embed.colour = nextcord.Colour.brand_green()
         await interaction.message.edit(embed=new_embed, view=None)
         # Logging
-        channel = self.bot.get_channel(get_config('CHANNELS', 'logging'))
+        channel = self.bot.get_channel(get_config_int('CHANNELS', 'logging'))
         embedLogVar = nextcord.Embed(
             title="Action Taken Pressed",
             description="Action has been taken by a moderator in response to a report.",
@@ -39,7 +39,7 @@ class ModPing(commands.Cog):
         new_embed.colour = nextcord.Colour.light_grey()
         await interaction.message.edit(embed=new_embed, view=None)
         # Logging
-        channel = self.bot.get_channel(get_config('CHANNELS', 'logging'))
+        channel = self.bot.get_channel(get_config_int('CHANNELS', 'logging'))
         embedLogVar = nextcord.Embed(
             title="Action Not Necessary Pressed",
             description="A Moderator has deemed that no action is needed in response to a report.",
@@ -58,7 +58,7 @@ class ModPing(commands.Cog):
         new_embed.colour = nextcord.Colour.brand_red()
         await interaction.message.edit(embed=new_embed, view=None)
         # Logging
-        channel = self.bot.get_channel(get_config('CHANNELS', 'logging'))
+        channel = self.bot.get_channel(get_config_int('CHANNELS', 'logging'))
         embedLogVar = nextcord.Embed(
             title="Bad Faith Ping Pressed",
             description="A moderation ping has been deemed bad faith by a moderator in response to a report.",
@@ -76,7 +76,7 @@ class ModPing(commands.Cog):
         elif message.channel.id in [875807914802176020, 963893512141692958, 856430951630110740]:  # ignores certain channels on ASC, given by Juniper
             return
 
-        elif ["<@&856424878437040168>", "<@&963537133589643304>", "<@&875805670799179799>", "<@&883255791610638366>", "<@&977939552641613864>"] in message.content:
+        elif checkForMods(message.content):
             # Reply to user
             embedVar = nextcord.Embed(
                 title="Moderator Ping Acknowledgment",
@@ -87,7 +87,7 @@ class ModPing(commands.Cog):
             await message.channel.send("<@&883255791610638366>", delete_after=0.1)
 
             # notification for mods
-            channel = self.bot.get_channel(get_config('CHANNELS', 'alert'))
+            channel = self.bot.get_channel(get_config_int('CHANNELS', 'alert'))
             embedVar = nextcord.Embed(
                 title="Moderator Ping",
                 description="A moderation role has been pinged, please investigate the ping and take action as appropriate.",
@@ -117,7 +117,7 @@ class ModPing(commands.Cog):
         elif "<@809891646606409779>" in message.content:   # adam something ping
 
             # notification for mods
-            channel = self.bot.get_channel(get_config('CHANNELS', 'alert'))
+            channel = self.bot.get_channel(get_config_int('CHANNELS', 'alert'))
             embedVar = nextcord.Embed(
                 title="Adam Something Ping",
                 description="Adam Something has been pinged, please take appropriate action.",

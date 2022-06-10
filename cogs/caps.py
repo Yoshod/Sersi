@@ -8,7 +8,7 @@ from baseutils import *
 class Caps(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.MIN_CHARS_FOR_DETECTION = int(get_config('CAPS', 'capslength', 5))
+        self.MIN_CHARS_FOR_DETECTION = int(get_config_int('CAPS', 'capslength', 5))
 
     @commands.command()
     async def setcapslength(self, ctx, number):
@@ -81,7 +81,7 @@ class Caps(commands.Cog):
 
                 # replacement_message = await webhook.send(str(msg_string.lower()), username=message.author.display_name, avatar_url=message.author.display_avatar.url, wait=True)
 
-                channel = self.bot.get_channel(get_config('CHANNELS', 'logging'))
+                channel = self.bot.get_channel(get_config_int('CHANNELS', 'logging'))
                 logging_embed = nextcord.Embed(
                     title=f"Caps Lock Message replaced",
                     description="",

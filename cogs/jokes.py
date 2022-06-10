@@ -15,7 +15,7 @@ class Jokes(commands.Cog):
             await ctx.reply(self.notModFail)
             return
 
-        nevermod_role = ctx.guild.get_role(get_config('ROLES', 'nevermod'))
+        nevermod_role = ctx.guild.get_role(get_config_int('ROLES', 'nevermod'))
 
         if nevermod_role in member.roles:
             await ctx.reply("User already nevermodded")

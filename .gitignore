@@ -1,4 +1,5 @@
 .spyproject
+.idea
 cogs/.DS_Store
 /__pycache__
 *.ini

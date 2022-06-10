@@ -4,6 +4,13 @@ import configparser
 # 977377117895536640 mfs guild id
 
 
+def checkForMods(messageData):
+    for modmention in ["<@&856424878437040168>", "<@&963537133589643304>", "<@&875805670799179799>", "<@&883255791610638366>", "<@&977939552641613864>"]:
+        if modmention in messageData:
+            return True
+    return False
+
+
 def isStaff(userRoles):
     for role in userRoles:
         if role.id in [974166116618350642, 977394150494326855]:  # "Staff", "certified bot tester"
@@ -42,7 +49,11 @@ def get_config(module, var, default=None):
     config.read("config.ini")
     if module in config:
         module = config[module]
-        return int(module.get(var, default))
+        return module.get(var, default)
+
+
+def get_config_int(module, var, default=None):
+    return int(get_config(module, var, default))
 
 
 def set_config(module, var, value):

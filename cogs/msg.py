@@ -22,7 +22,7 @@ class Messages(commands.Cog):
         await recipient.send(msg)
         await ctx.send(f"<:sersisuccess:979066662856822844> Direkt Message sent to {recipient}!")
 
-        channel = self.bot.get_channel(get_config('CHANNELS', 'logging'))
+        channel = self.bot.get_channel(get_config_int('CHANNELS', 'logging'))
         logging = nextcord.Embed(
             title="DM Sent",
             description="A DM has been sent.",
@@ -56,7 +56,7 @@ class Messages(commands.Cog):
                     await ctx.send("The message failed to send. Reason: Could not DM user.")
 
                 # Logging
-                channel = self.bot.get_channel(get_config('CHANNELS', 'logging'))
+                channel = self.bot.get_channel(get_config_int('CHANNELS', 'logging'))
                 embedVar = nextcord.Embed(
                     title="DM Sent",
                     description=f"A DM has been sent.\n\n__Sender:__\n{ctx.author.mention}\n\n__Recipient:__\n{userId}\n\n__Message Content:__\n{args}",
@@ -73,24 +73,13 @@ class Messages(commands.Cog):
         else:
             await ctx.send("<:sersifail:979070135799279698> Only moderators can use this command.")
 
-    @commands.command()
-    async def receivedms(self, ctx):
-        if ctx.guild.id == 977377117895536640:
-            if self.recdms:
-                self.recdms = False
-                await ctx.send("received DMs will no longer be posted to <#982057670594928660>")
-            else:
-                self.recdms = True
-                await ctx.send("received DMs will now be posted to <#982057670594928660>")
-        else:
-            await ctx.send("experimental functionality is not available on ASC")
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        if not self.recdms:
+        if not get_config("MSG", "forward dms", "false").lower() == "true":
             return
 
-        dm_channel = self.bot.get_channel(982057670594928660)   # please name and config
+        dm_channel = self.bot.get_channel(get_config_int("CHANNELS", "dm forward"))   # please name and config
         if message.guild is None and message.author != self.bot.user:
             channel_webhooks = await dm_channel.webhooks()
             msg_sent = False
