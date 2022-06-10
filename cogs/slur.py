@@ -24,7 +24,7 @@ class Slur(commands.Cog):
         await interaction.message.edit(embed=new_embed, view=None)
 
         # Logging
-        channel = self.bot.get_channel(getLoggingChannel(interaction.guild.id))
+        channel = self.bot.get_channel(get_config('CHANNELS', 'logging'))
         embedLogVar = nextcord.Embed(
             title="Action Taken Pressed",
             description="Action has been taken by a moderator in response to a report.",
@@ -44,7 +44,7 @@ class Slur(commands.Cog):
         await interaction.message.edit(embed=new_embed, view=None)
 
         # Logging
-        channel = self.bot.get_channel(getLoggingChannel(interaction.guild.id))
+        channel = self.bot.get_channel(get_config('CHANNELS', 'logging'))
         embedLogVar = nextcord.Embed(
             title="Acceptable Use Pressed",
             description="Usage of a slur has been deemed acceptable by a moderator in response to a report.",
@@ -62,7 +62,7 @@ class Slur(commands.Cog):
         new_embed.add_field(name="Deemed As False Positive By:", value=interaction.user.mention, inline=False)
         new_embed.colour = nextcord.Colour.brand_red()
         await interaction.message.edit(embed=new_embed, view=None)
-        channel = self.bot.get_channel(getFalsePositivesChannel(interaction.guild_id))
+        channel = self.bot.get_channel(get_config('CHANNELS', 'false positives'))
 
         embedVar = nextcord.Embed(
             title="Marked as false positive",
@@ -76,7 +76,7 @@ class Slur(commands.Cog):
         await channel.send(embed=embedVar)
 
         # Logging
-        channel = self.bot.get_channel(getLoggingChannel(interaction.guild.id))
+        channel = self.bot.get_channel(get_config('CHANNELS', 'logging'))
         embedLogVar = nextcord.Embed(
             title="False Positive Pressed",
             description="Detected slur has been deemed a false positive by a moderator in response to a report.",
@@ -179,7 +179,7 @@ class Slur(commands.Cog):
         load_slurs()    # reloads updated list into memory
 
         # logging
-        channel = self.bot.get_channel(getLoggingChannel(ctx.message.guild.id))
+        channel = self.bot.get_channel(get_config('CHANNELS', 'logging'))
         embedVar = nextcord.Embed(
             title="Slur Added",
             description="A new slur has been added to the filter.",
@@ -226,7 +226,7 @@ class Slur(commands.Cog):
         load_goodwords()    # reloads updated list into memory
 
         # logging
-        channel = self.bot.get_channel(getLoggingChannel(ctx.message.guild.id))
+        channel = self.bot.get_channel(get_config('CHANNELS', 'logging'))
         embedVar = nextcord.Embed(
             title="Goodword Added",
             description="A new goodword has been added to the filter.",
@@ -246,7 +246,7 @@ class Slur(commands.Cog):
         rmSlur(ctx, slur)
 
         # logging
-        channel = self.bot.get_channel(getLoggingChannel(ctx.message.guild.id))
+        channel = self.bot.get_channel(get_config('CHANNELS', 'logging'))
         embedVar = nextcord.Embed(
             title="Slur Removed",
             description="A slur has been removed from the filter.",
@@ -266,7 +266,7 @@ class Slur(commands.Cog):
         rmGoodword(ctx, word)
 
         # logging
-        channel = self.bot.get_channel(getLoggingChannel(ctx.message.guild.id))
+        channel = self.bot.get_channel(get_config('CHANNELS', 'logging'))
         embedVar = nextcord.Embed(
             title="Goodword Removed",
             description="A goodword has been removed from the filter.",
@@ -349,7 +349,7 @@ class Slur(commands.Cog):
         load_slurs()
 
         # Logging
-        channel = self.bot.get_channel(getLoggingChannel(ctx.message.guild.id))
+        channel = self.bot.get_channel(get_config('CHANNELS', 'logging'))
         embedVar = nextcord.Embed(
             title="Slurs and Goodwords Reloaded",
             description="The list of slurs and goodwords in memory has been reloaded.",
@@ -365,7 +365,7 @@ class Slur(commands.Cog):
             return
 
         elif len(detected_slurs) > 0:  # checks slur heat
-            channel = self.bot.get_channel(getAlertChannel(message.guild.id))
+            channel = self.bot.get_channel(get_config('CHANNELS', 'alert'))
             slurembed = nextcord.Embed(
                 title="Slur(s) Detected",
                 description="A slur has been detected. Moderation action is advised.",

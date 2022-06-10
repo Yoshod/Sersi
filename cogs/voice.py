@@ -26,7 +26,7 @@ class Voice(commands.Cog):
         embed.add_field(name="Moderator:", value=ctx.author.mention, inline=False)
         embed.add_field(name="Members Moved:", value=memberlist, inline=False)
 
-        channel = ctx.guild.get_channel(getLoggingChannel(ctx.guild.id))
+        channel = ctx.guild.get_channel(get_config('CHANNELS', 'logging'))
         await channel.send(embed=embed)
 
 

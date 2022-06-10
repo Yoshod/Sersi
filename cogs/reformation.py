@@ -27,7 +27,7 @@ class Reformation(commands.Cog):
         if reason_string.startswith("?r "):     # splices away the "?r" that moderators accustomed to wick might put in there
             reason_string = reason_string[3:]
 
-        reformation_role = ctx.guild.get_role(getReformationRole(ctx.guild.id))
+        reformation_role = ctx.guild.get_role(get_config('ROLES', 'reformation'))
 
         await member.add_roles(reformation_role, reason=reason_string, atomic=True)
         try:
@@ -44,7 +44,7 @@ class Reformation(commands.Cog):
         await ctx.send(f"Member {member.mention} has been sent to reformation by {ctx.author.mention} for reson: `{reason_string}`")
 
         # Giving a welcome to the person sent to reformation
-        channel = self.bot.get_channel(943180985632169984)
+        channel = ctx.guild.get_channel(get_config('CHANNELS', 'reformation'))
         welcome_embed = nextcord.Embed(
             title="Welcome to Reformation",
             description=f"Hello {member.mention}, you have been sent to reformation by {ctx.author.mention}. The reason given for this is `{reason_string}`. \n\nFor more information on reformation check out <#878292548785958982> or talk to a <@&943193811574751314>.",
@@ -58,10 +58,10 @@ class Reformation(commands.Cog):
                         + f"**__Reason:__** {reason_string}",
             color=nextcord.Color.from_rgb(237, 91, 6))
 
-        channel = self.bot.get_channel(getLoggingChannel(ctx.guild.id))
+        channel = ctx.guild.get_channel(get_config('CHANNELS', 'logging'))
         await channel.send(embed=embed)
 
-        channel = self.bot.get_channel(getModlogsChannel(ctx.guild.id))
+        channel = ctx.guild.get_channel(get_config('CHANNELS', 'modlogs'))
         await channel.send(embed=embed)
 
     async def cb_rq_yes(self, interaction):
@@ -100,20 +100,20 @@ class Reformation(commands.Cog):
 
             # roles
             try:
-                civil_enginerring_initiate  = interaction.guild.get_role(878040658244403253)
-                reformed                    = interaction.guild.get_role(878289678623703080)
+                civil_enginerring_initiate  = interaction.guild.get_role(get_config('ROLES', 'civil enginerring initiate'))
+                reformed                    = interaction.guild.get_role(get_config('ROLES', 'reformed'))
 
                 await member.add_roles(civil_enginerring_initiate, reformed, reason="Released out of the Reformation Centre", atomic=True)
             except AttributeError:
                 await interaction.send("Could not assign roles.")
-            await member.remove_roles(interaction.guild.get_role(getReformationRole(interaction.guild.id)), reason="Released out of the Reformation Centre", atomic=True)
+            await member.remove_roles(interaction.guild.get_role(get_config('ROLES', 'reformation')), reason="Released out of the Reformation Centre", atomic=True)
 
             # logs
             log_embed = nextcord.Embed(
                 title=f"Release: **{member.name}** ({member.id})",
                 description=f"Reformation Inmate {member.name} was deemed well enough to be released back into the server.\nRelease has been approved by {', '.join(yes_men)}",
                 color=nextcord.Color.from_rgb(237, 91, 6))
-            channel = self.bot.get_channel(getModlogsChannel(interaction.guild.id))
+            channel = self.bot.get_channel(get_config('CHANNELS', 'modlogs'))
             await channel.send(embed=log_embed)
             await interaction.send(f"**{member.name}** ({member.id}) will now be freed.")
 
@@ -158,13 +158,13 @@ class Reformation(commands.Cog):
                 description=f"Reformation Inmate {member.name} has been deemed unreformable by {', '.join(yes_men)}\n\nThey can be banned **given appropiate reason** by a moderators discretion.",
                 color=nextcord.Color.from_rgb(0, 0, 0))
 
-            channel = self.bot.get_channel(getAlertChannel(interaction.guild.id))
+            channel = self.bot.get_channel(get_config('CHANNELS', 'alert'))
             await channel.send(embed=embed)
 
-            channel = self.bot.get_channel(getLoggingChannel(interaction.guild.id))
+            channel = self.bot.get_channel(get_config('CHANNELS', 'logging'))
             await channel.send(embed=embed)
 
-            channel = self.bot.get_channel(getModlogsChannel(interaction.guild.id))
+            channel = self.bot.get_channel(get_config('CHANNELS', 'modlogs'))
             await channel.send(embed=embed)
 
         new_embed.description = f"{new_embed.description[:-1]}{yes_votes}"
@@ -217,7 +217,7 @@ class Reformation(commands.Cog):
         # member have reformation role check
         is_in_reformation = False
         for role in member.roles:
-            if role.id == getReformationRole(ctx.guild.id):
+            if role.id == get_config('ROLES', 'reformation'):
                 is_in_reformation = True
         if not is_in_reformation:
             await ctx.send("Member is not in reformation.")
@@ -275,7 +275,7 @@ class Reformation(commands.Cog):
         # member have reformation role check
         is_in_reformation = False
         for role in member.roles:
-            if role.id == getReformationRole(ctx.guild.id):
+            if role.id == get_config('ROLES', 'reformation'):
                 is_in_reformation = True
         if not is_in_reformation:
             await ctx.send("Member is not in reformation.")
@@ -304,15 +304,15 @@ class Reformation(commands.Cog):
         button_view.add_item(no)
         button_view.add_item(maybe)
 
-        channel = self.bot.get_channel(getAlertChannel(ctx.guild.id))
+        channel = self.bot.get_channel(get_config('CHANNELS', 'alert'))
         await channel.send(embed=embedVar, view=button_view)
 
     @commands.Cog.listener()
     async def on_member_remove(self, member):
-        reformation_role = member.get_role(getReformationRole(member.guild.id))
+        reformation_role = member.get_role(get_config('ROLES', 'reformation'))
 
         if reformation_role is not None:
-            channel = self.bot.get_channel(getAlertChannel(member.guild.id))
+            channel = self.bot.get_channel(get_config('CHANNELS', 'alert'))
             embed = nextcord.Embed(
                 title=f"User **{member}** ({member.id}) has left the server while in the reformation centre!",
                 description=f"User has left the server while having the @reformation role. If they have not been banned, they should be hack-banned using wick now.",

@@ -91,7 +91,7 @@ def ajustCommandPrefix(bot):
 # config base
 
 
-def get_config(module, var, default):
+def get_config(module, var, default=None):
     config = configparser.ConfigParser()
     config.read("config.ini")
     if module in config:

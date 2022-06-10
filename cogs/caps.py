@@ -1,18 +1,14 @@
 import nextcord
 from nextcord.ext import commands
 import re
-import configparser
-from baseutils import getLoggingChannel, isMod
+from baseutils import *
 # from nextcord.ext.commands.errors import MemberNotFound
 
 
 class Caps(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-
-        config = configparser.ConfigParser()
-        config.read('config.ini')
-        self.MIN_CHARS_FOR_DETECTION = int(config['CAPS']['capslength'])
+        self.MIN_CHARS_FOR_DETECTION = int(get_config('CAPS', 'capslength', 5))
 
     @commands.command()
     async def setcapslength(self, ctx, number):
@@ -31,11 +27,7 @@ class Caps(commands.Cog):
             return
 
         self.MIN_CHARS_FOR_DETECTION = value
-
-        config = configparser.ConfigParser()
-        config['CAPS']['capslength'] = str(value)
-        with open('config.ini', 'w') as configfile:
-            config.write(configfile)
+        set_config('CAPS', 'capslength', value)
 
         await ctx.send(f"<:sersisuccess:979066662856822844> Caps lock detection starts now at messages longer than **{value}**.")
 
@@ -89,7 +81,7 @@ class Caps(commands.Cog):
 
                 # replacement_message = await webhook.send(str(msg_string.lower()), username=message.author.display_name, avatar_url=message.author.display_avatar.url, wait=True)
 
-                channel = self.bot.get_channel(getLoggingChannel(message.guild.id))
+                channel = self.bot.get_channel(get_config('CHANNELS', 'logging'))
                 logging_embed = nextcord.Embed(
                     title=f"Caps Lock Message replaced",
                     description="",
@@ -105,4 +97,3 @@ class Caps(commands.Cog):
 
 def setup(bot):
     bot.add_cog(Caps(bot))
-    

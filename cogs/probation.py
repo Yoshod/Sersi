@@ -14,7 +14,7 @@ class Probation(commands.Cog):
             await ctx.reply(self.notModFail)
             return
 
-        probation_role = ctx.guild.get_role(getProbationRole(ctx.guild.id))
+        probation_role = ctx.guild.get_role(get_config('ROLES', 'probation'))
         reason = " ".join(args)
         if reason == "":
             reason = "not specified"
@@ -37,7 +37,7 @@ class Probation(commands.Cog):
             log_embed.add_field(name="Moderator:", value=ctx.author.mention, inline=False)
             log_embed.add_field(name="Member:", value=member.mention, inline=False)
             log_embed.add_field(name="Reason:", value=reason, inline=False)
-            log_channel = ctx.guild.get_channel(getLoggingChannel(ctx.guild.id))
+            log_channel = ctx.guild.get_channel(get_config('CHANNELS', 'logging'))
             await log_channel.send(embed=log_embed)
 
             dm_embed = nextcord.Embed(
@@ -53,7 +53,7 @@ class Probation(commands.Cog):
             await ctx.reply(self.notModFail)
             return
 
-        probation_role = ctx.guild.get_role(getProbationRole(ctx.guild.id))
+        probation_role = ctx.guild.get_role(get_config('ROLES', 'probation'))
         reason = " ".join(args)
 
         if probation_role not in member.roles:
@@ -74,7 +74,7 @@ class Probation(commands.Cog):
             log_embed.add_field(name="Moderator:", value=ctx.author.mention, inline=False)
             log_embed.add_field(name="Member:", value=member.mention, inline=False)
             log_embed.add_field(name="Reason:", value=reason, inline=False)
-            log_channel = ctx.guild.get_channel(getLoggingChannel(ctx.guild.id))
+            log_channel = ctx.guild.get_channel(get_config('CHANNELS', 'logging'))
             await log_channel.send(embed=log_embed)
 
             dm_embed = nextcord.Embed(

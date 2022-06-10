@@ -3,21 +3,19 @@ import random
 from nextcord.ext import commands
 from baseutils import *
 
+
 class Jokes(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.notModFail = "<:sersifail:979070135799279698> Only moderators can use this command."
-        
+
     @commands.command()
     async def nevermod(self, ctx, member: nextcord.Member):
         if not isMod(ctx.author.roles):
             await ctx.reply(self.notModFail)
             return
 
-        if ctx.guild.id == 856262303795380224:      # asc
-            nevermod_role = ctx.guild.get_role(878045315784114216)
-        elif ctx.guild.id == 977377117895536640:    # mfs
-            nevermod_role = ctx.guild.get_role(984106366954274886)
+        nevermod_role = ctx.guild.get_role(get_config('ROLES', 'nevermod'))
 
         if nevermod_role in member.roles:
             await ctx.reply("User already nevermodded")

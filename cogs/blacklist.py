@@ -42,7 +42,7 @@ class Blacklist(commands.Cog):
         await ctx.send("<:sersisuccess:979066662856822844> User added to blacklist.")
 
         # LOGGING
-        channel = ctx.guild.get_channel(getLoggingChannel(ctx.guild.id))
+        channel = ctx.guild.get_channel(get_config('CHANNELS', 'logging'))
         logging = nextcord.Embed(
             title="User added to Blacklist"
         )
@@ -86,7 +86,7 @@ class Blacklist(commands.Cog):
         await ctx.send("<:sersisuccess:979066662856822844> User has been removed from blacklist.")
 
         # LOGGING
-        channel = ctx.guild.get_channel(getLoggingChannel(ctx.guild.id))
+        channel = ctx.guild.get_channel(get_config('CHANNELS', 'logging'))
         logging = nextcord.Embed(
             title="User Removed from Blacklist"
         )
