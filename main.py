@@ -12,7 +12,7 @@ from baseutils import *
 intents = nextcord.Intents.all()
 intents.members = True
 
-bot = commands.Bot(command_prefix="s!", intents=intents)
+bot = commands.Bot(command_prefix=get_config("BOT", "command prefix", "s!"), intents=intents)
 start_time = time.time()
 
 ### COGS ###
@@ -110,10 +110,6 @@ async def on_message_edit(before, after):
 
 @bot.event
 async def on_ready():
-    # load_config()    # load configuration
-
-    ajustCommandPrefix(bot)  # change prefix to cs! if Sersi(cracked)
-
     # load all cogs
     for filename in os.listdir('./cogs'):
         if filename.endswith('.py'):
@@ -124,7 +120,7 @@ async def on_ready():
     print(sys.version)
 
     print(f"We have logged in as {bot.user}")
-    await bot.change_presence(activity=nextcord.Game('Sword and Shield of the Server'))
+    await bot.change_presence(activity=nextcord.Game(get_config("BOT", "status")))
 
 
 @bot.event

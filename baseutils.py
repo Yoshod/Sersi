@@ -39,11 +39,6 @@ def isSersiContrib(userRoles):
     return False
 
 
-def ajustCommandPrefix(bot):
-    if bot.user.id == 978259801844879373:   # Sersi(cracked)
-        bot.command_prefix = "cs!"
-
-
 def get_config(module, var, default=None):
     config = configparser.ConfigParser()
     config.read("config.ini")

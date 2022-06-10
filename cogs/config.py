@@ -12,7 +12,7 @@ class Config(commands.Cog):
     async def setsetting(self, ctx, section, setting, value):
 
         # sections only modifiable by dark moderators
-        if not isDarkMod(ctx.author.roles) and section.upper() in ["CHANNELS", "ROLES"]:
+        if not isDarkMod(ctx.author.roles) and section.upper() in ["CHANNELS", "ROLES", "BOT"]:
             await ctx.send(f"<:sersifail:979070135799279698> Only dark moderators can modify settings in this section!")
             return
 
