@@ -42,19 +42,19 @@ def isSersiContrib(userRoles):
 def get_config(module, var, default=None):
     config = configparser.ConfigParser()
     config.read("config.ini")
-    if module in config:
-        module = config[module]
-        return module.get(var, default)
+    config.get(module, var, fallback=default)
 
 
 def get_config_bool(module, var, default=None):
     config = configparser.ConfigParser()
     config.read("config.ini")
-    config.getboolean(module, var)
+    config.getboolean(module, var, fallback=default)
 
 
 def get_config_int(module, var, default=None):
-    return int(get_config(module, var, default))
+    config = configparser.ConfigParser()
+    config.read("config.ini")
+    config.getint(module, var, fallback=default)
 
 
 def set_config(module, var, value):

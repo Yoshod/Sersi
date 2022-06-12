@@ -4,7 +4,6 @@ import discordTokens
 import sys
 import datetime
 import time
-import configparser
 
 from nextcord.ext import commands
 from baseutils import *

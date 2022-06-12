@@ -12,17 +12,25 @@ class Config(commands.Cog):
     async def setsetting(self, ctx, section, setting, value):
 
         # sections only modifiable by dark moderators
-        if not isDarkMod(ctx.author.roles) and section.upper() in ["CHANNELS", "ROLES", "BOT"]:
-            await ctx.send(f"<:sersifail:979070135799279698> Only dark moderators can modify settings in this section!")
-            return
-
-        if not isMod(ctx.author.roles):
-            await ctx.reply(f"<:sersifail:979070135799279698> Only moderators can modify configuration")
+        if not isDarkMod(ctx.author.roles):
+            await ctx.send(f"<:sersifail:979070135799279698> Only dark moderators can modify settings.")
             return
 
         section = section.upper()
         set_config(section, setting, value)
         await ctx.send(f"<:sersisuccess:979066662856822844> `[{section}] {setting}` has been set to `{value}`")
+        if section == "BOT":
+            await ctx.invoke(self.bot.get_command('reloadbot'))
+
+    @commands.command()
+    async def reloadbot(self, ctx):
+        if not isMod(ctx.author.roles):
+            await ctx.reply("<:sersifail:979070135799279698> Insufficient permission!")
+            return
+
+        await self.bot.change_presence(activity=nextcord.Game(get_config("BOT", "status")))
+        self.bot.command_prefix = get_config("BOT", "command prefix")
+        await ctx.send(f"<:sersisuccess:979066662856822844> Bot reloaded.")
 
     @commands.command(aliases=['config', 'conf'])
     async def configuration(self, ctx, *args):
