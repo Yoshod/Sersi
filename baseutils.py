@@ -39,6 +39,12 @@ def isSersiContrib(userRoles):
     return False
 
 
+def setting_present(module, var):
+    config = configparser.ConfigParser()
+    config.read("config.ini")
+    return config.has_option(module, var)
+
+
 def get_config(module, var, default=None):
     config = configparser.ConfigParser()
     config.read("config.ini")
