@@ -11,7 +11,7 @@ class ModPing(commands.Cog):
         self.bot = bot
 
     async def cb_action_taken(self, interaction):
-        if not isMod(interaction.user.roles):
+        if not is_mod(interaction.user):
             await interaction.response.send_message("You don't get to decide on this", ephemeral=True)
             return
 
@@ -30,7 +30,7 @@ class ModPing(commands.Cog):
         await channel.send(embed=embedLogVar)
 
     async def cb_action_not_neccesary(self, interaction):
-        if not isMod(interaction.user.roles):
+        if not is_mod(interaction.user):
             await interaction.response.send_message("You don't get to decide on this", ephemeral=True)
             return
 
@@ -49,7 +49,7 @@ class ModPing(commands.Cog):
         await channel.send(embed=embedLogVar)
 
     async def cb_bad_faith_ping(self, interaction):
-        if not isMod(interaction.user.roles):
+        if not is_mod(interaction.user):
             await interaction.response.send_message("You don't get to decide on this", ephemeral=True)
             return
 
@@ -76,7 +76,7 @@ class ModPing(commands.Cog):
         elif message.channel.id in [875807914802176020, 963893512141692958, 856430951630110740]:  # ignores certain channels on ASC, given by Juniper
             return
 
-        elif checkForMods(message.content):
+        elif modmention_check(message.content):
             # Reply to user
             embedVar = nextcord.Embed(
                 title="Moderator Ping Acknowledgment",

@@ -11,7 +11,7 @@ class Jokes(commands.Cog):
 
     @commands.command()
     async def nevermod(self, ctx, member: nextcord.Member):
-        if not isMod(ctx.author.roles):
+        if not is_mod(ctx.author):
             await ctx.reply(self.notModFail)
             return
 

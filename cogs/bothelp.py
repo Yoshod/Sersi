@@ -46,7 +46,7 @@ class Bothelp(commands.Cog):
 
     @commands.command()
     async def docs(self, ctx, entry=None):
-        if isMod(ctx.author.roles):
+        if is_mod(ctx.author):
             if entry in self.docs.keys():
                 embedVar = nextcord.Embed(
                     title=f"Sersi Help: {entry}", description=self.docs[entry], color=nextcord.Color.from_rgb(237, 91, 6))

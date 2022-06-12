@@ -26,7 +26,7 @@ class Blacklist(commands.Cog):
     @commands.command(aliases=['bl', 'bluser', 'addbl', 'modblacklist'])
     async def blacklistuser(self, ctx, member: nextcord.Member, *reason):
         """sets user onto moderator blacklist"""
-        if not isDarkMod(ctx.author.roles):
+        if not is_dark_mod(ctx.author):
             await ctx.send(f"<:sersifail:979070135799279698> Insufficient permission!")
             return
         elif member.id in self.blacklist:
@@ -53,6 +53,10 @@ class Blacklist(commands.Cog):
     @commands.command(aliases=['lbl', 'bllist', 'listbl', 'bll', 'showblacklist'])
     async def listblacklist(self, ctx):
         """lists all members currently on the blacklist"""
+        if not is_dark_mod(ctx.author):
+            await ctx.send(f"<:sersifail:979070135799279698> Insufficient permission!")
+            return
+
         nicelist = ""
         for entry in self.blacklist:
 
@@ -71,7 +75,7 @@ class Blacklist(commands.Cog):
     @commands.command(aliases=['rmbl', 'removeuserfromblacklist', 'blrmuser', 'blremoveuser'])
     async def removefromblacklist(self, ctx, member: nextcord.Member):
         """removes user from moderator blacklist"""
-        if not isDarkMod(ctx.author.roles):
+        if not is_dark_mod(ctx.author):
             await ctx.send(f"<:sersifail:979070135799279698> Insufficient permission!")
             return
         if member.id not in self.blacklist:
@@ -96,7 +100,7 @@ class Blacklist(commands.Cog):
 
     @commands.command(aliases=['checklb', 'ckbl'])
     async def checkblacklist(self, ctx, member: nextcord.Member):
-        if not isDarkMod(ctx.author.roles):
+        if not is_dark_mod(ctx.author):
             await ctx.send(f"<:sersifail:979070135799279698> Insufficient permission!")
             return
         if member.id in self.blacklist:

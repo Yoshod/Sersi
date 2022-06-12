@@ -57,6 +57,8 @@ class Config(commands.Cog):
         if setting_present(section, setting):
             set_config(section, setting, value)
             await ctx.send(f"<:sersisuccess:979066662856822844> `[{section}] {setting}` has been set to `{value}`")
+            if section == "BOT":
+                await ctx.invoke(self.bot.get_command('reloadbot'))
 
         else:
             dialog_embed = nextcord.Embed(
@@ -77,10 +79,19 @@ class Config(commands.Cog):
 
             await ctx.reply(embed=dialog_embed, view=btn_view)
 
+    @commands.command()
+    async def reloadbot(self, ctx):
+        if not is_mod(ctx.author):
+            await ctx.reply("<:sersifail:979070135799279698> Insufficient permission!")
+            return
+
+        await self.bot.change_presence(activity=nextcord.Game(get_config("BOT", "status")))
+        self.bot.command_prefix = get_config("BOT", "command prefix")
+        await ctx.send(f"<:sersisuccess:979066662856822844> Bot reloaded.")
 
     @commands.command(aliases=['config', 'conf'])
     async def configuration(self, ctx, *args):
-        if not isStaff(ctx.author.roles) or not isSersiContrib(ctx.author.roles):
+        if not is_staff(ctx.author) or not is_sersi_contrib(ctx.author):
             await ctx.reply("<:sersifail:979070135799279698> Insufficient permission!")
             return
 

@@ -18,7 +18,7 @@ class Reformation(commands.Cog):
         Sends a [member] to reformation centre for reform by giving said [member] the @Reformation role. Removes @Civil Engineering Initiate and all Opt-In-Roles.
         Permission Needed: Moderator, Trial Moderator
         """
-        if not isMod(ctx.author.roles):
+        if not is_mod(ctx.author):
             await ctx.reply(self.notModFail)
             return
 
@@ -65,7 +65,7 @@ class Reformation(commands.Cog):
         await channel.send(embed=embed)
 
     async def cb_rq_yes(self, interaction):
-        if not isMod(interaction.user.roles):
+        if not is_mod(interaction.user):
             await interaction.response.send_message("Sorry, you don't get to vote", ephemeral=True)
             return
 
@@ -124,7 +124,7 @@ class Reformation(commands.Cog):
         await interaction.message.edit(embed=new_embed)
 
     async def cb_rf_yes(self, interaction):
-        if not isMod(interaction.user.roles):
+        if not is_mod(interaction.user):
             await interaction.response.send_message("Sorry, you don't get to vote", ephemeral=True)
             return
 
@@ -171,7 +171,7 @@ class Reformation(commands.Cog):
         await interaction.message.edit(embed=new_embed)
 
     async def cb_no(self, interaction):
-        if not isMod(interaction.user.roles):
+        if not is_mod(interaction.user):
             await interaction.response.send_message("Sorry, you don't get to vote", ephemeral=True)
             return
 
@@ -187,7 +187,7 @@ class Reformation(commands.Cog):
         await interaction.message.edit(embed=new_embed)
 
     async def cb_maybe(self, interaction):
-        if not isMod(interaction.user.roles):
+        if not is_mod(interaction.user):
             await interaction.response.send_message("Sorry, you don't get to vote", ephemeral=True)
             return
 
@@ -210,7 +210,7 @@ class Reformation(commands.Cog):
         Three 'Yes' votes will result in an automatic release.
         Permission Needed: Moderator, Trial Moderator
         """
-        if not isMod(ctx.author.roles):
+        if not is_mod(ctx.author):
             await ctx.reply(self.notModFail)
             return
 
@@ -250,7 +250,7 @@ class Reformation(commands.Cog):
         await channel.send(embed=embedVar, view=button_view)
 
     async def cb_done(self, interaction):
-        if not isMod(interaction.user.roles):
+        if not is_mod(interaction.user):
             await interaction.response.send_message("Sorry, you don't get to vote", ephemeral=True)
             return
 
@@ -268,7 +268,7 @@ class Reformation(commands.Cog):
         Three 'Yes' votes will result in a greenlight for a ban.
         Permission Needed: Moderator, Trial Moderator
         """
-        if not isMod(ctx.author.roles):
+        if not is_mod(ctx.author):
             await ctx.reply(self.notModFail)
             return
 

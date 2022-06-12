@@ -15,7 +15,7 @@ class Messages(commands.Cog):
         msg = " ".join(message)
         if msg == "":
             return
-        elif not isMod(ctx.author.roles):
+        elif not is_mod(ctx.author):
             await ctx.send("<:sersifail:979070135799279698> Only moderators can use this command.")
             return
 
@@ -34,7 +34,7 @@ class Messages(commands.Cog):
 
     @commands.command()
     async def dmTest(self, ctx, userId=None, *, args=None):
-        if isMod(ctx.author.roles):
+        if is_mod(ctx.author):
             if userId is not None and args is not None:
                 target = userId
                 targetId = "Null"
@@ -72,7 +72,6 @@ class Messages(commands.Cog):
                 await ctx.send("How the fuck did this error appear?")
         else:
             await ctx.send("<:sersifail:979070135799279698> Only moderators can use this command.")
-
 
     @commands.Cog.listener()
     async def on_message(self, message):

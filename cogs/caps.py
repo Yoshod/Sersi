@@ -12,7 +12,7 @@ class Caps(commands.Cog):
 
     @commands.command()
     async def setcapslength(self, ctx, number):
-        if not isMod(ctx.author.roles):
+        if not is_mod(ctx.author):
             await ctx.send(f"<:sersifail:979070135799279698> Insufficient permission!")
             return
 
@@ -33,7 +33,7 @@ class Caps(commands.Cog):
 
     @commands.command()
     async def getcapslength(self, ctx):
-        if not isMod(ctx.author.roles):
+        if not is_mod(ctx.author):
             await ctx.send(f"<:sersifail:979070135799279698> Insufficient permission!")
             return
 
