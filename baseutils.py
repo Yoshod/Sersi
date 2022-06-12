@@ -76,6 +76,16 @@ def is_sersi_contrib(member: nextcord.Member):
     return False
 
 
+# config stuff below
+
+def get_options(module):
+    config = configparser.ConfigParser()
+    config.read("config.ini")
+    if module not in config:
+        return []
+    return config[module]
+
+
 def setting_present(module, var):
     config = configparser.ConfigParser()
     config.read("config.ini")
@@ -94,7 +104,7 @@ def get_config_bool(module, var, default=None):
     return config.getboolean(module, var, fallback=default)
 
 
-def get_config_int(module, var, default=None):
+def get_config_int(module, var, default=0):
     config = configparser.ConfigParser()
     config.read("config.ini")
     return config.getint(module, var, fallback=default)

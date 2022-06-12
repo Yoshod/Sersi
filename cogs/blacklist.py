@@ -24,7 +24,7 @@ class Blacklist(commands.Cog):
                 self.blacklist[int(user_id)] = reason           # if the key is not an int, the guild.get_member() won't work
 
     @commands.command(aliases=['bl', 'bluser', 'addbl', 'modblacklist'])
-    async def blacklistuser(self, ctx, member: nextcord.Member, *reason):
+    async def blacklistuser(self, ctx, member: nextcord.Member, **reason):
         """sets user onto moderator blacklist"""
         if not is_dark_mod(ctx.author):
             await ctx.send(f"<:sersifail:979070135799279698> Insufficient permission!")
@@ -42,12 +42,17 @@ class Blacklist(commands.Cog):
         await ctx.send("<:sersisuccess:979066662856822844> User added to blacklist.")
 
         # LOGGING
-        channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'logging'))
+
         logging = nextcord.Embed(
             title="User added to Blacklist"
         )
         logging.add_field(name="Moderator:", value=ctx.author.mention, inline=False)
         logging.add_field(name="User Added:", value=member.mention, inline=False)
+
+        channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'logging'))
+        await channel.send(embed=logging)
+
+        channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'modlogs'))
         await channel.send(embed=logging)
 
     @commands.command(aliases=['lbl', 'bllist', 'listbl', 'bll', 'showblacklist'])
@@ -90,12 +95,17 @@ class Blacklist(commands.Cog):
         await ctx.send("<:sersisuccess:979066662856822844> User has been removed from blacklist.")
 
         # LOGGING
-        channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'logging'))
+
         logging = nextcord.Embed(
             title="User Removed from Blacklist"
         )
         logging.add_field(name="Moderator:", value=ctx.author.mention, inline=False)
         logging.add_field(name="User Removed:", value=member.mention, inline=False)
+
+        channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'logging'))
+        await channel.send(embed=logging)
+
+        channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'modlogs'))
         await channel.send(embed=logging)
 
     @commands.command(aliases=['checklb', 'ckbl'])
