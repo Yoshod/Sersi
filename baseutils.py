@@ -6,36 +6,71 @@ import nextcord
 
 
 def modmention_check(messageData):
-    for modmention in ["<@&856424878437040168>", "<@&963537133589643304>", "<@&875805670799179799>", "<@&883255791610638366>", "<@&977939552641613864>"]:
+    modmentions = [
+        f"<@&{get_config_int('PERMISSION ROLES', 'trial moderator')}>",
+        f"<@&{get_config_int('PERMISSION ROLES', 'moderator')}>",
+        f"<@&{get_config_int('PERMISSION ROLES', 'senior moderator')}>",
+        f"<@&{get_config_int('PERMISSION ROLES', 'dark moderator')}>"
+    ]
+
+    for modmention in modmentions:
         if modmention in messageData:
             return True
     return False
 
 
 def is_staff(member: nextcord.Member):
+    permitted_roles = [
+        get_config_int('PERMISSION ROLES', 'staff')
+    ]
+
     for role in member.roles:
-        if role.id in [974166116618350642, 977394150494326855]:  # "Staff", "certified bot tester"
+        if role.id in permitted_roles:  # "Staff", "certified bot tester"
             return True
     return False
 
 
 def is_mod(member: nextcord.Member):
+    permitted_roles = [
+        get_config_int('PERMISSION ROLES', 'moderator'),
+        get_config_int('PERMISSION ROLES', 'trial moderator')
+    ]
+
     for role in member.roles:
-        if role.id in [856424878437040168, 883255791610638366, 977394150494326855]:  # "Moderator", "Trial Moderator", "certified bot tester"
+        if role.id in permitted_roles:  # "Moderator", "Trial Moderator", "certified bot tester"
             return True
     return False
 
 
 def is_dark_mod(member: nextcord.Member):
+    permitted_roles = [
+        get_config_int('PERMISSION ROLES', 'dark moderator')
+    ]
+
     for role in member.roles:
-        if role.id in [875805670799179799]:
+        if role.id in permitted_roles:
+            return True
+    return False
+
+
+def is_senior_mod(member: nextcord.Member):
+    permitted_roles = [
+        get_config_int('PERMISSION ROLES', 'senior moderator')
+    ]
+
+    for role in member.roles:
+        if role.id in permitted_roles:
             return True
     return False
 
 
 def is_sersi_contrib(member: nextcord.Member):
+    permitted_roles = [
+        get_config_int('PERMISSION ROLES', 'sersi contributor')
+    ]
+
     for role in member.roles:
-        if role.id in [977602747786493972, 977394150494326855]:
+        if role.id in permitted_roles:
             return True
     return False
 
