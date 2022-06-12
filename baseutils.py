@@ -49,19 +49,19 @@ def setting_present(module, var):
 def get_config(module, var, default=None):
     config = configparser.ConfigParser()
     config.read("config.ini")
-    config.get(module, var, fallback=default)
+    return config.get(module, var, fallback=default)
 
 
 def get_config_bool(module, var, default=None):
     config = configparser.ConfigParser()
     config.read("config.ini")
-    config.getboolean(module, var, fallback=default)
+    return config.getboolean(module, var, fallback=default)
 
 
 def get_config_int(module, var, default=None):
     config = configparser.ConfigParser()
     config.read("config.ini")
-    config.getint(module, var, fallback=default)
+    return config.getint(module, var, fallback=default)
 
 
 def set_config(module, var, value):

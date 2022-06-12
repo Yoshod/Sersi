@@ -8,7 +8,7 @@ from baseutils import *
 class Caps(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.MIN_CHARS_FOR_DETECTION = int(get_config_int('CAPS', 'capslength', 5))
+        self.MIN_CHARS_FOR_DETECTION = get_config_int('CAPS', 'capslength', 5)
 
     @commands.command()
     async def setcapslength(self, ctx, number):
