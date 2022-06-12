@@ -166,6 +166,7 @@ class Reformation(commands.Cog):
 
             channel = self.bot.get_channel(get_config_int('CHANNELS', 'modlogs'))
             await channel.send(embed=embed)
+            await interaction.message.edit(embed=new_embed, view=None)
 
         new_embed.description = f"{new_embed.description[:-1]}{yes_votes}"
         await interaction.message.edit(embed=new_embed)
