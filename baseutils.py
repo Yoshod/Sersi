@@ -40,34 +40,6 @@ def is_sersi_contrib(member: nextcord.Member):
     return False
 
 
-def isStaff(userRoles):
-    for role in userRoles:
-        if role.id in [974166116618350642, 977394150494326855]:  # "Staff", "certified bot tester"
-            return True
-    return False
-
-
-def isMod(userRoles):
-    for role in userRoles:
-        if role.id in [856424878437040168, 883255791610638366, 977394150494326855]:  # "Moderator", "Trial Moderator", "certified bot tester"
-            return True
-    return False
-
-
-def isDarkMod(userRoles):
-    for role in userRoles:
-        if 875805670799179799 == role.id:
-            return True
-    return False
-
-
-def isSersiContrib(userRoles):
-    for role in userRoles:
-        if role.id in [977602747786493972, 977394150494326855]:
-            return True
-    return False
-
-
 def get_config(module, var, default=None):
     config = configparser.ConfigParser()
     config.read("config.ini")

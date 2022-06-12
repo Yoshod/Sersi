@@ -12,7 +12,7 @@ class Config(commands.Cog):
     async def setsetting(self, ctx, section, setting, value):
 
         # sections only modifiable by dark moderators
-        if not isDarkMod(ctx.author.roles):
+        if not is_dark_mod(ctx.author):
             await ctx.send(f"<:sersifail:979070135799279698> Only dark moderators can modify settings.")
             return
 
@@ -24,7 +24,7 @@ class Config(commands.Cog):
 
     @commands.command()
     async def reloadbot(self, ctx):
-        if not isMod(ctx.author.roles):
+        if not is_mod(ctx.author):
             await ctx.reply("<:sersifail:979070135799279698> Insufficient permission!")
             return
 
@@ -34,7 +34,7 @@ class Config(commands.Cog):
 
     @commands.command(aliases=['config', 'conf'])
     async def configuration(self, ctx, *args):
-        if not isStaff(ctx.author.roles) or not isSersiContrib(ctx.author.roles):
+        if not is_staff(ctx.author) or not isSersiContrib(ctx.author.roles):
             await ctx.reply("<:sersifail:979070135799279698> Insufficient permission!")
             return
 

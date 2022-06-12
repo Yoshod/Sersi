@@ -10,7 +10,7 @@ class Probation(commands.Cog):
 
     @commands.command(aliases=['addp', 'addprob'])
     async def addprobation(self, ctx, member: nextcord.Member, *args):
-        if not isMod(ctx.author.roles):
+        if not is_mod(ctx.author):
             await ctx.reply(self.notModFail)
             return
 
@@ -49,7 +49,7 @@ class Probation(commands.Cog):
 
     @commands.command(aliases=['rmp', 'rmprob'])
     async def removeprobation(self, ctx, member: nextcord.Member, *args):
-        if not isMod(ctx.author.roles):
+        if not is_mod(ctx.author):
             await ctx.reply(self.notModFail)
             return
 
