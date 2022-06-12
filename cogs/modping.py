@@ -131,8 +131,12 @@ class ModPing(commands.Cog):
             action_taken = Button(label="Action Taken")
             action_taken.callback = self.cb_action_taken
 
+            action_not_neccesary = Button(label="Action Not Neccesary")
+            action_not_neccesary.callback = self.cb_action_not_neccesary
+
             button_view = View(timeout=None)
             button_view.add_item(action_taken)
+            button_view.add_item(action_not_neccesary)
 
             await channel.send(embed=embedVar, view=button_view)
 
