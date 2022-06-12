@@ -76,7 +76,7 @@ class ModPing(commands.Cog):
         elif message.channel.id in [875807914802176020, 963893512141692958, 856430951630110740]:  # ignores certain channels on ASC, given by Juniper
             return
 
-        elif checkForMods(message.content):
+        elif modmention_check(message.content):
             # Reply to user
             embedVar = nextcord.Embed(
                 title="Moderator Ping Acknowledgment",
