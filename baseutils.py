@@ -55,7 +55,8 @@ def is_dark_mod(member: nextcord.Member):
 
 def is_senior_mod(member: nextcord.Member):
     permitted_roles = [
-        get_config_int('PERMISSION ROLES', 'senior moderator')
+        get_config_int('PERMISSION ROLES', 'senior moderator'),
+        get_config_int('PERMISSION ROLES', 'dark moderator')
     ]
 
     for role in member.roles:

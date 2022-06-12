@@ -117,14 +117,14 @@ class Config(commands.Cog):
             for field in config[section]:
                 value = None
 
-                if section.lower().startswith('channels'):
+                if 'channels' in section.lower():
                     channel = ctx.guild.get_channel(int(config[section][field]))
                     if channel is not None:
                         value = channel.mention
                     else:
                         value = f"`{config[section][field]}`"
 
-                elif section.lower().startswith('roles'):
+                elif 'roles' in section.lower():
                     role = ctx.guild.get_role(int(config[section][field]))
                     if channel is not None:
                         value = role.mention
