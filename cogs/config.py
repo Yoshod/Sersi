@@ -47,12 +47,8 @@ class Config(commands.Cog):
         section = section.upper()
 
         # sections only modifiable by dark moderators
-        if not is_dark_mod(ctx.author) and section in ["CHANNELS", "ROLES", "BOT"]:
+        if not is_dark_mod(ctx.author):
             await ctx.send(f"<:sersifail:979070135799279698> Only dark moderators can modify settings in this section!")
-            return
-
-        if not is_mod(ctx.author):
-            await ctx.reply(f"<:sersifail:979070135799279698> Only moderators can modify configuration")
             return
 
         if setting_present(section, setting):
