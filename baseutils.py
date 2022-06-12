@@ -48,7 +48,9 @@ def get_config(module, var, default=None):
 
 
 def get_config_bool(module, var, default=None):
-    return get_config(module, var, default).lower() == "true"
+    config = configparser.ConfigParser()
+    config.read("config.ini")
+    config.getboolean(module, var)
 
 
 def get_config_int(module, var, default=None):
@@ -60,7 +62,7 @@ def set_config(module, var, value):
     config.read("config.ini")
 
     if module not in config:
-        config[module] = {}     # sets new category is not exist
+        config[module] = {}     # sets new category if not exist
 
     config[module][var] = value
 
