@@ -1,5 +1,6 @@
 import configparser
 import nextcord
+import re
 
 from nextcord.ext import commands
 from nextcord.ui import Button, View
@@ -55,8 +56,14 @@ class Config(commands.Cog):
             return
 
         if setting_present(section, setting):
+
+            if 'channels' in section.lower() or 'roles' in section.lower():
+                value = re.sub(r"[^0-9]*", "", value)
+
             set_config(section, setting, value)
+
             await ctx.send(f"<:sersisuccess:979066662856822844> `[{section}] {setting}` has been set to `{value}`")
+
             if section == "BOT":
                 await ctx.invoke(self.bot.get_command('reloadbot'))
 
@@ -73,6 +80,7 @@ class Config(commands.Cog):
             btn_confirm.callback = self.cb_create_proceed
             btn_cancel = Button(label="Cancel")
             btn_cancel.callback = self.cb_cancel
+
             btn_view = View()
             btn_view.add_item(btn_confirm)
             btn_view.add_item(btn_cancel)
