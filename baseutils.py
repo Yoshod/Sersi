@@ -28,7 +28,7 @@ def is_mod(member: nextcord.Member):
 
 def is_dark_mod(member: nextcord.Member):
     for role in member.roles:
-        if role.id == 875805670799179799:
+        if role.id in [875805670799179799]:
             return True
     return False
 
@@ -61,6 +61,7 @@ def get_config_int(module, var, default=None):
 def set_config(module, var, value):
     config = configparser.ConfigParser()
     config.read("config.ini")
+    module = module.upper()
 
     if module not in config:
         config[module] = {}     # sets new category if not exist
