@@ -41,7 +41,7 @@ class Reformation(commands.Cog):
         except AttributeError:
             await ctx.reply("Could not remove roles.")
 
-        await ctx.send(f"Member {member.mention} has been sent to reformation by {ctx.author.mention} for reson: `{reason_string}`")
+        await ctx.send(f"Member {member.mention} has been sent to reformation by {ctx.author.mention} for reason: `{reason_string}`")
 
         # Giving a welcome to the person sent to reformation
         channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'reformation'))
