@@ -161,6 +161,19 @@ class Moderators(commands.Cog):
 
         await ctx.send(f"{self.sersisuccess} {member.mention} has retired from the mod team. Thank you for your service!")
 
+        # logging
+        log_embed = nextcord.Embed(
+            title="Moderator has (been) retired."
+        )
+        log_embed.add_field(name="Responsible Moderator:", value=ctx.author.mention, inline=False)
+        log_embed.add_field(name="Retired Moderator:", value=member.mention, inline=False)
+
+        channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'logging'))
+        await channel.send(embed=log_embed)
+
+        channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'modlogs'))
+        await channel.send(embed=log_embed)
+
 
 def setup(bot):
     bot.add_cog(Moderators(bot))
