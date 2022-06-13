@@ -30,16 +30,13 @@ class Reformation(commands.Cog):
         reformation_role = ctx.guild.get_role(get_config_int('ROLES', 'reformation'))
 
         await member.add_roles(reformation_role, reason=reason_string, atomic=True)
-        try:
-            role_ids = [878040658244403253, 960558372837523476, 960558399471378483,
-                        960558452109885450, 960558507403382784, 960558557332406293,
-                        960558615209582672, 960558657672732712, 960558722839642212,
-                        960558757463605298, 960558800442646578, 960558452109885450,
-                        902291483040837684]
-            for role in role_ids:
-                await member.remove_roles(ctx.guild.get_role(role), reason=reason_string, atomic=True)
-        except AttributeError:
-            await ctx.reply("Could not remove roles.")
+
+        role_obj = ctx.guild.get_role(get_config_int('ROLES', 'civil enginerring initiate'))
+        await member.remove_roles(role_obj, reason=reason_string, atomic=True)
+
+        for role in get_options('OPT IN ROLES'):
+            role_obj = ctx.guild.get_role(get_config_int('PERMISSION ROLES', role))
+            await member.remove_roles(role_obj, reason=reason_string, atomic=True)
 
         await ctx.send(f"Member {member.mention} has been sent to reformation by {ctx.author.mention} for reason: `{reason_string}`")
 
