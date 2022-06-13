@@ -67,7 +67,13 @@ async def reload(ctx, extension):
         except commands.errors.ExtensionNotFound:
             await ctx.reply("Cog not found.")
         except commands.errors.ExtensionNotLoaded:
-            await load(extension)
+            try:
+                bot.load_extension(f"cogs.{extension}")
+                await ctx.reply(f"Cog {extension} loaded.")
+            except commands.errors.ExtensionNotFound:
+                await ctx.reply("Cog not found.")
+            except commands.errors.ExtensionAlreadyLoaded:
+                await ctx.reply("Cog already loaded.")
     else:
         await ctx.reply("<:sersifail:979070135799279698> Only Sersi contributors are able to reload cogs.")
 

@@ -30,7 +30,7 @@ class Blacklist(commands.Cog):
             await ctx.send(f"<:sersifail:979070135799279698> Insufficient permission!")
             return
         elif member.id in self.blacklist:
-            await ctx.send(f"<:sersifail:979070135799279698> {member} already on list!")
+            await ctx.send(f"<:sersifail:979070135799279698> {member} already on blacklist!")
             return
 
         reason_string = " ".join(reason)

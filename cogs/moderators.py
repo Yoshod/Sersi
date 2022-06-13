@@ -18,7 +18,7 @@ class Moderators(commands.Cog):
 
         ticket_support = ctx.guild.get_role(get_config_int('PERMISSION ROLES', 'ticket support'))
         await member.add_roles(ticket_support)
-        ctx.send(f"{self.sersisuccess} {member.mention} was given the {ticket_support.name} role.")
+        await ctx.send(f"{self.sersisuccess} {member.mention} was given the {ticket_support.name} role.")
 
         # logging
         log_embed = nextcord.Embed(
@@ -41,7 +41,7 @@ class Moderators(commands.Cog):
 
         ticket_support = ctx.guild.get_role(get_config_int('PERMISSION ROLES', 'ticket support'))
         await member.remove_roles(ticket_support)
-        ctx.send(f"{self.sersisuccess} {member.mention} was removed from the {ticket_support.name} role.")
+        await ctx.send(f"{self.sersisuccess} {member.mention} was removed from the {ticket_support.name} role.")
 
         # logging
         log_embed = nextcord.Embed(
@@ -69,7 +69,7 @@ class Moderators(commands.Cog):
 
         trial_moderator = ctx.guild.get_role(get_config_int('PERMISSION ROLES', 'trial moderator'))
         await member.add_roles(trial_moderator, reason="Sersi addtrialmod command", atomic=True)
-        ctx.send(f"{self.sersisuccess} {member.mention} was given the {trial_moderator.name} role.")
+        await ctx.send(f"{self.sersisuccess} {member.mention} was given the {trial_moderator.name} role.")
 
         # logging
         log_embed = nextcord.Embed(
@@ -98,7 +98,7 @@ class Moderators(commands.Cog):
 
         await member.remove_roles(trial_moderator, reason="Sersi makefullmod command", atomic=True)
         await member.add_roles(moderator, reason="Sersi makefullmod command", atomic=True)
-        ctx.send(f"{self.sersisuccess} {member.mention} was given the {moderator.name} role.\n Remember: You're not truly a mod until your first ban. ;)")
+        await ctx.send(f"{self.sersisuccess} {member.mention} was given the {moderator.name} role.\nRemember: You're not truly a mod until your first ban. ;)")
 
         # logging
         log_embed = nextcord.Embed(
@@ -142,6 +142,24 @@ class Moderators(commands.Cog):
 
         channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'modlogs'))
         await channel.send(embed=log_embed)
+
+    @commands.command()
+    async def retire(self, ctx, member: nextcord.Member = None):
+        if not is_mod(ctx.author):
+            await ctx.send(f"{self.sersifail} Insufficient permission!")
+            return
+
+        if member is None:
+            member = ctx.author
+
+        for role in get_options('PERMISSION ROLES'):
+            role_obj = ctx.guild.get_role(get_config_int('PERMISSION ROLES', role))
+            await member.remove_roles(role_obj)
+
+        honourable_member = ctx.guild.get_role(get_config_int('ROLES', 'honourable member'))
+        await member.add_roles(honourable_member)
+
+        await ctx.send(f"{self.sersisuccess} {member.mention} has retired from the mod team. Thank you for your service!")
 
 
 def setup(bot):
