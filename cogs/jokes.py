@@ -7,25 +7,21 @@ from baseutils import *
 class Jokes(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.notModFail = "<:sersifail:979070135799279698> Only moderators can use this command."
 
     @commands.command()
     async def nevermod(self, ctx, member: nextcord.Member):
         if not is_mod(ctx.author):
-            await ctx.reply(self.notModFail)
-            return
+            await ctx.send(f"You're not a mod, you should not run this, right? ;)\n\nAnyways let's nevermod **you** instead as a twist.")
+            member = ctx.author
 
         nevermod_role = ctx.guild.get_role(get_config_int('ROLES', 'nevermod'))
 
-        if nevermod_role in member.roles:
-            await ctx.reply("User already nevermodded")
-        else:
-            await member.add_roles(nevermod_role, reason="asked for mod in a public channel", atomic=True)
-            nevermod_embed = nextcord.Embed(
-                title="Never Getting Mod",
-                description=f"Oh no! {member.mention} asked for mod in a public channel instead of applying through our application form! Now you’re never going to get mod… In fact, we even gave you a nice shiny new role just to make sure you know that you {nevermod_role.mention}.",
-                colour=nextcord.Colour.brand_red())
-            await ctx.send(embed=nevermod_embed)
+        await member.add_roles(nevermod_role, reason="nevermod command", atomic=True)
+        nevermod_embed = nextcord.Embed(
+            title="Never Getting Mod",
+            description=f"Oh no! {member.mention} asked for mod in a public channel instead of applying through our application form! Now you’re never going to get mod… In fact, we even gave you a nice shiny new role just to make sure you know that you {nevermod_role.mention}.",
+            colour=nextcord.Color.from_rgb(237, 91, 6))
+        await ctx.send(embed=nevermod_embed)
 
     # events
     @commands.Cog.listener()

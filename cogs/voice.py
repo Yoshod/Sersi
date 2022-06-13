@@ -6,11 +6,13 @@ from baseutils import *
 class Voice(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.sersisuccess = get_config('EMOTES', 'success')
+        self.sersifail = get_config('EMOTES', 'fail')
 
     @commands.command(aliases=['mvc', 'movevc', 'vcmove', 'mm'])
     async def massmove(self, ctx, current: nextcord.VoiceChannel, target: nextcord.VoiceChannel):
         if not is_mod(ctx.author):
-            await ctx.send(f"<:sersifail:979070135799279698> Insufficient permission!")
+            await ctx.send(f"{self.sersifail} Insufficient permission!")
             return
 
         memberlist = ""

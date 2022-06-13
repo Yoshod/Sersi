@@ -5,8 +5,10 @@ from baseutils import *
 
 class Probation(commands.Cog):
     def __init__(self, bot):
+        self.sersisuccess = get_config('EMOTES', 'success')
+        self.sersifail = get_config('EMOTES', 'fail')
         self.bot = bot
-        self.notModFail = "<:sersifail:979070135799279698> Only moderators can use this command."
+        self.notModFail = f"{sersifail} Only moderators can use this command."
 
     @commands.command(aliases=['addp', 'addprob'])
     async def addprobation(self, ctx, member: nextcord.Member, *args):

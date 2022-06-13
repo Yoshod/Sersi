@@ -10,7 +10,9 @@ class Slur(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.notModFail = "<:sersifail:979070135799279698> Only moderators can use this command."
+        self.sersisuccess = get_config('EMOTES', 'success')
+        self.sersifail = get_config('EMOTES', 'fail')
+        self.notModFail = f"{sersifail} Only moderators can use this command."
         load_slurdetector()
 
     async def cb_action_taken(self, interaction):
@@ -165,11 +167,11 @@ class Slur(commands.Cog):
                 existing_slur = True
 
         if existing_slur is not None:
-            await ctx.send(f"<:sersifail:979070135799279698> {word} is in conflict with existing slur {existing_slur}; cannot be added.")
+            await ctx.send(f"{self.sersifail} {word} is in conflict with existing slur {existing_slur}; cannot be added.")
             return
 
         if slur in slurs:
-            await ctx.send(f"<:sersifail:979070135799279698> {slur} is already on the list of slurs")
+            await ctx.send(f"{self.sersifail} {slur} is already on the list of slurs")
             return
 
         await ctx.send(f"Slur to be added: {slur}")
@@ -187,7 +189,7 @@ class Slur(commands.Cog):
         embedVar.add_field(name="Added By:", value=f"{ctx.message.author.mention} ({ctx.message.author.id})", inline=False)
         embedVar.add_field(name="Slur Added:", value=slur, inline=False)
         await channel.send(embed=embedVar)
-        await ctx.send("<:sersisuccess:979066662856822844> Slur added. Detection will start now.")
+        await ctx.send(f"{self.sersisuccess} Slur added. Detection will start now.")
 
     @commands.command(aliases=["addgw"])
     async def addgoodword(self, ctx, *word):
@@ -199,7 +201,7 @@ class Slur(commands.Cog):
         word = "".join(word)
         word = clearString(word)
         if word in goodword:
-            await ctx.send(f"<:sersifail:979070135799279698> {word} is already on the whitelist")
+            await ctx.send(f"{self.sersifail} {word} is already on the whitelist")
             return
 
         word_contains_slur = False
@@ -208,15 +210,15 @@ class Slur(commands.Cog):
                 word_contains_slur = True
 
         if not word_contains_slur:
-            await ctx.send(f"<:sersifail:979070135799279698> {word} does not contain any slurs; cannot be added.")
+            await ctx.send(f"{self.sersifail} {word} does not contain any slurs; cannot be added.")
             return
 
         for existing_word in goodword:
             if word in existing_word:
-                await ctx.send(f"<:sersifail:979070135799279698> {word} is substring to existing goodword {existing_word}; cannot be added.")
+                await ctx.send(f"{self.sersifail} {word} is substring to existing goodword {existing_word}; cannot be added.")
                 return
             elif existing_word in word:
-                await ctx.send(f"<:sersifail:979070135799279698> existing goodword {existing_word} is substring to {word}; cannot be added.")
+                await ctx.send(f"{self.sersifail} existing goodword {existing_word} is substring to {word}; cannot be added.")
                 return
 
         await ctx.send(f"Goodword to be added: {word}")
@@ -234,7 +236,7 @@ class Slur(commands.Cog):
         embedVar.add_field(name="Added By:", value=f"{ctx.message.author.mention} ({ctx.message.author.id})", inline=False)
         embedVar.add_field(name="Goodword Added:", value=word, inline=False)
         await channel.send(embed=embedVar)
-        await ctx.send("<:sersisuccess:979066662856822844> Goodword added. Detection will start now.")
+        await ctx.send("{self.sersisuccess} Goodword added. Detection will start now.")
 
     @commands.command(aliases=["rmsl", "rmslur", "removesl"])
     async def removeslur(self, ctx, slur):
@@ -254,7 +256,7 @@ class Slur(commands.Cog):
         embedVar.add_field(name="Removed By:", value=f"{ctx.message.author.mention} ({ctx.message.author.id})", inline=False)
         embedVar.add_field(name="Slur Removed:", value=slur, inline=False)
         await channel.send(embed=embedVar)
-        await ctx.send(f"<:sersisuccess:979066662856822844> Slur {slur} is no longer in the list")
+        await ctx.send(f"{self.sersisuccess} Slur {slur} is no longer in the list")
 
     @commands.command(aliases=["rmgw", "rmgoodword", "removegw"])
     async def removegoodword(self, ctx, word):
@@ -274,7 +276,7 @@ class Slur(commands.Cog):
         embedVar.add_field(name="Removed By:", value=f"{ctx.message.author.mention} ({ctx.message.author.id})", inline=False)
         embedVar.add_field(name="Goodword Removed:", value=word, inline=False)
         await channel.send(embed=embedVar)
-        await ctx.send(f"<:sersisuccess:979066662856822844> Goodword {word} is no longer in the list")
+        await ctx.send(f"{self.sersisuccess} Goodword {word} is no longer in the list")
 
     @commands.command(aliases=["lssl", "listsl", "lsslurs"])
     async def listslurs(self, ctx, page=1):

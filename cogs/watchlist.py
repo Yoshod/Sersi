@@ -6,6 +6,8 @@ from baseutils import *
 class Watchlist(commands.Cog):
 
     def __init__(self, bot):
+        self.sersisuccess = get_config('EMOTES', 'success')
+        self.sersifail = get_config('EMOTES', 'fail')
         self.filename = "watchlist.csv"
         self.bot = bot
         self.watchlist = {}
@@ -27,10 +29,10 @@ class Watchlist(commands.Cog):
     async def watchlistuser(self, ctx, member: nextcord.Member, **reason):
         """sets user onto moderator watchlist"""
         if not is_dark_mod(ctx.author):
-            await ctx.send(f"<:sersifail:979070135799279698> Insufficient permission!")
+            await ctx.send(f"{self.sersifail} Insufficient permission!")
             return
         elif member.id in self.watchlist:
-            await ctx.send(f"<:sersifail:979070135799279698> {member} already on watchlist!")
+            await ctx.send(f"{self.sersifail} {member} already on watchlist!")
             return
 
         reason_string = " ".join(reason)
@@ -39,7 +41,7 @@ class Watchlist(commands.Cog):
             file.write(f"{member.id};{reason_string}\n")
 
         self.loadwatchlist()
-        await ctx.send("<:sersisuccess:979066662856822844> User added to watchlist.")
+        await ctx.send(f"{self.sersisuccess} User added to watchlist.")
 
         # LOGGING
 
@@ -59,7 +61,7 @@ class Watchlist(commands.Cog):
     async def listwatchlist(self, ctx):
         """lists all members currently on the watchlist"""
         if not is_dark_mod(ctx.author):
-            await ctx.send(f"<:sersifail:979070135799279698> Insufficient permission!")
+            await ctx.send(f"{self.sersifail} Insufficient permission!")
             return
 
         nicelist = ""
@@ -81,10 +83,10 @@ class Watchlist(commands.Cog):
     async def removefromwatchlist(self, ctx, member: nextcord.Member):
         """removes user from moderator watchlist"""
         if not is_dark_mod(ctx.author):
-            await ctx.send(f"<:sersifail:979070135799279698> Insufficient permission!")
+            await ctx.send(f"{self.sersifail} Insufficient permission!")
             return
         if member.id not in self.watchlist:
-            await ctx.send(f"<:sersifail:979070135799279698> Member {member} not found on list!")
+            await ctx.send(f"{self.sersifail} Member {member} not found on list!")
 
         self.watchlist.pop(member.id)
 
@@ -92,7 +94,7 @@ class Watchlist(commands.Cog):
             for entry in self.watchlist:
                 file.write(f"{entry};{self.watchlist[entry]}\n")
 
-        await ctx.send("<:sersisuccess:979066662856822844> User has been removed from watchlist.")
+        await ctx.send(f"{self.sersisuccess} User has been removed from watchlist.")
 
         # LOGGING
 
@@ -111,13 +113,13 @@ class Watchlist(commands.Cog):
     @commands.command(aliases=['checkwl', 'ckwl'])
     async def checkwatchlist(self, ctx, member: nextcord.Member):
         if not is_dark_mod(ctx.author):
-            await ctx.send(f"<:sersifail:979070135799279698> Insufficient permission!")
+            await ctx.send(f"{self.sersifail} Insufficient permission!")
             return
         if member.id in self.watchlist:
-            await ctx.send(f"<:sersifail:979070135799279698> Member {member} found on watchlist!")
+            await ctx.send(f"{self.sersifail} Member {member} found on watchlist!")
             return True
         else:
-            await ctx.send(f"<:sersisuccess:979066662856822844> Member {member} not found on watchlist!")
+            await ctx.send(f"{self.sersisuccess} Member {member} not found on watchlist!")
             return False
 
 

@@ -7,34 +7,36 @@ from baseutils import *
 
 class Caps(commands.Cog):
     def __init__(self, bot):
+        self.sersisuccess = get_config('EMOTES', 'success')
+        self.sersifail = get_config('EMOTES', 'fail')
         self.bot = bot
         self.MIN_CHARS_FOR_DETECTION = get_config_int('CAPS', 'capslength', 5)
 
     @commands.command()
     async def setcapslength(self, ctx, number):
         if not is_mod(ctx.author):
-            await ctx.send(f"<:sersifail:979070135799279698> Insufficient permission!")
+            await ctx.send(f"{self.sersifail} Insufficient permission!")
             return
 
         try:
             value = int(number)
         except ValueError:
-            await ctx.send(f"<:sersifail:979070135799279698> {number} is not an integer.")
+            await ctx.send(f"{self.sersifail} {number} is not an integer.")
             return
 
         if value < 0:
-            await ctx.send(f"<:sersifail:979070135799279698> {number} must be greater than **0**.")
+            await ctx.send(f"{self.sersifail} {number} must be greater than **0**.")
             return
 
         self.MIN_CHARS_FOR_DETECTION = value
         set_config('CAPS', 'capslength', value)
 
-        await ctx.send(f"<:sersisuccess:979066662856822844> Caps lock detection starts now at messages longer than **{value}**.")
+        await ctx.send(f"{self.sersisuccess} Caps lock detection starts now at messages longer than **{value}**.")
 
     @commands.command()
     async def getcapslength(self, ctx):
         if not is_mod(ctx.author):
-            await ctx.send(f"<:sersifail:979070135799279698> Insufficient permission!")
+            await ctx.send(f"{self.sersifail} Insufficient permission!")
             return
 
         await ctx.send(f"Current caps lock detection starts at messages longer than **{self.MIN_CHARS_FOR_DETECTION}**.")

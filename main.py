@@ -32,7 +32,7 @@ async def load(ctx, extension):
         except commands.errors.ExtensionAlreadyLoaded:
             await ctx.reply("Cog already loaded.")
     else:
-        await ctx.reply("<:sersifail:979070135799279698> Only Sersi contributors are able to load cogs.")
+        await ctx.reply(f"{get_config('EMOTES', 'fail')} Only Sersi contributors are able to load cogs.")
 
 
 @bot.command()
@@ -50,7 +50,7 @@ async def unload(ctx, extension):
         except commands.errors.ExtensionNotLoaded:
             await ctx.reply(f"Cog {extension} was not loaded.")
     else:
-        await ctx.reply("<:sersifail:979070135799279698> Only Sersi contributors are able to unload cogs.")
+        await ctx.reply(f"{get_config('EMOTES', 'fail')} Only Sersi contributors are able to unload cogs.")
 
 
 @bot.command()
@@ -75,7 +75,7 @@ async def reload(ctx, extension):
             except commands.errors.ExtensionAlreadyLoaded:
                 await ctx.reply("Cog already loaded.")
     else:
-        await ctx.reply("<:sersifail:979070135799279698> Only Sersi contributors are able to reload cogs.")
+        await ctx.reply(f"{get_config('EMOTES', 'fail')} Only Sersi contributors are able to reload cogs.")
 
 
 ### GENERAL COMMANDS ###

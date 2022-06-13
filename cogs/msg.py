@@ -16,11 +16,11 @@ class Messages(commands.Cog):
         if msg == "":
             return
         elif not is_mod(ctx.author):
-            await ctx.send("<:sersifail:979070135799279698> Only moderators can use this command.")
+            await ctx.send("{self.sersifail} Only moderators can use this command.")
             return
 
         await recipient.send(msg)
-        await ctx.send(f"<:sersisuccess:979066662856822844> Direkt Message sent to {recipient}!")
+        await ctx.send(f"{self.sersisuccess} Direkt Message sent to {recipient}!")
 
         channel = self.bot.get_channel(get_config_int('CHANNELS', 'logging'))
         logging = nextcord.Embed(
@@ -71,7 +71,7 @@ class Messages(commands.Cog):
             else:
                 await ctx.send("How the fuck did this error appear?")
         else:
-            await ctx.send("<:sersifail:979070135799279698> Only moderators can use this command.")
+            await ctx.send("{self.sersifail} Only moderators can use this command.")
 
     @commands.Cog.listener()
     async def on_message(self, message):

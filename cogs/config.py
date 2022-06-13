@@ -10,6 +10,8 @@ from baseutils import *
 class Config(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.sersisuccess = get_config('EMOTES', 'success')
+        self.sersifail = get_config('EMOTES', 'fail')
 
     async def cb_create_proceed(self, interaction):
         if not interaction.user == interaction.message.reference.cached_message.author:
@@ -48,7 +50,7 @@ class Config(commands.Cog):
 
         # sections only modifiable by dark moderators
         if not is_dark_mod(ctx.author):
-            await ctx.send(f"<:sersifail:979070135799279698> Only dark moderators can modify settings in this section!")
+            await ctx.send(f"{self.sersifail} Only dark moderators can modify settings in this section!")
             return
 
         if setting_present(section, setting):
@@ -58,7 +60,7 @@ class Config(commands.Cog):
 
             set_config(section, setting, value)
 
-            await ctx.send(f"<:sersisuccess:979066662856822844> `[{section}] {setting}` has been set to `{value}`")
+            await ctx.send(f"{self.sersisuccess} `[{section}] {setting}` has been set to `{value}`")
 
             if section == "BOT":
                 await ctx.invoke(self.bot.get_command('reloadbot'))
@@ -86,17 +88,17 @@ class Config(commands.Cog):
     @commands.command()
     async def reloadbot(self, ctx):
         if not is_mod(ctx.author):
-            await ctx.reply("<:sersifail:979070135799279698> Insufficient permission!")
+            await ctx.reply("{self.sersifail} Insufficient permission!")
             return
 
         await self.bot.change_presence(activity=nextcord.Game(get_config("BOT", "status")))
         self.bot.command_prefix = get_config("BOT", "command prefix")
-        await ctx.send(f"<:sersisuccess:979066662856822844> Bot reloaded.")
+        await ctx.send(f"{self.sersisuccess} Bot reloaded.")
 
     @commands.command(aliases=['config', 'conf'])
     async def configuration(self, ctx, *args):
         if not is_staff(ctx.author) or not is_sersi_contrib(ctx.author):
-            await ctx.reply("<:sersifail:979070135799279698> Insufficient permission!")
+            await ctx.reply("{self.sersifail} Insufficient permission!")
             return
 
         if len(args) == 4:

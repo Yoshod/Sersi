@@ -8,7 +8,9 @@ from baseutils import *
 class Reformation(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.notModFail = "<:sersifail:979070135799279698> Only moderators can use this command."
+        self.sersisuccess = get_config('EMOTES', 'success')
+        self.sersifail = get_config('EMOTES', 'fail')
+        self.notModFail = f"{sersifail} Only moderators can use this command."
 
     # command
     @commands.command(aliases=['rn', 'reformneeded', 'reform'])
@@ -44,7 +46,7 @@ class Reformation(commands.Cog):
         channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'reformation'))
         welcome_embed = nextcord.Embed(
             title="Welcome to Reformation",
-            description=f"Hello {member.mention}, you have been sent to reformation by {ctx.author.mention}. The reason given for this is `{reason_string}`. \n\nFor more information on reformation check out <#878292548785958982> or talk to a <@&943193811574751314>.",
+            description=f"Hello {member.mention}, you have been sent to reformation by {ctx.author.mention}. The reason given for this is `{reason_string}`. \n\nFor more information on reformation check out <#{get_config_int('CHANNELS', 'reformation info')}> or talk to a <@&{get_config_int('PERMISSION ROLES', 'reformist')}>.",
             color=nextcord.Color.from_rgb(237, 91, 6))
         await channel.send(embed=welcome_embed)
 
@@ -244,7 +246,7 @@ class Reformation(commands.Cog):
         button_view.add_item(no)
         button_view.add_item(maybe)
 
-        channel = self.bot.get_channel(getAlertChannel(ctx.guild.id))
+        channel = self.bot.get_channel(get_config_int('ROLES', 'alert'))
         await channel.send(embed=embedVar, view=button_view)
 
     async def cb_done(self, interaction):
@@ -313,7 +315,7 @@ class Reformation(commands.Cog):
             channel = self.bot.get_channel(get_config_int('CHANNELS', 'alert'))
             embed = nextcord.Embed(
                 title=f"User **{member}** ({member.id}) has left the server while in the reformation centre!",
-                description=f"User has left the server while having the @reformation role. If they have not been banned, they should be hack-banned using wick now.",
+                description=f"User has left the server while having the <@&{get_config_int('ROLES', 'reformation')}> role. If they have not been banned, they should be hack-banned using wick now.",
                 color=nextcord.Color.from_rgb(255, 255, 0))
             done = Button(label="User was or is banned", style=nextcord.ButtonStyle.green)
             done.callback = self.cb_done
