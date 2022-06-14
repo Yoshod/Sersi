@@ -14,7 +14,7 @@ class Reformation(commands.Cog):
 
     # command
     @commands.command(aliases=['rn', 'reformneeded', 'reform'])
-    async def reformationneeded(self, ctx, member: nextcord.Member, *args):
+    async def reformationneeded(self, ctx, member: nextcord.Member, *reason):
         """send a user to reformation centre
 
         Sends a [member] to reformation centre for reform by giving said [member] the @Reformation role. Removes @Civil Engineering Initiate and all Opt-In-Roles.
@@ -24,7 +24,7 @@ class Reformation(commands.Cog):
             await ctx.reply(self.notModFail)
             return
 
-        reason_string = " ".join(args)
+        reason_string = " ".join(reason)
 
         if reason_string.startswith("?r "):     # splices away the "?r" that moderators accustomed to wick might put in there
             reason_string = reason_string[3:]

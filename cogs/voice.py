@@ -26,6 +26,8 @@ class Voice(commands.Cog):
             color=nextcord.Color.from_rgb(237, 91, 6)
         )
         embed.add_field(name="Moderator:", value=ctx.author.mention, inline=False)
+        embed.add_field(name="Original channel:", value=current.mention, inline=False)
+        embed.add_field(name="Members moved to channel:", value=target.mention, inline=False)
         embed.add_field(name="Members Moved:", value=memberlist, inline=False)
 
         channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'logging'))
