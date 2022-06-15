@@ -57,7 +57,7 @@ class Watchlist(commands.Cog):
         channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'modlogs'))
         await channel.send(embed=logging)
 
-    @commands.command(aliases=['lbl', 'bllist', 'listbl', 'bll', 'showwatchlist'])
+    @commands.command(aliases=['lwl', 'wllist', 'listwl', 'wll', 'showwatchlist'])
     async def listwatchlist(self, ctx):
         """lists all members currently on the watchlist"""
         if not is_dark_mod(ctx.author):
