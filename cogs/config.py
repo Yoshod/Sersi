@@ -49,7 +49,7 @@ class Config(commands.Cog):
         section = section.upper()
 
         # sections only modifiable by dark moderators
-        if not permcheck(ctx, is_dark_mod):
+        if not await permcheck(ctx, is_dark_mod):
             return
 
         if setting_present(section, setting):
@@ -86,7 +86,7 @@ class Config(commands.Cog):
 
     @commands.command()
     async def reloadbot(self, ctx):
-        if not permcheck(ctx, is_mod):
+        if not await permcheck(ctx, is_mod):
             return
 
         await self.bot.change_presence(activity=nextcord.Game(get_config("BOT", "status")))

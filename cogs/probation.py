@@ -12,7 +12,7 @@ class Probation(commands.Cog):
 
     @commands.command(aliases=['addp', 'addprob'])
     async def addprobation(self, ctx, member: nextcord.Member, *args):
-        if not permcheck(ctx, is_mod):
+        if not await permcheck(ctx, is_mod):
             return
 
         probation_role = ctx.guild.get_role(get_config_int('ROLES', 'probation'))
@@ -50,7 +50,7 @@ class Probation(commands.Cog):
 
     @commands.command(aliases=['rmp', 'rmprob'])
     async def removeprobation(self, ctx, member: nextcord.Member, *args):
-        if not permcheck(ctx, is_mod):
+        if not await permcheck(ctx, is_mod):
             return
 
         probation_role = ctx.guild.get_role(get_config_int('ROLES', 'probation'))

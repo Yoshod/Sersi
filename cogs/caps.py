@@ -14,7 +14,7 @@ class Caps(commands.Cog):
 
     @commands.command()
     async def setcapslength(self, ctx, number):
-        if not permcheck(ctx, is_mod):
+        if not await permcheck(ctx, is_mod):
             return
 
         try:
@@ -34,7 +34,7 @@ class Caps(commands.Cog):
 
     @commands.command()
     async def getcapslength(self, ctx):
-        if not permcheck(ctx, is_mod):
+        if not await permcheck(ctx, is_mod):
             return
 
         await ctx.send(f"Current caps lock detection starts at messages longer than **{self.MIN_CHARS_FOR_DETECTION}**.")

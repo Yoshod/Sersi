@@ -28,7 +28,7 @@ class Blacklist(commands.Cog):
     @commands.command(aliases=['bl', 'bluser', 'addbl', 'modblacklist'])
     async def blacklistuser(self, ctx, member: nextcord.Member, **reason):
         """sets user onto moderator blacklist"""
-        if not permcheck(ctx, is_dark_mod):
+        if not await permcheck(ctx, is_dark_mod):
             return
         elif member.id in self.blacklist:
             await ctx.send(f"{self.sersifail} {member} already on blacklist!")
@@ -59,7 +59,7 @@ class Blacklist(commands.Cog):
     @commands.command(aliases=['lbl', 'bllist', 'listbl', 'bll', 'showblacklist'])
     async def listblacklist(self, ctx):
         """lists all members currently on the blacklist"""
-        if not permcheck(ctx, is_dark_mod):
+        if not await permcheck(ctx, is_dark_mod):
             return
 
         nicelist = ""
@@ -80,7 +80,7 @@ class Blacklist(commands.Cog):
     @commands.command(aliases=['rmbl', 'removeuserfromblacklist', 'blrmuser', 'blremoveuser'])
     async def removefromblacklist(self, ctx, member: nextcord.Member):
         """removes user from moderator blacklist"""
-        if not permcheck(ctx, is_dark_mod):
+        if not await permcheck(ctx, is_dark_mod):
             return
         if member.id not in self.blacklist:
             await ctx.send(f"{self.sersifail} Member {member} not found on list!")
@@ -109,7 +109,7 @@ class Blacklist(commands.Cog):
 
     @commands.command(aliases=['checklb', 'ckbl'])
     async def checkblacklist(self, ctx, member: nextcord.Member):
-        if not permcheck(ctx, is_dark_mod):
+        if not await permcheck(ctx, is_dark_mod):
             return
         if member.id in self.blacklist:
             await ctx.send(f"{self.sersifail} Member {member} found on blacklist!")

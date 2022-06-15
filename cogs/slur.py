@@ -16,7 +16,7 @@ class Slur(commands.Cog):
         load_slurdetector()
 
     async def cb_action_taken(self, interaction):
-        if not permcheck(interaction, is_mod):
+        if not await permcheck(interaction, is_mod):
             return
 
         new_embed = interaction.message.embeds[0]
@@ -35,7 +35,7 @@ class Slur(commands.Cog):
         await channel.send(embed=embedLogVar)
 
     async def cb_acceptable_use(self, interaction):
-        if not permcheck(interaction, is_mod):
+        if not await permcheck(interaction, is_mod):
             return
 
         new_embed = interaction.message.embeds[0]
@@ -54,7 +54,7 @@ class Slur(commands.Cog):
         await channel.send(embed=embedLogVar)
 
     async def cb_false_positive(self, interaction):
-        if not permcheck(interaction, is_mod):
+        if not await permcheck(interaction, is_mod):
             return
 
         new_embed = interaction.message.embeds[0]
@@ -151,7 +151,7 @@ class Slur(commands.Cog):
     @commands.command(aliases=["addsl"])
     async def addslur(self, ctx, *slur):
         """adds a new slur to the list of slurs."""
-        if not permcheck(ctx, is_mod):
+        if not await permcheck(ctx, is_mod):
             return
 
         slur = "".join(slur)
@@ -190,7 +190,7 @@ class Slur(commands.Cog):
     @commands.command(aliases=["addgw"])
     async def addgoodword(self, ctx, *word):
         """adds a new goodword into the whitelist."""
-        if not permcheck(ctx, is_mod):
+        if not await permcheck(ctx, is_mod):
             return
 
         word = "".join(word)
@@ -236,7 +236,7 @@ class Slur(commands.Cog):
     @commands.command(aliases=["rmsl", "rmslur", "removesl"])
     async def removeslur(self, ctx, slur):
         """removes a slur from the list of slurs."""
-        if not permcheck(ctx, is_mod):
+        if not await permcheck(ctx, is_mod):
             return
 
         rmSlur(ctx, slur)
@@ -255,7 +255,7 @@ class Slur(commands.Cog):
     @commands.command(aliases=["rmgw", "rmgoodword", "removegw"])
     async def removegoodword(self, ctx, word):
         """removes a goodword from the whitelist."""
-        if not permcheck(ctx, is_mod):
+        if not await permcheck(ctx, is_mod):
             return
 
         rmGoodword(ctx, word)
@@ -276,7 +276,7 @@ class Slur(commands.Cog):
         """lists currently detected slurs
 
         lists slurs currently being detected by the bot, 100 slurs listed per page."""
-        if not permcheck(ctx, is_mod):
+        if not await permcheck(ctx, is_mod):
             return
 
         wordlist, pages, page = get_slurs(page, 20)
@@ -308,7 +308,7 @@ class Slur(commands.Cog):
         """list current goodwords
 
         currently whitlested from slur detection, 100 words listed per page"""
-        if not permcheck(ctx, is_mod):
+        if not await permcheck(ctx, is_mod):
             return
 
         wordlist, pages, page = get_goodwords(page, 20)

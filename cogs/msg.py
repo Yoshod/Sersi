@@ -12,13 +12,13 @@ class Messages(commands.Cog):
 
     @commands.command()
     async def dm(self, ctx, recipient: nextcord.Member, *message):
-        if not permcheck(ctx, is_mod):
+        if not await permcheck(ctx, is_mod):
             return
 
         msg = " ".join(message)
         if msg == "":
             return
-        elif not permcheck(ctx, is_mod):
+        elif not await permcheck(ctx, is_mod):
             return
 
         await recipient.send(msg)

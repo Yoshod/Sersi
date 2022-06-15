@@ -28,11 +28,11 @@ class Gif(commands.Cog):
         """Adds a GIF to the blacklist
 
         URL must be provided"""
-        if not permcheck(ctx, is_mod):
+        if not await permcheck(ctx, is_mod):
             return
 
         await ctx.message.delete()
-        if not permcheck(ctx, is_mod):
+        if not await permcheck(ctx, is_mod):
             return
 
         with open(self.filename, "a") as file:
@@ -54,7 +54,7 @@ class Gif(commands.Cog):
         """Removes GIF from blacklist
 
         URL must be provided"""
-        if not permcheck(ctx, is_mod):
+        if not await permcheck(ctx, is_mod):
             return
 
         if url in self.list:
@@ -80,7 +80,7 @@ class Gif(commands.Cog):
     @commands.command()
     async def listgifs(self, ctx):
         """Lists GIFs currently blacklisted"""
-        if not permcheck(ctx, is_mod):
+        if not await permcheck(ctx, is_mod):
             return
 
         embed = nextcord.Embed(
