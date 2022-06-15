@@ -1,4 +1,5 @@
 import nextcord
+import asyncio
 from nextcord.ext import commands
 from baseutils import *
 from datetime import timedelta
@@ -13,8 +14,18 @@ class Purge(commands.Cog):
         self.MAXMESSAGES = 100
         self.MAXTIME = 15
 
-    @commands.command(aliases=['p', 'massdelete', 'delete', 'del', 'purge'])
-    async def clear(self, ctx, amount=None, target=None):
+    @commands.command(aliases=['p', 'massdelete', 'delete', 'del'])
+    async def clear(self, ctx, amount=None, member=None):
+        try:
+            amount = int(amount)
+
+        except ValueError:
+            await ctx.send(f"{self.sersifail} ValueError: invalid literal for int() with base 10: {amount}")
+            return
+
+        def user_check(msg):
+            return msg.author.id == member.id
+
         if not is_mod(ctx.author):
             await ctx.send(f"{self.sersifail} Only Moderators can use this command!")
             return
@@ -23,26 +34,35 @@ class Purge(commands.Cog):
             await ctx.send(f"{self.sersifail} You must specify how many messages you wish to purge.")
             return
 
+        elif amount < 1:
+            await ctx.send(f"{self.sersifail} You must delete at least one message.")
+            return
+
         elif amount > self.MAXMESSAGES:
             await ctx.send(f"{self.sersifail} You cannot delete more than 100 messages.")
             return
 
-        elif target is None:
+        elif member is None:
             await ctx.channel.purge(limit=amount + 1)
 
-        elif target is not None:
-            await ctx.channel.parge(limit=amount + 1, check=lambda x: True if (message.author.id == target.id) else False)
+        elif member is not None:
+            await ctx.channel.purge(limit=amount + 1, check=user_check)
 
         # LOGGING
+        await asyncio.sleep(5)
+        async for entry in ctx.guild.audit_logs(limit=1, action=nextcord.AuditLogAction.message_bulk_delete):
+            deletion_count = entry.extra['count']
 
         logging = nextcord.Embed(
-            title="Messages Purged"
+            title="Messages Purged",
+            color=nextcord.Color.from_rgb(237, 91, 6)
         )
         logging.add_field(name="Moderator:", value=ctx.author.mention, inline=False)
-        logging.add_field(name="Messages Purged:", value=amount, inline=False)
+        logging.add_field(name="Messages Requested:", value=amount, inline=False)
+        logging.add_field(name="Messages Purged:", value=(f"{int(deletion_count) - 1}"), inline=False)
         logging.add_field(name="Channel Purged:", value=ctx.channel.mention, inline=False)
-        if target is not None:
-            logging.add_field(name="User Targeted:", value=target)
+        if member is not None:
+            logging.add_field(name="User Targeted:", value=member)
 
         channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'logging'))
         await channel.send(embed=logging)
@@ -53,8 +73,19 @@ class Purge(commands.Cog):
     @commands.command(aliases=['tp', 'timed purge'])
     @commands.cooldown(1, 900, commands.BucketType.user)
     async def timed_purge(self, ctx, time=None, target=None):
+        try:
+            time = int(time)
+
+        except ValueError:
+            await ctx.send(f"{self.sersifail} ValueError: invalid literal for int() with base 10: {time}")
+            return
+
         if not is_senior_mod(ctx.author):
             await ctx.send(f"{self.sersifail} Only Senior Moderators or higher can use this command!")
+            return
+
+        elif time < 1:
+            await ctx.send(f"{self.sersifail} The minimum time is one minute.")
             return
 
         elif time is None:
@@ -67,19 +98,23 @@ class Purge(commands.Cog):
 
         elif target is None:
             after = ctx.message.created_at - timedelta(minutes=time)
-            await channel.purge(limit=10 * time, after=after)
+            await ctx.channel.purge(limit=10 * time, after=after)
 
         elif target is not None:
             after = ctx.message.created_at - timedelta(minutes=time)
-            await channel.purge(limit=10 * time, check=lambda x: True if (message.author.id == target.id) else False, after=after)
+            await ctx.channel.purge(limit=10 * time, check=lambda x: True if (message.author.id == target.id) else False, after=after)
 
         # LOGGING
+        async for entry in ctx.guild.audit_logs(limit=1, action=nextcord.AuditLogAction.message_bulk_delete):
+            deletion_count = entry.extra['count']
 
         logging = nextcord.Embed(
-            title="Messages Purged"
+            title="Messages Purged",
+            color=nextcord.Color.from_rgb(237, 91, 6)
         )
         logging.add_field(name="Moderator:", value=ctx.author.mention, inline=False)
         logging.add_field(name="Time Specified:", value=(f"{time} minutes"), inline=False)
+        logging.add_field(name="Messages Purged:", value=(f"{int(deletion_count) - 1}"), inline=False)
         logging.add_field(name="Channel Purged:", value=ctx.channel.mention, inline=False)
         if target is not None:
             logging.add_field(name="User Targeted:", value=target)
