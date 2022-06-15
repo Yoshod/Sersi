@@ -109,7 +109,7 @@ class Moderators(commands.Cog):
         channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'modlogs'))
         await channel.send(embed=log_embed)
 
-    @commands.command(aliases=['purge'])
+    @commands.command(aliases=['purgemod', 'purge_mod'])
     async def removefrommod(self, ctx, member: nextcord.Member, *reason):
         if not permcheck(ctx, is_senior_mod):
             return
