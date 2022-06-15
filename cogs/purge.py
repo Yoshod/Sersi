@@ -128,6 +128,9 @@ class Purge(commands.Cog):
 
     @commands.command(aliases=['pu', 'purgeuntil'])
     async def purge_until(self, ctx, message_id=None):
+        if not await permcheck(ctx, is_senior_mod):
+            return
+
         channel = ctx.message.channel
         try:
             message = await channel.fetch_message(int(message_id))
