@@ -75,8 +75,10 @@ class Config(commands.Cog):
 
             btn_confirm = Button(label="Proceed")
             btn_confirm.callback = self.cb_create_proceed
+            btn_confirm.style = 3
             btn_cancel = Button(label="Cancel")
             btn_cancel.callback = self.cb_cancel
+            btn_cancel.style = 4
 
             btn_view = View()
             btn_view.add_item(btn_confirm)
