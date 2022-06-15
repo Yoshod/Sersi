@@ -4,6 +4,7 @@ from baseutils import *
 
 
 class Gif(commands.Cog):
+    """Autodeleteing blacklisted GIFs"""
     def __init__(self, bot):
         self.bot = bot
         self.filename = "gifblacklist.txt"
@@ -24,6 +25,12 @@ class Gif(commands.Cog):
 
     @commands.command()
     async def addgif(self, ctx, url):
+        """Adds a GIF to the blacklist
+
+        URL must be provided"""
+        if not permcheck(ctx, is_mod):
+            return
+
         await ctx.message.delete()
         if not permcheck(ctx, is_mod):
             return
@@ -44,6 +51,12 @@ class Gif(commands.Cog):
 
     @commands.command()
     async def removegif(self, ctx, url):
+        """Removes GIF from blacklist
+
+        URL must be provided"""
+        if not permcheck(ctx, is_mod):
+            return
+
         if url in self.list:
             self.list.remove(url)
 
@@ -66,6 +79,10 @@ class Gif(commands.Cog):
 
     @commands.command()
     async def listgifs(self, ctx):
+        """Lists GIFs currently blacklisted"""
+        if not permcheck(ctx, is_mod):
+            return
+
         embed = nextcord.Embed(
             title="List of GIFs currently being blacklisted",
             description="\n".join(self.list),
