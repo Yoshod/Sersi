@@ -28,8 +28,7 @@ class Watchlist(commands.Cog):
     @commands.command(aliases=['wl', 'wluser', 'addwl', 'watchlist'])
     async def watchlistuser(self, ctx, member: nextcord.Member, **reason):
         """sets user onto moderator watchlist"""
-        if not is_dark_mod(ctx.author):
-            await ctx.send(f"{self.sersifail} Insufficient permission!")
+        if not permcheck(ctx, is_dark_mod):
             return
         elif member.id in self.watchlist:
             await ctx.send(f"{self.sersifail} {member} already on watchlist!")
@@ -60,8 +59,7 @@ class Watchlist(commands.Cog):
     @commands.command(aliases=['lwl', 'wllist', 'listwl', 'wll', 'showwatchlist'])
     async def listwatchlist(self, ctx):
         """lists all members currently on the watchlist"""
-        if not is_dark_mod(ctx.author):
-            await ctx.send(f"{self.sersifail} Insufficient permission!")
+        if not permcheck(ctx, is_dark_mod):
             return
 
         nicelist = ""
@@ -82,8 +80,7 @@ class Watchlist(commands.Cog):
     @commands.command(aliases=['rmwl', 'removeuserfromwatchlist', 'wlrmuser', 'wlremoveuser'])
     async def removefromwatchlist(self, ctx, member: nextcord.Member):
         """removes user from moderator watchlist"""
-        if not is_dark_mod(ctx.author):
-            await ctx.send(f"{self.sersifail} Insufficient permission!")
+        if not permcheck(ctx, is_dark_mod):
             return
         if member.id not in self.watchlist:
             await ctx.send(f"{self.sersifail} Member {member} not found on list!")
@@ -112,9 +109,9 @@ class Watchlist(commands.Cog):
 
     @commands.command(aliases=['checkwl', 'ckwl'])
     async def checkwatchlist(self, ctx, member: nextcord.Member):
-        if not is_dark_mod(ctx.author):
-            await ctx.send(f"{self.sersifail} Insufficient permission!")
+        if not permcheck(ctx, is_dark_mod):
             return
+
         if member.id in self.watchlist:
             await ctx.send(f"{self.sersifail} Member {member} found on watchlist!")
             return True

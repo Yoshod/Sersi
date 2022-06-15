@@ -10,7 +10,7 @@ class Jokes(commands.Cog):
 
     @commands.command()
     async def nevermod(self, ctx, member: nextcord.Member):
-        if not is_mod(ctx.author):
+        if not is_mod(ctx.author):      # don't replace, it is funny
             await ctx.send(f"You're not a mod, you should not run this, right? ;)\n\nAnyways let's nevermod **you** instead as a twist.")
             member = ctx.author
 

@@ -12,11 +12,13 @@ class Messages(commands.Cog):
 
     @commands.command()
     async def dm(self, ctx, recipient: nextcord.Member, *message):
+        if not permcheck(ctx, is_mod):
+            return
+
         msg = " ".join(message)
         if msg == "":
             return
-        elif not is_mod(ctx.author):
-            await ctx.send("{self.sersifail} Only moderators can use this command.")
+        elif not permcheck(ctx, is_mod):
             return
 
         await recipient.send(msg)
@@ -75,7 +77,7 @@ class Messages(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        if not get_config_bool("MSG", "forward dms", "false"):
+        if not get_config_bool("MSG", "forward dms", False):
             return
 
         dm_channel = self.bot.get_channel(get_config_int("CHANNELS", "dm forward"))   # please name and config

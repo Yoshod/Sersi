@@ -8,9 +8,6 @@ from baseutils import *
 class Reformation(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.sersisuccess = get_config('EMOTES', 'success')
-        self.sersifail = get_config('EMOTES', 'fail')
-        self.notModFail = f"{sersifail} Only moderators can use this command."
 
     # command
     @commands.command(aliases=['rn', 'reformneeded', 'reform'])
@@ -20,8 +17,7 @@ class Reformation(commands.Cog):
         Sends a [member] to reformation centre for reform by giving said [member] the @Reformation role. Removes @Civil Engineering Initiate and all Opt-In-Roles.
         Permission Needed: Moderator, Trial Moderator
         """
-        if not is_mod(ctx.author):
-            await ctx.reply(self.notModFail)
+        if not await permcheck(ctx, is_mod):
             return
 
         reason_string = " ".join(reason)
@@ -64,8 +60,7 @@ class Reformation(commands.Cog):
         await channel.send(embed=embed)
 
     async def cb_rq_yes(self, interaction):
-        if not is_mod(interaction.user):
-            await interaction.response.send_message("Sorry, you don't get to vote", ephemeral=True)
+        if not await permcheck(interaction, is_mod):
             return
 
         new_embed = interaction.message.embeds[0]
@@ -123,8 +118,7 @@ class Reformation(commands.Cog):
         await interaction.message.edit(embed=new_embed)
 
     async def cb_rf_yes(self, interaction):
-        if not is_mod(interaction.user):
-            await interaction.response.send_message("Sorry, you don't get to vote", ephemeral=True)
+        if not await permcheck(interaction, is_mod):
             return
 
         new_embed = interaction.message.embeds[0]
@@ -171,8 +165,7 @@ class Reformation(commands.Cog):
         await interaction.message.edit(embed=new_embed)
 
     async def cb_no(self, interaction):
-        if not is_mod(interaction.user):
-            await interaction.response.send_message("Sorry, you don't get to vote", ephemeral=True)
+        if not await permcheck(interaction, is_mod):
             return
 
         new_embed = interaction.message.embeds[0]
@@ -187,8 +180,7 @@ class Reformation(commands.Cog):
         await interaction.message.edit(embed=new_embed)
 
     async def cb_maybe(self, interaction):
-        if not is_mod(interaction.user):
-            await interaction.response.send_message("Sorry, you don't get to vote", ephemeral=True)
+        if not await permcheck(interaction, is_mod):
             return
 
         new_embed = interaction.message.embeds[0]
@@ -210,8 +202,7 @@ class Reformation(commands.Cog):
         Three 'Yes' votes will result in an automatic release.
         Permission Needed: Moderator, Trial Moderator
         """
-        if not is_mod(ctx.author):
-            await ctx.reply(self.notModFail)
+        if not await permcheck(ctx, is_mod):
             return
 
         # member have reformation role check
@@ -246,12 +237,11 @@ class Reformation(commands.Cog):
         button_view.add_item(no)
         button_view.add_item(maybe)
 
-        channel = self.bot.get_channel(get_config_int('ROLES', 'alert'))
+        channel = self.bot.get_channel(get_config_int('CHANNELS', 'alert'))
         await channel.send(embed=embedVar, view=button_view)
 
     async def cb_done(self, interaction):
-        if not is_mod(interaction.user):
-            await interaction.response.send_message("Sorry, you don't get to vote", ephemeral=True)
+        if not await permcheck(interaction, is_mod):
             return
 
         embed = interaction.message.embeds[0]
@@ -268,8 +258,7 @@ class Reformation(commands.Cog):
         Three 'Yes' votes will result in a greenlight for a ban.
         Permission Needed: Moderator, Trial Moderator
         """
-        if not is_mod(ctx.author):
-            await ctx.reply(self.notModFail)
+        if not await permcheck(ctx, is_mod):
             return
 
         # member have reformation role check

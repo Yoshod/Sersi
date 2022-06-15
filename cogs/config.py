@@ -49,8 +49,7 @@ class Config(commands.Cog):
         section = section.upper()
 
         # sections only modifiable by dark moderators
-        if not is_dark_mod(ctx.author):
-            await ctx.send(f"{self.sersifail} Only dark moderators can modify settings in this section!")
+        if not permcheck(ctx, is_dark_mod):
             return
 
         if setting_present(section, setting):
@@ -87,8 +86,7 @@ class Config(commands.Cog):
 
     @commands.command()
     async def reloadbot(self, ctx):
-        if not is_mod(ctx.author):
-            await ctx.reply("{self.sersifail} Insufficient permission!")
+        if not permcheck(ctx, is_mod):
             return
 
         await self.bot.change_presence(activity=nextcord.Game(get_config("BOT", "status")))
@@ -98,7 +96,7 @@ class Config(commands.Cog):
     @commands.command(aliases=['config', 'conf'])
     async def configuration(self, ctx, *args):
         if not is_staff(ctx.author) or not is_sersi_contrib(ctx.author):
-            await ctx.reply("{self.sersifail} Insufficient permission!")
+            await ctx.reply(f"{self.sersifail} Insufficient permission!")
             return
 
         if len(args) == 4:

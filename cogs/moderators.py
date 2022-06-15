@@ -12,8 +12,7 @@ class Moderators(commands.Cog):
 
     @commands.command(aliases=["addticket"])
     async def addticketsupport(self, ctx, member: nextcord.Member):
-        if not is_mod(ctx.author):
-            await ctx.send(f"{self.sersifail} Insufficient permission!")
+        if not permcheck(ctx, is_mod):
             return
 
         ticket_support = ctx.guild.get_role(get_config_int('PERMISSION ROLES', 'ticket support'))
@@ -35,8 +34,7 @@ class Moderators(commands.Cog):
 
     @commands.command(aliases=["rmticket"])
     async def removeticketsupport(self, ctx, member: nextcord.Member):
-        if not is_mod(ctx.author):
-            await ctx.send(f"{self.sersifail} Insufficient permission!")
+        if not permcheck(ctx, is_mod):
             return
 
         ticket_support = ctx.guild.get_role(get_config_int('PERMISSION ROLES', 'ticket support'))
@@ -58,8 +56,7 @@ class Moderators(commands.Cog):
 
     @commands.command()
     async def addtrialmod(self, ctx, member: nextcord.Member):
-        if not is_senior_mod(ctx.author):
-            await ctx.send(f"{self.sersifail} Insufficient permission.")
+        if not permcheck(ctx, is_senior_mod):
             return
 
         is_blacklisted = await ctx.invoke(self.bot.get_command('checkblacklist'), member=member)
@@ -86,8 +83,7 @@ class Moderators(commands.Cog):
 
     @commands.command()
     async def makefullmod(self, ctx, member: nextcord.Member):
-        if not is_senior_mod(ctx.author):
-            await ctx.send(f"{self.sersifail} Insufficient permission.")
+        if not permcheck(ctx, is_senior_mod):
             return
 
         trial_moderator = ctx.guild.get_role(get_config_int('PERMISSION ROLES', 'trial moderator'))
@@ -115,8 +111,7 @@ class Moderators(commands.Cog):
 
     @commands.command(aliases=['purge'])
     async def removefrommod(self, ctx, member: nextcord.Member, *reason):
-        if not is_senior_mod(ctx.author):
-            await ctx.send(f"{self.sersifail} Insufficient permission.")
+        if not permcheck(ctx, is_senior_mod):
             return
 
         reason_string = " ".join(reason)
@@ -145,12 +140,10 @@ class Moderators(commands.Cog):
 
     @commands.command()
     async def retire(self, ctx, member: nextcord.Member = None):
-        if not is_mod(ctx.author):
-            await ctx.send(f"{self.sersifail} Insufficient permission!")
-            return
-
-        if member is None:
+        if member is None and permcheck(ctx, is_mod):
             member = ctx.author
+        elif not permcheck(ctx, is_senior_mod):
+            return
 
         for role in get_options('PERMISSION ROLES'):
             role_obj = ctx.guild.get_role(get_config_int('PERMISSION ROLES', role))
