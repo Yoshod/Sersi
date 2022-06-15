@@ -36,6 +36,18 @@ class Config(commands.Cog):
         embed.add_field(name="Setting", value=setting)
         embed.add_field(name="Value", value=value)
         await interaction.message.edit(embed=embed, view=None)
+        
+        # logging
+        log_embed = nextcord.Embed(
+            title=f"New Configuration Setting Added",
+            colour=nextcord.Color.from_rgb(237, 91, 6))
+        log_embed.add_field(name="Staff Member:", value=interaction.user.mention, inline=False)
+        log_embed.add_field(name="Section:", value=section, inline=False)
+        log_embed.add_field(name="Setting:", value=setting, inline=False)
+        log_embed.add_field(name="Value:", value=value, inline=False)
+
+        channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'logging'))
+        await channel.send(embed=log_embed)
 
     async def cb_cancel(self, interaction):
         if not interaction.user == interaction.message.reference.cached_message.author:
@@ -44,7 +56,7 @@ class Config(commands.Cog):
         await interaction.message.delete()
         await interaction.message.reference.cached_message.reply("Action canceled!")
 
-    @commands.command()
+    @commands.command(aliases=['set'])
     async def setsetting(self, ctx, section, setting, value):
         section = section.upper()
 
@@ -56,8 +68,22 @@ class Config(commands.Cog):
 
             if 'channels' in section.lower() or 'roles' in section.lower():
                 value = re.sub(r"[^0-9]*", "", value)
-
+            
+            prev_value = get_config(section, setting, value)
             set_config(section, setting, value)
+            
+            # logging
+            log_embed = nextcord.Embed(
+                title=f"Configuration setting changed",
+                colour=nextcord.Color.from_rgb(237, 91, 6))
+            log_embed.add_field(name="Staff Member:", value=ctx.author.mention, inline=False)
+            log_embed.add_field(name="Section:", value=section, inline=False)
+            log_embed.add_field(name="Setting:", value=setting, inline=False)
+            log_embed.add_field(name="Previous Value:", value=prev_value, inline=False)
+            log_embed.add_field(name="New Value:", value=value, inline=False)
+
+            channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'logging'))
+            await channel.send(embed=log_embed)
 
             await ctx.send(f"{self.sersisuccess} `[{section}] {setting}` has been set to `{value}`")
 
