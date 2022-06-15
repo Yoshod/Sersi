@@ -11,6 +11,9 @@ class Voice(commands.Cog):
 
     @commands.command(aliases=['mvc', 'movevc', 'vcmove', 'mm'])
     async def massmove(self, ctx, current: nextcord.VoiceChannel, target: nextcord.VoiceChannel):
+        """mass move members from one VC to another
+
+        both VCs must be referenced to by mention or Channel ID"""
         if not await permcheck(ctx, is_mod):
             return
 

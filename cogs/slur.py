@@ -150,7 +150,7 @@ class Slur(commands.Cog):
 
     @commands.command(aliases=["addsl"])
     async def addslur(self, ctx, *slur):
-        """adds a new slur to the list of slurs to detect."""
+        """adds a new slur to the list of slurs."""
         if not permcheck(ctx, is_mod):
             return
 
@@ -189,7 +189,7 @@ class Slur(commands.Cog):
 
     @commands.command(aliases=["addgw"])
     async def addgoodword(self, ctx, *word):
-        """adds a new goodword into the whitelist to not detect substring slurs in."""
+        """adds a new goodword into the whitelist."""
         if not permcheck(ctx, is_mod):
             return
 
@@ -235,7 +235,7 @@ class Slur(commands.Cog):
 
     @commands.command(aliases=["rmsl", "rmslur", "removesl"])
     async def removeslur(self, ctx, slur):
-        """removes a slur from the list to no longer be detected."""
+        """removes a slur from the list of slurs."""
         if not permcheck(ctx, is_mod):
             return
 
@@ -273,7 +273,9 @@ class Slur(commands.Cog):
 
     @commands.command(aliases=["lssl", "listsl", "lsslurs"])
     async def listslurs(self, ctx, page=1):
-        """lists slurs currently being detected by the bot, 100 slurs listed per page."""
+        """lists currently detected slurs
+
+        lists slurs currently being detected by the bot, 100 slurs listed per page."""
         if not permcheck(ctx, is_mod):
             return
 
@@ -303,7 +305,9 @@ class Slur(commands.Cog):
 
     @commands.command(aliases=["lsgw", "lsgoodwords", "listgw"])
     async def listgoodwords(self, ctx, page=1):
-        """lists goodwords currently whitlested from slur detection, 100 words listed per page"""
+        """list current goodwords
+
+        currently whitlested from slur detection, 100 words listed per page"""
         if not permcheck(ctx, is_mod):
             return
 
@@ -330,24 +334,6 @@ class Slur(commands.Cog):
             btn_view.add_item(btn_prev)
             btn_view.add_item(btn_next)
         await ctx.send(embed=embedVar, view=btn_view)
-
-    @commands.command()
-    async def reloadslur(self, ctx):
-        """reloads the lists of detected slurs and whitelisted goodwords from files"""
-        if not permcheck(ctx, is_mod):
-            return
-
-        load_goodwords()
-        load_slurs()
-
-        # Logging
-        channel = self.bot.get_channel(get_config_int('CHANNELS', 'logging'))
-        embedVar = nextcord.Embed(
-            title="Slurs and Goodwords Reloaded",
-            description="The list of slurs and goodwords in memory has been reloaded.",
-            color=nextcord.Color.from_rgb(237, 91, 6))
-        embedVar.add_field(name="Reloaded By:", value=f"{ctx.message.author.mention} ({ctx.message.author.id})")
-        await channel.send(embed=embedVar)
 
     # events
     @commands.Cog.listener()
