@@ -81,7 +81,6 @@ class Purge(commands.Cog):
             return
 
         if not await permcheck(ctx, is_senior_mod):
-            await ctx.send(f"{self.sersifail} Only Senior Moderators or higher can use this command!")
             return
 
         elif time < 1:
@@ -135,14 +134,18 @@ class Purge(commands.Cog):
         except nextcord.errors.NotFound:
             await ctx.send(f"{self.sersifail} The message specified has not been found.")
             return
+        except ValueError:
+            await ctx.send(f"{self.sersifail} Could not parse message id.")
+            return
 
         await ctx.message.delete()
-        await channel.purge(after=message)
+        deleted_msgs = await channel.purge(after=message)
 
         # LOGGING
-        await asyncio.sleep(2)
-        async for entry in ctx.guild.audit_logs(limit=1, action=nextcord.AuditLogAction.message_bulk_delete):
-            deletion_count = entry.extra['count']
+        # await asyncio.sleep(2)
+        # async for entry in ctx.guild.audit_logs(limit=1, action=nextcord.AuditLogAction.message_bulk_delete):
+        #     deletion_count = entry.extra['count']
+        deletion_count = len(deleted_msgs) - 1
 
         logging = nextcord.Embed(
             title="Messages Purged",
@@ -150,7 +153,7 @@ class Purge(commands.Cog):
         )
         logging.add_field(name="Moderator:", value=ctx.author.mention, inline=False)
         logging.add_field(name="Message Specified:", value=message.jump_url, inline=False)
-        logging.add_field(name="Messages Purged:", value=(f"{int(deletion_count) - 1}"), inline=False)
+        logging.add_field(name="Messages Purged:", value=deletion_count, inline=False)
         logging.add_field(name="Channel Purged:", value=ctx.channel.mention, inline=False)
 
         channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'logging'))
