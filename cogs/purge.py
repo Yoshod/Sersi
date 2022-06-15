@@ -24,7 +24,7 @@ class Purge(commands.Cog):
             return
 
         def user_check(msg):
-            return msg.author.id == member.id
+            return msg.author.id == int(member)
 
         if not is_mod(ctx.author):
             await ctx.send(f"{self.sersifail} Only Moderators can use this command!")
