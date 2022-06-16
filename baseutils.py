@@ -77,7 +77,7 @@ def is_staff(member: nextcord.Member):
     ]
 
     for role in member.roles:
-        if role.id in permitted_roles:  # "Staff", "certified bot tester"
+        if role.id in permitted_roles:
             return True
     return False
 
@@ -89,7 +89,18 @@ def is_mod(member: nextcord.Member):
     ]
 
     for role in member.roles:
-        if role.id in permitted_roles:  # "Moderator", "Trial Moderator", "certified bot tester"
+        if role.id in permitted_roles:
+            return True
+    return False
+
+
+def is_full_mod(member: nextcord.Member):
+    permitted_roles = [
+        get_config_int('PERMISSION ROLES', 'moderator'),
+    ]
+
+    for role in member.roles:
+        if role.id in permitted_roles:
             return True
     return False
 
@@ -160,6 +171,22 @@ def get_config_int(module, var, default=0):
     config = configparser.ConfigParser()
     config.read("config.ini")
     return config.getint(module, var, fallback=default)
+
+
+def get_config_float(module, var, default=0.0):
+    config = configparser.ConfigParser()
+    config.read("config.ini")
+    return config.getfloat(module, var, fallback=default)
+
+
+def get_config_list(module, var, default=[]):
+    config = configparser.ConfigParser()
+    config.read("config.ini")
+    value = config.get(module, var, fallback=None)
+    if value is None:
+        return default
+    else:
+        return value.split(",")
 
 
 def set_config(module, var, value):
