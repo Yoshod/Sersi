@@ -5,6 +5,7 @@ from baseutils import *
 
 class Gif(commands.Cog):
     """Autodeleteing blacklisted GIFs"""
+
     def __init__(self, bot):
         self.bot = bot
         self.filename = "gifblacklist.txt"

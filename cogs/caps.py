@@ -83,7 +83,7 @@ class Caps(commands.Cog):
 
                 channel = self.bot.get_channel(get_config_int('CHANNELS', 'logging'))
                 logging_embed = nextcord.Embed(
-                    title=f"Caps Lock Message replaced",
+                    title="Caps Lock Message replaced",
                     description="",
                     color=nextcord.Color.from_rgb(237, 91, 6)
                 )

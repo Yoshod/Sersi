@@ -36,10 +36,10 @@ class Config(commands.Cog):
         embed.add_field(name="Setting", value=setting)
         embed.add_field(name="Value", value=value)
         await interaction.message.edit(embed=embed, view=None)
-        
+
         # logging
         log_embed = nextcord.Embed(
-            title=f"New Configuration Setting Added",
+            title="New Configuration Setting Added",
             colour=nextcord.Color.from_rgb(237, 91, 6))
         log_embed.add_field(name="Staff Member:", value=interaction.user.mention, inline=False)
         log_embed.add_field(name="Section:", value=section, inline=False)
@@ -68,13 +68,13 @@ class Config(commands.Cog):
 
             if 'channels' in section.lower() or 'roles' in section.lower():
                 value = re.sub(r"[^0-9]*", "", value)
-            
+
             prev_value = get_config(section, setting, value)
             set_config(section, setting, value)
-            
+
             # logging
             log_embed = nextcord.Embed(
-                title=f"Configuration setting changed",
+                title="Configuration setting changed",
                 colour=nextcord.Color.from_rgb(237, 91, 6))
             log_embed.add_field(name="Staff Member:", value=ctx.author.mention, inline=False)
             log_embed.add_field(name="Section:", value=section, inline=False)

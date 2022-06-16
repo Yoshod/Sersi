@@ -43,7 +43,7 @@ class Probation(commands.Cog):
 
             dm_embed = nextcord.Embed(
                 title="Adam Something Central Probation",
-                description=f"Your behaviour on Adam Something Central has resulted in being put into probation by a moderator, continued rule breaking may result in swift ban",
+                description="Your behaviour on Adam Something Central has resulted in being put into probation by a moderator, continued rule breaking may result in swift ban",
                 colour=nextcord.Colour.brand_red())
             dm_embed.add_field(name="Reason specified by moderator:", value=reason, inline=False)
             await member.send(embed=dm_embed)
@@ -79,7 +79,7 @@ class Probation(commands.Cog):
 
             dm_embed = nextcord.Embed(
                 title="Adam Something Central Probation Over",
-                description=f"You were removed from probation on Adam Something Central",
+                description="You were removed from probation on Adam Something Central",
                 colour=nextcord.Colour.brand_red())
             dm_embed.add_field(name="Reason specified by moderator:", value=reason, inline=False)
             await member.send(embed=dm_embed)

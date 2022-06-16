@@ -27,7 +27,7 @@ async def permcheck(hook, function):
             await hook.send(f"{get_config('EMOTES', 'fail')} Insufficient permission!")
 
             embed = nextcord.Embed(
-                title=f"Unauthorised Command Usage",
+                title="Unauthorised Command Usage",
                 colour=nextcord.Colour.brand_red())
             embed.add_field(name="Command:", value=hook.command, inline=False)
             embed.add_field(name="Author:", value=hook.author, inline=False)
@@ -60,7 +60,7 @@ async def permcheck(hook, function):
             await hook.response.send_message("Sorry, you don't get to vote", ephemeral=True)
 
             embed = nextcord.Embed(
-                title=f"Unauthorised Interaction",
+                title="Unauthorised Interaction",
                 colour=nextcord.Colour.brand_red())
             embed.add_field(name="User:", value=hook.user, inline=False)
             embed.add_field(name="Message:", value=hook.message.jump_url, inline=False)
