@@ -141,9 +141,8 @@ def is_sersi_contrib(member: nextcord.Member):
 
 
 class ConfirmView(View):
-    def __init__(self, message, on_proceed, timeout: float = 60.0):
+    def __init__(self, on_proceed, timeout: float = 60.0):
         super().__init__(timeout=timeout)
-        self.message = message
         btn_proceed = Button(label="Proceed", style=nextcord.ButtonStyle.green)
         btn_proceed.callback = on_proceed
         btn_cancel = Button(label="Cancel", style=nextcord.ButtonStyle.red)
@@ -159,7 +158,9 @@ class ConfirmView(View):
 
     async def interaction_check(self, interaction):
         return interaction.user == interaction.message.reference.cached_message.author
-
+    
+    async def reply(self, ctx, content: str = None, embed=None):
+        self.message = await ctx.reply(content, embed=embed, view=self)
 
 async def cb_check_mod(interaction):
     return await permcheck(interaction, is_mod)
