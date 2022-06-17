@@ -8,20 +8,19 @@ class Probation(commands.Cog):
         self.sersisuccess = get_config('EMOTES', 'success')
         self.sersifail = get_config('EMOTES', 'fail')
         self.bot = bot
-        self.notModFail = f"{sersifail} Only moderators can use this command."
 
     @commands.command(aliases=['addp', 'addprob'])
-    async def addprobation(self, ctx, member: nextcord.Member, *args):
+    async def addprobation(self, ctx, member: nextcord.Member, *, reason):
         if not await permcheck(ctx, is_mod):
             return
 
         probation_role = ctx.guild.get_role(get_config_int('ROLES', 'probation'))
-        reason = " ".join(args)
+
         if reason == "":
             reason = "not specified"
 
         if probation_role in member.roles:
-            await ctx.reply("Error: member is already in probation")
+            await ctx.reply(f"{self.sersifail} member is already in probation")
         else:
             await member.add_roles(probation_role, reason=reason, atomic=True)
 
@@ -43,18 +42,17 @@ class Probation(commands.Cog):
 
             dm_embed = nextcord.Embed(
                 title="Adam Something Central Probation",
-                description="Your behaviour on Adam Something Central has resulted in being put into probation by a moderator, continued rule breaking may result in swift ban",
+                description="Your behaviour on Adam Something Central has resulted in being put into probation by a moderator, continued rule breaking may result in a ban",
                 colour=nextcord.Colour.brand_red())
             dm_embed.add_field(name="Reason specified by moderator:", value=reason, inline=False)
             await member.send(embed=dm_embed)
 
     @commands.command(aliases=['rmp', 'rmprob'])
-    async def removeprobation(self, ctx, member: nextcord.Member, *args):
+    async def removeprobation(self, ctx, member: nextcord.Member, *, reason):
         if not await permcheck(ctx, is_mod):
             return
 
         probation_role = ctx.guild.get_role(get_config_int('ROLES', 'probation'))
-        reason = " ".join(args)
 
         if probation_role not in member.roles:
             await ctx.reply("Error: cannot remove user from probation, member is currently not in probation")

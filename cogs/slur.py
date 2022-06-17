@@ -12,7 +12,6 @@ class Slur(commands.Cog):
         self.bot = bot
         self.sersisuccess = get_config('EMOTES', 'success')
         self.sersifail = get_config('EMOTES', 'fail')
-        self.notModFail = f"{sersifail} Only moderators can use this command."
         load_slurdetector()
 
     async def cb_action_taken(self, interaction):

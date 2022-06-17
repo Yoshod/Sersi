@@ -36,5 +36,27 @@ class Voice(commands.Cog):
         await channel.send(embed=embed)
 
 
+    """The following, but not limited to, examples illustrate when this event is called:
+
+    A member joins a voice or stage channel.
+    A member leaves a voice or stage channel.
+    A member is muted or deafened by their own accord.
+    A member is muted or deafened by a guild administrator.
+    """
+    @commands.Cog.listener()
+    async def on_voice_state_update(self, member, before, after):
+        channel = self.bot.get_channel(get_config_int('CHANNELS', 'logging'))
+        await channel.send(f"Voice State Update")
+        await channel.send(f"Member: {member}\nbefore: {before}\nafter: {after}")
+
+        if before.channel is None:
+            # greetings
+            await after.channel.send(f"Hello {member.mention}, welcome to {after.channel.mention}!")
+
+        elif after.channel is None:
+            # goodbye
+            await before.channel.send(f"{member.mention} has left the voice channel. Goodbye!")
+
+
 def setup(bot):
     bot.add_cog(Voice(bot))

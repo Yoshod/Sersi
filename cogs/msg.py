@@ -9,19 +9,19 @@ class Messages(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.recdms = False
+        self.sersisuccess = get_config('EMOTES', 'success')
+        self.sersifail = get_config('EMOTES', 'fail')
 
     @commands.command()
-    async def dm(self, ctx, recipient: nextcord.Member, *message):
+    async def dm(self, ctx, recipient: nextcord.Member, *, message):
         if not await permcheck(ctx, is_mod):
             return
 
-        msg = " ".join(message)
-        if msg == "":
-            return
-        elif not await permcheck(ctx, is_mod):
+        if message == "":
+            ctx.send(f"{self.sersifail} no message provided.")
             return
 
-        await recipient.send(msg)
+        await recipient.send(message)
         await ctx.send(f"{self.sersisuccess} Direkt Message sent to {recipient}!")
 
         channel = self.bot.get_channel(get_config_int('CHANNELS', 'logging'))
@@ -31,7 +31,7 @@ class Messages(commands.Cog):
             color=nextcord.Color.from_rgb(237, 91, 6))
         logging.add_field(name="Sender:", value=ctx.author.mention, inline=False)
         logging.add_field(name="Recipient:", value=recipient.mention, inline=False)
-        logging.add_field(name="Message Content:", value=msg, inline=False)
+        logging.add_field(name="Message Content:", value=message, inline=False)
         await channel.send(embed=logging)
 
     @commands.command()

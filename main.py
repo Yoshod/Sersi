@@ -23,7 +23,7 @@ async def load(ctx, extension):
 
     Loads cog.
     Permission needed: Sersi contributor"""
-    if permcheck(ctx, is_sersi_contrib):
+    if await permcheck(ctx, is_sersi_contrib):
         try:
             bot.load_extension(f"cogs.{extension}")
             await ctx.reply(f"Cog {extension} loaded.")
@@ -41,7 +41,7 @@ async def unload(ctx, extension):
 
     Unloads cog.
     Permission needed: Sersi contributor"""
-    if permcheck(ctx, is_sersi_contrib):
+    if await permcheck(ctx, is_sersi_contrib):
         try:
             bot.unload_extension(f"cogs.{extension}")
             await ctx.reply(f"Cog {extension} unloaded.")
@@ -59,7 +59,7 @@ async def reload(ctx, extension):
 
     Reloads cog. If cog wasn't loaded, loads cog.
     Permission needed: Sersi contributor"""
-    if permcheck(ctx, is_sersi_contrib):
+    if await permcheck(ctx, is_sersi_contrib):
         try:
             bot.unload_extension(f"cogs.{extension}")
             bot.load_extension(f"cogs.{extension}")
@@ -107,10 +107,10 @@ async def on_message_edit(before, after):
     bot.dispatch('message', after)
 
 
-@bot.event
-async def on_command_error(ctx, error):
-    """brings command errors to the frontend"""
-    await ctx.send(f"Error while executing command: `{error}`")
+# @bot.event
+# async def on_command_error(ctx, error):
+#     """brings command errors to the frontend"""
+#     await ctx.send(f"Error while executing command: `{error}`")
 
 
 @bot.event

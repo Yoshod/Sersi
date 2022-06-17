@@ -11,46 +11,48 @@ class Reformation(commands.Cog):
 
     # command
     @commands.command(aliases=['rn', 'reformneeded', 'reform'])
-    async def reformationneeded(self, ctx, member: nextcord.Member, *reason):
+    async def reformationneeded(self, ctx, member: nextcord.Member, *, reason):
         """send a user to reformation centre
 
         Sends a [member] to reformation centre for reform by giving said [member] the @Reformation role. Removes @Civil Engineering Initiate and all Opt-In-Roles.
         Permission Needed: Moderator, Trial Moderator
         """
+
         if not await permcheck(ctx, is_mod):
             return
 
-        reason_string = " ".join(reason)
+        # reason_string = " ".join(reason)
 
-        if reason_string.startswith("?r "):     # splices away the "?r" that moderators accustomed to wick might put in there
-            reason_string = reason_string[3:]
+        if reason.startswith("?r "):     # splices away the "?r" that moderators accustomed to wick might put in there
+            reason = reason[3:]
 
         reformation_role = ctx.guild.get_role(get_config_int('ROLES', 'reformation'))
 
-        await member.add_roles(reformation_role, reason=reason_string, atomic=True)
+        await member.add_roles(reformation_role, reason=reason, atomic=True)
 
         role_obj = ctx.guild.get_role(get_config_int('ROLES', 'civil enginerring initiate'))
-        await member.remove_roles(role_obj, reason=reason_string, atomic=True)
+        await member.remove_roles(role_obj, reason=reason, atomic=True)
 
         for role in get_options('OPT IN ROLES'):
             role_obj = ctx.guild.get_role(get_config_int('PERMISSION ROLES', role))
-            await member.remove_roles(role_obj, reason=reason_string, atomic=True)
+            await member.remove_roles(role_obj, reason=reason, atomic=True)
 
-        await ctx.send(f"Member {member.mention} has been sent to reformation by {ctx.author.mention} for reason: `{reason_string}`")
+        await ctx.send(f"Member {member.mention} has been sent to reformation by {ctx.author.mention} for reason: `{reason}`")
 
         # Giving a welcome to the person sent to reformation
-        channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'reformation'))
         welcome_embed = nextcord.Embed(
             title="Welcome to Reformation",
-            description=f"Hello {member.mention}, you have been sent to reformation by {ctx.author.mention}. The reason given for this is `{reason_string}`. \n\nFor more information on reformation check out <#{get_config_int('CHANNELS', 'reformation info')}> or talk to a <@&{get_config_int('PERMISSION ROLES', 'reformist')}>.",
+            description=f"Hello {member.mention}, you have been sent to reformation by {ctx.author.mention}. The reason given for this is `{reason}`. \n\nFor more information on reformation check out <#{get_config_int('CHANNELS', 'reformation info')}> or talk to a <@&{get_config_int('PERMISSION ROLES', 'reformist')}>.",
             color=nextcord.Color.from_rgb(237, 91, 6))
+
+        channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'reformation'))
         await channel.send(embed=welcome_embed)
 
         # # LOGGING
         embed = nextcord.Embed(
             title="User Has Been Sent to Reformation",
             description=f"Moderator {ctx.author.mention} ({ctx.author.id}) has sent user {member.mention} ({member.id}) to reformation.\n\n"
-                        + f"**__Reason:__** {reason_string}",
+                        + f"**__Reason:__** {reason}",
             color=nextcord.Color.from_rgb(237, 91, 6))
 
         channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'logging'))

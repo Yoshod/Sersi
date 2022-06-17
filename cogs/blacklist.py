@@ -26,7 +26,7 @@ class Blacklist(commands.Cog):
                 self.blacklist[int(user_id)] = reason           # if the key is not an int, the guild.get_member() won't work
 
     @commands.command(aliases=['bl', 'bluser', 'addbl', 'modblacklist'])
-    async def blacklistuser(self, ctx, member: nextcord.Member, **reason):
+    async def blacklistuser(self, ctx, member: nextcord.Member, *, reason):
         """sets user onto moderator blacklist"""
         if not await permcheck(ctx, is_dark_mod):
             return
@@ -40,7 +40,7 @@ class Blacklist(commands.Cog):
             file.write(f"{member.id};{reason_string}\n")
 
         self.loadblacklist()
-        await ctx.send("{self.sersisuccess} User added to blacklist.")
+        await ctx.send(f"{self.sersisuccess} User added to blacklist.")
 
         # LOGGING
 
@@ -91,7 +91,7 @@ class Blacklist(commands.Cog):
             for entry in self.blacklist:
                 file.write(f"{entry};{self.blacklist[entry]}\n")
 
-        await ctx.send("{self.sersisuccess} User has been removed from blacklist.")
+        await ctx.send(f"{self.sersisuccess} User has been removed from blacklist.")
 
         # LOGGING
 

@@ -91,6 +91,7 @@ class Moderators(commands.Cog):
 
         if trial_moderator not in member.roles:
             await ctx.reply(f"{self.sersifail} Member is not a trial mod")
+            return
 
         await member.remove_roles(trial_moderator, reason="Sersi makefullmod command", atomic=True)
         await member.add_roles(moderator, reason="Sersi makefullmod command", atomic=True)
@@ -110,20 +111,20 @@ class Moderators(commands.Cog):
         await channel.send(embed=log_embed)
 
     @commands.command(aliases=['purgemod', 'purge_mod'])
-    async def removefrommod(self, ctx, member: nextcord.Member, *reason):
+    async def removefrommod(self, ctx, member: nextcord.Member, *, reason=""):
         if not await permcheck(ctx, is_senior_mod):
             return
 
-        reason_string = " ".join(reason)
         if reason == "":
             await ctx.send(f"{ctx.author.mention} please provide a reason.")
+            return
 
         for role in get_options('PERMISSION ROLES'):
             role_obj = ctx.guild.get_role(get_config_int('PERMISSION ROLES', role))
-            await member.remove_roles(role_obj, reason=reason_string, atomic=True)
+            await member.remove_roles(role_obj, reason=reason, atomic=True)
 
         await ctx.send(f"{self.sersisuccess} {member.mention} has been dishonourly discharged from the staff team. Good riddance!")
-        await ctx.invoke(self.bot.get_command('blacklistuser'), member=member, reason=reason_string)
+        await ctx.invoke(self.bot.get_command('blacklistuser'), member=member, reason=reason)
 
         # logging
         log_embed = nextcord.Embed(
@@ -131,6 +132,7 @@ class Moderators(commands.Cog):
         )
         log_embed.add_field(name="Responsible Moderator:", value=ctx.author.mention, inline=False)
         log_embed.add_field(name="Purged Moderator:", value=member.mention, inline=False)
+        log_embed.add_field(name="Reason:", value=reason, inline=False)
 
         channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'logging'))
         await channel.send(embed=log_embed)
