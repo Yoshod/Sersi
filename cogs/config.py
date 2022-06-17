@@ -88,7 +88,7 @@ class Config(commands.Cog):
             dialog_embed.add_field(name="Setting", value=setting)
             dialog_embed.add_field(name="Value", value=value)
 
-            await ConfirmView(self.cb_create_proceed).reply(ctx, embed=dialog_embed)
+            await ConfirmView(self.cb_create_proceed).send_as_reply(ctx, embed=dialog_embed)
 
     @commands.command()
     async def reloadbot(self, ctx):

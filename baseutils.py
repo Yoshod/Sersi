@@ -158,8 +158,8 @@ class ConfirmView(View):
 
     async def interaction_check(self, interaction):
         return interaction.user == interaction.message.reference.cached_message.author
-    
-    async def reply(self, ctx, content: str = None, embed=None):
+
+    async def send_as_reply(self, ctx, content: str = None, embed=None):
         self.message = await ctx.reply(content, embed=embed, view=self)
 
 async def cb_check_mod(interaction):
