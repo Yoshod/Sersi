@@ -162,6 +162,7 @@ class ConfirmView(View):
     async def send_as_reply(self, ctx, content: str = None, embed=None):
         self.message = await ctx.reply(content, embed=embed, view=self)
 
+
 async def cb_check_mod(interaction):
     return await permcheck(interaction, is_mod)
 
