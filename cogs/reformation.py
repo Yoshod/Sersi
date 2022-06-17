@@ -60,9 +60,6 @@ class Reformation(commands.Cog):
         await channel.send(embed=embed)
 
     async def cb_rq_yes(self, interaction):
-        if not await permcheck(interaction, is_mod):
-            return
-
         new_embed = interaction.message.embeds[0]
 
         # check if user has already voted
@@ -118,9 +115,6 @@ class Reformation(commands.Cog):
         await interaction.message.edit(embed=new_embed)
 
     async def cb_rf_yes(self, interaction):
-        if not await permcheck(interaction, is_mod):
-            return
-
         new_embed = interaction.message.embeds[0]
         # check if user has already voted
         for field in new_embed.fields:
@@ -165,9 +159,6 @@ class Reformation(commands.Cog):
         await interaction.message.edit(embed=new_embed)
 
     async def cb_no(self, interaction):
-        if not await permcheck(interaction, is_mod):
-            return
-
         new_embed = interaction.message.embeds[0]
         # check if user has already voted
         for field in new_embed.fields:
@@ -180,9 +171,6 @@ class Reformation(commands.Cog):
         await interaction.message.edit(embed=new_embed)
 
     async def cb_maybe(self, interaction):
-        if not await permcheck(interaction, is_mod):
-            return
-
         new_embed = interaction.message.embeds[0]
         # check if user has already voted
         for field in new_embed.fields:
@@ -236,14 +224,12 @@ class Reformation(commands.Cog):
         button_view.add_item(yes)
         button_view.add_item(no)
         button_view.add_item(maybe)
+        button_view.interaction_check = cb_check_mod
 
         channel = self.bot.get_channel(get_config_int('CHANNELS', 'alert'))
         await channel.send(embed=embedVar, view=button_view)
 
     async def cb_done(self, interaction):
-        if not await permcheck(interaction, is_mod):
-            return
-
         embed = interaction.message.embeds[0]
         embed.add_field(name="User was or is banned:", value=interaction.user.mention, inline=True)
         embed.color = nextcord.Color.from_rgb(0, 255, 0)
@@ -292,6 +278,7 @@ class Reformation(commands.Cog):
         button_view.add_item(yes)
         button_view.add_item(no)
         button_view.add_item(maybe)
+        button_view.interaction_check = cb_check_mod
 
         channel = self.bot.get_channel(get_config_int('CHANNELS', 'alert'))
         await channel.send(embed=embedVar, view=button_view)
@@ -310,6 +297,7 @@ class Reformation(commands.Cog):
             done.callback = self.cb_done
             button_view = View(timeout=None)
             button_view.add_item(done)
+            button_view.interaction_check = cb_check_mod
             await channel.send(embed=embed, view=button_view)
 
 

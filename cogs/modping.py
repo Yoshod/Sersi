@@ -11,9 +11,6 @@ class ModPing(commands.Cog):
         self.bot = bot
 
     async def cb_action_taken(self, interaction):
-        if not await permcheck(interaction, is_mod):
-            return
-
         new_embed = interaction.message.embeds[0]
         new_embed.add_field(name="Action Taken By", value=interaction.user.mention, inline=True)
         new_embed.colour = nextcord.Colour.brand_green()
@@ -29,9 +26,6 @@ class ModPing(commands.Cog):
         await channel.send(embed=embedLogVar)
 
     async def cb_action_not_neccesary(self, interaction):
-        if not await permcheck(interaction, is_mod):
-            return
-
         new_embed = interaction.message.embeds[0]
         new_embed.add_field(name="Action Not Neccesary", value=interaction.user.mention, inline=True)
         new_embed.colour = nextcord.Colour.light_grey()
@@ -47,9 +41,6 @@ class ModPing(commands.Cog):
         await channel.send(embed=embedLogVar)
 
     async def cb_bad_faith_ping(self, interaction):
-        if not await permcheck(interaction, is_mod):
-            return
-
         new_embed = interaction.message.embeds[0]
         new_embed.add_field(name="Bad Faith Ping", value=interaction.user.mention, inline=True)
         new_embed.colour = nextcord.Colour.brand_red()
@@ -108,6 +99,7 @@ class ModPing(commands.Cog):
             button_view.add_item(action_taken)
             button_view.add_item(action_not_neccesary)
             button_view.add_item(bad_faith_ping)
+            button_view.interaction_check = cb_check_mod
 
             await channel.send(embed=embedVar, view=button_view)
 
@@ -134,6 +126,7 @@ class ModPing(commands.Cog):
             button_view = View(timeout=None)
             button_view.add_item(action_taken)
             button_view.add_item(action_not_neccesary)
+            button_view.interaction_check = cb_check_mod
 
             await channel.send(embed=embedVar, view=button_view)
 

@@ -139,7 +139,12 @@ def is_sersi_contrib(member: nextcord.Member):
     return False
 
 
+async def cb_check_mod(interaction):
+    return await permcheck(interaction, is_mod)
+
+
 # config stuff below
+
 
 def get_options(module):
     config = configparser.ConfigParser()

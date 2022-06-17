@@ -15,9 +15,6 @@ class Slur(commands.Cog):
         load_slurdetector()
 
     async def cb_action_taken(self, interaction):
-        if not await permcheck(interaction, is_mod):
-            return
-
         new_embed = interaction.message.embeds[0]
         new_embed.add_field(name="Action Taken By", value=interaction.user.mention, inline=False)
         new_embed.colour = nextcord.Colour.brand_green()
@@ -34,9 +31,6 @@ class Slur(commands.Cog):
         await channel.send(embed=embedLogVar)
 
     async def cb_acceptable_use(self, interaction):
-        if not await permcheck(interaction, is_mod):
-            return
-
         new_embed = interaction.message.embeds[0]
         new_embed.add_field(name="Usage Deemed Acceptable By", value=interaction.user.mention, inline=False)
         new_embed.colour = nextcord.Colour.light_grey()
@@ -53,9 +47,6 @@ class Slur(commands.Cog):
         await channel.send(embed=embedLogVar)
 
     async def cb_false_positive(self, interaction):
-        if not await permcheck(interaction, is_mod):
-            return
-
         new_embed = interaction.message.embeds[0]
         new_embed.add_field(name="Deemed As False Positive By:", value=interaction.user.mention, inline=False)
         new_embed.colour = nextcord.Colour.brand_red()
@@ -373,6 +364,7 @@ class Slur(commands.Cog):
             button_view.add_item(action_taken)
             button_view.add_item(acceptable_use)
             button_view.add_item(false_positive)
+            button_view.interaction_check = cb_check_mod
 
             await channel.send(embed=slurembed, view=button_view)
 
