@@ -1,7 +1,6 @@
 import configparser
 import nextcord
 from nextcord.ui import View, Button
-from inspect import currentframe
 
 # 856262303795380224 asc guild id
 # 977377117895536640 mfs guild id
@@ -142,8 +141,9 @@ def is_sersi_contrib(member: nextcord.Member):
 
 
 class ConfirmView(View):
-    def __init__(self, on_proceed, timeout: float = 60.0):
+    def __init__(self, message, on_proceed, timeout: float = 60.0):
         super().__init__(timeout=timeout)
+        self.message = message
         btn_proceed = Button(label="Proceed", style=nextcord.ButtonStyle.green)
         btn_proceed.callback = on_proceed
         btn_cancel = Button(label="Cancel", style=nextcord.ButtonStyle.red)
@@ -159,10 +159,6 @@ class ConfirmView(View):
 
     async def interaction_check(self, interaction):
         return interaction.user == interaction.message.reference.cached_message.author
-
-    def to_components(self):
-        self.message = currentframe().f_back.f_locals['self']
-        return super().to_components()
 
 
 async def cb_check_mod(interaction):
