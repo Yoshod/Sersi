@@ -3,7 +3,6 @@ import nextcord
 import re
 
 from nextcord.ext import commands
-from nextcord.ui import Button, View
 from baseutils import *
 
 
@@ -14,9 +13,6 @@ class Config(commands.Cog):
         self.sersifail = get_config('EMOTES', 'fail')
 
     async def cb_create_proceed(self, interaction):
-        if not interaction.user == interaction.message.reference.cached_message.author:
-            return
-
         section, setting, value = "", "", ""
         for field in interaction.message.embeds[0].fields:
             if field.name == "Section":
@@ -48,13 +44,6 @@ class Config(commands.Cog):
 
         channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'logging'))
         await channel.send(embed=log_embed)
-
-    async def cb_cancel(self, interaction):
-        if not interaction.user == interaction.message.reference.cached_message.author:
-            return
-
-        await interaction.message.delete()
-        await interaction.message.reference.cached_message.reply("Action canceled!")
 
     @commands.command(aliases=['set'])
     async def setsetting(self, ctx, section, setting, value):
@@ -99,17 +88,8 @@ class Config(commands.Cog):
             dialog_embed.add_field(name="Setting", value=setting)
             dialog_embed.add_field(name="Value", value=value)
 
-            btn_confirm = Button(label="Proceed", style=nextcord.ButtonStyle.green)
-            btn_confirm.callback = self.cb_create_proceed
-
-            btn_cancel = Button(label="Cancel", style=nextcord.ButtonStyle.red)
-            btn_cancel.callback = self.cb_cancel
-
-            btn_view = View()
-            btn_view.add_item(btn_confirm)
-            btn_view.add_item(btn_cancel)
-
-            await ctx.reply(embed=dialog_embed, view=btn_view)
+            message = await ctx.reply(embed=dialog_embed)
+            await message.edit(view=ConfirmView(message, self.cb_create_proceed))
 
     @commands.command()
     async def reloadbot(self, ctx):

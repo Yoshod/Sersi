@@ -1,5 +1,6 @@
 import configparser
 import nextcord
+from nextcord.ui import View, Button
 
 # 856262303795380224 asc guild id
 # 977377117895536640 mfs guild id
@@ -137,6 +138,27 @@ def is_sersi_contrib(member: nextcord.Member):
         if role.id in permitted_roles:
             return True
     return False
+
+
+class ConfirmView(View):
+    def __init__(self, message, on_proceed, timeout: float = 60.0):
+        super().__init__(timeout=timeout)
+        self.message = message
+        btn_proceed = Button(label="Proceed", style=nextcord.ButtonStyle.green)
+        btn_proceed.callback = on_proceed
+        btn_cancel = Button(label="Cancel", style=nextcord.ButtonStyle.red)
+        btn_cancel.callback = self.cb_cancel
+        self.add_item(btn_proceed)
+        self.add_item(btn_cancel)
+
+    async def cb_cancel(self, interaction):
+        await interaction.message.edit("Action canceled!", embed=None, view=None)
+
+    async def on_timeout(self):
+        await self.message.edit("Action timed out!", embed=None, view=None)
+
+    async def interaction_check(self, interaction):
+        return interaction.user == interaction.message.reference.cached_message.author
 
 
 async def cb_check_mod(interaction):
