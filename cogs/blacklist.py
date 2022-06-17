@@ -34,10 +34,8 @@ class Blacklist(commands.Cog):
             await ctx.send(f"{self.sersifail} {member} already on blacklist!")
             return
 
-        reason_string = " ".join(reason)
-
         with open(self.filename, "a") as file:
-            file.write(f"{member.id};{reason_string}\n")
+            file.write(f"{member.id};{reason}\n")
 
         self.loadblacklist()
         await ctx.send(f"{self.sersisuccess} User added to blacklist.")

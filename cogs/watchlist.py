@@ -26,7 +26,7 @@ class Watchlist(commands.Cog):
                 self.watchlist[int(user_id)] = reason           # if the key is not an int, the guild.get_member() won't work
 
     @commands.command(aliases=['wl', 'wluser', 'addwl', 'watchlist'])
-    async def watchlistuser(self, ctx, member: nextcord.Member, **reason):
+    async def watchlistuser(self, ctx, member: nextcord.Member, *, reason):
         """sets user onto moderator watchlist"""
         if not await permcheck(ctx, is_dark_mod):
             return
@@ -34,10 +34,8 @@ class Watchlist(commands.Cog):
             await ctx.send(f"{self.sersifail} {member} already on watchlist!")
             return
 
-        reason_string = " ".join(reason)
-
         with open(self.filename, "a") as file:
-            file.write(f"{member.id};{reason_string}\n")
+            file.write(f"{member.id};{reason}\n")
 
         self.loadwatchlist()
         await ctx.send(f"{self.sersisuccess} User added to watchlist.")

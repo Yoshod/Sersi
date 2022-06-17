@@ -107,10 +107,10 @@ async def on_message_edit(before, after):
     bot.dispatch('message', after)
 
 
-# @bot.event
-# async def on_command_error(ctx, error):
-#     """brings command errors to the frontend"""
-#     await ctx.send(f"Error while executing command: `{error}`")
+@bot.event
+async def on_command_error(ctx, error):
+    """brings command errors to the frontend"""
+    await ctx.send(f"Error while executing command: `{error}`")
 
 
 @bot.event

@@ -21,8 +21,6 @@ class Reformation(commands.Cog):
         if not await permcheck(ctx, is_mod):
             return
 
-        # reason_string = " ".join(reason)
-
         if reason.startswith("?r "):     # splices away the "?r" that moderators accustomed to wick might put in there
             reason = reason[3:]
 
