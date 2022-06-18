@@ -1,5 +1,4 @@
 import nextcord
-import sys
 from nextcord.ext import commands
 from baseutils import *
 
@@ -20,15 +19,13 @@ class ErrorHandling(commands.Cog):
         if channel is None:
             await ctx.send(f"Error while executing command: `{error}`")
         else:
-            (errno, value, traceback) = sys.exc_info()
             error_embed = nextcord.Embed(
                 title="An Error Has Occurred",
                 color=nextcord.Color.from_rgb(208, 29, 29))
             error_embed.add_field(name="Server:", value=(f"{error_details[0]} ({error_details[1]})"), inline=False)
             error_embed.add_field(name="Channel:", value=(f"{error_details[2]} ({error_details[3]})"), inline=False)
-            error_embed.add_field(name="Errno:", value=errno, inline=False)
-            error_embed.add_field(name="Value:", value=value, inline=False)
-            error_embed.add_field(name="Traceback:", value=traceback, inline=False)
+            error_embed.add_field(name="Command:", value=ctx.message.content, inline=False)
+            error_embed.add_field(name="Error:", value=error, inline=False)
             error_embed.add_field(name="URL:", value=error_details[4], inline=False)
             await channel.send(f"Error while executing command: `{error}`", embed=error_embed)
 
