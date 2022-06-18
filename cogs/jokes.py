@@ -25,12 +25,13 @@ class Jokes(commands.Cog):
 
     @commands.command()
     async def uwu(self, ctx, *, message):
+        """OwO *nuzzles the command*"""
         def generate_uwu(input_text: str) -> str:
             """Shamelessly stolen from https://www.geeksforgeeks.org/uwu-text-convertor-in-python/
             well, i modified it"""
 
             output_text = ''
-            previous_char = 0
+            previous_char = '\0'
             # check the cases for every individual character
             for current_char in input_text:
 
@@ -42,8 +43,7 @@ class Jokes(commands.Cog):
                 elif current_char in ['l', 'r']:
                     output_text += 'w'
 
-                # if the current character is 'o' or 'O'
-                # also check the previous character
+                # if the current character is 'o' or 'O'and the previos one is 'N', 'n', 'M' or 'm'
                 elif current_char in ['O', 'o']:
                     if previous_char in ['N', 'n', 'M', 'm']:
                         output_text += 'yo'
