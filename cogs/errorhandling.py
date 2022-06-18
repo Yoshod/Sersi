@@ -27,7 +27,7 @@ class ErrorHandling(commands.Cog):
             error_embed.add_field(name="Command:", value=ctx.message.content, inline=False)
             error_embed.add_field(name="Error:", value=error, inline=False)
             error_embed.add_field(name="URL:", value=error_details[4], inline=False)
-            await channel.send(f"Error while executing command: `{error}`", embed=error_embed)
+            await channel.send(embed=error_embed)
 
             channel = ctx.channel.id
             error_receipt = nextcord.Embed(
