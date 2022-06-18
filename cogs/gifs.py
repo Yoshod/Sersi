@@ -38,7 +38,7 @@ class Gif(commands.Cog):
             file.write(f"{url}\n")
         self.list = self.loadlist()
 
-        ctx.send(f"{self.sersisuccess} GIF URL `{url}` added to blacklist.")
+        await ctx.send(f"{self.sersisuccess} GIF URL `{url}` added to blacklist.")
 
         # logging
         embed = nextcord.Embed(
@@ -60,8 +60,6 @@ class Gif(commands.Cog):
 
         if url in self.list:
             self.list.remove(url)
-
-        print(f"list before file write {self.list}")
 
         with open(self.filename, "w") as file:
             for gif in self.list:
