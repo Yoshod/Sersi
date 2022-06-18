@@ -23,6 +23,56 @@ class Jokes(commands.Cog):
             colour=nextcord.Color.from_rgb(237, 91, 6))
         await ctx.send(embed=nevermod_embed)
 
+    @commands.command()
+    async def uwu(self, ctx, *, message):
+        def generate_uwu(input_text: str) -> str:
+            """Shamelessly stolen from https://www.geeksforgeeks.org/uwu-text-convertor-in-python/
+            well, i modified it"""
+
+            output_text = ''
+            previous_char = 0
+            # check the cases for every individual character
+            for current_char in input_text:
+
+                # change 'L' and 'R' to 'W'
+                if current_char in ['L', 'R']:
+                    output_text += 'W'
+
+                # change 'l' and 'r' to 'w'
+                elif current_char in ['l', 'r']:
+                    output_text += 'w'
+
+                # if the current character is 'o' or 'O'
+                # also check the previous character
+                elif current_char in ['O', 'o']:
+                    if previous_char in ['N', 'n', 'M', 'm']:
+                        output_text += 'yo'
+                    else:
+                        output_text += current_char
+
+                # if no case match, write it as it is
+                else:
+                    output_text += current_char
+
+                previous_char = current_char
+
+            return output_text
+
+        await ctx.message.delete(delay=None)
+
+        channel_webhooks = await ctx.channel.webhooks()
+        msg_sent = False
+
+        for webhook in channel_webhooks:                  # tries to find existing webhook
+            if webhook.name == "caps webhook by sersi":
+                await webhook.send(generate_uwu(message), username=generate_uwu(ctx.author.display_name), avatar_url=ctx.author.display_avatar.url)
+                msg_sent = True
+
+        if not msg_sent:                          # creates webhook if none found
+            webhook = await message.channel.create_webhook(name="caps webhook by sersi")
+            await webhook.send(generate_uwu(message), username=generate_uwu(ctx.author.display_name), avatar_url=ctx.author.display_avatar.url)
+            msg_sent = True
+
     # events
     @commands.Cog.listener()
     async def on_message(self, message):
