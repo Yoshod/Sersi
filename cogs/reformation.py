@@ -224,7 +224,7 @@ class Reformation(commands.Cog):
         button_view.add_item(yes)
         button_view.add_item(no)
         button_view.add_item(maybe)
-        button_view.interaction_check = cb_check_mod
+        button_view.interaction_check = cb_is_mod
 
         channel = self.bot.get_channel(get_config_int('CHANNELS', 'alert'))
         await channel.send(embed=embedVar, view=button_view)
@@ -278,7 +278,7 @@ class Reformation(commands.Cog):
         button_view.add_item(yes)
         button_view.add_item(no)
         button_view.add_item(maybe)
-        button_view.interaction_check = cb_check_mod
+        button_view.interaction_check = cb_is_mod
 
         channel = self.bot.get_channel(get_config_int('CHANNELS', 'alert'))
         await channel.send(embed=embedVar, view=button_view)
@@ -297,7 +297,7 @@ class Reformation(commands.Cog):
             done.callback = self.cb_done
             button_view = View(timeout=None)
             button_view.add_item(done)
-            button_view.interaction_check = cb_check_mod
+            button_view.interaction_check = cb_is_mod
             await channel.send(embed=embed, view=button_view)
 
 
