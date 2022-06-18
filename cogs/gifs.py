@@ -15,6 +15,7 @@ class Gif(commands.Cog):
         except FileExistsError:             # ignores error if it does
             pass
         self.list = self.loadlist()
+        self.sersisuccess = get_config('EMOTES', 'success')
 
     def loadlist(self):
         giflist = []
@@ -29,9 +30,6 @@ class Gif(commands.Cog):
         """Adds a GIF to the blacklist
 
         URL must be provided"""
-        if not await permcheck(ctx, is_mod):
-            return
-
         await ctx.message.delete()
         if not await permcheck(ctx, is_mod):
             return
@@ -39,6 +37,8 @@ class Gif(commands.Cog):
         with open(self.filename, "a") as file:
             file.write(f"{url}\n")
         self.list = self.loadlist()
+
+        ctx.send(f"{self.sersisuccess} GIF URL `{url}` added to blacklist.")
 
         # logging
         embed = nextcord.Embed(
