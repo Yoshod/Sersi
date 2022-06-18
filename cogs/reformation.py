@@ -9,6 +9,50 @@ class Reformation(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    async def cb_rn_proceed(self, interaction):
+        member_id, reason = 0, ""
+        for field in interaction.message.embeds[0].fields:
+            if field.name == "User ID":
+                member_id = int(field.value)
+            elif field.name == "Reason":
+                reason = field.value
+        member = interaction.guild.get_member(member_id)
+
+        reformation_role = interaction.guild.get_role(get_config_int('ROLES', 'reformation'))
+
+        await member.add_roles(reformation_role, reason=reason, atomic=True)
+
+        role_obj = interaction.guild.get_role(get_config_int('ROLES', 'civil enginerring initiate'))
+        await member.remove_roles(role_obj, reason=reason, atomic=True)
+
+        for role in get_options('OPT IN ROLES'):
+            role_obj = interaction.guild.get_role(get_config_int('PERMISSION ROLES', role))
+            await member.remove_roles(role_obj, reason=reason, atomic=True)
+
+        await interaction.message.edit(f"Member {member.mention} has been sent to reformation by {interaction.user.mention} for reason: `{reason}`", embed=None, view=None)
+
+        # Giving a welcome to the person sent to reformation
+        welcome_embed = nextcord.Embed(
+            title="Welcome to Reformation",
+            description=f"Hello {member.mention}, you have been sent to reformation by {interaction.user.mention}. The reason given for this is `{reason}`. \n\nFor more information on reformation check out <#{get_config_int('CHANNELS', 'reformation info')}> or talk to a <@&{get_config_int('PERMISSION ROLES', 'reformist')}>.",
+            color=nextcord.Color.from_rgb(237, 91, 6))
+
+        channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'reformation'))
+        await channel.send(embed=welcome_embed)
+
+        # # LOGGING
+        embed = nextcord.Embed(
+            title="User Has Been Sent to Reformation",
+            description=f"Moderator {interaction.user.mention} ({interaction.user.id}) has sent user {member.mention} ({member.id}) to reformation.\n\n"
+                        + f"**__Reason:__** {reason}",
+            color=nextcord.Color.from_rgb(237, 91, 6))
+
+        channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'logging'))
+        await channel.send(embed=embed)
+
+        channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'modlogs'))
+        await channel.send(embed=embed)
+
     # command
     @commands.command(aliases=['rn', 'reformneeded', 'reform'])
     async def reformationneeded(self, ctx, member: nextcord.Member, *, reason):
@@ -23,41 +67,16 @@ class Reformation(commands.Cog):
 
         if reason.startswith("?r "):     # splices away the "?r" that moderators accustomed to wick might put in there
             reason = reason[3:]
-
-        reformation_role = ctx.guild.get_role(get_config_int('ROLES', 'reformation'))
-
-        await member.add_roles(reformation_role, reason=reason, atomic=True)
-
-        role_obj = ctx.guild.get_role(get_config_int('ROLES', 'civil enginerring initiate'))
-        await member.remove_roles(role_obj, reason=reason, atomic=True)
-
-        for role in get_options('OPT IN ROLES'):
-            role_obj = ctx.guild.get_role(get_config_int('PERMISSION ROLES', role))
-            await member.remove_roles(role_obj, reason=reason, atomic=True)
-
-        await ctx.send(f"Member {member.mention} has been sent to reformation by {ctx.author.mention} for reason: `{reason}`")
-
-        # Giving a welcome to the person sent to reformation
-        welcome_embed = nextcord.Embed(
-            title="Welcome to Reformation",
-            description=f"Hello {member.mention}, you have been sent to reformation by {ctx.author.mention}. The reason given for this is `{reason}`. \n\nFor more information on reformation check out <#{get_config_int('CHANNELS', 'reformation info')}> or talk to a <@&{get_config_int('PERMISSION ROLES', 'reformist')}>.",
+        
+        dialog_embed = nextcord.Embed(
+            title="Reform Member",
+            description="Following member will be sent to reformation:",
             color=nextcord.Color.from_rgb(237, 91, 6))
+        dialog_embed.add_field(name="User", value=member.mention)
+        dialog_embed.add_field(name="User ID", value=member.id)
+        dialog_embed.add_field(name="Reason", value=reason)
 
-        channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'reformation'))
-        await channel.send(embed=welcome_embed)
-
-        # # LOGGING
-        embed = nextcord.Embed(
-            title="User Has Been Sent to Reformation",
-            description=f"Moderator {ctx.author.mention} ({ctx.author.id}) has sent user {member.mention} ({member.id}) to reformation.\n\n"
-                        + f"**__Reason:__** {reason}",
-            color=nextcord.Color.from_rgb(237, 91, 6))
-
-        channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'logging'))
-        await channel.send(embed=embed)
-
-        channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'modlogs'))
-        await channel.send(embed=embed)
+        await ConfirmView(self.cb_rn_proceed).send_as_reply(ctx, embed=dialog_embed)
 
     async def cb_rq_yes(self, interaction):
         new_embed = interaction.message.embeds[0]
