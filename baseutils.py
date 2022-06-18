@@ -20,7 +20,7 @@ def modmention_check(messageData):
     return False
 
 
-async def interaction_is_mod(interaction):
+async def cb_check_mod(interaction):
     return await permcheck(interaction, is_mod)
 
 
