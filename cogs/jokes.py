@@ -73,6 +73,15 @@ class Jokes(commands.Cog):
             await webhook.send(generate_uwu(message), username=generate_uwu(ctx.author.display_name), avatar_url=ctx.author.display_avatar.url)
             msg_sent = True
 
+    @commands.command(aliases=["coin", "coinflip"])
+    async def flip(self, ctx):
+        flip_result = random.randint(1, 2)
+        if flip_result == 2:
+            await ctx.reply("https://tenor.com/view/heads-coinflip-flip-a-coin-coin-coins-gif-21479854")
+        elif flip_result == 1:
+            await ctx.reply("https://tenor.com/view/coins-tails-coin-flip-a-coin-coinflip-gif-21479856")
+
+
     # events
     @commands.Cog.listener()
     async def on_message(self, message):
