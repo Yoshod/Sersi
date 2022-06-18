@@ -99,7 +99,7 @@ class ModPing(commands.Cog):
             button_view.add_item(action_taken)
             button_view.add_item(action_not_neccesary)
             button_view.add_item(bad_faith_ping)
-            button_view.interaction_check = cb_check_mod
+            button_view.interaction_check = interaction_is_mod
 
             await channel.send(embed=embedVar, view=button_view)
 
@@ -126,7 +126,7 @@ class ModPing(commands.Cog):
             button_view = View(timeout=None)
             button_view.add_item(action_taken)
             button_view.add_item(action_not_neccesary)
-            button_view.interaction_check = cb_check_mod
+            button_view.interaction_check = interaction_is_mod
 
             await channel.send(embed=embedVar, view=button_view)
 
