@@ -364,7 +364,7 @@ class Slur(commands.Cog):
             button_view.add_item(action_taken)
             button_view.add_item(acceptable_use)
             button_view.add_item(false_positive)
-            button_view.interaction_check = cb_check_mod
+            button_view.interaction_check = interaction_is_mod
 
             await channel.send(embed=slurembed, view=button_view)
 
