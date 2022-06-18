@@ -67,7 +67,7 @@ class Probation(commands.Cog):
                 color=nextcord.Color.from_rgb(237, 91, 6))
             dialog_embed.add_field(name="User", value=member.mention)
             dialog_embed.add_field(name="User ID", value=member.id)
-            dialog_embed.add_field(name="Reason", value=reason)
+            dialog_embed.add_field(name="Reason", value=reason, inline=False)
 
             await ConfirmView(self.cb_addprob_proceed).send_as_reply(ctx, embed=dialog_embed)
 
@@ -126,7 +126,7 @@ class Probation(commands.Cog):
                 color=nextcord.Color.from_rgb(237, 91, 6))
             dialog_embed.add_field(name="User", value=member.mention)
             dialog_embed.add_field(name="User ID", value=member.id)
-            dialog_embed.add_field(name="Reason", value=reason)
+            dialog_embed.add_field(name="Reason", value=reason, inline=False)
 
             await ConfirmView(self.cb_rmprob_proceed).send_as_reply(ctx, embed=dialog_embed)
 
