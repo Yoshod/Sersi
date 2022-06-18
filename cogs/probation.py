@@ -34,7 +34,11 @@ class Probation(commands.Cog):
         log_embed.add_field(name="Moderator:", value=interaction.user.mention, inline=False)
         log_embed.add_field(name="Member:", value=member.mention, inline=False)
         log_embed.add_field(name="Reason:", value=reason, inline=False)
-        log_channel = interaction.user.guild.get_channel(get_config_int('CHANNELS', 'logging'))
+
+        log_channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'logging'))
+        await log_channel.send(embed=log_embed)
+
+        log_channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'modlogs'))
         await log_channel.send(embed=log_embed)
 
         dm_embed = nextcord.Embed(
@@ -89,10 +93,14 @@ class Probation(commands.Cog):
             title="Member removed from Probation",
             color=nextcord.Color.from_rgb(237, 91, 6)
         )
-        log_embed.add_field(name="Moderator:", value=interaction.user.author.mention, inline=False)
+        log_embed.add_field(name="Moderator:", value=interaction.user.mention, inline=False)
         log_embed.add_field(name="Member:", value=member.mention, inline=False)
         log_embed.add_field(name="Reason:", value=reason, inline=False)
-        log_channel = interaction.user.guild.get_channel(get_config_int('CHANNELS', 'logging'))
+
+        log_channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'logging'))
+        await log_channel.send(embed=log_embed)
+
+        log_channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'modlogs'))
         await log_channel.send(embed=log_embed)
 
         dm_embed = nextcord.Embed(
