@@ -7,6 +7,7 @@ import time
 
 from nextcord.ext import commands
 from baseutils import *
+from downdetection import down_detection
 
 intents = nextcord.Intents.all()
 intents.members = True
@@ -149,5 +150,6 @@ async def on_message(message):
 
     await bot.process_commands(message)
 
+down_detection()
 token = discordTokens.getToken()
 bot.run(token)
