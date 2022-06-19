@@ -34,53 +34,12 @@ class Messages(commands.Cog):
         logging.add_field(name="Message Content:", value=message, inline=False)
         await channel.send(embed=logging)
 
-    @commands.command()
-    async def dmTest(self, ctx, userId=None, *, args=None):
-        if is_mod(ctx.author):
-            if userId is not None and args is not None:
-                target = userId
-                targetId = "Null"
-                for i in range(len(target)):
-                    currentChar = target[i]
-                    charTest = currentChar.isdigit()
-                    print(charTest)
-                    if charTest is True and targetId != "Null":
-                        targetId = str(targetId) + str(target[i])
-                        print("Character is number")
-                    elif charTest is True and targetId == "Null":
-                        targetId = str(target[i])
-                targetId = int(targetId)
-                user = bot.get_user(targetId)
-                try:
-                    await user.send(args)
-
-                except:
-                    await ctx.send("The message failed to send. Reason: Could not DM user.")
-
-                # Logging
-                channel = self.bot.get_channel(get_config_int('CHANNELS', 'logging'))
-                embedVar = nextcord.Embed(
-                    title="DM Sent",
-                    description=f"A DM has been sent.\n\n__Sender:__\n{ctx.author.mention}\n\n__Recipient:__\n{userId}\n\n__Message Content:__\n{args}",
-                    color=nextcord.Color.from_rgb(237, 91, 6))
-                await channel.send(embed=embedVar)
-
-            elif userId is None and args is not None:
-                await ctx.send("No user was specified.")
-
-            elif userId is not None and args is None:
-                await ctx.send("No message was specified.")
-            else:
-                await ctx.send("How the fuck did this error appear?")
-        else:
-            await ctx.send(f"{self.sersifail} Only moderators can use this command.")
-
     @commands.Cog.listener()
     async def on_message(self, message):
         if not get_config_bool("MSG", "forward dms", False):
             return
 
-        dm_channel = self.bot.get_channel(get_config_int("CHANNELS", "secret"))
+        dm_channel = self.bot.get_channel(get_config_int("CHANNELS", "dm forward"))
         channel_webhooks = await dm_channel.webhooks()
         msg_sent = False
 
