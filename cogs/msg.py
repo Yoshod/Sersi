@@ -42,7 +42,7 @@ class Messages(commands.Cog):
 
     @commands.command(aliases=['da', 'deanonymize'])
     async def deanonymise(self, ctx, id_num, *, reason=""):
-        if not await permcheck(ctx, is_dark_mod):
+        if not await permcheck(ctx, is_senior_mod):
             return
         elif reason == "":
             await ctx.send(f"{self.sersifail} Please provide a reason!")
