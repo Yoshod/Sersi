@@ -118,16 +118,20 @@ class Messages(commands.Cog):
                 pass
 
         try:
-            member_snowflake = secretlist[id_num]
+            member_snowflake, nonce_snowflake, tag_snowflake = secretlist[id_num]
         except KeyError:
             await ctx.send(f"{self.sersifail} No entry found with ID {id_num}")
             return
 
-        member_id = unencrypt_data(member_snowflake)
+        member_id = unencrypt_data(member_snowflake, nonce_snowflake, tag_snowflake)
         member = ctx.guild.get_member(int(member_id))
 
         if member is not None:
-            await ctx.send(f"Message with ID `{id_num}` was sent by {member.mention} ({member.id})")
+            da_embed = nextcord.Embed(
+                title="User Deanonymised",
+                description=(f"The user behind message ```{id_num}``` is {member.mention} ({member.id})"),
+                color=nextcord.Color.from_rgb(237, 91, 6))
+            await ctx.send(embed=da_embed)
             channel = self.bot.get_channel(get_config_int('CHANNELS', 'logging'))
             logging = nextcord.Embed(
                 title="User Deanonymised",
@@ -170,8 +174,8 @@ class Messages(commands.Cog):
                         pass
 
                 # encrypt author id
-                secure_author = encrypt_data(str(message.author.id))
-                secretlist[ID] = secure_author
+                secure_author, nonce, tag = encrypt_data(str(message.author.id))
+                secretlist[ID] = (secure_author, nonce, tag)
                 print(f"Current secret dict: {secretlist}")
 
                 with open(self.filename, 'wb') as file:

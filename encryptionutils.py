@@ -19,20 +19,12 @@ def encrypt_data(unencrypted_data):
     cipher = AES.new(key, AES.MODE_EAX)
     nonce = cipher.nonce
 
-    nonce_file = open("nonce.bin", "wb")
-    nonce_file.write(nonce)
-    nonce_file.close()
-
     ciphertext, tag = cipher.encrypt_and_digest(unencrypted_data.encode('ascii'))
 
-    tag_file = open("tag.bin", "wb")
-    tag_file.write(tag)
-    tag_file.close()
-
-    return ciphertext
+    return ciphertext, nonce, tag
 
 
-def unencrypt_data(encrypted_data):
+def unencrypt_data(encrypted_data, nonce, tag):
     with open("key.bin", "rb") as key_file:
         key = key_file.read()
 
