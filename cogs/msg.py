@@ -96,7 +96,7 @@ class Messages(commands.Cog):
                     except EOFError:
                         pass
 
-                # encrypt author data
+                # encrypt author id
                 secure_author = encrypt_data(str(message.author.id))
                 secretlist[ID] = secure_author
                 print(f"Current secret dict: {secretlist}")
