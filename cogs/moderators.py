@@ -1,7 +1,8 @@
 import nextcord
 from nextcord.ext import commands
 from baseutils import *
-# Doesn't do anything yet, got plans for this
+from configutils import get_config, get_config_int
+from permutils import permcheck
 
 
 class Moderators(commands.Cog):

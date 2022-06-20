@@ -1,8 +1,10 @@
 import nextcord
 from nextcord.ext import commands
 import re
+
 from baseutils import *
-# from nextcord.ext.commands.errors import MemberNotFound
+from configutils import get_config, get_config_int
+from permutils import permcheck
 
 
 class Caps(commands.Cog):

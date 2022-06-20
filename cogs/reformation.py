@@ -4,6 +4,10 @@ from nextcord.ui import Button, View
 from nextcord.ext.commands.errors import MemberNotFound
 from baseutils import *
 
+from baseutils import ConfirmView
+from configutils import get_config_int
+from permutils import permcheck
+
 
 class Reformation(commands.Cog):
     def __init__(self, bot):

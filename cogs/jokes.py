@@ -1,8 +1,9 @@
 import nextcord
 import random
 from nextcord.ext import commands
-from baseutils import *
 
+from configutils import get_config_int
+from permutils import is_mod
 
 class Jokes(commands.Cog):
     def __init__(self, bot):

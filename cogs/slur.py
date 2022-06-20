@@ -5,6 +5,9 @@ from baseutils import *
 from nextcord.ext import commands
 from nextcord.ui import Button, View
 
+from configutils import get_config, get_config_int
+from permutils import permcheck
+
 
 class Slur(commands.Cog):
 

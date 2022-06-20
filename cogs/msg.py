@@ -2,7 +2,8 @@ import nextcord
 import uuid
 import pickle
 from nextcord.ext import commands
-from configutils import *
+
+from configutils import get_config, get_config_int
 from permutils import permcheck
 
 

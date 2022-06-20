@@ -6,8 +6,10 @@ import datetime
 import time
 
 from nextcord.ext import commands
-from baseutils import *
 from downdetection import down_detection
+
+from configutils import get_config
+from permutils import permcheck
 
 intents = nextcord.Intents.all()
 intents.members = True

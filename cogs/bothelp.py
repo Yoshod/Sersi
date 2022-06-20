@@ -1,7 +1,7 @@
 import nextcord
 
 from nextcord.ext import commands
-from baseutils import *
+from permutils import is_mod
 
 
 class Bothelp(commands.Cog):
