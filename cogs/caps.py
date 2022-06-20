@@ -44,15 +44,15 @@ class Caps(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message):
         msg_string = message.content
+        new_msg_string = re.sub(r'(<a?)?:\w+:(\d{18}>)?', '', msg_string)
 
-        if len(msg_string) > self.MIN_CHARS_FOR_DETECTION:
+        new_msg_string = re.sub(r'[^a-zA-Z]', '', new_msg_string)
+
+        if len(new_msg_string) > self.MIN_CHARS_FOR_DETECTION:
             # remove nums and non-alpanumeric
             # msg_string = unidecode.unidecode(msg_string)
 
             # remove emotes
-            new_msg_string = re.sub(r'(<a?)?:\w+:(\d{18}>)?', '', msg_string)
-
-            new_msg_string = re.sub(r'[^a-zA-Z]', '', new_msg_string)
             uppercase = sum(1 for char in new_msg_string if char.isupper())
 
             if len(new_msg_string) == 0:
