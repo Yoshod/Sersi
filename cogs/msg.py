@@ -5,6 +5,7 @@ from nextcord.ext import commands
 
 from configutils import get_config, get_config_int, get_config_bool
 from permutils import permcheck, is_mod, is_dark_mod
+from encryptionutils import *
 
 
 class Messages(commands.Cog):
@@ -14,6 +15,8 @@ class Messages(commands.Cog):
         self.recdms = False
         self.sersisuccess = get_config('EMOTES', 'success')
         self.sersifail = get_config('EMOTES', 'fail')
+        self.active_secret_dms = []
+        self.filename = ("secret_dms.pkl")
 
     @commands.command()
     async def dm(self, ctx, recipient: nextcord.Member, *, message):
@@ -58,7 +61,8 @@ class Messages(commands.Cog):
             await ctx.send(f"{self.sersifail} No entry found with ID {id_num}")
             return
 
-        member = ctx.guild.get_member(int(member_snowflake))
+        member_id = unencrypt_data(member_snowflake)
+        member = ctx.guild.get_member(int(member_id))
 
         if member is not None:
             await ctx.send(f"Message with ID `{id_num}` was sent by {member.mention} ({member.id})")
@@ -92,7 +96,9 @@ class Messages(commands.Cog):
                     except EOFError:
                         pass
 
-                secretlist[ID] = message.author.id
+                # encrypt data
+                secure_author = encrypt_data(str(message.author.id))
+                secretlist[ID] = secure_author
                 print(f"Current secret dict: {secretlist}")
 
                 with open(self.filename, 'wb') as file:

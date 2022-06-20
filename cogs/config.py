@@ -6,6 +6,7 @@ from nextcord.ext import commands
 from baseutils import ConfirmView
 from configutils import get_config, get_config_int, setting_present, set_config
 from permutils import permcheck, is_sersi_contrib, is_staff, is_mod, is_dark_mod
+from encryptionutils import generate_new_key
 
 
 class Config(commands.Cog):
@@ -150,6 +151,12 @@ class Config(commands.Cog):
 
             embed_list.append(config_embed)
         await ctx.send(embeds=embed_list)
+
+    @commands.command()
+    async def initkey(self, ctx):
+        if not await permcheck(ctx, is_sersi_contrib):
+            return
+        generate_new_key()
 
 
 def setup(bot):
