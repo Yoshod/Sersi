@@ -1,6 +1,7 @@
 import nextcord
 from configutils import get_config, get_config_int
 
+
 async def permcheck(hook, function):
     if isinstance(hook, nextcord.ext.commands.Context):
         if function(hook.author):

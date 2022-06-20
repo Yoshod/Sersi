@@ -5,6 +5,7 @@ from nextcord.ext import commands
 from configutils import get_config_int
 from permutils import is_mod
 
+
 class Jokes(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -81,7 +82,6 @@ class Jokes(commands.Cog):
             await ctx.reply("https://tenor.com/view/heads-coinflip-flip-a-coin-coin-coins-gif-21479854")
         elif flip_result == 1:
             await ctx.reply("https://tenor.com/view/coins-tails-coin-flip-a-coin-coinflip-gif-21479856")
-
 
     # events
     @commands.Cog.listener()

@@ -6,6 +6,7 @@ from nextcord.ui import Button, View
 
 from configutils import get_config_int
 
+
 class ModPing(commands.Cog):
 
     def __init__(self, bot):

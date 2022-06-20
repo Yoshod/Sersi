@@ -5,7 +5,7 @@ import re
 from nextcord.ext import commands
 from baseutils import ConfirmView
 from configutils import get_config, get_config_int
-from permutils import permcheck
+from permutils import *
 
 
 class Config(commands.Cog):

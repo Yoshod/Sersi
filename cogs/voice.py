@@ -6,6 +6,7 @@ from baseutils import ConfirmView
 from configutils import get_config, get_config_int
 from permutils import permcheck
 
+
 class Voice(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -61,7 +62,6 @@ class Voice(commands.Cog):
         dialog_embed.add_field(name="Destination ID", value=target.id)
 
         await ConfirmView(self.cb_massmove_proceed).send_as_reply(ctx, embed=dialog_embed)
-
 
     """The following, but not limited to, examples illustrate when this event is called:
 

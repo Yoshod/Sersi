@@ -4,8 +4,7 @@ import pickle
 from nextcord.ext import commands
 
 from configutils import get_config, get_config_int
-from permutils import permcheck
-
+from permutils import *
 
 
 class Messages(commands.Cog):
@@ -68,7 +67,7 @@ class Messages(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        
+
         if message.guild is None and message.author != self.bot.user:
 
             if message.content.lower() == "secret":

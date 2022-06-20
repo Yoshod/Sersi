@@ -1,7 +1,7 @@
 import nextcord
 from nextcord.ext import commands
 from configutils import get_config_int
-from permutils import permcheck
+from permutils import *
 
 
 class Blacklist(commands.Cog):
