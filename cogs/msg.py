@@ -4,7 +4,7 @@ import pickle
 from nextcord.ext import commands
 
 from configutils import get_config, get_config_int, get_config_bool
-from permutils import permcheck, is_mod, is_dark_mod
+from permutils import permcheck, is_mod, is_senior_mod
 from encryptionutils import *
 
 
@@ -66,8 +66,19 @@ class Messages(commands.Cog):
 
         if member is not None:
             await ctx.send(f"Message with ID `{id_num}` was sent by {member.mention} ({member.id})")
+            channel = self.bot.get_channel(get_config_int('CHANNELS', 'logging'))
+            logging = nextcord.Embed(
+                title="User Deanonymised",
+                description="An anonymous message has had their user revealed.",
+                color=nextcord.Color.from_rgb(237, 91, 6))
+            logging.add_field(name="Moderator:", value=ctx.author.mention, inline=False)
+            logging.add_field(name="Message Revealed:", value=id_num, inline=False)
+            logging.add_field(name="Reason:", value=reason, inline=False)
+            await channel.send(embed=logging)
+            channel = self.bot.get_channel(get_config_int('CHANNELS', 'modlogs'))
+            await channel.send(embed=logging)
         else:
-            await ctx.send(f"Message with ID `{id_num}` was sent by `{member_snowflake}`, who is not found on this server")
+            await ctx.send(f"Message with ID `{id_num}` was sent by `{member_id}`, who is not found on this server")
 
     @commands.Cog.listener()
     async def on_message(self, message):
