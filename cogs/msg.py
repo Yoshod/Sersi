@@ -3,8 +3,8 @@ import uuid
 import pickle
 from nextcord.ext import commands
 
-from configutils import get_config, get_config_int
-from permutils import *
+from configutils import get_config, get_config_int, get_config_bool
+from permutils import permcheck, is_mod, is_dark_mod
 
 
 class Messages(commands.Cog):

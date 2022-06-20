@@ -120,3 +120,7 @@ def is_sersi_contrib(member: nextcord.Member):
         if role.id in permitted_roles:
             return True
     return False
+
+
+async def cb_is_mod(interaction):
+    return await permcheck(interaction, is_mod)

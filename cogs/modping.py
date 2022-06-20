@@ -1,9 +1,10 @@
 import nextcord
-from baseutils import *
 
 from nextcord.ext import commands
 from nextcord.ui import Button, View
 
+from baseutils import modmention_check
+from permutils import cb_is_mod
 from configutils import get_config_int
 
 

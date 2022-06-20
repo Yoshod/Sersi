@@ -1,12 +1,11 @@
 import nextcord
-from slurdetector import *
-from baseutils import *
 
 from nextcord.ext import commands
 from nextcord.ui import Button, View
 
 from configutils import get_config, get_config_int
-from permutils import permcheck
+from permutils import permcheck, is_mod, cb_is_mod
+from slurdetector import load_slurdetector, load_slurs, load_goodwords, get_slurs, get_goodwords, clearString, rmSlur, rmGoodword, detectSlur
 
 
 class Slur(commands.Cog):
@@ -151,15 +150,15 @@ class Slur(commands.Cog):
         slur = clearString(slur)
 
         existing_slur = None
-        for s in slurs:
+        for s in get_slurs():
             if s in slur:
                 existing_slur = True
 
         if existing_slur is not None:
-            await ctx.send(f"{self.sersifail} {word} is in conflict with existing slur {existing_slur}; cannot be added.")
+            await ctx.send(f"{self.sersifail} {slur} is in conflict with existing slur {existing_slur}; cannot be added.")
             return
 
-        if slur in slurs:
+        if slur in get_slurs():
             await ctx.send(f"{self.sersifail} {slur} is already on the list of slurs")
             return
 
@@ -188,12 +187,12 @@ class Slur(commands.Cog):
 
         word = "".join(word)
         word = clearString(word)
-        if word in goodword:
+        if word in get_goodwords():
             await ctx.send(f"{self.sersifail} {word} is already on the whitelist")
             return
 
         word_contains_slur = False
-        for slur in slurs:
+        for slur in get_slurs():
             if slur in word:
                 word_contains_slur = True
 
@@ -201,7 +200,7 @@ class Slur(commands.Cog):
             await ctx.send(f"{self.sersifail} {word} does not contain any slurs; cannot be added.")
             return
 
-        for existing_word in goodword:
+        for existing_word in get_goodwords():
             if word in existing_word:
                 await ctx.send(f"{self.sersifail} {word} is substring to existing goodword {existing_word}; cannot be added.")
                 return

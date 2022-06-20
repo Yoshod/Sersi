@@ -2,9 +2,8 @@ import nextcord
 from nextcord.ext import commands
 import re
 
-from baseutils import *
-from configutils import get_config, get_config_int
-from permutils import permcheck
+from configutils import get_config, get_config_int, set_config
+from permutils import permcheck, is_mod
 
 
 class Caps(commands.Cog):

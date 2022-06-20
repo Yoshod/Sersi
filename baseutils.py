@@ -1,7 +1,6 @@
 import nextcord
 from configutils import get_config_int
 from nextcord.ui import View, Button
-from permutils import *
 
 
 def modmention_check(messageData):
@@ -32,14 +31,12 @@ class ConfirmView(View):
         await interaction.message.edit("Action canceled!", embed=None, view=None)
 
     async def on_timeout(self):
-        await self.message.edit("Action timed out!", embed=None, view=None)
+        self.message = await self.message.channel.fetch_message(self.message.id)
+        if self.message.components != []:
+            await self.message.edit("Action timed out!", embed=None, view=None)
 
     async def interaction_check(self, interaction):
         return interaction.user == interaction.message.reference.cached_message.author
 
     async def send_as_reply(self, ctx, content: str = None, embed=None):
         self.message = await ctx.reply(content, embed=embed, view=self)
-
-
-async def cb_is_mod(interaction):
-    return await permcheck(interaction, is_mod)

@@ -9,7 +9,7 @@ from nextcord.ext import commands
 from downdetection import down_detection
 
 from configutils import get_config
-from permutils import *
+from permutils import permcheck, is_sersi_contrib
 
 intents = nextcord.Intents.all()
 intents.members = True

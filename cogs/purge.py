@@ -1,10 +1,10 @@
 import nextcord
+import re
 from nextcord.ext import commands
-from baseutils import *
 from datetime import timedelta
 
 from configutils import get_config, get_config_int
-from permutils import permcheck
+from permutils import permcheck, is_mod, is_senior_mod
 
 
 class Purge(commands.Cog):
@@ -45,7 +45,7 @@ class Purge(commands.Cog):
             deleted_msgs = await ctx.channel.purge(limit=amount + 1)
 
         elif member is not None:
-            deleted_msgs = await ctx.channel.purge(limit=amount + 1, check=lambda x: True if (msg.author.id == member.id) else False)
+            deleted_msgs = await ctx.channel.purge(limit=amount + 1, check=lambda x: True if (x.author.id == member.id) else False)
 
         # LOGGING
         # await asyncio.sleep(2)
@@ -103,7 +103,7 @@ class Purge(commands.Cog):
 
         elif target is not None:
             after = ctx.message.created_at - timedelta(minutes=time)
-            deleted_msgs = await ctx.channel.purge(limit=10 * time, check=lambda x: True if (message.author.id == target.id) else False, after=after)
+            deleted_msgs = await ctx.channel.purge(limit=10 * time, check=lambda x: True if (x.author.id == target.id) else False, after=after)
 
         # LOGGING
         # await asyncio.sleep(2)
@@ -120,7 +120,7 @@ class Purge(commands.Cog):
         logging.add_field(name="Messages Purged:", value=deletion_count, inline=False)
         logging.add_field(name="Channel Purged:", value=ctx.channel.mention, inline=False)
         if target is not None:
-            logging.add_field(name="User Targeted:", value=f"{member.mention} ({member.id})")
+            logging.add_field(name="User Targeted:", value=f"{target.mention} ({target.id})")
 
         channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'logging'))
         await channel.send(embed=logging)

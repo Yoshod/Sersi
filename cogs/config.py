@@ -4,8 +4,8 @@ import re
 
 from nextcord.ext import commands
 from baseutils import ConfirmView
-from configutils import get_config, get_config_int
-from permutils import *
+from configutils import get_config, get_config_int, setting_present, set_config
+from permutils import permcheck, is_sersi_contrib, is_staff, is_mod, is_dark_mod
 
 
 class Config(commands.Cog):
