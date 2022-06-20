@@ -90,6 +90,9 @@ class Jokes(commands.Cog):
         if message.author.bot:  # ignores message if message is by bot
             return
 
+        if message.guild is None:
+            return
+
         elif "pythonic" in message.content.lower():
             randomValue = random.randint(1, 10)
             if randomValue == 10:
