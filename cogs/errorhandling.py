@@ -1,6 +1,6 @@
 import nextcord
 from nextcord.ext import commands
-from configutils import get_config_int
+from configutils import get_config_int, get_config
 
 
 class ErrorHandling(commands.Cog):
@@ -9,6 +9,11 @@ class ErrorHandling(commands.Cog):
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
+        if isinstance(error, commands.CommandNotFound):
+            sersifail = get_config('EMOTES', "fail")
+            channel = ctx.channel.id
+            await ctx.send(f"{sersifail} That command does not exist.")
+            return
         error_details = []
         error_details.append(ctx.guild.name)
         error_details.append(ctx.guild.id)
