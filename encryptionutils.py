@@ -28,12 +28,6 @@ def unencrypt_data(encrypted_data, nonce, tag):
     with open("key.bin", "rb") as key_file:
         key = key_file.read()
 
-    with open("tag.bin", "rb") as tag_file:
-        tag = tag_file.read()
-
-    with open("nonce.bin", "rb") as nonce_file:
-        nonce = nonce_file.read()
-
     cipher = AES.new(key, AES.MODE_EAX, nonce=nonce)
     unencrypted_data = cipher.decrypt(encrypted_data)
 

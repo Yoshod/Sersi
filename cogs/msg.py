@@ -160,11 +160,18 @@ class Messages(commands.Cog):
                 self.active_secret_dms.remove(message.author.id)
                 ID = str(uuid.uuid4())
 
-                secret = nextcord.Embed(
-                    title="Secret Message",
-                    description=message.content,
-                    colour=nextcord.Colour.blurple())
-                secret.set_footer(text=ID)
+                if len(message.content) < 1:
+                    secret = nextcord.Embed(
+                        title="Secret Message",
+                        description="This message has no content, likely an image or file.",
+                        colour=nextcord.Colour.blurple())
+                    secret.set_footer(text=ID)
+                else:
+                    secret = nextcord.Embed(
+                        title="Secret Message",
+                        description=message.content,
+                        colour=nextcord.Colour.blurple())
+                    secret.set_footer(text=ID)
 
                 secretlist = {}
                 with open(self.filename, 'rb') as f:
