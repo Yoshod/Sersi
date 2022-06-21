@@ -2,19 +2,25 @@ from Crypto.Cipher import AES
 from secrets import token_bytes
 from os import remove
 
+from configutils import get_config
 
-def generate_new_key():
+
+
+
+def generate_new_key(filename: str = None):
+    if filename is None:
+        filename 
+    remove(get_config("MSG", "keyfile", "key.bin"))
+
+    set_config("MSG", "keyfile", filename)
     key = token_bytes(32)
-    remove("key.bin")
-    key_file = open("key.bin", "wb")
-    key_file.write(key)
-    key_file.close()
+    with open(filename, "wb") as key_file:
+        key_file.write(key)
 
 
 def encrypt_data(unencrypted_data):
-    key_file = open("key.bin", "rb")
-    key = key_file.read()
-    key_file.close()
+    with open(get_config("MSG", "keyfile", "key.bin"), "rb") as key_file:
+        key = key_file.read()
 
     cipher = AES.new(key, AES.MODE_EAX)
     nonce = cipher.nonce
@@ -25,7 +31,7 @@ def encrypt_data(unencrypted_data):
 
 
 def unencrypt_data(encrypted_data, nonce, tag):
-    with open("key.bin", "rb") as key_file:
+    with open(get_config("MSG", "keyfile", "key.bin"), "rb") as key_file:
         key = key_file.read()
 
     cipher = AES.new(key, AES.MODE_EAX, nonce=nonce)

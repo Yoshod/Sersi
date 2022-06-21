@@ -111,9 +111,9 @@ class Messages(commands.Cog):
             return
 
         secretlist = {}
-        with open(self.filename, 'rb') as f:
+        with open(self.filename, 'rb') as file:
             try:
-                secretlist = pickle.load(f)
+                secretlist = pickle.load(file)
             except EOFError:
                 pass
 
@@ -133,6 +133,7 @@ class Messages(commands.Cog):
                 color=nextcord.Color.from_rgb(237, 91, 6))
             await ctx.send(embed=da_embed)
             channel = self.bot.get_channel(get_config_int('CHANNELS', 'logging'))
+
             logging = nextcord.Embed(
                 title="User Deanonymised",
                 description="An anonymous message has had their user revealed.",
@@ -160,30 +161,33 @@ class Messages(commands.Cog):
                 self.active_secret_dms.remove(message.author.id)
                 ID = str(uuid.uuid4())
 
+                desc = ""
                 if len(message.content) < 1:
-                    secret = nextcord.Embed(
-                        title="Secret Message",
-                        description="This message has no content, likely an image or file.",
-                        colour=nextcord.Colour.blurple())
-                    secret.set_footer(text=ID)
+                    desc = "This message has no content, likely an image or file."
                 else:
-                    secret = nextcord.Embed(
-                        title="Secret Message",
-                        description=message.content,
-                        colour=nextcord.Colour.blurple())
-                    secret.set_footer(text=ID)
+                    desc = message.content
+
+                secret = nextcord.Embed(
+                    title="Secret Message",
+                    description=desc,
+                    colour=nextcord.Colour.blurple())
+                secret.set_footer(text=ID)
+
+                for attachment in message.attachments:
+                    if "image" in attachment.content_type:      # like image/jpeg, image/png
+                        secret.set_image(url=attachment.url)
+                        break
 
                 secretlist = {}
-                with open(self.filename, 'rb') as f:
+                with open(self.filename, 'rb') as file:
                     try:
-                        secretlist = pickle.load(f)
-                    except EOFError:
+                        secretlist = pickle.load(file)
+                    except EOFError:    # file is empty
                         pass
 
                 # encrypt author id
                 secure_author, nonce, tag = encrypt_data(str(message.author.id))
                 secretlist[ID] = (secure_author, nonce, tag)
-                print(f"Current secret dict: {secretlist}")
 
                 with open(self.filename, 'wb') as file:
                     pickle.dump(secretlist, file)
@@ -197,6 +201,7 @@ class Messages(commands.Cog):
                         msg_sent = True
 
                 detected_slurs = detectSlur(message.content)
+
                 if len(detected_slurs) > 0:  # checks slur heat
                     channel = self.bot.get_channel(get_config_int('CHANNELS', 'alert'))
                     slurembed = nextcord.Embed(
