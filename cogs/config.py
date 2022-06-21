@@ -56,10 +56,10 @@ class Config(commands.Cog):
         if not await permcheck(ctx, is_dark_mod):
             return
 
-        if setting_present(section, setting):
+        if 'channels' in section.lower() or 'roles' in section.lower():
+            value = re.sub(r"[^0-9]*", "", value)
 
-            if 'channels' in section.lower() or 'roles' in section.lower():
-                value = re.sub(r"[^0-9]*", "", value)
+        if setting_present(section, setting):
 
             prev_value = get_config(section, setting, value)
             set_config(section, setting, value)
