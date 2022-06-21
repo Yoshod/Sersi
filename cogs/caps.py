@@ -30,7 +30,7 @@ class Caps(commands.Cog):
 
         old_val = self.MIN_CHARS_FOR_DETECTION
         self.MIN_CHARS_FOR_DETECTION = value
-        set_config('CAPS', 'capslength', value)
+        set_config('CAPS', 'capslength', number)
 
         await ctx.send(f"{self.sersisuccess} Caps lock detection starts now at messages longer than **{value}**.")
 
@@ -43,7 +43,7 @@ class Caps(commands.Cog):
         embed.add_field(name="New Value", value=str(value))
 
         channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'logging'))
-        channel.send(embed=embed)
+        await channel.send(embed=embed)
 
     @commands.command()
     async def getcapslength(self, ctx):
