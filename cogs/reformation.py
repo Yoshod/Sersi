@@ -1,7 +1,9 @@
 import nextcord
+import pickle
 from nextcord.ext import commands
 from nextcord.ui import Button, View
 from nextcord.ext.commands.errors import MemberNotFound
+from os import remove
 
 from baseutils import ConfirmView
 from configutils import get_config_int, get_options
@@ -40,14 +42,11 @@ class Reformation(commands.Cog):
             description=f"Hello {member.mention}, you have been sent to reformation by {interaction.user.mention}. The reason given for this is `{reason}`. \n\nFor more information on reformation check out <#{get_config_int('CHANNELS', 'reformation info')}> or talk to a <@&{get_config_int('PERMISSION ROLES', 'reformist')}>.",
             color=nextcord.Color.from_rgb(237, 91, 6))
 
-        channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'reformation'))
-        await channel.send(embed=welcome_embed)
-
         # # LOGGING
         embed = nextcord.Embed(
             title="User Has Been Sent to Reformation",
             description=f"Moderator {interaction.user.mention} ({interaction.user.id}) has sent user {member.mention} ({member.id}) to reformation.\n\n"
-                        + f"**__Reason:__** {reason}",
+                        + f"**__Reason:__**\n{reason}",
             color=nextcord.Color.from_rgb(237, 91, 6))
 
         channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'logging'))
@@ -55,6 +54,56 @@ class Reformation(commands.Cog):
 
         channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'modlogs'))
         await channel.send(embed=embed)
+
+        channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'teachers'))
+        await channel.send(embed=embed)
+
+        channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'reformpubliclog'))
+        await channel.send(embed=embed)
+
+        overwrites = {
+            interaction.guild.default_role: nextcord.PermissionOverwrite(read_messages=False),
+            interaction.guild.me: nextcord.PermissionOverwrite(read_messages=True),
+            interaction.guild.get_role(get_config_int('PERMISSION ROLES', 'reformist')): nextcord.PermissionOverwrite(read_messages=True),
+            interaction.guild.get_role(get_config_int('PERMISSION ROLES', 'moderator')): nextcord.PermissionOverwrite(read_messages=True),
+            member: nextcord.PermissionOverwrite(read_messages=True, create_public_threads=False, create_private_threads=False, external_stickers=False, embed_links=False, attach_files=False, use_external_emojis=False)
+        }
+        try:
+            with open("Files/Reformation/reformationcases.pkl", "rb") as file:
+                reformation_list = pickle.load(file)
+
+        except (EOFError, TypeError):
+            reformation_list = {}
+
+        with open("Files/Reformation/reformationiter.txt", "r") as file:
+            case_num = file.readline()
+            case_num = int(case_num) + 1
+
+        remove("Files/Reformation/reformationiter.txt")
+
+        with open("Files/Reformation/reformationiter.txt", "w") as file:
+            file.write(str(case_num))
+
+        if len(str(case_num)) == 1:
+            case_name = (f"reformation-case-000{case_num}")
+        elif len(str(case_num)) == 2:
+            case_name = (f"reformation-case-00{case_num}")
+        elif len(str(case_num)) == 3:
+            case_name = (f"reformation-case-0{case_num}")
+        elif len(str(case_num)) >= 4:
+            case_name = (f"reformation-case-{case_num}")
+
+        reformation_list[member.id] = case_name
+        print(reformation_list)
+
+        category = nextcord.utils.get(interaction.guild.categories, name="REFORMATION ROOMS")
+        channel = await interaction.guild.create_text_channel(case_name, overwrites=overwrites, category=category)
+
+        with open("Files/Reformation/reformationcases.pkl", "wb") as file:
+            pickle.dump(reformation_list, file)
+
+        channel = nextcord.utils.get(interaction.guild.channels, name=case_name)
+        await channel.send(embed=welcome_embed)
 
     # command
     @commands.command(aliases=['rn', 'reformneeded', 'reform'])
@@ -70,7 +119,7 @@ class Reformation(commands.Cog):
 
         if reason.startswith("?r "):     # splices away the "?r" that moderators accustomed to wick might put in there
             reason = reason[3:]
-        
+
         dialog_embed = nextcord.Embed(
             title="Reform Member",
             description="Following member will be sent to reformation:",
@@ -123,15 +172,27 @@ class Reformation(commands.Cog):
 
             # logs
             log_embed = nextcord.Embed(
-                title=f"Release: **{member.name}** ({member.id})",
-                description=f"Reformation Inmate {member.name} was deemed well enough to be released back into the server.\nRelease has been approved by {', '.join(yes_men)}",
+                title=f"Successful Reformation: **{member.name}** ({member.id})",
+                description=f"Reformation Member {member.name} was deemed well enough to be considered reformed.\nThis has been approved by {', '.join(yes_men)}.",
                 color=nextcord.Color.from_rgb(237, 91, 6))
             channel = self.bot.get_channel(get_config_int('CHANNELS', 'modlogs'))
             await channel.send(embed=log_embed)
-            await interaction.send(f"**{member.name}** ({member.id}) will now be freed.")
+            await interaction.send(f"**{member.name}** ({member.id}) will now be considered reformed.")
+
+            channel = self.bot.get_channel(get_config_int('CHANNELS', 'reformpubliclog'))
+            await channel.send(embed=log_embed)
 
             # updates embed and removed buttons
             await interaction.message.edit(embed=new_embed, view=None)
+
+            # close case
+            with open("Files/Reformation/reformationcases.pkl", "rb") as file:
+                reformation_list = pickle.load(file)
+
+            channel_name = reformation_list[member.id]
+            channel = nextcord.utils.get(interaction.guild.channels, name=channel_name)
+
+            await channel.delete()
 
         new_embed.description = f"{new_embed.description[:-1]}{yes_votes}"
         await interaction.message.edit(embed=new_embed)

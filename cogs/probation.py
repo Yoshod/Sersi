@@ -74,6 +74,7 @@ class Probation(commands.Cog):
 
             await ConfirmView(self.cb_addprob_proceed).send_as_reply(ctx, embed=dialog_embed)
 
+
     async def cb_rmprob_proceed(self, interaction):
         member_id, reason = 0, ""
         for field in interaction.message.embeds[0].fields:
