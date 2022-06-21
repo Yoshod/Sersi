@@ -2,14 +2,12 @@ from Crypto.Cipher import AES
 from secrets import token_bytes
 from os import remove
 
-from configutils import get_config
-
-
+from configutils import get_config, set_config
 
 
 def generate_new_key(filename: str = None):
     if filename is None:
-        filename 
+        filename
     remove(get_config("MSG", "keyfile", "key.bin"))
 
     set_config("MSG", "keyfile", filename)

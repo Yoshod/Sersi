@@ -4,9 +4,10 @@ import pickle
 from nextcord.ext import commands
 from nextcord.ui import Button, View
 
+from baseutils import ConfirmView, DualCustodyView
 from configutils import get_config, get_config_int, get_config_bool
-from permutils import permcheck, is_mod, is_senior_mod, cb_is_mod
-from encryptionutils import *
+from permutils import permcheck, is_dark_mod, is_full_mod, is_mod, cb_is_mod
+from encryptionutils import encrypt_data, unencrypt_data
 from slurdetector import detectSlur
 
 
@@ -100,11 +101,81 @@ class Messages(commands.Cog):
         logging.add_field(name="Sender:", value=ctx.author.mention, inline=False)
         logging.add_field(name="Recipient:", value=recipient.mention, inline=False)
         logging.add_field(name="Message Content:", value=message, inline=False)
-        await channel.send(embed=logging)
+        await channel.send(embed=logging)            
+
+    async def cb_da_confirm(self, interaction):
+        mod_id = 0
+        for field in interaction.message.embeds[0].fields:
+            if field.name == "Anonymous Message ID":
+                secret_id = field.value
+            if field.name == "Moderator ID":
+                mod_id = int(field.value)
+            if field.name == "Reason":
+                reason = field.value
+
+        secretlist = {}
+        with open(self.filename, 'rb') as file:
+            try:
+                secretlist = pickle.load(file)
+            except EOFError:
+                pass
+
+        member_snowflake, nonce_snowflake, tag_snowflake = secretlist[secret_id]
+
+        member_id = unencrypt_data(member_snowflake, nonce_snowflake, tag_snowflake)
+        member = interaction.guild.get_member(int(member_id))
+
+        if member is not None:
+            da_embed = nextcord.Embed(
+                title="User Deanonymised",
+                description=(f"The user behind message ```{secret_id}``` is {member.mention} ({member.id})"),
+                color=nextcord.Color.from_rgb(237, 91, 6))
+            await interaction.message.edit(embed=da_embed, view=None)
+
+            logging = nextcord.Embed(
+                title="User Deanonymised",
+                description="An anonymous message has had their user revealed.",
+                color=nextcord.Color.from_rgb(237, 91, 6))
+
+            if mod_id == 0:
+                logging.add_field(name="Moderator:", value=interaction.user.mention, inline=False)
+            else:
+                logging.add_field(name="Moderator:", value=interaction.guild.get_member(mod_id).mention, inline=False)
+                logging.add_field(name="Confirming Moderator:", value=interaction.user.mention, inline=False)
+
+            logging.add_field(name="Message Revealed:", value=secret_id, inline=False)
+            logging.add_field(name="Reason:", value=reason, inline=False)
+
+            channel = self.bot.get_channel(get_config_int('CHANNELS', 'logging'))
+            await channel.send(embed=logging)
+            channel = self.bot.get_channel(get_config_int('CHANNELS', 'modlogs'))
+            await channel.send(embed=logging)
+        else:
+            await interaction.message.edit(f"Message with ID `{secret_id}` was sent by `{member_id}`, who is not found on this server", embed=None, view=None)
+
+    async def cb_da_proceed(self, interaction):
+        for field in interaction.message.embeds[0].fields:
+            if field.name == "Anonymous Message ID":
+                secret_id = field.value
+            if field.name == "Reason":
+                reason = field.value
+
+        dialog_embed = nextcord.Embed(
+            title="Deanonymise message",
+            description="Following message will be deanonymised:",
+            color=nextcord.Color.from_rgb(237, 91, 6))
+        dialog_embed.add_field(name="Anonymous Message ID", value=secret_id)
+        dialog_embed.add_field(name="Moderator", value=interaction.user.mention)
+        dialog_embed.add_field(name="Moderator ID", value=interaction.user.id)
+        dialog_embed.add_field(name="Reason", value=reason, inline=False)
+
+        channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'alert'))
+        view = DualCustodyView(self.cb_da_confirm, interaction.user, is_full_mod)
+        await view.send_dialogue(channel, embed=dialog_embed)
 
     @commands.command(aliases=['da', 'deanonymize'])
     async def deanonymise(self, ctx, id_num, *, reason=""):
-        if not await permcheck(ctx, is_senior_mod):
+        if not await permcheck(ctx, is_mod):
             return
         elif reason == "":
             await ctx.send(f"{self.sersifail} Please provide a reason!")
@@ -117,35 +188,21 @@ class Messages(commands.Cog):
             except EOFError:
                 pass
 
-        try:
-            member_snowflake, nonce_snowflake, tag_snowflake = secretlist[id_num]
-        except KeyError:
+        if id_num not in secretlist.keys():
             await ctx.send(f"{self.sersifail} No entry found with ID {id_num}")
             return
 
-        member_id = unencrypt_data(member_snowflake, nonce_snowflake, tag_snowflake)
-        member = ctx.guild.get_member(int(member_id))
+        dialog_embed = nextcord.Embed(
+            title="Deanonymise message",
+            description="Following message will be deanonymised:",
+            color=nextcord.Color.from_rgb(237, 91, 6))
+        dialog_embed.add_field(name="Anonymous Message ID", value=id_num)
+        dialog_embed.add_field(name="Reason", value=reason, inline=False)
 
-        if member is not None:
-            da_embed = nextcord.Embed(
-                title="User Deanonymised",
-                description=(f"The user behind message ```{id_num}``` is {member.mention} ({member.id})"),
-                color=nextcord.Color.from_rgb(237, 91, 6))
-            await ctx.send(embed=da_embed)
-            channel = self.bot.get_channel(get_config_int('CHANNELS', 'logging'))
-
-            logging = nextcord.Embed(
-                title="User Deanonymised",
-                description="An anonymous message has had their user revealed.",
-                color=nextcord.Color.from_rgb(237, 91, 6))
-            logging.add_field(name="Moderator:", value=ctx.author.mention, inline=False)
-            logging.add_field(name="Message Revealed:", value=id_num, inline=False)
-            logging.add_field(name="Reason:", value=reason, inline=False)
-            await channel.send(embed=logging)
-            channel = self.bot.get_channel(get_config_int('CHANNELS', 'modlogs'))
-            await channel.send(embed=logging)
+        if is_dark_mod(ctx.author):
+            await ConfirmView(self.cb_da_confirm).send_as_reply(ctx, embed=dialog_embed)
         else:
-            await ctx.send(f"Message with ID `{id_num}` was sent by `{member_id}`, who is not found on this server")
+            await ConfirmView(self.cb_da_proceed).send_as_reply(ctx, embed=dialog_embed)
 
     @commands.Cog.listener()
     async def on_message(self, message):
