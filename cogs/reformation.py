@@ -107,7 +107,7 @@ class Reformation(commands.Cog):
 
     # command
     @commands.command(aliases=['rn', 'reformneeded', 'reform'])
-    async def reformationneeded(self, ctx, member: nextcord.Member, *, reason):
+    async def reformationneeded(self, ctx, member: nextcord.Member, *, reason=""):
         """send a user to reformation centre
 
         Sends a [member] to reformation centre for reform by giving said [member] the @Reformation role. Removes @Civil Engineering Initiate and all Opt-In-Roles.
@@ -119,6 +119,10 @@ class Reformation(commands.Cog):
 
         if reason.startswith("?r "):     # splices away the "?r" that moderators accustomed to wick might put in there
             reason = reason[3:]
+
+        elif reason == "":
+            await ctx.send(f"{ctx.author.mention} please provide a reason.")
+            return
 
         dialog_embed = nextcord.Embed(
             title="Reform Member",
