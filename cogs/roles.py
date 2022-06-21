@@ -12,25 +12,24 @@ class Roles(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
-        role_obj = member.guild.get_role(get_config_int('ROLES', 'newbie'))
-        await member.add_roles(role_obj)
+        newbie_role = member.guild.get_role(get_config_int('ROLES', 'newbie'))
+        await member.add_roles(newbie_role)
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        print("e")
-        print(message)
-        role_obj = message.guild.get_role(get_config_int('ROLES', 'newbie'))
-        print(message.author.roles)
-        if role_obj in message.author.roles:
-            print(f"{role_obj}")
+        if message.guild is None:
+            return
+
+        newbie_role = message.guild.get_role(get_config_int('ROLES', 'newbie'))
+
+        if newbie_role in message.author.roles:
 
             now = datetime.datetime.now()
             aware_now = now.replace(tzinfo=pytz.UTC)
             time_passed = aware_now - message.author.joined_at
-            print(time_passed)
 
             if time_passed.days > 3:
-                await message.author.remove_roles(role_obj)
+                await message.author.remove_roles(newbie_role)
 
 
 def setup(bot):
