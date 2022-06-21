@@ -173,6 +173,8 @@ class Messages(commands.Cog):
         view = DualCustodyView(self.cb_da_confirm, interaction.user, is_full_mod)
         await view.send_dialogue(channel, embed=dialog_embed)
 
+        await interaction.message.edit(f"Deanonymisation of Message with ID `{secret_id}` was sent for approval by another moderator", embed=None, view=None)
+
     @commands.command(aliases=['da', 'deanonymize'])
     async def deanonymise(self, ctx, id_num, *, reason=""):
         if not await permcheck(ctx, is_mod):
