@@ -27,7 +27,7 @@ class Moderators(commands.Cog):
         log_embed = nextcord.Embed(
             title=f"New {ticket_support.name} member added.",
             colour=nextcord.Color.from_rgb(237, 91, 6))
-        log_embed.add_field(name="Responsible Moderator:", value=interaction.user.mention, inline=False)
+        log_embed.add_field(name="Responsible Staff Member:", value=interaction.user.mention, inline=False)
         log_embed.add_field(name=f"New {ticket_support.name}:", value=member.mention, inline=False)
 
         channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'logging'))
@@ -65,7 +65,7 @@ class Moderators(commands.Cog):
         log_embed = nextcord.Embed(
             title=f"{ticket_support.name} member removed.",
             colour=nextcord.Color.from_rgb(237, 91, 6))
-        log_embed.add_field(name="Responsible Moderator:", value=interaction.user.mention, inline=False)
+        log_embed.add_field(name="Responsible Staff Member:", value=interaction.user.mention, inline=False)
         log_embed.add_field(name=f"Former {ticket_support.name}:", value=member.mention, inline=False)
 
         channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'logging'))
@@ -196,14 +196,14 @@ class Moderators(commands.Cog):
 
         await interaction.message.edit(f"{self.sersisuccess} {member.mention} has been dishonourly discharged from the staff team. Good riddance!", embed=None, view=None)
         ctx = await self.bot.get_context(interaction.message)
-        await ctx.invoke(self.bot.get_command('blacklistuser'), member=member, reason=reason)
+        await ctx.invoke(self.bot.get_command('blacklistuser'), member=member, reason="Moderator purged with reason: " + reason)
 
         # logging
         log_embed = nextcord.Embed(
-            title="Member has been purged from staff and mod team."
+            title="Member has been purged from staff and mod team and added to blacklist."
         )
-        log_embed.add_field(name="Responsible Moderator:", value=interaction.user.mention, inline=False)
-        log_embed.add_field(name="Confirming Moderator:", value=moderator.mention, inline=False)
+        log_embed.add_field(name="Responsible Moderator:", value=moderator.mention, inline=False)
+        log_embed.add_field(name="Confirming Moderator:", value=interaction.user.mention, inline=False)
         log_embed.add_field(name="Purged Moderator:", value=member.mention, inline=False)
         log_embed.add_field(name="Reason:", value=reason, inline=False)
 
