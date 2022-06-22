@@ -113,44 +113,59 @@ class Config(commands.Cog):
                 await ctx.invoke(self.bot.get_command('setsetting'), section=args[1], setting=args[2], value=args[3])
                 return
 
+        elif len(args) == 1:
+            section = args[0].upper()
+
+            config = configparser.ConfigParser()
+            config.read("config.ini")
+
+            if section in config.sections():
+                config_embed = nextcord.Embed(
+                    title=section,
+                    color=nextcord.Color.from_rgb(237, 91, 6))
+
+                for field in config[section]:
+                    value = None
+
+                    if 'channels' in section.lower():
+                        channel = ctx.guild.get_channel(int(config[section][field]))
+                        if channel is not None:
+                            value = channel.mention
+                        else:
+                            value = f"`{config[section][field]}`"
+
+                    elif 'roles' in section.lower():
+                        role = ctx.guild.get_role(int(config[section][field]))
+                        if role is not None:
+                            value = role.mention
+                        else:
+                            value = f"`{config[section][field]}`"
+
+                    else:
+                        value = config[section][field]
+
+                    config_embed.add_field(name=f"{field}:", value=value)
+
+                await ctx.send(embed=config_embed)
+                return
+            else:
+                await ctx.send(f"Section {section} is not present in configuration!")
+
         elif len(args) != 0:
             await ctx.send(f"Invalid argument: `{args}`")
-
-        embed_list = []
 
         config = configparser.ConfigParser()
         config.read("config.ini")
 
+        config_embed = nextcord.Embed(
+            title="Sersi Configuration",
+            description="type s!conf|ig|uration [section] to display section settings",
+            color=nextcord.Color.from_rgb(237, 91, 6))
+
         for section in config.sections():
+            config_embed.add_field(name=f"{section}:", value='`' + "`\n`".join(config[section]) + '`')
 
-            config_embed = nextcord.Embed(
-                title=section,
-                color=nextcord.Color.from_rgb(237, 91, 6))
-
-            for field in config[section]:
-                value = None
-
-                if 'channels' in section.lower():
-                    channel = ctx.guild.get_channel(int(config[section][field]))
-                    if channel is not None:
-                        value = channel.mention
-                    else:
-                        value = f"`{config[section][field]}`"
-
-                elif 'roles' in section.lower():
-                    role = ctx.guild.get_role(int(config[section][field]))
-                    if channel is not None:
-                        value = role.mention
-                    else:
-                        value = f"`{config[section][field]}`"
-
-                else:
-                    value = config[section][field]
-
-                config_embed.add_field(name=f"{field}:", value=value)
-
-            embed_list.append(config_embed)
-        await ctx.send(embeds=embed_list)
+        await ctx.send(embed=config_embed)
 
     @commands.command()
     async def initkey(self, ctx):
