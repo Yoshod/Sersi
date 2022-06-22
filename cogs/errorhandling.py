@@ -14,6 +14,11 @@ class ErrorHandling(commands.Cog):
             channel = ctx.channel.id
             await ctx.send(f"{sersifail} That command does not exist.")
             return
+        elif isinstance(error, commands.MissingRequiredArgument):
+            sersifail = get_config('EMOTES', "fail")
+            channel = ctx.channel.id
+            await ctx.send(f"{sersifail} Please provide an argument to use this command.")
+            return
         error_details = []
         error_details.append(ctx.guild.name)
         error_details.append(ctx.guild.id)

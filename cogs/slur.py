@@ -141,11 +141,14 @@ class Slur(commands.Cog):
         await interaction.message.edit(embed=new_embed)
 
     @commands.command(aliases=["addsl"])
-    async def addslur(self, ctx, *slur):
+    async def addslur(self, ctx, *, slur=""):
         """adds a new slur to the list of slurs."""
         if not await permcheck(ctx, is_mod):
             return
 
+        elif slur == "":
+            await ctx.send(f"{ctx.author.mention} please provide a word to blacklist.")
+            return
         slur = "".join(slur)
         slur = clearString(slur)
 
@@ -180,11 +183,14 @@ class Slur(commands.Cog):
         await ctx.send(f"{self.sersisuccess} Slur added. Detection will start now.")
 
     @commands.command(aliases=["addgw"])
-    async def addgoodword(self, ctx, *word):
+    async def addgoodword(self, ctx, *, word=""):
         """adds a new goodword into the whitelist."""
         if not await permcheck(ctx, is_mod):
             return
 
+        elif word == "":
+            await ctx.send(f"{ctx.author.mention} please provide a word to whitelist.")
+            return
         word = "".join(word)
         word = clearString(word)
         if word in get_goodwords():
