@@ -17,6 +17,9 @@ class Roles(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
+        if message.author.bot:  # ignores message if message is by bot
+            return
+
         if message.guild is None:
             return
 
