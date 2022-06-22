@@ -3,9 +3,10 @@ import nextcord
 from nextcord.ext import commands
 from nextcord.ui import Button, View
 
+from baseutils import DualCustodyView
 from configutils import get_config, get_config_int
-from permutils import permcheck, is_mod, cb_is_mod
-from slurdetector import load_slurdetector, load_slurs, load_goodwords, get_slurs, get_goodwords, clearString, rmSlur, rmGoodword, detectSlur
+from permutils import permcheck, is_mod, is_full_mod, cb_is_mod
+from slurdetector import load_slurdetector, load_slurs, load_goodwords, get_slurs, get_goodwords, clear_string, rm_slur, rm_goodword, detect_slur
 
 
 class Slur(commands.Cog):
@@ -150,7 +151,7 @@ class Slur(commands.Cog):
             await ctx.send(f"{ctx.author.mention} please provide a word to blacklist.")
             return
         slur = "".join(slur)
-        slur = clearString(slur)
+        slur = clear_string(slur)
 
         existing_slur = None
         for s in get_slurs():
@@ -192,7 +193,7 @@ class Slur(commands.Cog):
             await ctx.send(f"{ctx.author.mention} please provide a word to whitelist.")
             return
         word = "".join(word)
-        word = clearString(word)
+        word = clear_string(word)
         if word in get_goodwords():
             await ctx.send(f"{self.sersifail} {word} is already on the whitelist")
             return
@@ -231,24 +232,48 @@ class Slur(commands.Cog):
         await channel.send(embed=embedVar)
         await ctx.send("{self.sersisuccess} Goodword added. Detection will start now.")
 
+    async def cb_rmslur_confirm(self, interaction):
+        mod_id, slur = 0, ""
+        for field in interaction.message.embeds[0].fields:
+            if field.name == "Slur":
+                slur = field.value
+            if field.name == "Moderator ID":
+                mod_id = int(field.value)
+        moderator = interaction.guild.get_member(mod_id)
+
+        rm_slur(slur)
+
+        # logging
+        channel = self.bot.get_channel(get_config_int('CHANNELS', 'logging'))
+        embed_var = nextcord.Embed(
+            title="Slur Removed",
+            description="A slur has been removed from the filter.",
+            color=nextcord.Color.from_rgb(237, 91, 6))
+        embed_var.add_field(name="Removed By:", value=f"{moderator.mention} ({moderator.id})", inline=False)
+        embed_var.add_field(name="Confirming Moderator:", value=f"{interaction.user.mention} ({interaction.user.id})", inline=False)
+        embed_var.add_field(name="Slur Removed:", value=slur, inline=False)
+        await channel.send(embed=embed_var)
+        await interaction.message.edit(f"{self.sersisuccess} Slur {slur} is no longer in the list", embed=None, view=None)
+
     @commands.command(aliases=["rmsl", "rmslur", "removesl"])
     async def removeslur(self, ctx, slur):
         """removes a slur from the list of slurs."""
         if not await permcheck(ctx, is_mod):
             return
 
-        rmSlur(ctx, slur)
-
-        # logging
-        channel = self.bot.get_channel(get_config_int('CHANNELS', 'logging'))
-        embedVar = nextcord.Embed(
-            title="Slur Removed",
-            description="A slur has been removed from the filter.",
+        dialog_embed = nextcord.Embed(
+            title="Remove Slur",
+            description="Following slur will be removed from slur detection:",
             color=nextcord.Color.from_rgb(237, 91, 6))
-        embedVar.add_field(name="Removed By:", value=f"{ctx.message.author.mention} ({ctx.message.author.id})", inline=False)
-        embedVar.add_field(name="Slur Removed:", value=slur, inline=False)
-        await channel.send(embed=embedVar)
-        await ctx.send(f"{self.sersisuccess} Slur {slur} is no longer in the list")
+        dialog_embed.add_field(name="Slur", value=slur)
+        dialog_embed.add_field(name="Moderator", value=ctx.author.mention)
+        dialog_embed.add_field(name="Moderator ID", value=ctx.author.id)
+
+        channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'alert'))
+        view = DualCustodyView(self.cb_rmslur_confirm, ctx.author, is_full_mod)
+        await view.send_dialogue(channel, embed=dialog_embed)
+
+        await ctx.reply(f"Removal of `{slur}` from slur detection was sent for approval by another moderator")
 
     @commands.command(aliases=["rmgw", "rmgoodword", "removegw"])
     async def removegoodword(self, ctx, word):
@@ -256,7 +281,7 @@ class Slur(commands.Cog):
         if not await permcheck(ctx, is_mod):
             return
 
-        rmGoodword(ctx, word)
+        rm_goodword(word)
 
         # logging
         channel = self.bot.get_channel(get_config_int('CHANNELS', 'logging'))
@@ -336,7 +361,7 @@ class Slur(commands.Cog):
     # events
     @commands.Cog.listener()
     async def on_message(self, message):
-        detected_slurs = detectSlur(message.content)
+        detected_slurs = detect_slur(message.content)
         if message.author == self.bot.user:  # ignores message if message is by bot
             return
 

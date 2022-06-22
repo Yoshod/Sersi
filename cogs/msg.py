@@ -8,7 +8,7 @@ from baseutils import ConfirmView, DualCustodyView
 from configutils import get_config, get_config_int, get_config_bool
 from permutils import permcheck, is_dark_mod, is_full_mod, is_mod, cb_is_mod
 from encryptionutils import encrypt_data, unencrypt_data
-from slurdetector import detectSlur
+from slurdetector import detect_slur
 
 
 class Messages(commands.Cog):
@@ -406,7 +406,7 @@ class Messages(commands.Cog):
                         await webhook.send(embed=secret, username="Anonymous User")
                         msg_sent = True
 
-                detected_slurs = detectSlur(message.content)
+                detected_slurs = detect_slur(message.content)
 
                 if len(detected_slurs) > 0:  # checks slur heat
                     channel = self.bot.get_channel(get_config_int('CHANNELS', 'alert'))

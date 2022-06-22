@@ -70,7 +70,7 @@ def load_slurdetector():
     load_goodwords()
 
 
-def rmSlur(ctx, slur):
+def rm_slur(slur):
     lines = []
     if slur in slurs_list:
         slurs_list.remove(slur)
@@ -86,7 +86,7 @@ def rmSlur(ctx, slur):
                 fp.write(line)
 
 
-def rmGoodword(ctx, word):
+def rm_goodword(word):
     lines = []
     if word in goodword:
         goodword.remove(word)
@@ -117,7 +117,7 @@ def load_goodwords():
             goodword.append(line)
 
 
-def clearString(string):
+def clear_string(string):
     """cleaning up the message by eliminating special characters and making the entire message lowercase"""
     special_characters = ['#', '%', '&', '[', ']', ' ', ']', '_', '-', '<', '>', '\'']
 
@@ -130,10 +130,10 @@ def clearString(string):
     return string
 
 
-def detectSlur(messageData):
+def detect_slur(messageData):
     if not str(messageData).startswith("s!"):  # ignores if message was a command
 
-        cleanedMessageData = clearString(messageData)
+        cleanedMessageData = clear_string(messageData)
         messageData = messageData.lower()
         messageData = messageData.replace(' ', '')
 
