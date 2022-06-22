@@ -38,7 +38,6 @@ class Jokes(commands.Cog):
 
             output_text = ''
             previous_char = '\0'
-            chance_replace_spaces = 20
             # check the cases for every individual character
             for current_char in input_text:
 
@@ -54,38 +53,6 @@ class Jokes(commands.Cog):
                 elif current_char in ['O', 'o']:
                     if previous_char in ['N', 'n', 'M', 'm']:
                         output_text += 'yo'
-                    else:
-                        output_text += current_char
-
-                elif current_char in ['U', 'u']:
-                    if random.randint(1, 10) == 10:
-                        if current_char == "u":
-                            output_text += "uwu"
-                        else:
-                            output_text += "UwU"
-                    else:
-                        output_text += current_char
-
-                elif current_char == " " and previous_char != " ":
-                    randomValue = random.randint(1, chance_replace_spaces)
-                    if randomValue == 1:
-                        output_text += " UwU~ "
-                        chance_replace_spaces += chance_replace_spaces + 10
-                    elif randomValue == 2:
-                        output_text += " OwO "
-                        chance_replace_spaces += chance_replace_spaces + 10
-                    else:
-                        output_text += current_char
-                        chance_replace_spaces -= 1
-
-                elif current_char == "\n":
-                    randomValue = random.randint(1, 10)
-                    if randomValue == 1:
-                        output_text += " UwU~\n"
-                    elif randomValue == 2:
-                        output_text += " OwO\n"
-                    elif randomValue == 3:
-                        output_text += " UwU nya~\n"
                     else:
                         output_text += current_char
 
