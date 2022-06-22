@@ -20,6 +20,22 @@ class Messages(commands.Cog):
         self.sersifail = get_config('EMOTES', 'fail')
         self.active_secret_dms = []
         self.filename = ("Files/AnonMessages/secret_dms.pkl")
+        self.banned_filename = "Files/AnonMessages/banned.csv"
+        self.banlist = {}
+
+        try:
+            with open(self.banned_filename, 'x'):  # creates CSV file if not exists
+                pass
+        except FileExistsError:             # ignores error if it does
+            pass
+        self.loadbanlist()
+
+    def loadbanlist(self):
+        with open(self.banned_filename, "r") as file:
+            for line in file:
+                line = line.replace('\n', '')
+                [user_id, reason] = line.split(";", maxsplit=1)
+                self.banlist[int(user_id)] = reason           # if the key is not an int, the guild.get_member() won't work
 
     async def cb_action_taken(self, interaction):
         new_embed = interaction.message.embeds[0]
@@ -80,6 +96,102 @@ class Messages(commands.Cog):
         embedLogVar.add_field(name="Report:", value=interaction.message.jump_url, inline=False)
         embedLogVar.add_field(name="Moderator:", value=f"{interaction.user.mention} ({interaction.user.id})", inline=False)
         await channel.send(embed=embedLogVar)
+
+    @commands.command(aliases=['anonban', 'anonmute'])
+    async def anonymousmute(self, ctx, member: nextcord.Member, *, reason):
+        if not await permcheck(ctx, is_mod):
+            return
+        elif member.id in self.banlist:
+            await ctx.send(f"{self.sersifail} {member} is already banned from participating in anonymous messages.!")
+            return
+
+        with open(self.banned_filename, "a") as file:
+            file.write(f"{member.id};{reason}\n")
+
+        self.loadbanlist()
+        await ctx.send(f"{self.sersisuccess} User muted in anonymous messages.")
+
+        # LOGGING
+
+        logging = nextcord.Embed(
+            title="User Muted (Anonymous Messages)",
+            color=nextcord.Color.from_rgb(237, 91, 6)
+        )
+        logging.add_field(name="Moderator:", value=ctx.author.mention, inline=False)
+        logging.add_field(name="User Added:", value=member.mention, inline=False)
+        logging.add_field(name="Reason:", value=reason, inline=False)
+
+        channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'logging'))
+        await channel.send(embed=logging)
+
+        channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'modlogs'))
+        await channel.send(embed=logging)
+
+    @commands.command(aliases=['lam', 'am', 'listam', 'lab', 'ab', 'listab'])
+    async def listanonymousmutes(self, ctx):
+        """lists all members currently muted in anonymous messages"""
+        if not await permcheck(ctx, is_mod):
+            return
+
+        nicelist = ""
+        for entry in self.banlist:
+
+            member = ctx.guild.get_member(entry)
+            if member is None:
+                nicelist = nicelist + f"**{entry}**: {self.banlist[entry]}\n"
+            else:
+                nicelist = nicelist + f"**{member}** ({member.id}): {self.banlist[entry]}\n"
+
+        listembed = nextcord.Embed(
+            title="Anonymous Messages Muted Member List",
+            description=nicelist,
+            color=nextcord.Color.from_rgb(237, 91, 6)
+        )
+        await ctx.send(embed=listembed)
+
+    @commands.command(aliases=['anonunmute', 'unmuteanon', 'umanon', 'anonum'])
+    async def anonymousunmute(self, ctx, member: nextcord.Member):
+        """removes user from anonymous messages mute"""
+        if not await permcheck(ctx, is_mod):
+            return
+        if member.id not in self.banlist:
+            await ctx.send(f"{self.sersifail} Member {member} not found on list!")
+
+        self.banlist.pop(member.id)
+        print(self.banlist)
+
+        with open(self.banned_filename, "w") as file:
+            for entry in self.banlist:
+                file.write(f"{entry};{self.banlist[entry]}\n")
+
+        await ctx.send(f"{self.sersisuccess} User has been unmuted in anonymous messages.")
+
+        # LOGGING
+
+        logging = nextcord.Embed(
+            title="User Unmuted (Anonymous Messages)",
+            color=nextcord.Color.from_rgb(237, 91, 6)
+        )
+        logging.add_field(name="Moderator:", value=ctx.author.mention, inline=False)
+        logging.add_field(name="User Unmuted:", value=member.mention, inline=False)
+
+        channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'logging'))
+        await channel.send(embed=logging)
+
+        channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'modlogs'))
+        await channel.send(embed=logging)
+
+    @commands.command(aliases=['checkmuted', 'checkmute'])
+    async def checkanonmutes(self, ctx, member: nextcord.Member):
+        if not await permcheck(ctx, is_mod):
+            return
+
+        if member.id in self.banlist:
+            await ctx.send(f"{self.sersifail} Member {member} is muted in anonymous messages!")
+            return True
+        else:
+            await ctx.send(f"{self.sersisuccess} Member {member} is not muted in anonymous messages!")
+            return False
 
     @commands.command()
     async def dm(self, ctx, recipient: nextcord.Member, *, message):
@@ -211,12 +323,12 @@ class Messages(commands.Cog):
 
         if message.guild is None and message.author != self.bot.user:
 
-            if message.content.lower() == "secret":
+            if message.content.lower() == "secret" and message.author.id not in self.banlist:
                 self.active_secret_dms.append(message.author.id)
-                await message.author.send("The next DM will be secret! This is not an invitation to break the rules.")
+                await message.author.send("The next DM will be secret! Do not share personal private information or impersonate other users on the server. Rule breakers will be deanonymised and punished.")
                 return
 
-            elif message.author.id in self.active_secret_dms:
+            elif message.author.id in self.active_secret_dms and message.author.id not in self.banlist:
                 self.active_secret_dms.remove(message.author.id)
                 ID = str(uuid.uuid4())
 
@@ -300,7 +412,14 @@ class Messages(commands.Cog):
                     await webhook.send(embed=secret, username="Anonymous User")
                     msg_sent = True
 
+            elif message.author.id in self.banlist and message.content.lower() == "secret":
+                await message.author.send(f"{self.sersifail} You cannot send anonymous messages.")
+
+            elif message.author.id in self.active_secret_dms and message.author.id in self.banlist:
+                await message.author.send(f"{self.sersifail} You cannot send anonymous messages.")
+
             else:
+                return
                 if not get_config_bool("MSG", "forward dms", False):
                     return
 

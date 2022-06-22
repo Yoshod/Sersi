@@ -2,7 +2,7 @@ import nextcord
 from nextcord.ext import commands
 
 from configutils import get_config, get_config_int
-from permutils import permcheck, is_dark_mod
+from permutils import permcheck, is_mod
 
 
 class Watchlist(commands.Cog):
@@ -30,7 +30,7 @@ class Watchlist(commands.Cog):
     @commands.command(aliases=['wl', 'wluser', 'addwl', 'watchlist'])
     async def watchlistuser(self, ctx, member: nextcord.Member, *, reason):
         """sets user onto moderator watchlist"""
-        if not await permcheck(ctx, is_dark_mod):
+        if not await permcheck(ctx, is_mod):
             return
         elif member.id in self.watchlist:
             await ctx.send(f"{self.sersifail} {member} already on watchlist!")
@@ -59,7 +59,7 @@ class Watchlist(commands.Cog):
     @commands.command(aliases=['lwl', 'wllist', 'listwl', 'wll', 'showwatchlist'])
     async def listwatchlist(self, ctx):
         """lists all members currently on the watchlist"""
-        if not await permcheck(ctx, is_dark_mod):
+        if not await permcheck(ctx, is_mod):
             return
 
         nicelist = ""
@@ -80,7 +80,7 @@ class Watchlist(commands.Cog):
     @commands.command(aliases=['rmwl', 'removeuserfromwatchlist', 'wlrmuser', 'wlremoveuser'])
     async def removefromwatchlist(self, ctx, member: nextcord.Member):
         """removes user from moderator watchlist"""
-        if not await permcheck(ctx, is_dark_mod):
+        if not await permcheck(ctx, is_mod):
             return
         if member.id not in self.watchlist:
             await ctx.send(f"{self.sersifail} Member {member} not found on list!")
@@ -109,7 +109,7 @@ class Watchlist(commands.Cog):
 
     @commands.command(aliases=['checkwl', 'ckwl'])
     async def checkwatchlist(self, ctx, member: nextcord.Member):
-        if not await permcheck(ctx, is_dark_mod):
+        if not await permcheck(ctx, is_mod):
             return
 
         if member.id in self.watchlist:
