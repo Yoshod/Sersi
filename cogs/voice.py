@@ -93,7 +93,7 @@ class Voice(commands.Cog):
             if before.channel is not None:
                 url = f"https://discord.com/api/v10/channels/{before.channel.id}/messages"
                 json = {
-                    "content": f"{member.mention} has left the voice channel. Goodbye!"
+                    "content": f"**{member.display_name}** has left the voice channel. Goodbye!"
                 }
                 requests.post(url, headers=headers, json=json)
 
