@@ -97,19 +97,20 @@ class Messages(commands.Cog):
         embedLogVar.add_field(name="Moderator:", value=f"{interaction.user.mention} ({interaction.user.id})", inline=False)
         await channel.send(embed=embedLogVar)
 
-    @commands.command(aliases=['anonban', 'anonmute'])
-    async def anonymousmute(self, ctx, member: nextcord.Member, *, reason):
-        if not await permcheck(ctx, is_mod):
-            return
-        elif member.id in self.banlist:
-            await ctx.send(f"{self.sersifail} {member} is already banned from participating in anonymous messages.!")
-            return
+    async def cb_anonmute_proceed(self, interaction):
+        member_id, reason = 0, ""
+        for field in interaction.message.embeds[0].fields:
+            if field.name == "User ID":
+                member_id = int(field.value)
+            if field.name == "Reason":
+                reason = field.value
+        member = interaction.guild.get_member(member_id)
 
         with open(self.banned_filename, "a") as file:
             file.write(f"{member.id};{reason}\n")
 
         self.loadbanlist()
-        await ctx.send(f"{self.sersisuccess} User muted in anonymous messages.")
+        await interaction.message.edit(f"{self.sersisuccess} User muted in anonymous messages.", embed=None, view=None)
 
         # LOGGING
 
@@ -117,15 +118,33 @@ class Messages(commands.Cog):
             title="User Muted (Anonymous Messages)",
             color=nextcord.Color.from_rgb(237, 91, 6)
         )
-        logging.add_field(name="Moderator:", value=ctx.author.mention, inline=False)
+        logging.add_field(name="Moderator:", value=interaction.user.mention, inline=False)
         logging.add_field(name="User Added:", value=member.mention, inline=False)
         logging.add_field(name="Reason:", value=reason, inline=False)
 
-        channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'logging'))
+        channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'logging'))
         await channel.send(embed=logging)
 
-        channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'modlogs'))
+        channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'modlogs'))
         await channel.send(embed=logging)
+
+    @commands.command(aliases=['anonban', 'anonmute'])
+    async def anonymousmute(self, ctx, member: nextcord.Member, *, reason):
+        if not await permcheck(ctx, is_mod):
+            return
+        elif member.id in self.banlist:
+            await ctx.send(f"{self.sersifail} {member} is already banned from participating in anonymous messages.!")
+            return
+        
+        dialog_embed = nextcord.Embed(
+           title="Secret Messages Mute",
+           description="Following member will be forbidden from sending secret messages:",
+           color=nextcord.Color.from_rgb(237, 91, 6))
+        dialog_embed.add_field(name="User", value=member.mention)
+        dialog_embed.add_field(name="User ID", value=member.id)
+        dialog_embed.add_field(name="Reason", value=reason, inline=False)
+
+        await ConfirmView(self.cb_anonmute_proceed).send_as_reply(ctx, embed=dialog_embed)
 
     @commands.command(aliases=['lam', 'am', 'listam', 'lab', 'ab', 'listab'])
     async def listanonymousmutes(self, ctx):
@@ -149,13 +168,12 @@ class Messages(commands.Cog):
         )
         await ctx.send(embed=listembed)
 
-    @commands.command(aliases=['anonunmute', 'unmuteanon', 'umanon', 'anonum'])
-    async def anonymousunmute(self, ctx, member: nextcord.Member):
-        """removes user from anonymous messages mute"""
-        if not await permcheck(ctx, is_mod):
-            return
-        if member.id not in self.banlist:
-            await ctx.send(f"{self.sersifail} Member {member} not found on list!")
+    async def cb_anonunmute_proceed(self, interaction):
+        member_id = 0
+        for field in interaction.message.embeds[0].fields:
+            if field.name == "User ID":
+                member_id = int(field.value)
+        member = interaction.guild.get_member(member_id)
 
         self.banlist.pop(member.id)
         print(self.banlist)
@@ -164,7 +182,7 @@ class Messages(commands.Cog):
             for entry in self.banlist:
                 file.write(f"{entry};{self.banlist[entry]}\n")
 
-        await ctx.send(f"{self.sersisuccess} User has been unmuted in anonymous messages.")
+        await interaction.message.edit(f"{self.sersisuccess} User has been unmuted in anonymous messages.", embed=None, view=None)
 
         # LOGGING
 
@@ -172,14 +190,31 @@ class Messages(commands.Cog):
             title="User Unmuted (Anonymous Messages)",
             color=nextcord.Color.from_rgb(237, 91, 6)
         )
-        logging.add_field(name="Moderator:", value=ctx.author.mention, inline=False)
+        logging.add_field(name="Moderator:", value=interaction.user.mention, inline=False)
         logging.add_field(name="User Unmuted:", value=member.mention, inline=False)
 
-        channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'logging'))
+        channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'logging'))
         await channel.send(embed=logging)
 
-        channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'modlogs'))
+        channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'modlogs'))
         await channel.send(embed=logging)
+
+    @commands.command(aliases=['anonunmute', 'unmuteanon', 'umanon', 'anonum'])
+    async def anonymousunmute(self, ctx, member: nextcord.Member):
+        """removes user from anonymous messages mute"""
+        if not await permcheck(ctx, is_mod):
+            return
+        if member.id not in self.banlist:
+            await ctx.send(f"{self.sersifail} Member {member} not found on list!")
+
+        dialog_embed = nextcord.Embed(
+           title="Secret Messages Unute",
+           description="Following member will no longer be forbidden from sending secret messages:",
+           color=nextcord.Color.from_rgb(237, 91, 6))
+        dialog_embed.add_field(name="User", value=member.mention)
+        dialog_embed.add_field(name="User ID", value=member.id)
+
+        await ConfirmView(self.cb_anonunmute_proceed).send_as_reply(ctx, embed=dialog_embed)
 
     @commands.command(aliases=['checkmuted', 'checkmute'])
     async def checkanonmutes(self, ctx, member: nextcord.Member):
