@@ -1,4 +1,7 @@
+import requests
 import nextcord
+import discordTokens
+
 from nextcord.ext import commands
 
 from baseutils import ConfirmView
@@ -71,17 +74,28 @@ class Voice(commands.Cog):
     """
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
-        channel = self.bot.get_channel(get_config_int('CHANNELS', 'logging'))
-        await channel.send(f"Voice State Update")
-        await channel.send(f"Member: {member}\nbefore: {before}\nafter: {after}")
 
-        if before.channel is None:
-            # greetings
-            await after.channel.send(f"Hello {member.mention}, welcome to {after.channel.mention}!")
+        if after.channel != before.channel:  # channel change. at least one message has to be sent
 
-        elif after.channel is None:
-            # goodbye
-            await before.channel.send(f"{member.mention} has left the voice channel. Goodbye!")
+            # specifications regardless of message content
+            headers = {
+                'Authorization': f'Bot {discordTokens.getToken()}',
+                'Content-Type': 'application/json; charset=UTF-8'
+            }
+
+            if after.channel is not None:
+                url = f"https://discord.com/api/v10/channels/{after.channel.id}/messages"
+                json = {
+                    "content": f"Hello {member.mention}, welcome to {after.channel.mention}!"
+                }
+                requests.post(url, headers=headers, json=json)
+
+            if before.channel is not None:
+                url = f"https://discord.com/api/v10/channels/{before.channel.id}/messages"
+                json = {
+                    "content": f"{member.mention} has left the voice channel. Goodbye!"
+                }
+                requests.post(url, headers=headers, json=json)
 
 
 def setup(bot):
