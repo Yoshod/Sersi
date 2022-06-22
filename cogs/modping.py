@@ -106,7 +106,9 @@ class ModPing(commands.Cog):
 
             await channel.send(embed=embedVar, view=button_view)
 
-        elif "<@809891646606409779>" in message.content:   # adam something ping
+        # elif "<@809891646606409779>" in message.content:   # adam something ping
+
+        elif message.guild.get_member(809891646606409779).mentioned_in(message):  # adam something ping
 
             # notification for mods
             channel = self.bot.get_channel(get_config_int('CHANNELS', 'alert'))
