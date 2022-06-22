@@ -9,7 +9,7 @@ class Blacklist(commands.Cog):
     def __init__(self, bot):
         self.sersisuccess = get_config('EMOTES', 'success')
         self.sersifail = get_config('EMOTES', 'fail')
-        self.filename = "blacklist.csv"
+        self.filename = "Files/WBList/blacklist.csv"
         self.bot = bot
         self.blacklist = {}
         try:

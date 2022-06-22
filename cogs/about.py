@@ -10,7 +10,7 @@ class About(commands.Cog):
         self.verNum = "`3.2.0`"
 
         authors = []
-        with open("authors.txt", "r") as file:
+        with open("Files/About/authors.txt", "r") as file:
             for line in file:
                 line = line.replace('\n', '')
                 authors.append(line)

@@ -77,10 +77,10 @@ def rmSlur(ctx, slur):
         slurs.clear()
         for item in slurs_list:
             slurs.extend(leet(item))
-    with open("slurs.txt", "r") as fp:
+    with open("Files/SlurAlerts/slurs.txt", "r") as fp:
         lines = fp.readlines()
 
-    with open("slurs.txt", "w") as fp:
+    with open("Files/SlurAlerts/slurs.txt", "w") as fp:
         for line in lines:
             if line.strip("\n") != slur:
                 fp.write(line)
@@ -90,10 +90,10 @@ def rmGoodword(ctx, word):
     lines = []
     if word in goodword:
         goodword.remove(word)
-    with open("goodword.txt", "r") as fp:
+    with open("Files/SlurAlerts/goodword.txt", "r") as fp:
         lines = fp.readlines()
 
-    with open("goodword.txt", "w") as fp:
+    with open("Files/SlurAlerts/goodword.txt", "w") as fp:
         for line in lines:
             if line.strip("\n") != word:
                 fp.write(line)
@@ -102,7 +102,7 @@ def rmGoodword(ctx, word):
 def load_slurs():
     slurs.clear()
     slurs_list.clear()
-    with open("slurs.txt", "r") as file:
+    with open("Files/SlurAlerts/slurs.txt", "r") as file:
         for line in file:
             line = line.replace('\n', '')
             slurs_list.append(line)
@@ -111,7 +111,7 @@ def load_slurs():
 
 def load_goodwords():
     goodword.clear()
-    with open("goodword.txt", "r") as file:
+    with open("Files/SlurAlerts/goodword.txt", "r") as file:
         for line in file:
             line = line.replace('\n', '')
             goodword.append(line)

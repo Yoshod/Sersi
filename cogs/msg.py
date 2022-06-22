@@ -19,7 +19,7 @@ class Messages(commands.Cog):
         self.sersisuccess = get_config('EMOTES', 'success')
         self.sersifail = get_config('EMOTES', 'fail')
         self.active_secret_dms = []
-        self.filename = ("secret_dms.pkl")
+        self.filename = ("Files/AnonMessages/secret_dms.pkl")
 
     async def cb_action_taken(self, interaction):
         new_embed = interaction.message.embeds[0]
@@ -101,7 +101,7 @@ class Messages(commands.Cog):
         logging.add_field(name="Sender:", value=ctx.author.mention, inline=False)
         logging.add_field(name="Recipient:", value=recipient.mention, inline=False)
         logging.add_field(name="Message Content:", value=message, inline=False)
-        await channel.send(embed=logging)            
+        await channel.send(embed=logging)
 
     async def cb_da_confirm(self, interaction):
         mod_id = 0

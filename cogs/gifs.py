@@ -10,7 +10,7 @@ class Gif(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.filename = "gifblacklist.txt"
+        self.filename = "Files/WBList/gifblacklist.txt"
         try:
             with open(self.filename, 'x'):  # creates file if not exists
                 pass

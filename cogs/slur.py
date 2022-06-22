@@ -163,7 +163,7 @@ class Slur(commands.Cog):
             return
 
         await ctx.send(f"Slur to be added: {slur}")
-        with open("slurs.txt", "a") as file:
+        with open("Files/SlurAlerts/slurs.txt", "a") as file:
             file.write(slur)
             file.write("\n")
         load_slurs()    # reloads updated list into memory
@@ -209,7 +209,7 @@ class Slur(commands.Cog):
                 return
 
         await ctx.send(f"Goodword to be added: {word}")
-        with open("goodword.txt", "a") as file:
+        with open("Files/SlurAlerts/goodword.txt", "a") as file:
             file.write(word)
             file.write("\n")
         load_goodwords()    # reloads updated list into memory

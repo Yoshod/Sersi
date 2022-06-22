@@ -10,7 +10,7 @@ class Watchlist(commands.Cog):
     def __init__(self, bot):
         self.sersisuccess = get_config('EMOTES', 'success')
         self.sersifail = get_config('EMOTES', 'fail')
-        self.filename = "watchlist.csv"
+        self.filename = "Files/WBList/watchlist.csv"
         self.bot = bot
         self.watchlist = {}
         try:
