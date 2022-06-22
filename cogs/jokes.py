@@ -82,7 +82,9 @@ class Jokes(commands.Cog):
 
                 # if no case match, write it as it is
                 else:
-                    previous_char = current_char
+                    output_text += current_char
+
+                previous_char = current_char
 
             return output_text
 
