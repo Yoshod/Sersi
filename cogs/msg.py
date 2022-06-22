@@ -37,6 +37,20 @@ class Messages(commands.Cog):
                 [user_id, reason] = line.split(";", maxsplit=1)
                 self.banlist[int(user_id)] = reason           # if the key is not an int, the guild.get_member() won't work
 
+    def can_send_anon_msg(self, user):
+        if user.id in self.banlist:
+            return False
+
+        guild = self.bot.get_channel(get_config_int("CHANNELS", "secret")).guild
+        guild_member = guild.get_member(user.id)
+        newbie_role = guild.get_role(get_config_int('ROLES', 'newbie'))
+        reformation_role = guild.get_role(get_config_int('ROLES', 'reformation'))
+
+        if newbie_role in guild_member.roles or reformation_role in guild_member.roles:
+            return False
+        else:
+            return True
+
     async def cb_action_taken(self, interaction):
         new_embed = interaction.message.embeds[0]
         new_embed.add_field(name="Action Taken By", value=interaction.user.mention, inline=False)
@@ -358,12 +372,12 @@ class Messages(commands.Cog):
 
         if message.guild is None and message.author != self.bot.user:
 
-            if message.content.lower() == "secret" and message.author.id not in self.banlist:
+            if message.content.lower() == "secret" and self.can_send_anon_msg(message.author):
                 self.active_secret_dms.append(message.author.id)
                 await message.author.send("The next DM will be secret! Do not share personal private information or impersonate other users on the server. Rule breakers will be deanonymised and punished.")
                 return
 
-            elif message.author.id in self.active_secret_dms and message.author.id not in self.banlist:
+            elif message.author.id in self.active_secret_dms and self.can_send_anon_msg(message.author):
                 self.active_secret_dms.remove(message.author.id)
                 ID = str(uuid.uuid4())
 
