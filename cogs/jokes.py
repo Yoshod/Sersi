@@ -29,7 +29,7 @@ class Jokes(commands.Cog):
     async def uwu(self, ctx, *, message=""):
         """OwO *nuzzles the command*"""
         if message == "":
-            await ctx.send(f"{ctx.author.mention} please provide a message to uwuify.")
+            await ctx.send(f"{ctx.author.mention} pwease provide a message to uwuify.")
             return
 
         def generate_uwu(input_text: str) -> str:
