@@ -54,7 +54,7 @@ class DualCustodyView(View):
         self.author = author
 
     async def on_timeout(self):
-        self.message.edit(view=None)
+        await self.message.edit(view=None)
 
     async def interaction_check(self, interaction):
         if interaction.user == self.author:
