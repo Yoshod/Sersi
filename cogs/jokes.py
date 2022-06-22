@@ -84,7 +84,7 @@ class Jokes(commands.Cog):
                 msg_sent = True
 
         if not msg_sent:                          # creates webhook if none found
-            webhook = await message.channel.create_webhook(name="caps webhook by sersi")
+            webhook = await ctx.message.channel.create_webhook(name="caps webhook by sersi")
             await webhook.send(generate_uwu(message), username=generate_uwu(ctx.author.display_name), avatar_url=ctx.author.display_avatar.url)
             msg_sent = True
 
