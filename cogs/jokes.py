@@ -26,8 +26,12 @@ class Jokes(commands.Cog):
         await ctx.send(embed=nevermod_embed)
 
     @commands.command()
-    async def uwu(self, ctx, *, message):
+    async def uwu(self, ctx, *, message=""):
         """OwO *nuzzles the command*"""
+        if message == "":
+            await ctx.send(f"{ctx.author.mention} please provide a message to uwuify.")
+            return
+
         def generate_uwu(input_text: str) -> str:
             """Shamelessly stolen from https://www.geeksforgeeks.org/uwu-text-convertor-in-python/
             well, i modified it"""
