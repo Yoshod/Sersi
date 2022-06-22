@@ -57,15 +57,6 @@ class Jokes(commands.Cog):
                     else:
                         output_text += current_char
 
-                elif current_char in ['U', 'u']:
-                    if random.randint(1, 10) == 10:
-                        if current_char == "u":
-                            output_text += "uwu"
-                        else:
-                            output_text += "UwU"
-                    else:
-                        output_text += current_char
-
                 elif current_char == " " and previous_char != " ":
                     randomValue = random.randint(1, chance_replace_spaces)
                     if randomValue == 1:
@@ -91,9 +82,7 @@ class Jokes(commands.Cog):
 
                 # if no case match, write it as it is
                 else:
-                    output_text += current_char
-
-                previous_char = current_char
+                    previous_char = current_char
 
             return output_text
 
