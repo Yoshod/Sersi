@@ -27,7 +27,9 @@ class Jokes(commands.Cog):
 
     @commands.command()
     async def uwu(self, ctx, *, message=""):
-        """OwO *nuzzles the command*"""
+        """OwO *nuzzles the command*
+
+        Takes message and uwuifies it."""
         if message == "":
             await ctx.send(f"{ctx.author.mention} pwease pwovide a message to uwuify.")
             return
@@ -53,6 +55,13 @@ class Jokes(commands.Cog):
                 elif current_char in ['O', 'o']:
                     if previous_char in ['N', 'n', 'M', 'm']:
                         output_text += 'yo'
+                    else:
+                        output_text += current_char
+
+                # if the current character is 'a' or 'A'and the previos one is 'N', 'n', 'M' or 'm'
+                elif current_char in ['A', 'a']:
+                    if previous_char in ['N', 'n', 'M', 'm']:
+                        output_text += 'ya'
                     else:
                         output_text += current_char
 
