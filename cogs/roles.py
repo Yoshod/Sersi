@@ -12,6 +12,9 @@ class Roles(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
+        if member.bot:  # do not apply newbie role do bots
+            return
+
         newbie_role = member.guild.get_role(get_config_int('ROLES', 'newbie'))
         await member.add_roles(newbie_role)
 
