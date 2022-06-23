@@ -49,12 +49,14 @@ class Cases(commands.Cog):
                     description=(case_string),
                     colour=nextcord.Color.from_rgb(237, 91, 6)
                 )
+                cases_embed.set_thumbnail(url=member.display_avatar.url)
             except KeyError:
                 cases_embed = nextcord.Embed(
                     title=(f"{member.name}'s Cases (0)"),
                     description=(f"{member.mention} ({member.id}) has no cases."),
                     colour=nextcord.Color.from_rgb(237, 91, 6)
                 )
+                cases_embed.set_thumbnail(url=member.display_avatar.url)
             await ctx.send(embed=cases_embed)
 
 def setup(bot):
