@@ -149,11 +149,11 @@ class Messages(commands.Cog):
         elif member.id in self.banlist:
             await ctx.send(f"{self.sersifail} {member} is already banned from participating in anonymous messages.!")
             return
-        
+
         dialog_embed = nextcord.Embed(
-           title="Secret Messages Mute",
-           description="Following member will be forbidden from sending secret messages:",
-           color=nextcord.Color.from_rgb(237, 91, 6))
+            title="Secret Messages Mute",
+            description="Following member will be forbidden from sending secret messages:",
+            color=nextcord.Color.from_rgb(237, 91, 6))
         dialog_embed.add_field(name="User", value=member.mention)
         dialog_embed.add_field(name="User ID", value=member.id)
         dialog_embed.add_field(name="Reason", value=reason, inline=False)
@@ -222,9 +222,9 @@ class Messages(commands.Cog):
             await ctx.send(f"{self.sersifail} Member {member} not found on list!")
 
         dialog_embed = nextcord.Embed(
-           title="Secret Messages Unute",
-           description="Following member will no longer be forbidden from sending secret messages:",
-           color=nextcord.Color.from_rgb(237, 91, 6))
+            title="Secret Messages Unute",
+            description="Following member will no longer be forbidden from sending secret messages:",
+            color=nextcord.Color.from_rgb(237, 91, 6))
         dialog_embed.add_field(name="User", value=member.mention)
         dialog_embed.add_field(name="User ID", value=member.id)
 
