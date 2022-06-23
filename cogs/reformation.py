@@ -1,3 +1,4 @@
+from ast import alias
 import nextcord
 import pickle
 from nextcord.ext import commands
@@ -6,13 +7,14 @@ from nextcord.ext.commands.errors import MemberNotFound
 from os import remove
 
 from baseutils import ConfirmView
-from configutils import get_config_int, get_options
+from configutils import get_config_int, get_options, get_config
 from permutils import permcheck, is_mod, cb_is_mod
 
 
 class Reformation(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.sersifail = get_config('EMOTES', 'fail')
 
     async def cb_rn_proceed(self, interaction):
         member_id, reason = 0, ""
@@ -93,7 +95,8 @@ class Reformation(commands.Cog):
         elif len(str(case_num)) >= 4:
             case_name = (f"reformation-case-{case_num}")
 
-        reformation_list[member.id] = case_name
+        case_details = [case_name, case_num, interaction.user.id, reason]
+        reformation_list[member.id] = case_details
         print(reformation_list)
 
         category = nextcord.utils.get(interaction.guild.categories, name="REFORMATION ROOMS")
@@ -193,7 +196,7 @@ class Reformation(commands.Cog):
             with open("Files/Reformation/reformationcases.pkl", "rb") as file:
                 reformation_list = pickle.load(file)
 
-            channel_name = reformation_list[member.id]
+            channel_name = reformation_list[member.id][0]
             channel = nextcord.utils.get(interaction.guild.channels, name=channel_name)
 
             await channel.delete()
@@ -369,6 +372,36 @@ class Reformation(commands.Cog):
 
         channel = self.bot.get_channel(get_config_int('CHANNELS', 'alert'))
         await channel.send(embed=embedVar, view=button_view)
+
+    @commands.command(aliases=["rcase", "reformcase"])
+    async def reformationcase(self, ctx, user: nextcord.Member):
+        if not await permcheck(ctx, is_mod):
+            return
+        
+        elif user is None:
+            await ctx.send(f"{self.sersifail} Please provide a user.")
+
+        elif user is not None:
+            with open("Files/Reformation/reformationcases.pkl", "rb") as file:
+                reformation_list = pickle.load(file)
+            keys = reformation_list.keys()
+            if user.id in keys:
+                case_embed = nextcord.Embed(
+                    title=(f"Reformation Case: {reformation_list[user.id][1]}"),
+                    color=nextcord.Color.from_rgb(237, 91, 6)
+                )
+                moderator = ctx.guild.get_member(reformation_list[user.id][2])
+                channel_name = reformation_list[user.id][0]
+                reform_channel = nextcord.utils.get(ctx.guild.channels, name=channel_name)
+                case_embed.add_field(name="Username:", value=(f"{user.mention} {user.id}"), inline=False)
+                case_embed.add_field(name="Responsible Moderator:", value=(f"{moderator.mention} ({moderator.id}"), inline=False)
+                case_embed.add_field(name="Channel:", value=(reform_channel.mention), inline=False)
+                case_embed.add_field(name="Reason:", value=reformation_list[user.id][3])
+                await ctx.send(embed=case_embed)
+                return
+        else:
+            ctx.send(f"{self.sersifail} Failed to find the specified user! Perhaps they do not have a case?")
+                    
 
     @commands.Cog.listener()
     async def on_member_remove(self, member):
