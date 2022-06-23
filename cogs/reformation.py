@@ -1,6 +1,7 @@
 from ast import alias
 import nextcord
 import pickle
+import shortuuid
 from nextcord.ext import commands
 from nextcord.ui import Button, View
 from nextcord.ext.commands.errors import MemberNotFound
@@ -15,6 +16,7 @@ class Reformation(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.sersifail = get_config('EMOTES', 'fail')
+        self.case_history_file = ("Files/Cases/casehistory.pkl")
 
     async def cb_rn_proceed(self, interaction):
         member_id, reason = 0, ""
@@ -104,6 +106,34 @@ class Reformation(commands.Cog):
 
         with open("Files/Reformation/reformationcases.pkl", "wb") as file:
             pickle.dump(reformation_list, file)
+
+        print("Attempting to Open Case File")
+        try:
+            with open(self.case_history_file, "rb") as file:
+                case_history = pickle.load(file)
+                print("Case History Loaded")
+        except (EOFError, TypeError):
+            case_history={}
+            print("Generating New Case History")
+            case_history[member.id] = []
+        
+        global_case_identifier = str(shortuuid.uuid())
+        try:
+            cases = case_history[member.id]
+            print("Member Cases Loaded")
+            cases.append([global_case_identifier, "Reformation"])
+            print("Case History Appended")
+            case_history[member.id] = cases
+            print("Case History Dict Updated")
+        except KeyError:
+            cases = []
+            cases.append([global_case_identifier, "Reformation"])
+            case_history[member.id] = cases
+            print("Case History Dict Updated")
+
+        with open(self.case_history_file, "wb") as file:
+            pickle.dump(case_history, file)
+            print("Case History Dumped")
 
         channel = nextcord.utils.get(interaction.guild.channels, name=case_name)
         await channel.send(embed=welcome_embed)
