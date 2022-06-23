@@ -8,7 +8,7 @@ from os import remove
 
 from baseutils import ConfirmView
 from configutils import get_config_int, get_options, get_config
-from permutils import permcheck, is_mod, cb_is_mod
+from permutils import permcheck, is_mod, cb_is_mod, is_custom_role
 
 
 class Reformation(commands.Cog):
@@ -29,7 +29,7 @@ class Reformation(commands.Cog):
 
         await member.add_roles(reformation_role, reason=reason, atomic=True)
 
-        role_obj = interaction.guild.get_role(get_config_int('ROLES', 'civil enginerring initiate'))
+        role_obj = interaction.guild.get_role(get_config_int('ROLES', 'civil engineering initiate'))
         await member.remove_roles(role_obj, reason=reason, atomic=True)
 
         for role in get_options('OPT IN ROLES'):
@@ -169,10 +169,10 @@ class Reformation(commands.Cog):
 
             # roles
             try:
-                civil_enginerring_initiate  = interaction.guild.get_role(get_config_int('ROLES', 'civil enginerring initiate'))
+                civil_engineering_initiate  = interaction.guild.get_role(get_config_int('ROLES', 'civil engineering initiate'))
                 reformed                    = interaction.guild.get_role(get_config_int('ROLES', 'reformed'))
 
-                await member.add_roles(civil_enginerring_initiate, reformed, reason="Released out of the Reformation Centre", atomic=True)
+                await member.add_roles(civil_engineering_initiate, reformed, reason="Released out of the Reformation Centre", atomic=True)
             except AttributeError:
                 await interaction.send("Could not assign roles.")
             await member.remove_roles(interaction.guild.get_role(get_config_int('ROLES', 'reformation')), reason="Released out of the Reformation Centre", atomic=True)
@@ -375,7 +375,7 @@ class Reformation(commands.Cog):
 
     @commands.command(aliases=["rcase", "reformcase"])
     async def reformationcase(self, ctx, user: nextcord.Member):
-        if not await permcheck(ctx, is_mod):
+        if not await permcheck(ctx, is_custom_role(ctx.author, [get_config_int('PERMISSION ROLES', 'moderator'), get_config_int('PERMISSION ROLES', 'trial moderator'), get_config_int('PERMISSION ROLES', 'reformist')])):
             return
         
         elif user is None:

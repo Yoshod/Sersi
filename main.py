@@ -110,21 +110,6 @@ async def on_message_edit(before, after):
     bot.dispatch('message', after)
 
 
-"""@bot.event
-async def on_command_error(ctx, error):
-    channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'errors'))
-    if channel is None:
-        await ctx.send(f"Error while executing command: `{error}`")
-    else:
-        (errno, value, traceback) = sys.exc_info()
-        error_embed = nextcord.Embed(
-            title="sys.exc_info() return")
-        error_embed.add_field(name="errno:", value=errno, inline=False)
-        error_embed.add_field(name="value:", value=value, inline=False)
-        error_embed.add_field(name="traceback:", value=traceback, inline=False)
-        await channel.send(f"Error while executing command: `{error}`", embed=error_embed)"""
-
-
 @bot.event
 async def on_ready():
     # load all cogs

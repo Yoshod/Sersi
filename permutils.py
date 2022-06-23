@@ -4,7 +4,9 @@ from configutils import get_config, get_config_int
 
 async def permcheck(hook, function):
     if isinstance(hook, nextcord.ext.commands.Context):
-        if function(hook.author):
+        if function == True:
+            return True
+        elif function(hook.author):
             return True
         else:
             await hook.send(f"{get_config('EMOTES', 'fail')} Insufficient permission!")
@@ -116,6 +118,13 @@ def is_sersi_contrib(member: nextcord.Member):
         get_config_int('PERMISSION ROLES', 'sersi contributor')
     ]
 
+    for role in member.roles:
+        if role.id in permitted_roles:
+            return True
+    return False
+
+# This does not work, perhaps if I knew more about why I could fix it
+def is_custom_role(member: nextcord.Member, permitted_roles=[]):
     for role in member.roles:
         if role.id in permitted_roles:
             return True
