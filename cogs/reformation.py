@@ -393,7 +393,7 @@ class Reformation(commands.Cog):
                 moderator = ctx.guild.get_member(reformation_list[user.id][2])
                 channel_name = reformation_list[user.id][0]
                 reform_channel = nextcord.utils.get(ctx.guild.channels, name=channel_name)
-                case_embed.add_field(name="Username:", value=(f"{user.mention} {user.id}"), inline=False)
+                case_embed.add_field(name="Username:", value=(f"{user.mention} ({user.id})"), inline=False)
                 case_embed.add_field(name="Responsible Moderator:", value=(f"{moderator.mention} ({moderator.id}"), inline=False)
                 case_embed.add_field(name="Channel:", value=(reform_channel.mention), inline=False)
                 case_embed.add_field(name="Reason:", value=reformation_list[user.id][3])
