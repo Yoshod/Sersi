@@ -4,6 +4,7 @@ from nextcord.ext import commands
 from baseutils import ConfirmView, DualCustodyView
 from configutils import get_config, get_config_int
 from permutils import permcheck, is_mod, is_full_mod
+from caseutils import case_history, probation_case
 
 
 class Probation(commands.Cog):
@@ -47,6 +48,9 @@ class Probation(commands.Cog):
 
         log_channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'modlogs'))
         await log_channel.send(embed=log_embed)
+
+        unique_id = case_history(member.id, "Probation")
+        probation_case(unique_id, member.id, moderator.id, interaction.user.id, reason)
 
         dm_embed = nextcord.Embed(
             title="Adam Something Central Probation",

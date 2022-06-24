@@ -65,6 +65,7 @@ class Cases(commands.Cog):
                 self.case_details = pickle.load(file)
             if search_term not in self.case_details:
                 ctx.send(f"{self.sersifail} Case {search_term} not found.")
+
             elif self.case_details[search_term][0] == "Reformation":
                 case_embed = nextcord.Embed(
                     title=(f"__**Reformation Case {search_term}**__"),
@@ -80,6 +81,22 @@ class Cases(commands.Cog):
                 case_embed.add_field(name="Reformation Case Number:", value=self.case_details[search_term][1], inline=False)
                 case_embed.add_field(name="Reformation Channel:", value=(f"{reform_channel.mention} ({reform_channel.id})"), inline=False)
                 case_embed.add_field(name="Reason:", value=self.case_details[search_term][5], inline=False)
+                case_embed.set_thumbnail(url=user.display_avatar.url)
+            
+            elif self.case_details[search_term][0] == "Probation":
+                case_embed = nextcord.Embed(
+                    title=(f"__**Probation Case {search_term}**__"),
+                    colour=nextcord.Color.from_rgb(237, 91, 6)
+                )
+
+                user = ctx.guild.get_member(self.case_details[search_term][1])
+                initial_moderator = ctx.guild.get_member(self.case_details[search_term][2])
+                approval_moderator = ctx.guild.get_member(self.case_details[search_term][3])
+
+                case_embed.add_field(name="User:", value=(f"{user.mention} ({user.id})"), inline=False)
+                case_embed.add_field(name="Initial Moderator:", value=(f"{initial_moderator.mention} ({initial_moderator.id})"), inline=False)
+                case_embed.add_field(name="Approving Moderator:", value=(f"{approval_moderator.mention} ({approval_moderator.id})"), inline=False)
+                case_embed.add_field(name="Reason:", value=self.case_details[search_term][4], inline=False)
                 case_embed.set_thumbnail(url=user.display_avatar.url)
             await ctx.send(embed=case_embed)
 

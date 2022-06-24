@@ -15,13 +15,13 @@ def reform_case(unique_id, case_num, target_id, moderator_id, case_channel_id, r
     with open(CASE_DETAILS_FILE, "wb") as file:
         pickle.dump(case_details, file)
 
-def probation_case(unique_id, target_id, moderator_id, reason):
+def probation_case(unique_id, target_id, initial_moderator_id, approving_moderator_id, reason):
     try:
         with open(CASE_DETAILS_FILE, "rb") as file:
             case_details = pickle.load(file)
     except EOFError:
         case_details = {}
-    case = ["Probation", target_id, moderator_id, reason]
+    case = ["Probation", target_id, initial_moderator_id, approving_moderator_id, reason]
     case_details[unique_id] = case
     with open(CASE_DETAILS_FILE, "wb") as file:
         pickle.dump(case_details, file)
