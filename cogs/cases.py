@@ -16,6 +16,7 @@ class Cases(commands.Cog):
         self.bot = bot
         self.sersifail = get_config('EMOTES', 'fail')
         self.case_history_file = ("Files/Cases/casehistory.pkl")
+        self.case_details_file = ("Files/Cases/casedetails.pkl")
         self.case_history = {}
         self.case_details = {}
     
@@ -58,6 +59,12 @@ class Cases(commands.Cog):
                 )
                 cases_embed.set_thumbnail(url=member.display_avatar.url)
             await ctx.send(embed=cases_embed)
+
+        elif search_by_member is not True:
+            with open(self.case_details_file, "rb") as file:
+                self.case_details = pickle.load(file)
+            if search_term not in self.case_details:
+                ctx.send(f"{self.sersifail} Case {search_term} not found.")
 
 def setup(bot):
     bot.add_cog(Cases(bot))
