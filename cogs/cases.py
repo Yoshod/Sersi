@@ -42,9 +42,10 @@ class Cases(commands.Cog):
                 num_of_cases = len(cases)
                 case_string = ""
                 print(cases)
-                for i in range(num_of_cases):
-                    case_string = case_string + (f"**__Case {cases[i][0]}__**\n")
-                    case_string = case_string + (f"Type: {cases[i][1]}\n\n")
+                for i, e in reversed(list(enumerate(cases))):
+                    for x in range(1):
+                        case_string = case_string + (f"**__Case {cases[i][0]}__**\n")
+                        case_string = case_string + (f"Type: {cases[i][1]}\n\n")
                 cases_embed = nextcord.Embed(
                     title=(f"{member.name}'s Cases ({num_of_cases})"),
                     description=(case_string),
@@ -97,6 +98,20 @@ class Cases(commands.Cog):
                 case_embed.add_field(name="Initial Moderator:", value=(f"{initial_moderator.mention} ({initial_moderator.id})"), inline=False)
                 case_embed.add_field(name="Approving Moderator:", value=(f"{approval_moderator.mention} ({approval_moderator.id})"), inline=False)
                 case_embed.add_field(name="Reason:", value=self.case_details[search_term][4], inline=False)
+                case_embed.set_thumbnail(url=user.display_avatar.url)
+            
+            elif self.case_details[search_term][0] == "Anonymous Message Mute":
+                case_embed = nextcord.Embed(
+                    title=(f"__**Anonymous Message Mute Case {search_term}**__"),
+                    colour=nextcord.Color.from_rgb(237, 91, 6)
+                )
+
+                user = ctx.guild.get_member(self.case_details[search_term][1])
+                moderator = ctx.guild.get_member(self.case_details[search_term][2])
+
+                case_embed.add_field(name="User:", value=(f"{user.mention} ({user.id})"), inline=False)
+                case_embed.add_field(name="Moderator:", value=(f"{moderator.mention} ({moderator.id})"), inline=False)
+                case_embed.add_field(name="Reason:", value=self.case_details[search_term][3], inline=False)
                 case_embed.set_thumbnail(url=user.display_avatar.url)
             await ctx.send(embed=case_embed)
 

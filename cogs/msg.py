@@ -9,6 +9,7 @@ from configutils import get_config, get_config_int, get_config_bool
 from permutils import permcheck, is_dark_mod, is_full_mod, is_mod, cb_is_mod
 from encryptionutils import encrypt_data, unencrypt_data
 from slurdetector import detect_slur
+from caseutils import case_history, anon_message_mute_case
 
 
 class Messages(commands.Cog):
@@ -135,6 +136,9 @@ class Messages(commands.Cog):
         logging.add_field(name="Moderator:", value=interaction.user.mention, inline=False)
         logging.add_field(name="User Added:", value=member.mention, inline=False)
         logging.add_field(name="Reason:", value=reason, inline=False)
+
+        unique_id = case_history(member.id, "Anonymous Message Mute")
+        anon_message_mute_case(unique_id, member.id, interaction.user.id, reason)
 
         channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'logging'))
         await channel.send(embed=logging)
