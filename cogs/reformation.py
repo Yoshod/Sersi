@@ -1,7 +1,6 @@
 from ast import alias
 import nextcord
 import pickle
-import shortuuid
 from nextcord.ext import commands
 from nextcord.ui import Button, View
 from nextcord.ext.commands.errors import MemberNotFound
@@ -10,6 +9,7 @@ from os import remove
 from baseutils import ConfirmView
 from configutils import get_config_int, get_options, get_config
 from permutils import permcheck, is_mod, cb_is_mod, is_custom_role
+from caseutils import case_history, reform_case
 
 
 class Reformation(commands.Cog):
@@ -107,7 +107,10 @@ class Reformation(commands.Cog):
         with open("Files/Reformation/reformationcases.pkl", "wb") as file:
             pickle.dump(reformation_list, file)
 
-        print("Attempting to Open Case File")
+        unique_id = case_history(member.id, "Reformation")
+        reform_case(unique_id, case_num, member.id, interaction.user.id, channel.id, reason)
+
+        """print("Attempting to Open Case File")
         try:
             with open(self.case_history_file, "rb") as file:
                 case_history = pickle.load(file)
@@ -133,7 +136,8 @@ class Reformation(commands.Cog):
 
         with open(self.case_history_file, "wb") as file:
             pickle.dump(case_history, file)
-            print("Case History Dumped")
+            print("Case History Dumped")"""
+        
 
         channel = nextcord.utils.get(interaction.guild.channels, name=case_name)
         await channel.send(embed=welcome_embed)
