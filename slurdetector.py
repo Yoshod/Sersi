@@ -1,5 +1,8 @@
 from itertools import product   # needed for slur obscurity permutations
 import unidecode                # needed for cleaning accents and diacritic marks
+
+from baseutils import get_page
+
 slurs = []
 slurs_list = []
 goodword = []
@@ -33,36 +36,14 @@ def get_slurs(page=None, wpp=10):
     if page is None:
         return slurs_list
     else:
-        pages = 1 + (len(slurs_list) - 1) // wpp
-
-        index = page - 1
-        if index < 0:
-            index = 0
-        elif index >= pages:
-            index = pages - 1
-
-        if index == (pages - 1):
-            return sorted(slurs_list)[index * wpp:], pages, index + 1
-        else:
-            return sorted(slurs_list)[index * wpp: index * wpp + wpp], pages, index + 1
+        return get_page(sorted(slurs_list), page, wpp)
 
 
 def get_goodwords(page=None, wpp=10):
     if page is None:
         return goodword
     else:
-        pages = 1 + (len(goodword) - 1) // wpp
-
-        index = page - 1
-        if index < 0:
-            index = 0
-        elif index >= pages:
-            index = pages - 1
-
-        if index == (pages - 1):
-            return sorted(goodword)[index * wpp:], pages, index + 1
-        else:
-            return sorted(goodword)[index * wpp: index * wpp + wpp], pages, index + 1
+        return get_page(sorted(goodword), page, wpp)
 
 
 def load_slurdetector():

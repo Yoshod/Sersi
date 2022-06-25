@@ -3,7 +3,7 @@ import nextcord
 from nextcord.ext import commands
 from nextcord.ui import Button, View
 
-from baseutils import DualCustodyView
+from baseutils import DualCustodyView, PageView
 from configutils import get_config, get_config_int
 from permutils import permcheck, is_mod, is_full_mod, cb_is_mod
 from slurdetector import load_slurdetector, load_slurs, load_goodwords, get_slurs, get_goodwords, clear_string, rm_slur, rm_goodword, detect_slur
@@ -76,70 +76,6 @@ class Slur(commands.Cog):
         embedLogVar.add_field(name="Report:", value=interaction.message.jump_url, inline=False)
         embedLogVar.add_field(name="Moderator:", value=f"{interaction.user.mention} ({interaction.user.id})", inline=False)
         await channel.send(embed=embedLogVar)
-
-    async def cb_slur_list_next_page(self, interaction):
-        new_embed = interaction.message.embeds[0]
-        for field in new_embed.fields:
-            if field.name.lower() == "page:":
-                page_field = field
-        page = int(page_field.value.split('/')[0][2:]) + 1
-        wordlist, pages, page = get_slurs(page, 20)
-        new_embed.clear_fields()
-        if len(wordlist) > 10:
-            new_embed.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist[0:10]))
-            new_embed.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist[10:]))
-        else:
-            new_embed.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist))
-        new_embed.add_field(name="page:", value=f"**{page}/{pages}**", inline=False)
-        await interaction.message.edit(embed=new_embed)
-
-    async def cb_slur_list_prev_page(self, interaction):
-        new_embed = interaction.message.embeds[0]
-        for field in new_embed.fields:
-            if field.name.lower() == "page:":
-                page_field = field
-        page = int(page_field.value.split('/')[0][2:]) - 1
-        wordlist, pages, page = get_slurs(page, 20)
-        new_embed.clear_fields()
-        if len(wordlist) > 10:
-            new_embed.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist[0:10]))
-            new_embed.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist[10:]))
-        else:
-            new_embed.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist))
-        new_embed.add_field(name="page:", value=f"**{page}/{pages}**", inline=False)
-        await interaction.message.edit(embed=new_embed)
-
-    async def cb_goodword_list_next_page(self, interaction):
-        new_embed = interaction.message.embeds[0]
-        for field in new_embed.fields:
-            if field.name.lower() == "page:":
-                page_field = field
-        page = int(page_field.value.split('/')[0][2:]) + 1
-        wordlist, pages, page = get_goodwords(page, 20)
-        new_embed.clear_fields()
-        if len(wordlist) > 10:
-            new_embed.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist[0:10]))
-            new_embed.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist[10:]))
-        else:
-            new_embed.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist))
-        new_embed.add_field(name="page:", value=f"**{page}/{pages}**", inline=False)
-        await interaction.message.edit(embed=new_embed)
-
-    async def cb_goodword_list_prev_page(self, interaction):
-        new_embed = interaction.message.embeds[0]
-        for field in new_embed.fields:
-            if field.name.lower() == "page:":
-                page_field = field
-        page = int(page_field.value.split('/')[0][2:]) - 1
-        wordlist, pages, page = get_goodwords(page, 20)
-        new_embed.clear_fields()
-        if len(wordlist) > 10:
-            new_embed.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist[0:10]))
-            new_embed.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist[10:]))
-        else:
-            new_embed.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist))
-        new_embed.add_field(name="page:", value=f"**{page}/{pages}**", inline=False)
-        await interaction.message.edit(embed=new_embed)
 
     @commands.command(aliases=["addsl"])
     async def addslur(self, ctx, *, slur=""):
@@ -302,29 +238,17 @@ class Slur(commands.Cog):
         if not await permcheck(ctx, is_mod):
             return
 
-        wordlist, pages, page = get_slurs(page, 20)
-
-        # post the list as embed
-        embedVar = nextcord.Embed(
-            title="List of currently detected slurs",
-            # description="**•**\u00A0" + "\n**•**\u00A0".join(wordlist),
+        embed = nextcord.Embed(
+            title= "List of currently detected slurs",
             color=nextcord.Color.from_rgb(237, 91, 6))
-        if len(wordlist) > 10:
-            embedVar.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist[0:10]))
-            embedVar.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist[10:]))
-        else:
-            embedVar.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist))
-        embedVar.add_field(name="page:", value=f"**{page}/{pages}**", inline=False)
-        btn_view = None
-        if (pages > 1):
-            btn_prev = Button(label="< prev")
-            btn_prev.callback = self.cb_slur_list_prev_page
-            btn_next = Button(label="next >")
-            btn_next.callback = self.cb_slur_list_next_page
-            btn_view = View()
-            btn_view.add_item(btn_prev)
-            btn_view.add_item(btn_next)
-        await ctx.send(embed=embedVar, view=btn_view)
+
+        view = PageView(
+            base_embed=embed,
+            fetch_function=get_slurs,
+            author=ctx.author,
+            cols=2,
+            init_page=int(page))
+        await view.send_embed(ctx.channel)
 
     @commands.command(aliases=["lsgw", "lsgoodwords", "listgw"])
     async def listgoodwords(self, ctx, page=1):
@@ -334,29 +258,17 @@ class Slur(commands.Cog):
         if not await permcheck(ctx, is_mod):
             return
 
-        wordlist, pages, page = get_goodwords(page, 20)
-
-        # post the list as embed
-        embedVar = nextcord.Embed(
+        embed = nextcord.Embed(
             title="List of goodwords currently whitelisted from slur detection",
-            # description="**•**\u00A0" + "\n**•**\u00A0".join(wordlist),
             color=nextcord.Color.from_rgb(237, 91, 6))
-        if len(wordlist) > 10:
-            embedVar.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist[0:10]))
-            embedVar.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist[10:]))
-        else:
-            embedVar.add_field(name="\u200b", value="**•**\u00A0" + "\n**•**\u00A0".join(wordlist))
-        embedVar.add_field(name="page:", value=f"**{page}/{pages}**", inline=False)
-        btn_view = None
-        if (pages > 1):
-            btn_prev = Button(label="< prev")
-            btn_prev.callback = self.cb_goodword_list_prev_page
-            btn_next = Button(label="next >")
-            btn_next.callback = self.cb_goodword_list_next_page
-            btn_view = View()
-            btn_view.add_item(btn_prev)
-            btn_view.add_item(btn_next)
-        await ctx.send(embed=embedVar, view=btn_view)
+
+        view = PageView(
+            base_embed=embed,
+            fetch_function=get_goodwords,
+            author=ctx.author,
+            cols=2,
+            init_page=int(page))
+        await view.send_embed(ctx.channel)
 
     # events
     @commands.Cog.listener()
