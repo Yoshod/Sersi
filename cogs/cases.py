@@ -19,7 +19,6 @@ class Cases(commands.Cog):
         self.case_details_file = ("Files/Cases/casedetails.pkl")
         self.case_history = {}
         self.case_details = {}
-    
 
     @commands.command(aliases=['c', 'usercases', 'modcases'])
     async def cases(self, ctx, search_term):
@@ -31,9 +30,9 @@ class Cases(commands.Cog):
             print(member)
         except commands.errors.MemberNotFound:
             search_by_member = False
-        
+
         print(search_by_member)
-        
+
         if search_by_member is True:
             with open(self.case_history_file, "rb") as file:
                 self.case_history = pickle.load(file)
@@ -84,7 +83,7 @@ class Cases(commands.Cog):
                 case_embed.add_field(name="Reason:", value=self.case_details[search_term][5], inline=False)
                 case_embed.set_thumbnail(url=user.display_avatar.url)
                 await ctx.send(embed=case_embed)
-            
+
             elif self.case_details[search_term][0] == "Probation":
                 case_embed = nextcord.Embed(
                     title=(f"__**Probation Case {search_term}**__"),
@@ -101,7 +100,7 @@ class Cases(commands.Cog):
                 case_embed.add_field(name="Reason:", value=self.case_details[search_term][4], inline=False)
                 case_embed.set_thumbnail(url=user.display_avatar.url)
                 await ctx.send(embed=case_embed)
-            
+
             elif self.case_details[search_term][0] == "Anonymous Message Mute":
                 case_embed = nextcord.Embed(
                     title=(f"__**Anonymous Message Mute Case {search_term}**__"),
@@ -116,9 +115,10 @@ class Cases(commands.Cog):
                 case_embed.add_field(name="Reason:", value=self.case_details[search_term][3], inline=False)
                 case_embed.set_thumbnail(url=user.display_avatar.url)
                 await ctx.send(embed=case_embed)
-            
+
             else:
                 return
+
 
 def setup(bot):
     bot.add_cog(Cases(bot))
