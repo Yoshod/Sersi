@@ -7,6 +7,7 @@ from baseutils import DualCustodyView, PageView
 from configutils import get_config, get_config_int
 from permutils import permcheck, is_mod, is_full_mod, cb_is_mod
 from slurdetector import load_slurdetector, load_slurs, load_goodwords, get_slurs, get_goodwords, clear_string, rm_slur, rm_goodword, detect_slur
+from caseutils import case_history, slur_case
 
 
 class Slur(commands.Cog):
