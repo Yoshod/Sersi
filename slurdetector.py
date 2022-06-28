@@ -4,8 +4,8 @@ import unidecode                # needed for cleaning accents and diacritic mark
 from baseutils import get_page
 
 slurs = []
-slurs_list = []
 goodword = []
+slurs_list = []
 
 
 def leet(word):
