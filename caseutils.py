@@ -45,14 +45,14 @@ def anon_message_mute_case(unique_id, target_id, moderator_id, reason):
         pickle.dump(case_details, file)
 
 
-def slur_case(unique_id, slur_used, report_url, target_id, moderator_id, reason):
+def slur_case(unique_id, slur_used, report_url, target_id, moderator_id):
     try:
         with open(CASE_DETAILS_FILE, "rb") as file:
             case_details = pickle.load(file)
     except EOFError:
         case_details = {}
     timestamp = int(time.time())
-    case = ["Slur Usage", slur_used, report_url, target_id, moderator_id, reason, timestamp]
+    case = ["Slur Usage", slur_used, report_url, target_id, moderator_id, timestamp]
     case_details[unique_id] = case
     with open(CASE_DETAILS_FILE, "wb") as file:
         pickle.dump(case_details, file)

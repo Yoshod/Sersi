@@ -121,6 +121,8 @@ async def on_ready():
     # files = [f for f in os.listdir('.') if os.path.isfile(f)] #unused
     print(sys.version)
 
+    print(nextcord.__version__)
+
     print(f"We have logged in as {bot.user}")
     await bot.change_presence(activity=nextcord.Game(get_config("BOT", "status")))
 
