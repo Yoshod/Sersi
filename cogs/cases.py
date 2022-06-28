@@ -2,7 +2,6 @@ import nextcord
 import pickle
 from nextcord.ext import commands
 from nextcord.ui import Button, View
-from nextcord.ext import commands
 from os import remove
 
 from baseutils import ConfirmView
