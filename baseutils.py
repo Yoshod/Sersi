@@ -1,8 +1,13 @@
 import nextcord
 from configutils import get_config_int
 from nextcord.ui import View, Button
+import re
 
 from permutils import permcheck
+
+
+def sanitize_mention(string):
+    return re.sub(r"[^0-9]*", "",  string)
 
 
 def modmention_check(messageData):
@@ -83,7 +88,7 @@ class DualCustodyView(View):
 
 
 class PageView(View):
-    def __init__(self, base_embed, fetch_function, author, entry_form="**•**\u00A0{entry}", cols=1, per_col=10, init_page=1):
+    def __init__(self, base_embed, fetch_function, author, entry_form="**•**\u00A0{entry}", cols=1, per_col=10, init_page=1, **kwargs):
         super().__init__()
         btn_prev = Button(label="< prev")
         btn_prev.callback = self.cb_prev_page
@@ -92,6 +97,7 @@ class PageView(View):
         self.add_item(btn_prev)
         self.add_item(btn_next)
         self.page = init_page
+        self.kwargs = kwargs
         self.author = author
         self.columns = cols
         self.per_column = per_col
@@ -107,7 +113,7 @@ class PageView(View):
 
     def make_embed(self, page):
         embed = self.embed_base.copy()
-        entries, pages, self.page = self.get_entries(page, self.columns * self.per_column)
+        entries, pages, self.page = self.get_entries(page=page, per_page=self.columns * self.per_column, **self.kwargs)
         cols = min(self.columns, 1 + (len(entries) - 1) // self.per_column)
         for col in range(1, cols + 1):
             if col == cols:

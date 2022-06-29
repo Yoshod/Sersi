@@ -1,9 +1,8 @@
 import configparser
 import nextcord
-import re
 
 from nextcord.ext import commands
-from baseutils import ConfirmView
+from baseutils import sanitize_mention, ConfirmView
 from configutils import get_config, get_config_int, setting_present, set_config
 from permutils import permcheck, is_sersi_contrib, is_staff, is_mod, is_dark_mod
 from encryptionutils import generate_new_key
@@ -57,7 +56,7 @@ class Config(commands.Cog):
             return
 
         if 'channels' in section.lower() or 'roles' in section.lower():
-            value = re.sub(r"[^0-9]*", "", value)
+            value = sanitize_mention(value)
 
         if setting_present(section, setting):
 
