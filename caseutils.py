@@ -2,6 +2,8 @@ import pickle
 import shortuuid
 import time
 
+from baseutils import get_page
+
 CASE_DETAILS_FILE = ("Files/Cases/casedetails.pkl")
 CASE_HISTORY_FILE = ("Files/Cases/casehistory.pkl")
 
@@ -79,12 +81,23 @@ def custom_case(unique_id, case_info: list = []):
         case_details = {}
     timestamp = int(time.time())
     case = []
-    for case_details in case_info:
-        case.append(case_info[case_details])
+    for case_detail in case_details:
+        case.append(case_detail)
     case.append(timestamp)
     case_details[unique_id] = case
     with open(CASE_DETAILS_FILE, "wb") as file:
         pickle.dump(case_details, file)
+
+
+def get_member_cases(member_id, page, per_page=10):
+    with open(CASE_HISTORY_FILE, "rb") as file:
+        case_history = pickle.load(file)
+
+    try:
+        entry_list = get_page(case_history[member_id][::-1], page, per_page)
+    except KeyError:
+        entry_list = ([], 0, 0)
+    return entry_list
 
 
 def case_history(member_id, case_type):
