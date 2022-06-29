@@ -61,6 +61,12 @@ class ModPing(commands.Cog):
     # events
     @commands.Cog.listener()
     async def on_message(self, message):
+
+        if message.guild is not None:
+            adam_something = message.guild.get_member(809891646606409779)
+        else:
+            adam_something = None
+
         if message.author.bot:  # ignores message if message is by bot
             return
 
@@ -108,7 +114,7 @@ class ModPing(commands.Cog):
 
         # elif "<@809891646606409779>" in message.content:   # adam something ping
 
-        elif message.guild.get_member(809891646606409779).mentioned_in(message):  # adam something ping
+        elif adam_something is not None and adam_something.mentioned_in(message):  # adam something ping
 
             # notification for mods
             channel = self.bot.get_channel(get_config_int('CHANNELS', 'alert'))
