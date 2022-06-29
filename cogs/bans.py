@@ -8,7 +8,6 @@ class BanAppealRejection(nextcord.ui.Modal):
     def __init__(self, userID: int):
         super().__init__("Adam Something Central Ban Appeal")
         self.userID = userID
-        print(f"{self.userID}, {userID}")
 
         self.reason = nextcord.ui.TextInput(
             label="Reason for Ban Appeal Rejection:",
@@ -20,9 +19,21 @@ class BanAppealRejection(nextcord.ui.Modal):
 
     async def callback(self, interaction):
         user = interaction.client.get_user(self.userID)
-        print(f"{self.userID} is {user}")
         await user.send(f"Your Ban Appeal on Adam Something Central was **__denied__** under the reason `{self.reason.value}`.")
-        await interaction.message.edit(view=None)
+
+        updated_form = interaction.message.embeds[0]
+        updated_form.add_field(name="Rejected by:", value=interaction.user.mention, inline=False)
+
+        await interaction.message.edit(embed=updated_form, view=None)
+
+        log_embed = nextcord.Embed(
+            title="Ban Appeal Denied",
+            colour=nextcord.Color.from_rgb(237, 91, 6))
+        log_embed.add_field(name="User:", value=f"{user} ({user.name})", inline=False)
+        log_embed.add_field(name="Reason:", value=self.reason, inline=False)
+
+        channel = interaction.client.get_channel(get_config_int('CHANNELS', 'modlogs'))
+        await channel.send(embed=log_embed)
 
 
 class BanAppealAccept(nextcord.ui.Modal):
@@ -40,8 +51,7 @@ class BanAppealAccept(nextcord.ui.Modal):
 
     async def callback(self, interaction):
         user = interaction.client.get_user(self.userID)
-        print(f"{self.userID} is {user}")
-        await user.send(f"Your Ban Appeal on Adam Something Central was granted under the reason `{self.reason.value}`.\n\n{get_config('INVITES', 'banappeal', '')}")
+        await user.send(f"Your Ban Appeal on Adam Something Central was granted under the reason `{self.reason.value}`.\n\n{get_config('INVITES', 'banappeal')}")
 
         try:
             await interaction.guild.unban(user, reason=f"{interaction.user.name} gave reason {self.reason.value}")
@@ -49,7 +59,19 @@ class BanAppealAccept(nextcord.ui.Modal):
             sersifail = get_config('EMOTES', "fail")
             await interaction.response.send_message(f"{sersifail} Ban was not found! (This likely means the person wasn't banned in the first place)", ephemeral=True)
 
-        await interaction.message.edit(view=None)
+        updated_form = interaction.message.embeds[0]
+        updated_form.add_field(name="Approved by:", value=interaction.user.mention)
+
+        await interaction.message.edit(embed=updated_form, view=None)
+
+        log_embed = nextcord.Embed(
+            title="Ban Appeal Approved",
+            colour=nextcord.Color.from_rgb(237, 91, 6))
+        log_embed.add_field(name="User:", value=f"{user} ({user.name})", inline=False)
+        log_embed.add_field(name="Reason:", value=self.reason.value, inline=False)
+
+        channel = interaction.client.get_channel(get_config_int('CHANNELS', 'modlogs'))
+        await channel.send(embed=log_embed)
 
 
 class BanAppealForm(nextcord.ui.Modal):
