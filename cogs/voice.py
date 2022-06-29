@@ -1,6 +1,4 @@
-import requests
 import nextcord
-import discordTokens
 import asyncio
 
 from nextcord.ext import commands

@@ -1,4 +1,3 @@
-from ast import alias
 import nextcord
 import pickle
 from nextcord.ext import commands
@@ -27,16 +26,20 @@ class Reformation(commands.Cog):
                 reason = field.value
         member = interaction.guild.get_member(member_id)
 
+        # give reformation role
         reformation_role = interaction.guild.get_role(get_config_int('ROLES', 'reformation'))
-
         await member.add_roles(reformation_role, reason=reason, atomic=True)
 
+        # remove civil engineering initiate
         role_obj = interaction.guild.get_role(get_config_int('ROLES', 'civil engineering initiate'))
         await member.remove_roles(role_obj, reason=reason, atomic=True)
 
+        # remove opt-ins
+        roles = member.roles
         for role in get_options('OPT IN ROLES'):
             role_obj = interaction.guild.get_role(get_config_int('PERMISSION ROLES', role))
-            await member.remove_roles(role_obj, reason=reason, atomic=True)
+            if role_obj in roles:
+                await member.remove_roles(role_obj, reason=reason, atomic=True)
 
         await interaction.message.edit(f"Member {member.mention} has been sent to reformation by {interaction.user.mention} for reason: `{reason}`", embed=None, view=None)
 
@@ -119,7 +122,7 @@ class Reformation(commands.Cog):
             case_history={}
             print("Generating New Case History")
             case_history[member.id] = []
-        
+
         global_case_identifier = str(shortuuid.uuid())
         try:
             cases = case_history[member.id]
@@ -137,7 +140,6 @@ class Reformation(commands.Cog):
         with open(self.case_history_file, "wb") as file:
             pickle.dump(case_history, file)
             print("Case History Dumped")"""
-        
 
         channel = nextcord.utils.get(interaction.guild.channels, name=case_name)
         await channel.send(embed=welcome_embed)
