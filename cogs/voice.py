@@ -1,6 +1,7 @@
 import requests
 import nextcord
 import discordTokens
+import asyncio
 
 from nextcord.ext import commands
 
@@ -14,6 +15,7 @@ class Voice(commands.Cog):
         self.bot = bot
         self.sersisuccess = get_config('EMOTES', 'success')
         self.sersifail = get_config('EMOTES', 'fail')
+        self.unlocked_channels = []
 
     async def cb_massmove_proceed(self, interaction):
         current_id, target_id = 0, 0
@@ -65,13 +67,38 @@ class Voice(commands.Cog):
 
         await ConfirmView(self.cb_massmove_proceed).send_as_reply(ctx, embed=dialog_embed)
 
-    """The following, but not limited to, examples illustrate when this event is called:
+    @commands.command(aliases=['f'])
+    async def forcejoin(self, ctx, channel: nextcord.VoiceChannel):
+        if not await permcheck(ctx, is_mod):
+            return
 
-    A member joins a voice or stage channel.
-    A member leaves a voice or stage channel.
-    A member is muted or deafened by their own accord.
-    A member is muted or deafened by a guild administrator.
-    """
+        self.unlocked_channels.append(channel)
+        await ctx.send(f"{ctx.author.voice}\n\n")
+        if ctx.author.voice is not None:    # currently in antother VC
+            await ctx.author.move_to(channel=channel, reason="Forcefully joined.")
+        else:
+            await ctx.send(f"{channel.mention} has been unlocked for you to join.")
+
+        async with ctx.channel.typing():
+            await asyncio.sleep(10)  # 10 seconds of time
+
+        if channel in self.unlocked_channels:
+            self.unlocked_channels.remove(channel)
+            await ctx.send(f"{ctx.author.mention} {channel.mention} is locked again now.")
+
+        # logging
+        log_embed = nextcord.Embed(
+            title="VC lock overridden",
+            description="A Moderator tried to connect to an already full VC and was automatically disconnected.")
+        log_embed.add_field(name="Moderator:", value=ctx.author.mention)
+        log_embed.add_field(name="Voice Channel:", value=channel.name)
+
+        channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'logging'))
+        await channel.send(embed=log_embed)
+
+        channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'modlogs'))
+        await channel.send(embed=log_embed)
+
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
 
@@ -101,6 +128,47 @@ class Voice(commands.Cog):
                         "content": f"**{member.display_name}** has left the voice channel. Goodbye!"
                     }
                 requests.post(url, headers=headers, json=json)
+
+        #   -----------------VOICE LOCK-----------------
+
+        if after.channel is not None:
+            if after.channel.user_limit < len(after.channel.members):
+                if after.channel.user_limit == 0:   # no limit
+                    return
+
+                if after.channel in self.unlocked_channels:     # unlock used; relock channel
+                    await member.edit(mute=True)
+                    self.unlocked_channels.remove(after.channel)
+
+                    # logging
+                    log_embed = nextcord.Embed(
+                        title="VC lock circumvented",
+                        description="A Moderator joined a VC that was previously locked.")
+                    log_embed.add_field(name="Offending Moderator:", value=member.mention)
+                    log_embed.add_field(name="Voice Channel:", value=after.channel.name)
+
+                    channel = member.guild.get_channel(get_config_int('CHANNELS', 'logging'))
+                    await channel.send(embed=log_embed)
+
+                    channel = member.guild.get_channel(get_config_int('CHANNELS', 'modlogs'))
+                    await channel.send(embed=log_embed)
+
+                else:
+                    await member.move_to(None)
+                    await member.send(f"You have been automatically disconnected from {after.channel.name} because it was full. If you want to join the VC **__for moderation purposes only__** you can do that by running the `forcejoin` command.\nInappropiate use of the command will be punished.")
+
+                    # logging
+                    log_embed = nextcord.Embed(
+                        title="VC lock enforced",
+                        description="A Moderator tried to connect to an already full VC and was automatically disconnected.")
+                    log_embed.add_field(name="Offending Moderator:", value=member.mention)
+                    log_embed.add_field(name="Voice Channel:", value=after.channel.name)
+
+                    channel = member.guild.get_channel(get_config_int('CHANNELS', 'logging'))
+                    await channel.send(embed=log_embed)
+
+                    channel = member.guild.get_channel(get_config_int('CHANNELS', 'modlogs'))
+                    await channel.send(embed=log_embed)
 
 
 def setup(bot):
