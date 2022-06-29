@@ -104,30 +104,16 @@ class Voice(commands.Cog):
 
         if after.channel != before.channel:  # channel change. at least one message has to be sent
 
-            # specifications regardless of message content
-            headers = {
-                'Authorization': f'Bot {discordTokens.getToken()}',
-                'Content-Type': 'application/json; charset=UTF-8'
-            }
-
             if after.channel is not None:
-                url = f"https://discord.com/api/v10/channels/{after.channel.id}/messages"
-                json = {
-                    "content": f"Hello {member.mention}, welcome to {after.channel.mention}!"
-                }
-                requests.post(url, headers=headers, json=json)
+                await after.channel.send(f"Hello {member.mention}, welcome to {after.channel.mention}!")
 
             if before.channel is not None:
-                url = f"https://discord.com/api/v10/channels/{before.channel.id}/messages"
+
                 if after.channel is not None:
-                    json = {
-                        "content": f"**{member.display_name}** ran off to {after.channel.mention}, guess the grass was greener there!"
-                    }
+                    await before.channel.send(f"**{member.display_name}** ran off to {after.channel.mention}, guess the grass was greener there!")
+
                 else:
-                    json = {
-                        "content": f"**{member.display_name}** has left the voice channel. Goodbye!"
-                    }
-                requests.post(url, headers=headers, json=json)
+                    await before.channel.send(f"**{member.display_name}** has left the voice channel. Goodbye!")
 
         #   -----------------VOICE LOCK-----------------
 
