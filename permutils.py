@@ -15,7 +15,7 @@ async def permcheck(hook, function):
                 title="Unauthorised Command Usage",
                 colour=nextcord.Colour.brand_red())
             embed.add_field(name="Command:", value=hook.command, inline=False)
-            embed.add_field(name="Author:", value=hook.author, inline=False)
+            embed.add_field(name="Author:", value=f"{hook.author} ({hook.author.id})", inline=False)
             embed.add_field(name="Message:", value=hook.message.jump_url, inline=False)
 
             del hook.args[:2]    # chop off self and ctx off the args
@@ -47,7 +47,7 @@ async def permcheck(hook, function):
             embed = nextcord.Embed(
                 title="Unauthorised Interaction",
                 colour=nextcord.Colour.brand_red())
-            embed.add_field(name="User:", value=hook.user, inline=False)
+            embed.add_field(name="User:", value=f"{hook.user} ({hook.user.id})", inline=False)
             embed.add_field(name="Message:", value=hook.message.jump_url, inline=False)
 
             channel = hook.guild.get_channel(get_config_int('CHANNELS', 'logging'))
