@@ -2,7 +2,7 @@ import nextcord
 from nextcord.ext import commands
 from nextcord.ui import Button, View
 from configutils import get_config_int, get_config
-from permutils import permcheck
+from permutils import permcheck, cb_is_dark_mod
 
 
 class BanAppealRejection(nextcord.ui.Modal):
@@ -138,6 +138,7 @@ class BanAppealForm(nextcord.ui.Modal):
         button_view = View(timeout=None)
         button_view.add_item(accept_bttn)
         button_view.add_item(reject_bttn)
+        button_view.interaction_check = cb_is_dark_mod
 
         channel = interaction.client.get_channel(get_config_int('CHANNELS', 'banappeals'))
         await channel.send(embed=appeal_embed, view=button_view)

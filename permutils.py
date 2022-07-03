@@ -123,6 +123,7 @@ def is_sersi_contrib(member: nextcord.Member):
             return True
     return False
 
+
 # This does not work, perhaps if I knew more about why I could fix it
 def is_custom_role(member: nextcord.Member, permitted_roles=[]):
     for role in member.roles:
@@ -133,3 +134,7 @@ def is_custom_role(member: nextcord.Member, permitted_roles=[]):
 
 async def cb_is_mod(interaction):
     return await permcheck(interaction, is_mod)
+
+
+async def cb_is_dark_mod(interaction):
+    return await permcheck(interaction, is_dark_mod)
