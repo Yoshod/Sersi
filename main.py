@@ -81,9 +81,6 @@ async def reload(ctx, extension):
         await ctx.reply(f"{get_config('EMOTES', 'fail')} Only Sersi contributors are able to reload cogs.")
 
 
-### GENERAL COMMANDS ###
-
-
 @bot.command()
 async def uptime(ctx):
     """Displays Sersi's uptime"""
@@ -101,9 +98,6 @@ async def ping(ctx):
     await ctx.send(f'Pong! {round(bot.latency * 1000)}ms')
 
 
-### BOT EVENTS ###
-
-
 @bot.event
 async def on_message_edit(before, after):
     """treats edited messages like new messages when it comes to scanning"""
@@ -119,9 +113,9 @@ async def on_ready():
             print(f"Cog {filename[:-3]} loaded.")
 
     # files = [f for f in os.listdir('.') if os.path.isfile(f)] #unused
-    print(sys.version)
+    print(f"System Version:\n{sys.version}")
 
-    print(nextcord.__version__)
+    print(f"Nextcord Version:\n{nextcord.__version__}")
 
     print(f"We have logged in as {bot.user}")
     await bot.change_presence(activity=nextcord.Game(get_config("BOT", "status")))
