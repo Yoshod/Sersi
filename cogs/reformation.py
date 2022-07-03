@@ -357,7 +357,7 @@ class Reformation(commands.Cog):
 
     async def cb_done(self, interaction):
         embed = interaction.message.embeds[0]
-        embed.add_field(name="User was or is banned:", value=interaction.user.mention, inline=True)
+        embed.add_field(name="User is banned:", value=interaction.user.mention, inline=True)
         embed.color = nextcord.Color.from_rgb(0, 255, 0)
         await interaction.message.edit(embed=embed, view=None)
 
@@ -413,7 +413,7 @@ class Reformation(commands.Cog):
     async def reformationcase(self, ctx, user: nextcord.Member):
         if not await permcheck(ctx, is_custom_role(ctx.author, [get_config_int('PERMISSION ROLES', 'moderator'), get_config_int('PERMISSION ROLES', 'trial moderator'), get_config_int('PERMISSION ROLES', 'reformist')])):
             return
-        
+
         elif user is None:
             await ctx.send(f"{self.sersifail} Please provide a user.")
 
@@ -437,19 +437,38 @@ class Reformation(commands.Cog):
                 return
         else:
             ctx.send(f"{self.sersifail} Failed to find the specified user! Perhaps they do not have a case?")
-                    
+
+    @commands.command()
+    async def getbans(self, ctx):
+        counter = 0
+        async for ban in ctx.guild.bans():
+            if not ban.user.bot:
+                counter += 1
+            await ctx.send(f"{ban.user} - {ban.reason}")
 
     @commands.Cog.listener()
     async def on_member_remove(self, member):
         reformation_role = member.get_role(get_config_int('ROLES', 'reformation'))
 
         if reformation_role is not None:
+
+            async for ban in member.guild.bans():
+                if member.id == ban.user.id:
+                    channel = self.bot.get_channel(get_config_int('CHANNELS', 'modlogs'))
+                    embed = nextcord.Embed(
+                        title=f"Reformation inmate **{member}** ({member.id}) banned!",
+                        colour=nextcord.Color.from_rgb(237, 91, 6))
+                    embed.add_field(name="Reason:", value=ban.reason)
+                    await channel.send(embed=embed)
+
+                    return
+
             channel = self.bot.get_channel(get_config_int('CHANNELS', 'alert'))
             embed = nextcord.Embed(
                 title=f"User **{member}** ({member.id}) has left the server while in the reformation centre!",
                 description=f"User has left the server while having the <@&{get_config_int('ROLES', 'reformation')}> role. If they have not been banned, they should be hack-banned using wick now.",
-                color=nextcord.Color.from_rgb(255, 255, 0))
-            done = Button(label="User was or is banned", style=nextcord.ButtonStyle.green)
+                colour=nextcord.Color.from_rgb(237, 91, 6))
+            done = Button(label="User is banned", style=nextcord.ButtonStyle.green)
             done.callback = self.cb_done
             button_view = View(timeout=None)
             button_view.add_item(done)
