@@ -1,7 +1,8 @@
 import nextcord
-from nextcord.ext import commands, application_checks
+from nextcord.ext import commands
 from nextcord.ui import Button, View
 from configutils import get_config_int, get_config
+from permutils import permcheck
 
 
 class BanAppealRejection(nextcord.ui.Modal):
@@ -147,8 +148,15 @@ class BanAppeals(commands.Cog):
         self.bot = bot
 
     @commands.command()
-    @application_checks.is_owner()
     async def appeal(self, ctx):
+        async def hekkland_or_melanie(member: nextcord.Member):
+            if member.id in [261870562798731266, 348142492245426176]:
+                return True
+            else:
+                return False
+
+        if not await permcheck(ctx.author, hekkland_or_melanie):
+            return
 
         await ctx.message.delete()
 
@@ -157,10 +165,8 @@ class BanAppeals(commands.Cog):
 
         test_embed = nextcord.Embed(
             title="Submit Appeal",
-            # description="It appears you have been epically owned on ASC; or banned out of severe copeage of a single mod, who knows."
             description="Click Button below to submit your ban appeal.",
-            colour=nextcord.Color.from_rgb(237, 91, 6)
-        )
+            colour=nextcord.Color.from_rgb(237, 91, 6))
         open_modal = Button(label="Open Form", style=nextcord.ButtonStyle.blurple)
         open_modal.callback = cb_open_modal
 
