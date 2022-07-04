@@ -240,7 +240,7 @@ class Slur(commands.Cog):
             return
 
         embed = nextcord.Embed(
-            title= "List of currently detected slurs",
+            title="List of currently detected slurs",
             color=nextcord.Color.from_rgb(237, 91, 6))
 
         view = PageView(

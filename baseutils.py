@@ -6,7 +6,7 @@ import re
 from permutils import permcheck
 
 
-def sanitize_mention(string):
+def sanitize_mention(string: str) -> str:
     return re.sub(r"[^0-9]*", "",  string)
 
 
