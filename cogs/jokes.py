@@ -11,7 +11,7 @@ class Jokes(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    def generate_uwu(input_text: str) -> str:
+    def generate_uwu(self, input_text: str) -> str:
         """Shamelessly stolen from https://www.geeksforgeeks.org/uwu-text-convertor-in-python/
         well, i modified it"""
 
@@ -77,6 +77,23 @@ class Jokes(commands.Cog):
         await ctx.message.delete(delay=None)
 
         await send_webhook_message(ctx.channel, content=self.generate_uwu(message), username=self.generate_uwu(ctx.author.display_name), avatar_url=ctx.author.display_avatar.url)
+
+    @commands.command()
+    async def owo(self, ctx, *, message=""):
+        """OwO *nuzzles the command*
+
+        Takes message and owoifies it."""
+        if message == "":
+            await ctx.send(f"{ctx.author.mention} OwO *notices you did not set a message* pwease pwovide a message~")
+            return
+
+        await ctx.message.delete(delay=None)
+
+        await send_webhook_message(
+            channel=ctx.channel,
+            content=f"OwO *notices your message* {self.generate_uwu(message)}~",
+            username=self.generate_uwu(ctx.author.display_name),
+            avatar_url=ctx.author.display_avatar.url)
 
     @commands.command(aliases=["coin", "coinflip"])
     async def flip(self, ctx):
