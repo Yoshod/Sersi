@@ -355,12 +355,6 @@ class Reformation(commands.Cog):
         channel = self.bot.get_channel(get_config_int('CHANNELS', 'alert'))
         await channel.send(embed=embedVar, view=button_view)
 
-    async def cb_done(self, interaction):
-        embed = interaction.message.embeds[0]
-        embed.add_field(name="User is banned:", value=interaction.user.mention, inline=True)
-        embed.color = nextcord.Color.from_rgb(0, 255, 0)
-        await interaction.message.edit(embed=embed, view=None)
-
     @commands.command(aliases=['rf', 'reformfailed', 'reformfail', 'reformf'])
     async def reformationfailed(self, ctx, member: nextcord.Member):
         """query banning a user in reformation centre
@@ -463,17 +457,14 @@ class Reformation(commands.Cog):
 
                     return
 
+            await member.ban(reason="Left while in reformation centre.", delete_message_days=0)
+
             channel = self.bot.get_channel(get_config_int('CHANNELS', 'alert'))
             embed = nextcord.Embed(
                 title=f"User **{member}** ({member.id}) has left the server while in the reformation centre!",
-                description=f"User has left the server while having the <@&{get_config_int('ROLES', 'reformation')}> role. If they have not been banned, they should be hack-banned using wick now.",
+                description=f"User has left the server while having the <@&{get_config_int('ROLES', 'reformation')}> role. They have been banned automatically.",
                 colour=nextcord.Color.from_rgb(237, 91, 6))
-            done = Button(label="User is banned", style=nextcord.ButtonStyle.green)
-            done.callback = self.cb_done
-            button_view = View(timeout=None)
-            button_view.add_item(done)
-            button_view.interaction_check = cb_is_mod
-            await channel.send(embed=embed, view=button_view)
+            await channel.send(embed=embed)
 
 
 def setup(bot):
