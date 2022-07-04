@@ -48,7 +48,7 @@ class Messages(commands.Cog):
         newbie_role = guild.get_role(get_config_int('ROLES', 'newbie'))
         reformation_role = guild.get_role(get_config_int('ROLES', 'reformation'))
 
-        if newbie_role in guild_member.roles or reformation_role in guild_member.roles:
+        if any(role in [newbie_role, reformation_role] for role in guild_member.roles):
             return False
         else:
             return True
