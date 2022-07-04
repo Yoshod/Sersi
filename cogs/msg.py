@@ -10,6 +10,7 @@ from permutils import permcheck, is_dark_mod, is_full_mod, is_mod, cb_is_mod
 from encryptionutils import encrypt_data, unencrypt_data
 from slurdetector import detect_slur
 from caseutils import case_history, anon_message_mute_case
+from webhookutils import send_webhook_message
 
 
 class Messages(commands.Cog):
@@ -416,13 +417,8 @@ class Messages(commands.Cog):
                 with open(self.filename, 'wb') as file:
                     pickle.dump(secretlist, file)
 
-                dm_channel = self.bot.get_channel(get_config_int("CHANNELS", "secret"))
-                channel_webhooks = await dm_channel.webhooks()
-
-                for webhook in channel_webhooks:                  # tries to find existing webhook
-                    if webhook.name == "dm webhook by sersi":
-                        await webhook.send(embed=secret, username="Anonymous User")
-                        msg_sent = True
+                secret_channel = self.bot.get_channel(get_config_int("CHANNELS", "secret"))
+                await send_webhook_message(secret_channel, embed=secret, username="Anonymous User")
 
                 detected_slurs = detect_slur(message.content)
 
@@ -460,11 +456,6 @@ class Messages(commands.Cog):
 
                     await channel.send(embed=slurembed, view=button_view)
 
-                if not msg_sent:                          # creates webhook if none found
-                    webhook = await dm_channel.create_webhook(name="dm webhook by sersi")
-                    await webhook.send(embed=secret, username="Anonymous User")
-                    msg_sent = True
-
             elif message.author.id in self.banlist and message.content.lower() == "secret":
                 await message.author.send(f"{self.sersifail} You cannot send anonymous messages.")
 
@@ -472,23 +463,12 @@ class Messages(commands.Cog):
                 await message.author.send(f"{self.sersifail} You cannot send anonymous messages.")
 
             else:
-                return
                 if not get_config_bool("MSG", "forward dms", False):
                     return
 
                 dm_channel = self.bot.get_channel(get_config_int("CHANNELS", "dm forward"))   # please name and config
-                channel_webhooks = await dm_channel.webhooks()
-                msg_sent = False
 
-                for webhook in channel_webhooks:                  # tries to find existing webhook
-                    if webhook.name == "dm webhook by sersi":
-                        await webhook.send(message.content, username=message.author.display_name, avatar_url=message.author.display_avatar.url)
-                        msg_sent = True
-
-                if not msg_sent:                          # creates webhook if none found
-                    webhook = await dm_channel.create_webhook(name="dm webhook by sersi")
-                    await webhook.send(message.content, username=message.author.display_name, avatar_url=message.author.display_avatar.url)
-                    msg_sent = True
+                await send_webhook_message(dm_channel, content=message.content, username=str(message.author), avatar_url=message.author.display_avatar.url)
 
 
 def setup(bot):

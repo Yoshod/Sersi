@@ -4,6 +4,7 @@ import re
 
 from configutils import get_config, get_config_int, set_config
 from permutils import permcheck, is_mod
+from webhookutils import send_webhook_message
 
 
 class Caps(commands.Cog):
@@ -76,23 +77,12 @@ class Caps(commands.Cog):
                 # await replace(self, message, message.author, msg_string)
                 await message.delete(delay=None)
 
-                channel_webhooks = await message.channel.webhooks()
-                new_msg_jump_url = ''
-                msg_sent = False
-
-                for webhook in channel_webhooks:                  # tries to find existing webhook
-                    if webhook.name == "caps webhook by sersi":
-                        replacement_message = await webhook.send(str(msg_string.lower()), username=message.author.display_name, avatar_url=message.author.display_avatar.url, wait=True)
-                        new_msg_jump_url = replacement_message.jump_url
-                        msg_sent = True
-
-                if not msg_sent:                          # creates webhook if none found
-                    webhook = await message.channel.create_webhook(name="caps webhook by sersi")
-                    replacement_message = await webhook.send(str(msg_string.lower()), username=message.author.display_name, avatar_url=message.author.display_avatar.url, wait=True)
-                    new_msg_jump_url = replacement_message.jump_url
-                    msg_sent = True
-
-                # replacement_message = await webhook.send(str(msg_string.lower()), username=message.author.display_name, avatar_url=message.author.display_avatar.url, wait=True)
+                replacement_message = await send_webhook_message(
+                    channel=message.channel,
+                    content=msg_string.lower(),
+                    username=message.author.display_name,
+                    avatar_url=message.author.display_avatar.url,
+                    wait=True)
 
                 channel = self.bot.get_channel(get_config_int('CHANNELS', 'logging'))
                 logging_embed = nextcord.Embed(
@@ -104,7 +94,7 @@ class Caps(commands.Cog):
                 logging_embed.add_field(name="Channel:", value=message.channel.mention, inline=False)
                 logging_embed.add_field(name="Original Message:", value=msg_string, inline=False)
                 logging_embed.add_field(name="Replacement Message:", value=str(msg_string.lower()), inline=False)
-                logging_embed.add_field(name="Link to Replacement Message:", value=f"[Jump!]({new_msg_jump_url})", inline=True)
+                logging_embed.add_field(name="Link to Replacement Message:", value=f"[Jump!]({replacement_message.jump_url})", inline=True)
                 await channel.send(embed=logging_embed)
 
 
