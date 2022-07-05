@@ -432,12 +432,12 @@ class Reformation(commands.Cog):
         else:
             ctx.send(f"{self.sersifail} Failed to find the specified user! Perhaps they do not have a case?")
 
-    @commands.command()
+    @commands.command(aliases=["getb", "bans"])
     async def getbans(self, ctx):
-        counter = 0
+        if not await permcheck(ctx, is_mod):
+            return
+
         async for ban in ctx.guild.bans():
-            if not ban.user.bot:
-                counter += 1
             await ctx.send(f"{ban.user} - {ban.reason}")
 
     @commands.command(aliases=["getr", "reformationinmates"])
