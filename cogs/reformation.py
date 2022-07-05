@@ -440,6 +440,20 @@ class Reformation(commands.Cog):
                 counter += 1
             await ctx.send(f"{ban.user} - {ban.reason}")
 
+    @commands.command(aliases=["getr", "reformationinmates"])
+    async def getreformationinmates(self, ctx):
+        if not await permcheck(ctx, is_mod):
+            return
+
+        reformation_role = ctx.guild.get_role(get_config_int('ROLES', 'reformation'))
+
+        listembed = nextcord.Embed(
+            title=f"List of Members currently having the @{reformation_role.name} role",
+            description="\n".join([f"**{member}** ({member.id})" for member in reformation_role.members]),
+            colour=nextcord.Color.from_rgb(237, 91, 6))
+
+        await ctx.send(embed=listembed)
+
     @commands.Cog.listener()
     async def on_member_remove(self, member):
         reformation_role = member.get_role(get_config_int('ROLES', 'reformation'))
