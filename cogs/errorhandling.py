@@ -6,6 +6,7 @@ from configutils import get_config_int, get_config
 class ErrorHandling(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.error_guild = bot.get_guild(977377117895536640)
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
@@ -21,7 +22,7 @@ class ErrorHandling(commands.Cog):
             await ctx.send(f"{sersifail} Please provide an argument to use this command.")
             return
 
-        channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'errors'))
+        channel = self.error_guild.get_channel(get_config_int('CHANNELS', 'errors'))
         if channel is None:
             await ctx.send(f"Error while executing command: `{error}`")
         else:
