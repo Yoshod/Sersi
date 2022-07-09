@@ -48,6 +48,32 @@ class Cases(commands.Cog):
                 entry_form="**__Case `{entry[0]}`__**: {entry[1]} <t:{entry[2]}>",
                 member_id=member.id)
             await view.send_embed(ctx.channel)
+            with open(self.case_history_file, "rb") as file:
+                self.case_history = pickle.load(file)
+            try:
+                cases = self.case_history[member.id]
+                num_of_cases = len(cases)
+                case_string = ""
+                print(cases)
+                for i, e in reversed(list(enumerate(cases))):
+                    for x in range(1):
+                        case_string = case_string + (f"**__Case {cases[i][0]}__**\n")
+                        case_string = case_string + (f"Type: {cases[i][1]}\n")
+                        case_string = case_string + (f"<t:{cases[search_term][i][2]}:R>\n\n")
+                cases_embed = nextcord.Embed(
+                    title=(f"{member.name}'s Cases ({num_of_cases})"),
+                    description=(case_string),
+                    colour=nextcord.Color.from_rgb(237, 91, 6)
+                )
+                cases_embed.set_thumbnail(url=member.display_avatar.url)
+            except KeyError:
+                cases_embed = nextcord.Embed(
+                    title=(f"{member.name}'s Cases (0)"),
+                    description=(f"{member.mention} ({member.id}) has no cases."),
+                    colour=nextcord.Color.from_rgb(237, 91, 6)
+                )
+                cases_embed.set_thumbnail(url=member.display_avatar.url)
+            await ctx.send(embed=cases_embed)
 
         elif search_by_member is not True:
             with open(self.case_details_file, "rb") as file:
@@ -70,6 +96,7 @@ class Cases(commands.Cog):
                 case_embed.add_field(name="Reformation Case Number:", value=self.case_details[search_term][1], inline=False)
                 case_embed.add_field(name="Reformation Channel:", value=(f"{reform_channel.mention} ({reform_channel.id})"), inline=False)
                 case_embed.add_field(name="Reason:", value=self.case_details[search_term][5], inline=False)
+                case_embed.add_field(name="Timestamp:", value=(f"<t:{self.case_details[search_term][5]}:R>"), inline=False)
                 case_embed.set_thumbnail(url=user.display_avatar.url)
                 await ctx.send(embed=case_embed)
 
@@ -87,6 +114,7 @@ class Cases(commands.Cog):
                 case_embed.add_field(name="Initial Moderator:", value=(f"{initial_moderator.mention} ({initial_moderator.id})"), inline=False)
                 case_embed.add_field(name="Approving Moderator:", value=(f"{approval_moderator.mention} ({approval_moderator.id})"), inline=False)
                 case_embed.add_field(name="Reason:", value=self.case_details[search_term][4], inline=False)
+                case_embed.add_field(name="Timestamp:", value=(f"<t:{self.case_details[search_term][5]}:R>"), inline=False)
                 case_embed.set_thumbnail(url=user.display_avatar.url)
                 await ctx.send(embed=case_embed)
 
@@ -102,6 +130,24 @@ class Cases(commands.Cog):
                 case_embed.add_field(name="User:", value=(f"{user.mention} ({user.id})"), inline=False)
                 case_embed.add_field(name="Moderator:", value=(f"{moderator.mention} ({moderator.id})"), inline=False)
                 case_embed.add_field(name="Reason:", value=self.case_details[search_term][3], inline=False)
+                case_embed.add_field(name="Timestamp:", value=(f"<t:{self.case_details[search_term][5]}:R>"), inline=False)
+                case_embed.set_thumbnail(url=user.display_avatar.url)
+                await ctx.send(embed=case_embed)
+
+            elif self.case_details[search_term][0] == "Slur Usage":
+                case_embed = nextcord.Embed(
+                    title=(f"__**Slur Usage Case {search_term}**__"),
+                    colour=nextcord.Color.from_rgb(237, 91, 6)
+                )
+
+                user = ctx.guild.get_member(self.case_details[search_term][3])
+                moderator = ctx.guild.get_member(self.case_details[search_term][4])
+
+                case_embed.add_field(name="User:", value=(f"{user.mention} ({user.id})"), inline=False)
+                case_embed.add_field(name="Moderator:", value=(f"{moderator.mention} ({moderator.id})"), inline=False)
+                case_embed.add_field(name="Slur Used:", value=self.case_details[search_term][1], inline=False)
+                case_embed.add_field(name="Report URL:", value=self.case_details[search_term][2], inline=False)
+                case_embed.add_field(name="Timestamp:", value=(f"<t:{self.case_details[search_term][5]}:R>"), inline=False)
                 case_embed.set_thumbnail(url=user.display_avatar.url)
                 await ctx.send(embed=case_embed)
 

@@ -122,5 +122,7 @@ def case_history(member_id, case_type):
 
     with open(CASE_HISTORY_FILE, "wb") as file:
         pickle.dump(case_history, file)
+        print(cases)
+        print(case_history[member_id])
 
     return global_case_identifier

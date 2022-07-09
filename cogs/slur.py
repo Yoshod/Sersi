@@ -14,6 +14,7 @@ class Slur(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        self.guild = get_config('GUILDS', 'main')
         self.sersisuccess = get_config('EMOTES', 'success')
         self.sersifail = get_config('EMOTES', 'fail')
         load_slurdetector()
@@ -33,6 +34,19 @@ class Slur(commands.Cog):
         embedLogVar.add_field(name="Report:", value=interaction.message.jump_url, inline=False)
         embedLogVar.add_field(name="Moderator:", value=f"{interaction.user.mention} ({interaction.user.id})", inline=False)
         await channel.send(embed=embedLogVar)
+
+        case_data = []
+        for field in new_embed.fields:
+            if field.name in ["User:", "Slurs Found:"]:
+                case_data.append(field.value)
+
+        converter = commands.MemberConverter()
+        print(converter)
+        member = await converter.convert(self, case_data[0])
+        
+        unique_id = case_history(case_data[0], "Slur Usage")
+        slur_case(unique_id, case_data[1], interaction.message.jump_url, member.id, interaction.user.id)
+        print(case_data[0])
 
     async def cb_acceptable_use(self, interaction):
         new_embed = interaction.message.embeds[0]
