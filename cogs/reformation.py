@@ -1,9 +1,11 @@
 import nextcord
 import pickle
+import io
 from nextcord.ext import commands
 from nextcord.ui import Button, View
 from nextcord.ext.commands.errors import MemberNotFound
 from os import remove
+from chat_exporter import export
 
 from baseutils import ConfirmView
 from configutils import get_config_int, get_options, get_config
@@ -235,7 +237,22 @@ class Reformation(commands.Cog):
             channel_name = reformation_list[member.id][0]
             channel = nextcord.utils.get(interaction.guild.channels, name=channel_name)
 
+            transcript = await export(channel, military_time=True)
+
+            if transcript is None:
+                await channel.delete()
+                channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'teachers'))
+                await channel.send(f"{self.sersifail} Failed to Generate Transcript!")
+            
+            else:
+                transcript_file = nextcord.File(
+                    io.BytesIO(transcript.encode()),
+                    filename=f"transcript-{channel_name}.html",
+                )
+
             await channel.delete()
+            channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'teachers'))
+            await channel.send(embed=log_embed, file=transcript_file)
 
         new_embed.description = f"{new_embed.description[:-1]}{yes_votes}"
         await interaction.message.edit(embed=new_embed)
