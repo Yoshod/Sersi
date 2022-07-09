@@ -180,7 +180,7 @@ class Slur(commands.Cog):
         embedVar.add_field(name="Added By:", value=f"{ctx.message.author.mention} ({ctx.message.author.id})", inline=False)
         embedVar.add_field(name="Goodword Added:", value=word, inline=False)
         await channel.send(embed=embedVar)
-        await ctx.send("{self.sersisuccess} Goodword added. Detection will start now.")
+        await ctx.send(f"{self.sersisuccess} Goodword added. Detection will start now.")
 
     async def cb_rmslur_confirm(self, interaction):
         mod_id, slur = 0, ""
