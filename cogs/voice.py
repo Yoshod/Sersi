@@ -65,7 +65,7 @@ class Voice(commands.Cog):
 
         await ConfirmView(self.cb_massmove_proceed).send_as_reply(ctx, embed=dialog_embed)
 
-    @commands.command(aliases=['f'])
+    """@commands.command(aliases=['f'])
     async def forcejoin(self, ctx, channel: nextcord.VoiceChannel):
         if not await permcheck(ctx, is_mod):
             return
@@ -95,7 +95,7 @@ class Voice(commands.Cog):
         await channel.send(embed=log_embed)
 
         channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'modlogs'))
-        await channel.send(embed=log_embed)
+        await channel.send(embed=log_embed)"""
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
@@ -115,7 +115,7 @@ class Voice(commands.Cog):
 
         #   -----------------VOICE LOCK-----------------
 
-        if after.channel is not None:
+        """if after.channel is not None:
             if after.channel.user_limit < len(after.channel.members):
                 if after.channel.user_limit == 0:   # no limit
                     return
@@ -152,7 +152,7 @@ class Voice(commands.Cog):
                     await channel.send(embed=log_embed)
 
                     channel = member.guild.get_channel(get_config_int('CHANNELS', 'modlogs'))
-                    await channel.send(embed=log_embed)
+                    await channel.send(embed=log_embed)"""
 
 
 def setup(bot):
