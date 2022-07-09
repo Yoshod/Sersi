@@ -6,12 +6,14 @@ from nextcord.ui import Button, View
 from baseutils import modmention_check
 from permutils import cb_is_mod
 from configutils import get_config_int
+from caseutils import case_history, bad_faith_ping_case
 
 
 class ModPing(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        self.guild = bot.get_guild(get_config_int('GUILDS', 'main'))
 
     async def cb_action_taken(self, interaction):
         new_embed = interaction.message.embeds[0]
@@ -57,6 +59,19 @@ class ModPing(commands.Cog):
         embedLogVar.add_field(name="Report:", value=interaction.message.jump_url, inline=False)
         embedLogVar.add_field(name="Moderator:", value=f"{interaction.user.mention} ({interaction.user.id})", inline=False)
         await channel.send(embed=embedLogVar)
+
+        case_data = []
+        for field in new_embed.fields:
+            if field.name in ["User:"]:
+                case_data.append(field.value)
+        
+        converter = commands.MemberConverter()
+        await channel.send(case_data[0])
+        member = await converter.convert(self, case_data[0])
+
+        unique_id = case_history(member.id, "Bad Faith Ping")
+        print(unique_id)
+        bad_faith_ping_case(unique_id, interaction.message.jump_url, member.id, interaction.user.id)
 
     # events
     @commands.Cog.listener()

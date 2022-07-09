@@ -84,7 +84,7 @@ class Probation(commands.Cog):
 
         await interaction.message.edit(f"Putting {member.mention} into probation was sent for approval by another moderator", embed=None, view=None)
 
-    @commands.command(aliases=['addp', 'addprob'])
+    @commands.command(aliases=['addp', 'addprob', 'pn'])
     async def addprobation(self, ctx, member: nextcord.Member, *, reason):
         if not await permcheck(ctx, is_mod):
             return

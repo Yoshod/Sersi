@@ -19,8 +19,8 @@ class BanAppealRejection(nextcord.ui.Modal):
         self.add_item(self.reason)
 
     async def callback(self, interaction):
-        user = interaction.client.get_user(self.userID)
-        await user.send(f"Your Ban Appeal on Adam Something Central was **__denied__** under the reason `{self.reason.value}`.")
+        user = interaction.client.get_user(self.ID)
+        await user.send(f"Your Ban Appeal on Adam Something Central was **__denied__** under the reason `{self.reason.value}`. You may send another appeal in 28 days.")
 
         updated_form = interaction.message.embeds[0]
         updated_form.add_field(name="Rejected by:", value=interaction.user.mention, inline=False)
