@@ -104,7 +104,7 @@ class Cases(commands.Cog):
                 case_embed.add_field(name="User:", value=(f"{user.mention} ({user.id})"), inline=False)
                 case_embed.add_field(name="Moderator:", value=(f"{moderator.mention} ({moderator.id})"), inline=False)
                 case_embed.add_field(name="Reason:", value=self.case_details[search_term][3], inline=False)
-                case_embed.add_field(name="Timestamp:", value=(f"<t:{self.case_details[search_term][5]}:R>"), inline=False)
+                case_embed.add_field(name="Timestamp:", value=(f"<t:{self.case_details[search_term][4]}:R>"), inline=False)
                 case_embed.set_thumbnail(url=user.display_avatar.url)
                 await ctx.send(embed=case_embed)
 
