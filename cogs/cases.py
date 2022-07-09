@@ -114,7 +114,7 @@ class Cases(commands.Cog):
                     colour=nextcord.Color.from_rgb(237, 91, 6)
                 )
 
-                user = ctx.guild.get_member(self.case_details[search_term][3])
+                user = ctx.guild.get_member(self.case_details[search_term][2])
                 moderator = ctx.guild.get_member(self.case_details[search_term][4])
 
                 case_embed.add_field(name="User:", value=(f"{user.mention} ({user.id})"), inline=False)
@@ -122,6 +122,24 @@ class Cases(commands.Cog):
                 case_embed.add_field(name="Slur Used:", value=self.case_details[search_term][1], inline=False)
                 case_embed.add_field(name="Report URL:", value=self.case_details[search_term][2], inline=False)
                 case_embed.add_field(name="Timestamp:", value=(f"<t:{self.case_details[search_term][5]}:R>"), inline=False)
+                case_embed.set_thumbnail(url=user.display_avatar.url)
+                await ctx.send(embed=case_embed)
+
+            elif self.case_details[search_term][0] == "Bad Faith Ping":
+                case_embed = nextcord.Embed(
+                    title=(f"__**Bad Faith Ping Case {search_term}**__"),
+                    colour=nextcord.Color.from_rgb(237, 91, 6)
+                )
+
+                user = ctx.guild.get_member(self.case_details[search_term][1])
+                moderator = ctx.guild.get_member(self.case_details[search_term][3])
+
+                print("user")
+                case_embed.add_field(name="User:", value=(f"{user.mention} ({user.id})"), inline=False)
+                print("moderator")
+                case_embed.add_field(name="Moderator:", value=(f"{moderator.mention} ({moderator.id})"), inline=False)
+                case_embed.add_field(name="Report URL:", value=self.case_details[search_term][2], inline=False)
+                case_embed.add_field(name="Timestamp:", value=(f"<t:{self.case_details[search_term][4]}:R>"), inline=False)
                 case_embed.set_thumbnail(url=user.display_avatar.url)
                 await ctx.send(embed=case_embed)
 
