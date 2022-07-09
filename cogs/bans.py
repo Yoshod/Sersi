@@ -150,13 +150,11 @@ class BanAppeals(commands.Cog):
 
     @commands.command()
     async def appeal(self, ctx):
-        async def hekkland_or_melanie(member: nextcord.Member):
-            if member.id in [261870562798731266, 348142492245426176]:
-                return True
-            else:
-                return False
-
-        if not await permcheck(ctx.author, hekkland_or_melanie):
+        print(ctx.author.id)
+        if ctx.author.id == 261870562798731266 or ctx.author.id == 348142492245426176:
+            pass
+        
+        else:
             return
 
         await ctx.message.delete()
