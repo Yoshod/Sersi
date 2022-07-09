@@ -37,7 +37,6 @@ class Slur(commands.Cog):
 
         case_data = []
         for field in new_embed.fields:
-            print(field)
             if field.name in ["User:", "Slurs Found:"]:
                 case_data.append(field.value)
 

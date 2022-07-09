@@ -27,14 +27,10 @@ class Cases(commands.Cog):
 
         try:
             converter = commands.MemberConverter()
-            print(converter)
             member = await converter.convert(ctx, search_term)
             search_by_member = True
-            print(member)
         except commands.errors.MemberNotFound:
             search_by_member = False
-
-        print(search_by_member)
 
         if search_by_member is True:
             cases_embed = nextcord.Embed(
