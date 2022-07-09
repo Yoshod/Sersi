@@ -52,7 +52,7 @@ class BanAppealAccept(nextcord.ui.Modal):
 
     async def callback(self, interaction):
         user = interaction.client.get_user(self.userID)
-        await user.send(f"Your Ban Appeal on Adam Something Central was granted under the reason `{self.reason.value}`.\n\n{get_config('INVITES', 'banappeal')}")
+        await user.send(f"Your Ban Appeal on Adam Something Central was granted under the reason `{self.reason.value}`.\n\n{get_config('INVITES', 'banappeals')}")
 
         try:
             await interaction.guild.unban(user, reason=f"{interaction.user.name} gave reason {self.reason.value}")
