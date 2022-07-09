@@ -22,7 +22,7 @@ class Cases(commands.Cog):
 
     @commands.command(aliases=['c', 'usercases', 'modcases'])
     async def cases(self, ctx, search_term):
-        if not permcheck(ctx, is_mod):
+        if not await permcheck(ctx, is_mod):
             return
 
         try:
@@ -40,6 +40,7 @@ class Cases(commands.Cog):
             cases_embed = nextcord.Embed(
                 title=(f"{member.name}'s Cases"),
                 colour=nextcord.Color.from_rgb(237, 91, 6))
+            cases_embed.set_thumbnail(url=member.display_avatar.url)
 
             view = PageView(
                 base_embed=cases_embed,
@@ -50,30 +51,7 @@ class Cases(commands.Cog):
             await view.send_embed(ctx.channel)
             with open(self.case_history_file, "rb") as file:
                 self.case_history = pickle.load(file)
-            try:
-                cases = self.case_history[member.id]
-                num_of_cases = len(cases)
-                case_string = ""
-                print(cases)
-                for i, e in reversed(list(enumerate(cases))):
-                    for x in range(1):
-                        case_string = case_string + (f"**__Case {cases[i][0]}__**\n")
-                        case_string = case_string + (f"Type: {cases[i][1]}\n")
-                        case_string = case_string + (f"<t:{cases[search_term][i][2]}:R>\n\n")
-                cases_embed = nextcord.Embed(
-                    title=(f"{member.name}'s Cases ({num_of_cases})"),
-                    description=(case_string),
-                    colour=nextcord.Color.from_rgb(237, 91, 6)
-                )
-                cases_embed.set_thumbnail(url=member.display_avatar.url)
-            except KeyError:
-                cases_embed = nextcord.Embed(
-                    title=(f"{member.name}'s Cases (0)"),
-                    description=(f"{member.mention} ({member.id}) has no cases."),
-                    colour=nextcord.Color.from_rgb(237, 91, 6)
-                )
-                cases_embed.set_thumbnail(url=member.display_avatar.url)
-            await ctx.send(embed=cases_embed)
+
 
         elif search_by_member is not True:
             with open(self.case_details_file, "rb") as file:
