@@ -103,7 +103,7 @@ class Config(commands.Cog):
 
     @commands.command(aliases=['config', 'conf'])
     async def configuration(self, ctx, *args):
-        if not is_staff(ctx.author) or not is_sersi_contrib(ctx.author):
+        if not is_staff(ctx.author) and not is_sersi_contrib(ctx.author):   # either is fine
             await ctx.reply(f"{self.sersifail} Insufficient permission!")
             return
 

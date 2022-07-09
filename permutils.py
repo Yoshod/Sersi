@@ -28,7 +28,7 @@ async def permcheck(hook, function):
 
             kwargstr = ""
             for kwarg in hook.kwargs:
-                kwargstr += f"• {kwarg}\n"
+                kwargstr += f"• {kwarg}: {hook.kwargs[kwarg]}\n"
             if kwargstr == "":
                 kwargstr = "`none`"
             embed.add_field(name="Kwargs:", value=kwargstr, inline=False)
