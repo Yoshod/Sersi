@@ -1,8 +1,11 @@
 from itertools import product   # needed for slur obscurity permutations
 import unidecode                # needed for cleaning accents and diacritic marks
+
+from baseutils import get_page
+
 slurs = []
-slurs_list = []
 goodword = []
+slurs_list = []
 
 
 def leet(word):
@@ -29,40 +32,18 @@ def leet(word):
     return [''.join(permutations) for permutations in product(*possibles)]
 
 
-def get_slurs(page=None, wpp=10):
+def get_slurs(page=None, per_page=10):
     if page is None:
         return slurs_list
     else:
-        pages = 1 + (len(slurs_list) - 1) // wpp
-
-        index = page - 1
-        if index < 0:
-            index = 0
-        elif index >= pages:
-            index = pages - 1
-
-        if index == (pages - 1):
-            return sorted(slurs_list)[index * wpp:], pages, index + 1
-        else:
-            return sorted(slurs_list)[index * wpp: index * wpp + wpp], pages, index + 1
+        return get_page(sorted(slurs_list), page, per_page)
 
 
-def get_goodwords(page=None, wpp=10):
+def get_goodwords(page=None, per_page=10):
     if page is None:
         return goodword
     else:
-        pages = 1 + (len(goodword) - 1) // wpp
-
-        index = page - 1
-        if index < 0:
-            index = 0
-        elif index >= pages:
-            index = pages - 1
-
-        if index == (pages - 1):
-            return sorted(goodword)[index * wpp:], pages, index + 1
-        else:
-            return sorted(goodword)[index * wpp: index * wpp + wpp], pages, index + 1
+        return get_page(sorted(goodword), page, per_page)
 
 
 def load_slurdetector():
@@ -70,30 +51,30 @@ def load_slurdetector():
     load_goodwords()
 
 
-def rmSlur(ctx, slur):
+def rm_slur(slur):
     lines = []
     if slur in slurs_list:
         slurs_list.remove(slur)
         slurs.clear()
         for item in slurs_list:
             slurs.extend(leet(item))
-    with open("slurs.txt", "r") as fp:
+    with open("Files/SlurAlerts/slurs.txt", "r") as fp:
         lines = fp.readlines()
 
-    with open("slurs.txt", "w") as fp:
+    with open("Files/SlurAlerts/slurs.txt", "w") as fp:
         for line in lines:
             if line.strip("\n") != slur:
                 fp.write(line)
 
 
-def rmGoodword(ctx, word):
+def rm_goodword(word):
     lines = []
     if word in goodword:
         goodword.remove(word)
-    with open("goodword.txt", "r") as fp:
+    with open("Files/SlurAlerts/goodword.txt", "r") as fp:
         lines = fp.readlines()
 
-    with open("goodword.txt", "w") as fp:
+    with open("Files/SlurAlerts/goodword.txt", "w") as fp:
         for line in lines:
             if line.strip("\n") != word:
                 fp.write(line)
@@ -102,7 +83,7 @@ def rmGoodword(ctx, word):
 def load_slurs():
     slurs.clear()
     slurs_list.clear()
-    with open("slurs.txt", "r") as file:
+    with open("Files/SlurAlerts/slurs.txt", "r") as file:
         for line in file:
             line = line.replace('\n', '')
             slurs_list.append(line)
@@ -111,13 +92,13 @@ def load_slurs():
 
 def load_goodwords():
     goodword.clear()
-    with open("goodword.txt", "r") as file:
+    with open("Files/SlurAlerts/goodword.txt", "r") as file:
         for line in file:
             line = line.replace('\n', '')
             goodword.append(line)
 
 
-def clearString(string):
+def clear_string(string):
     """cleaning up the message by eliminating special characters and making the entire message lowercase"""
     special_characters = ['#', '%', '&', '[', ']', ' ', ']', '_', '-', '<', '>', '\'']
 
@@ -130,10 +111,10 @@ def clearString(string):
     return string
 
 
-def detectSlur(messageData):
+def detect_slur(messageData):
     if not str(messageData).startswith("s!"):  # ignores if message was a command
 
-        cleanedMessageData = clearString(messageData)
+        cleanedMessageData = clear_string(messageData)
         messageData = messageData.lower()
         messageData = messageData.replace(' ', '')
 

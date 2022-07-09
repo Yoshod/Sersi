@@ -1,3 +1,7 @@
 .spyproject
+.idea
 cogs/.DS_Store
 /__pycache__
+*.ini
+*.pkl
+.vscode/settings.json

@@ -1,12 +1,17 @@
 import nextcord
 from nextcord.ext import commands
-from baseutils import *
+
+from baseutils import ConfirmView
+from configutils import get_config, get_config_int
+from permutils import permcheck, is_dark_mod
 
 
 class Blacklist(commands.Cog):
 
     def __init__(self, bot):
-        self.filename = "blacklist.csv"
+        self.sersisuccess = get_config('EMOTES', 'success')
+        self.sersifail = get_config('EMOTES', 'fail')
+        self.filename = "Files/WBList/blacklist.csv"
         self.bot = bot
         self.blacklist = {}
         try:
@@ -23,36 +28,72 @@ class Blacklist(commands.Cog):
                 [user_id, reason] = line.split(";", maxsplit=1)
                 self.blacklist[int(user_id)] = reason           # if the key is not an int, the guild.get_member() won't work
 
-    @commands.command(aliases=['bl', 'bluser', 'addbl', 'modblacklist'])
-    async def blacklistuser(self, ctx, member: nextcord.Member, *reason):
-        """sets user onto moderator blacklist"""
-        if not isDarkMod(ctx.author.roles):
-            await ctx.send(f"<:sersifail:979070135799279698> Insufficient permission!")
-            return
-        elif member.id in self.blacklist:
-            await ctx.send(f"<:sersifail:979070135799279698> {member} already on list!")
-            return
+    async def cb_bluser_proceed(self, interaction):
+        member_id, reason = 0, ""
+        for field in interaction.message.embeds[0].fields:
+            if field.name == "User ID":
+                member_id = int(field.value)
+            if field.name == "Reason":
+                reason = field.value
 
-        reason_string = " ".join(reason)
+        member = interaction.guild.get_member(member_id)
 
         with open(self.filename, "a") as file:
-            file.write(f"{member.id};{reason_string}\n")
+            file.write(f"{member.id};{reason}\n")
 
         self.loadblacklist()
-        await ctx.send("<:sersisuccess:979066662856822844> User added to blacklist.")
+        await interaction.message.edit(f"{self.sersisuccess} User added to blacklist.", embed=None, view=None)
 
         # LOGGING
-        channel = ctx.guild.get_channel(getLoggingChannel(ctx.guild.id))
+
         logging = nextcord.Embed(
             title="User added to Blacklist"
         )
-        logging.add_field(name="Moderator:", value=ctx.author.mention, inline=False)
+        logging.add_field(name="Moderator:", value=interaction.user.mention, inline=False)
         logging.add_field(name="User Added:", value=member.mention, inline=False)
+
+        channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'logging'))
         await channel.send(embed=logging)
+
+        channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'modlogs'))
+        await channel.send(embed=logging)
+
+    @commands.command(aliases=['bl', 'bluser', 'addbl', 'modblacklist'])
+    async def blacklistuser(self, ctx, member: nextcord.Member, *, reason=""):
+        """sets user onto moderator blacklist"""
+        # in case of invocation from s!removemoderator
+        if ctx.author == self.bot.user:
+            with open(self.filename, "a") as file:
+                file.write(f"{member.id};{reason}\n")
+
+            self.loadblacklist()
+            return
+
+        if not await permcheck(ctx, is_dark_mod):
+            return
+        elif member.id in self.blacklist:
+            await ctx.reply(f"{self.sersifail} {member} already on blacklist!")
+            return
+        elif reason == "":
+            await ctx.reply(f"{self.sersifail} please provede a reason!")
+            return
+
+        dialog_embed = nextcord.Embed(
+            title="Add Member to Moderator blacklist",
+            description="Following member will be blacklisted from becoming a staff member:",
+            color=nextcord.Color.from_rgb(237, 91, 6))
+        dialog_embed.add_field(name="User", value=member.mention)
+        dialog_embed.add_field(name="User ID", value=member.id)
+        dialog_embed.add_field(name="Reason", value=reason, inline=False)
+
+        await ConfirmView(self.cb_bluser_proceed).send_as_reply(ctx, embed=dialog_embed)
 
     @commands.command(aliases=['lbl', 'bllist', 'listbl', 'bll', 'showblacklist'])
     async def listblacklist(self, ctx):
         """lists all members currently on the blacklist"""
+        if not await permcheck(ctx, is_dark_mod):
+            return
+
         nicelist = ""
         for entry in self.blacklist:
 
@@ -68,14 +109,12 @@ class Blacklist(commands.Cog):
         )
         await ctx.send(embed=listembed)
 
-    @commands.command(aliases=['rmbl', 'removeuserfromblacklist', 'blrmuser', 'blremoveuser'])
-    async def removefromblacklist(self, ctx, member: nextcord.Member):
-        """removes user from moderator blacklist"""
-        if not isDarkMod(ctx.author.roles):
-            await ctx.send(f"<:sersifail:979070135799279698> Insufficient permission!")
-            return
-        if member.id not in self.blacklist:
-            await ctx.send(f"<:sersifail:979070135799279698> Member {member} not found on list!")
+    async def cb_blrmuser_proceed(self, interaction):
+        member_id = 0
+        for field in interaction.message.embeds[0].fields:
+            if field.name == "User ID":
+                member_id = int(field.value)
+        member = interaction.guild.get_member(member_id)
 
         self.blacklist.pop(member.id)
 
@@ -83,27 +122,48 @@ class Blacklist(commands.Cog):
             for entry in self.blacklist:
                 file.write(f"{entry};{self.blacklist[entry]}\n")
 
-        await ctx.send("<:sersisuccess:979066662856822844> User has been removed from blacklist.")
+        await interaction.message.edit(f"{self.sersisuccess} User has been removed from blacklist.", embed=None, view=None)
 
         # LOGGING
-        channel = ctx.guild.get_channel(getLoggingChannel(ctx.guild.id))
+
         logging = nextcord.Embed(
             title="User Removed from Blacklist"
         )
-        logging.add_field(name="Moderator:", value=ctx.author.mention, inline=False)
+        logging.add_field(name="Moderator:", value=interaction.user.mention, inline=False)
         logging.add_field(name="User Removed:", value=member.mention, inline=False)
+
+        channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'logging'))
         await channel.send(embed=logging)
+
+        channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'modlogs'))
+        await channel.send(embed=logging)
+
+    @commands.command(aliases=['rmbl', 'removeuserfromblacklist', 'blrmuser', 'blremoveuser'])
+    async def removefromblacklist(self, ctx, member: nextcord.Member):
+        """removes user from moderator blacklist"""
+        if not await permcheck(ctx, is_dark_mod):
+            return
+        if member.id not in self.blacklist:
+            await ctx.send(f"{self.sersifail} Member {member} not found on list!")
+
+        dialog_embed = nextcord.Embed(
+            title="Remove Member from Moderator blacklist",
+            description="Following member will be removed from the blacklist:",
+            color=nextcord.Color.from_rgb(237, 91, 6))
+        dialog_embed.add_field(name="User", value=member.mention)
+        dialog_embed.add_field(name="User ID", value=member.id)
+
+        await ConfirmView(self.cb_blrmuser_proceed).send_as_reply(ctx, embed=dialog_embed)
 
     @commands.command(aliases=['checklb', 'ckbl'])
     async def checkblacklist(self, ctx, member: nextcord.Member):
-        if not isDarkMod(ctx.author.roles):
-            await ctx.send(f"<:sersifail:979070135799279698> Insufficient permission!")
+        if not await permcheck(ctx, is_dark_mod):
             return
         if member.id in self.blacklist:
-            await ctx.send(f"<:sersifail:979070135799279698> Member {member} found on blacklist!")
+            await ctx.send(f"{self.sersifail} Member {member} found on blacklist!")
             return True
         else:
-            await ctx.send(f"<:sersisuccess:979066662856822844> Member {member} not found on blacklist!")
+            await ctx.send(f"{self.sersisuccess} Member {member} not found on blacklist!")
             return False
 
 

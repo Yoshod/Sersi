@@ -1,33 +1,36 @@
 import nextcord
 
 from nextcord.ext import commands
-from baseutils import *
 
 
 class About(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.verNum = str("`3.1.5`")
-        self.buildNum = str("`Development Build 00240`")
-        self.authorsList = load_authors()
+        self.version_num = "`3.2.0`"
+
+        authors = []
+        with open("Files/About/authors.txt", "r") as file:
+            for line in file:
+                line = line.replace('\n', '')
+                authors.append(line)
+        self.authors_list = authors
 
     @commands.command()
     async def about(self, ctx):
         """Displays basic information about the bot."""
-        authorString = ""
-        for authors in self.authorsList:
-            authorString = (str(authorString) + str(authors) + str("\n"))
-        embedVar = nextcord.Embed(
+
+        author_string = ""
+        for author in self.authors_list:
+            author_string = author_string + f"{author}\n"
+
+        about = nextcord.Embed(
             title="About Sersi",
-            description="Sersi is the custom moderation help bot for Adam Something Central.\n\nVersion:\n"
-            + str(self.verNum)
-            + str("\n\nBuild Number:\n")
-            + str(self.buildNum)
-            + str("\n\nAuthors:\n")
-            + str(authorString),
+            description="Sersi is the custom moderation help bot for Adam Something Central.",
             color=nextcord.Color.from_rgb(237, 91, 6))
-        await ctx.send(embed=embedVar)
+        about.add_field(name="Version:", value=self.version_num, inline=False)
+        about.add_field(name="Authors:", value=author_string, inline=False)
+        await ctx.send(embed=about)
 
 
 def setup(bot):

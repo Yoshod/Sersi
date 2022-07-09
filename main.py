@@ -5,14 +5,16 @@ import sys
 import datetime
 import time
 
-
 from nextcord.ext import commands
-from baseutils import *
+from downdetection import down_detection
+
+from configutils import get_config
+from permutils import permcheck, is_sersi_contrib
 
 intents = nextcord.Intents.all()
 intents.members = True
 
-bot = commands.Bot(command_prefix="s!", intents=intents)
+bot = commands.Bot(command_prefix=get_config("BOT", "command prefix", "s!"), intents=intents)
 start_time = time.time()
 
 ### COGS ###
@@ -24,7 +26,7 @@ async def load(ctx, extension):
 
     Loads cog.
     Permission needed: Sersi contributor"""
-    if isSersiContrib(ctx.author.roles):
+    if await permcheck(ctx, is_sersi_contrib):
         try:
             bot.load_extension(f"cogs.{extension}")
             await ctx.reply(f"Cog {extension} loaded.")
@@ -33,7 +35,7 @@ async def load(ctx, extension):
         except commands.errors.ExtensionAlreadyLoaded:
             await ctx.reply("Cog already loaded.")
     else:
-        await ctx.reply("<:sersifail:979070135799279698> Only Sersi contributors are able to load cogs.")
+        await ctx.reply(f"{get_config('EMOTES', 'fail')} Only Sersi contributors are able to load cogs.")
 
 
 @bot.command()
@@ -42,7 +44,7 @@ async def unload(ctx, extension):
 
     Unloads cog.
     Permission needed: Sersi contributor"""
-    if isSersiContrib(ctx.author.roles):
+    if await permcheck(ctx, is_sersi_contrib):
         try:
             bot.unload_extension(f"cogs.{extension}")
             await ctx.reply(f"Cog {extension} unloaded.")
@@ -51,7 +53,7 @@ async def unload(ctx, extension):
         except commands.errors.ExtensionNotLoaded:
             await ctx.reply(f"Cog {extension} was not loaded.")
     else:
-        await ctx.reply("<:sersifail:979070135799279698> Only Sersi contributors are able to unload cogs.")
+        await ctx.reply(f"{get_config('EMOTES', 'fail')} Only Sersi contributors are able to unload cogs.")
 
 
 @bot.command()
@@ -60,7 +62,7 @@ async def reload(ctx, extension):
 
     Reloads cog. If cog wasn't loaded, loads cog.
     Permission needed: Sersi contributor"""
-    if isSersiContrib(ctx.author.roles):
+    if await permcheck(ctx, is_sersi_contrib):
         try:
             bot.unload_extension(f"cogs.{extension}")
             bot.load_extension(f"cogs.{extension}")
@@ -68,12 +70,16 @@ async def reload(ctx, extension):
         except commands.errors.ExtensionNotFound:
             await ctx.reply("Cog not found.")
         except commands.errors.ExtensionNotLoaded:
-            await load(extension)
+            try:
+                bot.load_extension(f"cogs.{extension}")
+                await ctx.reply(f"Cog {extension} loaded.")
+            except commands.errors.ExtensionNotFound:
+                await ctx.reply("Cog not found.")
+            except commands.errors.ExtensionAlreadyLoaded:
+                await ctx.reply("Cog already loaded.")
     else:
-        await ctx.reply("<:sersifail:979070135799279698> Only Sersi contributors are able to reload cogs.")
+        await ctx.reply(f"{get_config('EMOTES', 'fail')} Only Sersi contributors are able to reload cogs.")
 
-
-### GENERAL COMMANDS ###
 
 @bot.command()
 async def uptime(ctx):
@@ -92,9 +98,6 @@ async def ping(ctx):
     await ctx.send(f'Pong! {round(bot.latency * 1000)}ms')
 
 
-### BOT EVENTS ###
-
-
 @bot.event
 async def on_message_edit(before, after):
     """treats edited messages like new messages when it comes to scanning"""
@@ -102,15 +105,7 @@ async def on_message_edit(before, after):
 
 
 @bot.event
-async def on_command_error(ctx, error):
-    """brings command errors to the frontend"""
-    await ctx.send(f"Error while executing command: `{error}`")
-
-
-@bot.event
 async def on_ready():
-    ajustCommandPrefix(bot)  # change prefix to cs! if Sersi(cracked)
-
     # load all cogs
     for filename in os.listdir('./cogs'):
         if filename.endswith('.py'):
@@ -118,10 +113,12 @@ async def on_ready():
             print(f"Cog {filename[:-3]} loaded.")
 
     # files = [f for f in os.listdir('.') if os.path.isfile(f)] #unused
-    print(sys.version)
+    print(f"System Version:\n{sys.version}")
+
+    print(f"Nextcord Version:\n{nextcord.__version__}")
 
     print(f"We have logged in as {bot.user}")
-    await bot.change_presence(activity=nextcord.Game('Sword and Shield of the Server'))
+    await bot.change_presence(activity=nextcord.Game(get_config("BOT", "status")))
 
 
 @bot.event
@@ -136,5 +133,6 @@ async def on_message(message):
 
     await bot.process_commands(message)
 
+down_detection()
 token = discordTokens.getToken()
 bot.run(token)

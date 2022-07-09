@@ -1,86 +1,142 @@
+import nextcord
+from configutils import get_config_int
+from nextcord.ui import View, Button
+import re
 
-def checkForMods(messageData):
-    for modmention in ["<@&856424878437040168>", "<@&963537133589643304>", "<@&875805670799179799>", "<@&883255791610638366>", "<@&977939552641613864>"]:
+from permutils import permcheck
+
+
+def sanitize_mention(string: str) -> str:
+    return re.sub(r"[^0-9]*", "",  string)
+
+
+def modmention_check(messageData):
+    modmentions = [
+        f"<@&{get_config_int('PERMISSION ROLES', 'trial moderator')}>",
+        f"<@&{get_config_int('PERMISSION ROLES', 'moderator')}>",
+        f"<@&{get_config_int('PERMISSION ROLES', 'senior moderator')}>",
+        f"<@&{get_config_int('PERMISSION ROLES', 'dark moderator')}>"
+    ]
+
+    for modmention in modmentions:
         if modmention in messageData:
             return True
     return False
 
 
-def isMod(userRoles):
-    modRolePresent = False
-    for role in userRoles:
-        if role.id in [856424878437040168, 883255791610638366, 977394150494326855]:  # "Moderator", "Trial Moderator", "certified bot tester"
-            modRolePresent = True
-    return (modRolePresent)
+def get_page(entry_list, page, per_page=10):
+    pages = 1 + (len(entry_list) - 1) // per_page
+
+    index = page - 1
+    if index < 0:
+        index = 0
+    elif index >= pages:
+        index = pages - 1
+
+    page = index + 1
+    if page == pages:
+        return entry_list[index * per_page:], pages, page
+    else:
+        return entry_list[index * per_page: page * per_page], pages, page
 
 
-def isDarkMod(userRoles):
-    darkModPresent = False
-    for role in userRoles:
-        if 875805670799179799 == role.id:
-            darkModPresent = True
-    return darkModPresent
+class ConfirmView(View):
+    def __init__(self, on_proceed, timeout: float = 60.0):
+        super().__init__(timeout=timeout)
+        btn_proceed = Button(label="Proceed", style=nextcord.ButtonStyle.green)
+        btn_proceed.callback = on_proceed
+        btn_cancel = Button(label="Cancel", style=nextcord.ButtonStyle.red)
+        btn_cancel.callback = self.cb_cancel
+        self.add_item(btn_proceed)
+        self.add_item(btn_cancel)
+
+    async def cb_cancel(self, interaction):
+        await interaction.message.edit("Action canceled!", embed=None, view=None)
+
+    async def on_timeout(self):
+        self.message = await self.message.channel.fetch_message(self.message.id)
+        if self.message.components != []:
+            await self.message.edit("Action timed out!", embed=None, view=None)
+
+    async def interaction_check(self, interaction):
+        return interaction.user == interaction.message.reference.cached_message.author
+
+    async def send_as_reply(self, ctx, content: str = None, embed=None):
+        self.message = await ctx.reply(content, embed=embed, view=self)
 
 
-def isSersiContrib(userRoles):
-    sersiContrib = False
-    for role in userRoles:
-        if role.id in [977602747786493972, 977394150494326855]:
-            sersiContrib = True
-    return sersiContrib
+class DualCustodyView(View):
+    def __init__(self, on_confirm, author, has_perms, timeout: float = 600.0):
+        super().__init__(timeout=timeout)
+        btn_confirm = Button(label="Confirm Action", style=nextcord.ButtonStyle.green)
+        btn_confirm.callback = on_confirm
+        self.add_item(btn_confirm)
+        self.has_perms = has_perms
+        self.author = author
+
+    async def on_timeout(self):
+        await self.message.edit(view=None)
+
+    async def interaction_check(self, interaction):
+        if interaction.user == self.author:
+            return False
+
+        return permcheck(interaction, self.has_perms)
+
+    async def send_dialogue(self, channel, content: str = None, embed=None):
+        self.message = await channel.send(content, embed=embed, view=self)
 
 
-def getAlertChannel(guild_id):
-    if guild_id == 856262303795380224:      # asc
-        return 897874682198511648           # information-centre
-    elif guild_id == 977377117895536640:    # the proving grounds
-        return 977377171054166037           # replies
+class PageView(View):
+    def __init__(self, base_embed, fetch_function, author, entry_form="**•**\u00A0{entry}", cols=1, per_col=10, init_page=1, **kwargs):
+        super().__init__()
+        btn_prev = Button(label="< prev")
+        btn_prev.callback = self.cb_prev_page
+        btn_next = Button(label="next >")
+        btn_next.callback = self.cb_next_page
+        self.add_item(btn_prev)
+        self.add_item(btn_next)
+        self.page = init_page
+        self.kwargs = kwargs
+        self.author = author
+        self.columns = cols
+        self.per_column = per_col
+        self.embed_base = base_embed
+        self.entry_format = entry_form
+        self.get_entries = fetch_function
 
+    def make_column(self, entries):
+        entry_list = []
+        for entry in entries:
+            entry_list.append(self.entry_format.format(entry=entry))
+        return "\n".join(entry_list)
 
-def getLoggingChannel(guild_id):
-    if guild_id == 856262303795380224:      # asc
-        return 977609240107700244           # sersi-logs
-    elif guild_id == 977377117895536640:    # the proving grounds
-        return 977925156330672198           # logging
+    def make_embed(self, page):
+        embed = self.embed_base.copy()
+        entries, pages, self.page = self.get_entries(page=page, per_page=self.columns * self.per_column, **self.kwargs)
+        cols = min(self.columns, 1 + (len(entries) - 1) // self.per_column)
+        for col in range(1, cols + 1):
+            if col == cols:
+                embed.add_field(name="\u200b", value=self.make_column(entries[(col - 1) * self.per_column:]))
+            else:
+                embed.add_field(name="\u200b", value=self.make_column(entries[(col - 1) * self.per_column: col * self.per_column]))
+        embed.set_footer(text=f"page {self.page}/{pages}")
+        return embed
 
+    async def update_embed(self, page):
+        await self.message.edit(embed=self.make_embed(page))
 
-def getFalsePositivesChannel(guild_id):
-    if guild_id == 856262303795380224:      # asc
-        return 978078399635550269           # sersi-logs
-    elif guild_id == 977377117895536640:    # the proving grounds
-        return 978079399066882059           # logging
+    async def cb_next_page(self, interaction):
+        await self.update_embed(self.page + 1)
 
+    async def cb_prev_page(self, interaction):
+        await self.update_embed(self.page - 1)
 
-def getReformationRole(guild_id):
-    if guild_id == 856262303795380224:
-        return 878289857527562310
-    elif guild_id == 977377117895536640:
-        return 978334782968721468
+    async def on_timeout(self):
+        await self.message.edit(view=None)
 
+    async def interaction_check(self, interaction):
+        return interaction.user == self.author
 
-def getReformedRole(guild_id):
-    if guild_id == 856262303795380224:
-        return 878289678623703080
-    elif guild_id == 977377117895536640:
-        return 978591187827044383
-
-
-def getModlogsChannel(guild_id):
-    if guild_id == 856262303795380224:
-        return 903367950554259466
-    elif guild_id == 977377117895536640:
-        return 978346814904336484
-
-
-def ajustCommandPrefix(bot):
-    if bot.user.id == 978259801844879373:   # Sersi(cracked)
-        bot.command_prefix = "cs!"
-
-
-def load_authors():
-    authors = []
-    with open("authors.txt", "r") as file:
-        for line in file:
-            line = line.replace('\n', '')
-            authors.append(line)
-    return authors
+    async def send_embed(self, channel):
+        self.message = await channel.send(embed=self.make_embed(self.page), view=self)

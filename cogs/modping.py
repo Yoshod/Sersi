@@ -1,26 +1,27 @@
 import nextcord
-from baseutils import *
 
 from nextcord.ext import commands
 from nextcord.ui import Button, View
+
+from baseutils import modmention_check
+from permutils import cb_is_mod
+from configutils import get_config_int
+from caseutils import case_history, bad_faith_ping_case
 
 
 class ModPing(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
+        self.guild = bot.get_guild(get_config_int('GUILDS', 'main'))
 
     async def cb_action_taken(self, interaction):
-        if not isMod(interaction.user.roles):
-            await interaction.response.send_message("You don't get to decide on this", ephemeral=True)
-            return
-
         new_embed = interaction.message.embeds[0]
         new_embed.add_field(name="Action Taken By", value=interaction.user.mention, inline=True)
         new_embed.colour = nextcord.Colour.brand_green()
         await interaction.message.edit(embed=new_embed, view=None)
         # Logging
-        channel = self.bot.get_channel(getLoggingChannel(interaction.guild.id))
+        channel = self.bot.get_channel(get_config_int('CHANNELS', 'logging'))
         embedLogVar = nextcord.Embed(
             title="Action Taken Pressed",
             description="Action has been taken by a moderator in response to a report.",
@@ -30,16 +31,12 @@ class ModPing(commands.Cog):
         await channel.send(embed=embedLogVar)
 
     async def cb_action_not_neccesary(self, interaction):
-        if not isMod(interaction.user.roles):
-            await interaction.response.send_message("You don't get to decide on this", ephemeral=True)
-            return
-
         new_embed = interaction.message.embeds[0]
         new_embed.add_field(name="Action Not Neccesary", value=interaction.user.mention, inline=True)
         new_embed.colour = nextcord.Colour.light_grey()
         await interaction.message.edit(embed=new_embed, view=None)
         # Logging
-        channel = self.bot.get_channel(getLoggingChannel(interaction.guild.id))
+        channel = self.bot.get_channel(get_config_int('CHANNELS', 'logging'))
         embedLogVar = nextcord.Embed(
             title="Action Not Necessary Pressed",
             description="A Moderator has deemed that no action is needed in response to a report.",
@@ -49,16 +46,12 @@ class ModPing(commands.Cog):
         await channel.send(embed=embedLogVar)
 
     async def cb_bad_faith_ping(self, interaction):
-        if not isMod(interaction.user.roles):
-            await interaction.response.send_message("You don't get to decide on this", ephemeral=True)
-            return
-
         new_embed = interaction.message.embeds[0]
         new_embed.add_field(name="Bad Faith Ping", value=interaction.user.mention, inline=True)
         new_embed.colour = nextcord.Colour.brand_red()
         await interaction.message.edit(embed=new_embed, view=None)
         # Logging
-        channel = self.bot.get_channel(getLoggingChannel(interaction.guild.id))
+        channel = self.bot.get_channel(get_config_int('CHANNELS', 'logging'))
         embedLogVar = nextcord.Embed(
             title="Bad Faith Ping Pressed",
             description="A moderation ping has been deemed bad faith by a moderator in response to a report.",
@@ -67,16 +60,34 @@ class ModPing(commands.Cog):
         embedLogVar.add_field(name="Moderator:", value=f"{interaction.user.mention} ({interaction.user.id})", inline=False)
         await channel.send(embed=embedLogVar)
 
+        case_data = []
+        for field in new_embed.fields:
+            if field.name in ["User:"]:
+                case_data.append(field.value)
+        
+        converter = commands.MemberConverter()
+        await channel.send(case_data[0])
+        member = await converter.convert(self, case_data[0])
+
+        unique_id = case_history(member.id, "Bad Faith Ping")
+        bad_faith_ping_case(unique_id, interaction.message.jump_url, member.id, interaction.user.id)
+
     # events
     @commands.Cog.listener()
     async def on_message(self, message):
-        if message.author == self.bot.user:  # ignores message if message is by bot
+
+        if message.guild is not None:
+            adam_something = message.guild.get_member(809891646606409779)
+        else:
+            adam_something = None
+
+        if message.author.bot:  # ignores message if message is by bot
             return
 
         elif message.channel.id in [875807914802176020, 963893512141692958, 856430951630110740]:  # ignores certain channels on ASC, given by Juniper
             return
 
-        elif checkForMods(message.content):
+        elif modmention_check(message.content):
             # Reply to user
             embedVar = nextcord.Embed(
                 title="Moderator Ping Acknowledgment",
@@ -84,10 +95,10 @@ class ModPing(commands.Cog):
                 color=nextcord.Color.from_rgb(237, 91, 6))
             embedVar.set_footer(text="Sersi Ping Detection Alert")
             await message.channel.send(embed=embedVar)
-            await message.channel.send("<@&883255791610638366>", delete_after=0.1)
+            await message.channel.send(f"<@&{get_config_int('ROLES', 'trial moderator')}>", delete_after=0.1)
 
             # notification for mods
-            channel = self.bot.get_channel(getAlertChannel(message.guild.id))
+            channel = self.bot.get_channel(get_config_int('CHANNELS', 'alert'))
             embedVar = nextcord.Embed(
                 title="Moderator Ping",
                 description="A moderation role has been pinged, please investigate the ping and take action as appropriate.",
@@ -111,13 +122,16 @@ class ModPing(commands.Cog):
             button_view.add_item(action_taken)
             button_view.add_item(action_not_neccesary)
             button_view.add_item(bad_faith_ping)
+            button_view.interaction_check = cb_is_mod
 
             await channel.send(embed=embedVar, view=button_view)
 
-        elif "<@809891646606409779>" in message.content:   # adam something ping
+        # elif "<@809891646606409779>" in message.content:   # adam something ping
+
+        elif adam_something is not None and adam_something.mentioned_in(message):  # adam something ping
 
             # notification for mods
-            channel = self.bot.get_channel(getAlertChannel(message.guild.id))
+            channel = self.bot.get_channel(get_config_int('CHANNELS', 'alert'))
             embedVar = nextcord.Embed(
                 title="Adam Something Ping",
                 description="Adam Something has been pinged, please take appropriate action.",
@@ -131,8 +145,13 @@ class ModPing(commands.Cog):
             action_taken = Button(label="Action Taken")
             action_taken.callback = self.cb_action_taken
 
+            action_not_neccesary = Button(label="Action Not Neccesary")
+            action_not_neccesary.callback = self.cb_action_not_neccesary
+
             button_view = View(timeout=None)
             button_view.add_item(action_taken)
+            button_view.add_item(action_not_neccesary)
+            button_view.interaction_check = cb_is_mod
 
             await channel.send(embed=embedVar, view=button_view)
 
