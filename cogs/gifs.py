@@ -65,7 +65,6 @@ class Gif(commands.Cog):
 
         with open(self.filename, "w") as file:
             for gif in self.list:
-                print(f"current GIF {gif}")
                 file.write(f"{gif}\n")
 
         # logging

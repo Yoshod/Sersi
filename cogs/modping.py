@@ -70,7 +70,6 @@ class ModPing(commands.Cog):
         member = await converter.convert(self, case_data[0])
 
         unique_id = case_history(member.id, "Bad Faith Ping")
-        print(unique_id)
         bad_faith_ping_case(unique_id, interaction.message.jump_url, member.id, interaction.user.id)
 
     # events

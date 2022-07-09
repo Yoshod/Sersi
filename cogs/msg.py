@@ -195,7 +195,6 @@ class Messages(commands.Cog):
         member = interaction.guild.get_member(member_id)
 
         self.banlist.pop(member.id)
-        print(self.banlist)
 
         with open(self.banned_filename, "w") as file:
             for entry in self.banlist:

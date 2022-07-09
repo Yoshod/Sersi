@@ -104,7 +104,6 @@ class Reformation(commands.Cog):
 
         case_details = [case_name, case_num, interaction.user.id, reason]
         reformation_list[member.id] = case_details
-        print(reformation_list)
 
         category = nextcord.utils.get(interaction.guild.categories, name="REFORMATION ROOMS")
         channel = await interaction.guild.create_text_channel(case_name, overwrites=overwrites, category=category)
@@ -114,34 +113,6 @@ class Reformation(commands.Cog):
 
         unique_id = case_history(member.id, "Reformation")
         reform_case(unique_id, case_num, member.id, interaction.user.id, channel.id, reason)
-
-        """print("Attempting to Open Case File")
-        try:
-            with open(self.case_history_file, "rb") as file:
-                case_history = pickle.load(file)
-                print("Case History Loaded")
-        except (EOFError, TypeError):
-            case_history={}
-            print("Generating New Case History")
-            case_history[member.id] = []
-
-        global_case_identifier = str(shortuuid.uuid())
-        try:
-            cases = case_history[member.id]
-            print("Member Cases Loaded")
-            cases.append([global_case_identifier, "Reformation"])
-            print("Case History Appended")
-            case_history[member.id] = cases
-            print("Case History Dict Updated")
-        except KeyError:
-            cases = []
-            cases.append([global_case_identifier, "Reformation"])
-            case_history[member.id] = cases
-            print("Case History Dict Updated")
-
-        with open(self.case_history_file, "wb") as file:
-            pickle.dump(case_history, file)
-            print("Case History Dumped")"""
 
         channel = nextcord.utils.get(interaction.guild.channels, name=case_name)
         await channel.send(embed=welcome_embed)

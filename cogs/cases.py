@@ -134,9 +134,7 @@ class Cases(commands.Cog):
                 user = ctx.guild.get_member(self.case_details[search_term][1])
                 moderator = ctx.guild.get_member(self.case_details[search_term][3])
 
-                print("user")
                 case_embed.add_field(name="User:", value=(f"{user.mention} ({user.id})"), inline=False)
-                print("moderator")
                 case_embed.add_field(name="Moderator:", value=(f"{moderator.mention} ({moderator.id})"), inline=False)
                 case_embed.add_field(name="Report URL:", value=self.case_details[search_term][2], inline=False)
                 case_embed.add_field(name="Timestamp:", value=(f"<t:{self.case_details[search_term][4]}:R>"), inline=False)
