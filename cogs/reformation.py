@@ -9,7 +9,7 @@ from chat_exporter import export
 
 from baseutils import ConfirmView
 from configutils import get_config_int, get_options, get_config
-from permutils import permcheck, is_mod, cb_is_mod, is_custom_role
+from permutils import is_senior_mod, permcheck, is_mod, cb_is_mod, is_custom_role
 from caseutils import case_history, reform_case
 
 
@@ -441,6 +441,23 @@ class Reformation(commands.Cog):
             colour=nextcord.Color.from_rgb(237, 91, 6))
 
         await ctx.send(embed=listembed)
+
+    @commands.command()
+    async def refremove(self, ctx, member: nextcord.Member, *, reason):
+        if not await permcheck(ctx, is_senior_mod):
+            return
+    
+        civil_engineering_initiate  = ctx.guild.get_role(get_config_int('ROLES', 'civil engineering initiate'))
+        await member.add_roles(civil_engineering_initiate, reason=reason)
+        await member.remove_roles(ctx.guild.get_role(get_config_int('ROLES', 'reformation')), reason=reason)
+
+        # logs
+        log_embed = nextcord.Embed(
+            title=f"Reformation Release: **{member.name}** ({member.id})",
+            description=f"Reformation Member {member.name} was forcefully released by {ctx.author.mention} ({ctx.author.id}).",
+            color=nextcord.Color.from_rgb(237, 91, 6))
+        channel = self.bot.get_channel(get_config_int('CHANNELS', 'modlogs'))
+        await channel.send(embed=log_embed)
 
     @commands.Cog.listener()
     async def on_member_remove(self, member):
