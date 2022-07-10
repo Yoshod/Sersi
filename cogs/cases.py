@@ -114,7 +114,7 @@ class Cases(commands.Cog):
                     colour=nextcord.Color.from_rgb(237, 91, 6)
                 )
 
-                user = ctx.guild.get_member(self.case_details[search_term][2])
+                user = ctx.guild.get_member(self.case_details[search_term][3])
                 moderator = ctx.guild.get_member(self.case_details[search_term][4])
 
                 case_embed.add_field(name="User:", value=(f"{user.mention} ({user.id})"), inline=False)
