@@ -19,7 +19,7 @@ class BanAppealRejection(nextcord.ui.Modal):
         self.add_item(self.reason)
 
     async def callback(self, interaction):
-        user = interaction.client.get_user(self.ID)
+        user = interaction.client.get_user(self.userID)
         rejected_embed = nextcord.Embed(
             title="Your Ban Appeal Was Rejected",
             colour=nextcord.Colour.from_rgb(237, 91, 6))
