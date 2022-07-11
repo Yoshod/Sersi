@@ -30,6 +30,7 @@ class About(commands.Cog):
             color=nextcord.Color.from_rgb(237, 91, 6))
         about.add_field(name="Version:", value=self.version_num, inline=False)
         about.add_field(name="Authors:", value=author_string, inline=False)
+        about.add_field(name="GitHub Repository:", value="https://github.com/Yoshod/Sersi", inline=False)
         await ctx.send(embed=about)
 
 
