@@ -158,7 +158,6 @@ class BanAppeals(commands.Cog):
 
     @commands.command()
     async def appeal(self, ctx):
-        print(ctx.author.id)
         if ctx.author.id in (261870562798731266, 348142492245426176):
             pass
         
