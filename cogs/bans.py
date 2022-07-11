@@ -20,7 +20,11 @@ class BanAppealRejection(nextcord.ui.Modal):
 
     async def callback(self, interaction):
         user = interaction.client.get_user(self.ID)
-        await user.send(f"Your Ban Appeal on Adam Something Central was **__denied__** under the reason `{self.reason.value}`. You may send another appeal in 28 days.")
+        rejected_embed = nextcord.Embed(
+            title="You Have Been Unbanned",
+            colour=nextcord.Colour.from_rgb(237, 91, 6))
+        rejected_embed.add_field(name="Reason:", value=self.reason.value, inline=False)
+        rejected_embed.add_field(name="Wait Time:", value="You may reapply in 28 days.", inline=False)
 
         updated_form = interaction.message.embeds[0]
         updated_form.add_field(name="Rejected by:", value=interaction.user.mention, inline=False)
@@ -52,7 +56,11 @@ class BanAppealAccept(nextcord.ui.Modal):
 
     async def callback(self, interaction):
         user = interaction.client.get_user(self.userID)
-        await user.send(f"Your Ban Appeal on Adam Something Central was granted under the reason `{self.reason.value}`.\n\n{get_config('INVITES', 'banappeals')}")
+        unban_embed = nextcord.Embed(
+            title="You Have Been Unbanned",
+            colour=nextcord.Colour.from_rgb(237, 91, 6))
+        unban_embed.add_field(name="Reason:", value=self.reason.value, inline=False)
+        unban_embed.add_field(name="Rejoin URL:", value=get_config('INVITES', 'banappeals'), inline=False)
 
         try:
             await interaction.guild.unban(user, reason=f"{interaction.user.name} gave reason {self.reason.value}")
