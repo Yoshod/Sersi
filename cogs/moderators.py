@@ -28,7 +28,23 @@ class ModAppModal(Modal):
 
     async def callback(self, interaction):
         """run whenever the 'submit' button is pressed"""
-        appellant_id = interaction.user.id
+        applicant_id = interaction.user.id
+
+        application_embed = nextcord.Embed(
+            title="Moderator Application Sent",
+            description=f"User {interaction.user.name} ({interaction.user.id})",
+            color=nextcord.Color.from_rgb(237, 91, 6))
+        application_embed.add_field(name=self.aboutq.label,    value=self.aboutq.value,      inline=False)
+        application_embed.add_field(name=self.whymod.label,  value=self.whymod.value,    inline=False)
+        application_embed.add_field(name=self.priorexp.label, value=self.priorexp.value,   inline=False)
+        application_embed.add_field(name=self.age.label,   value=self.age.value,     inline=False)
+        application_embed.add_field(name=self.vc.label,   value=self.vc.value,     inline=False)
+
+        async def cb_accept(interaction):
+            await interaction.response.send_modal(ModAppNextSteps(applicant_id))
+
+        async def cb_reject(interaction):
+            await interaction.response.send_modal(ModAppRejected(applicant_id))
 
 
 class Moderators(commands.Cog):
