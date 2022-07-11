@@ -7,11 +7,57 @@ from configutils import get_options, get_config, get_config_int
 from permutils import permcheck, is_staff, is_mod, is_senior_mod
 
 
+class EmbedModal(nextcord.ui.Modal):
+    def __init__(self):
+        super().__init__("Test Modal")
+        self.emTitle = nextcord.ui.TextInput(label = "First Question", min_length=2, max_length=1024, required=True, placeholder="The answer doesn't matter because this is a test.")
+        self.add_item(self.emTitle)
+
+        self.emDesc = nextcord.ui.TextInput(label = "Second Question", min_length=5, max_length=4000, required=True, placeholder="The answer doesn't matter because this is a test.", style = nextcord.TextInputStyle.paragraph)
+        self.add_item(self.emDesc)
+
+
+class ModAppModal(Modal):
+    def __init__(self):
+        super().__init__("Moderator Application")
+
+        self.aboutq = nextcord.ui.TextInput(label = "Tell Us About Yourself", min_length=2, max_length=1024, required=True, style = nextcord.TextInputStyle.paragraph)
+        self.add_item(self.aboutq)
+
+        self.longq = nextcord.ui.TextInput(label = "How Long Have You Been A Member Of ASC", min_length=2, max_length=1024, required=True)
+        self.add_item(self.longq)
+
+        self.whymod = nextcord.ui.TextInput(label = "Why Do You Want To Become A Moderator", min_length=2, max_length=1024, required=True, style = nextcord.TextInputStyle.paragraph)
+        self.add_item(self.whymod)
+
+        self.priorexp = nextcord.ui.TextInput(label = "Do You Have Prior Moderation/Management Experience", min_length=2, max_length=1024, required=True, style = nextcord.TextInputStyle.paragraph)
+        self.add_item(self.priorexp)
+
+        self.availability = nextcord.ui.TextInput(label = "How Often Are You Available", min_length=2, max_length=1024, required=True)
+        self.add_item(self.availability)
+
+        self.age = nextcord.ui.TextInput(label = "How Old Are You", min_length=2, max_length=2, required=True)
+        self.add_item(self.age)
+
+        self.vc = nextcord.ui.TextInput(label = "Are You Able To Voice Chat", min_length=2, max_length=1024, required=True)
+        self.add_item(self.vc)
+
+    async def callback(self, interaction):
+        """run whenever the 'submit' button is pressed"""
+        appellant_id = interaction.user.id
+
+
 class Moderators(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.sersisuccess = get_config('EMOTES', 'success')
         self.sersifail = get_config('EMOTES', 'fail')
+
+    async def cb_open_modal(self, interaction):
+        await interaction.response.send_modal(EmbedModal())
+
+    async def cb_open_mod_modal(self, interaction):
+        await interaction.response.send_modal(ModAppModal())
 
     async def cb_addticket_proceed(self, interaction):
         member_id = 0
@@ -314,58 +360,41 @@ class Moderators(commands.Cog):
     
     @commands.command()
     async def mod_apps(self, ctx):
-        if ctx.author.id in (261870562798731266, 348142492245426176):
+        """if ctx.author.id in (261870562798731266, 348142492245426176):
             pass
         
         else:
             return
 
-        await ctx.message.delete()
-
-        async def cb_open_mod_modal(interaction):
-            await interaction.response.send_modal(ModAppModal())
+        await ctx.message.delete()"""
 
         test_embed = nextcord.Embed(
             title="Moderator Application",
             description="If this doesn't work I'll fucking kill myself.",
             colour=nextcord.Color.from_rgb(237, 91, 6))
         open_modal = Button(label="Open Form", style=nextcord.ButtonStyle.blurple)
-        open_modal.callback = cb_open_mod_modal
+        open_modal.callback = self.cb_open_mod_modal
 
         button_view = View(timeout=None)
         button_view.add_item(open_modal)
 
         await ctx.send(embed=test_embed, view=button_view)
 
+    
+    @commands.command()
+    async def modaltest2(self, ctx):
+        test_embed = nextcord.Embed(
+            title = "Modal Test Embed",
+            description = "This embed should have a button, whereupon pressing the button a Discord modal opens."
+        )
+        open_modal = Button(label="Open Modal")
+        open_modal.callback = self.cb_open_modal
 
-class ModAppModal(Modal):
-    def __init__(self):
-        super().__init__("Moderator Application")
+        button_view = View(timeout=None)
+        button_view.add_item(open_modal)
 
-        self.aboutq = nextcord.ui.TextInput(label = "Tell Us About Yourself", min_length=2, max_length=1024, required=True, style = nextcord.TextInputStyle.paragraph)
-        self.add_item(self.aboutq)
+        await ctx.send(embed=test_embed, view=button_view)
 
-        self.longq = nextcord.ui.TextInput(label = "How Long Have You Been A Member Of ASC", min_length=2, max_length=1024, required=True)
-        self.add_item(self.longq)
-
-        self.whymod = nextcord.ui.TextInput(label = "Why Do You Want To Become A Moderator", min_length=2, max_length=1024, required=True, style = nextcord.TextInputStyle.paragraph)
-        self.add_item(self.whymod)
-
-        self.priorexp = nextcord.ui.TextInput(label = "Do You Have Prior Moderation/Management Experience", min_length=2, max_length=1024, required=True, style = nextcord.TextInputStyle.paragraph)
-        self.add_item(self.priorexp)
-
-        self.availability = nextcord.ui.TextInput(label = "How Often Are You Available", min_length=2, max_length=1024, required=True)
-        self.add_item(self.availability)
-
-        self.age = nextcord.ui.TextInput(label = "How Old Are You", min_length=2, max_length=2, required=True)
-        self.add_item(self.age)
-
-        self.vc = nextcord.ui.TextInput(label = "Are You Able To Voice Chat", min_length=2, max_length=1024, required=True)
-        self.add_item(self.vc)
-
-    async def callback(self, interaction):
-        """run whenever the 'submit' button is pressed"""
-        appellant_id = interaction.user.id
 
 def setup(bot):
     bot.add_cog(Moderators(bot))
