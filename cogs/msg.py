@@ -315,6 +315,8 @@ class Messages(commands.Cog):
             await channel.send(embed=logging)
             channel = self.bot.get_channel(get_config_int('CHANNELS', 'modlogs'))
             await channel.send(embed=logging)
+            channel = self.bot.get_channel(get_config_int('CHANNELS', 'secret'))
+            await channel.send(embed=logging)
         else:
             await interaction.message.edit(f"Message with ID `{secret_id}` was sent by `{member_id}`, who is not found on this server", embed=None, view=None)
 
