@@ -21,7 +21,7 @@ class BanAppealRejection(nextcord.ui.Modal):
     async def callback(self, interaction):
         user = interaction.client.get_user(self.ID)
         rejected_embed = nextcord.Embed(
-            title="You Have Been Unbanned",
+            title="Your Ban Appeal Was Rejected",
             colour=nextcord.Colour.from_rgb(237, 91, 6))
         rejected_embed.add_field(name="Reason:", value=self.reason.value, inline=False)
         rejected_embed.add_field(name="Wait Time:", value="You may reapply in 28 days.", inline=False)
