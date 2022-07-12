@@ -67,7 +67,7 @@ class Probation(commands.Cog):
             elif field.name == "Reason":
                 reason = field.value
         member = interaction.guild.get_member(member_id)
-        
+
         dialog_embed = nextcord.Embed(
             title="Add Member to probation",
             description="Following member will be given probation:",
