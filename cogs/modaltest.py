@@ -1,5 +1,4 @@
 #Modal Testing
-from discord import Embed
 import nextcord
 from nextcord.ext import commands
 from nextcord.ui import Button, View

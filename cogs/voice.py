@@ -99,20 +99,27 @@ class Voice(commands.Cog):
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
+        if after.channel is before.channel: # we only want to catch channel-related messages
+            return
 
-        if after.channel != before.channel:  # channel change. at least one message has to be sent
+        embed = nextcord.Embed(color = nextcord.Color.from_rgb(237, 91, 6))
 
-            if after.channel is not None:
-                await after.channel.send(f"Hello {member.mention}, welcome to {after.channel.mention}!")
-
+        if after.channel is not None:
             if before.channel is not None:
+                embed.description = f"{member.mention} joined {after.channel.mention} from {before.channel.mention}."
+            else:
+                embed.description = f"{member.mention} joined {after.channel.mention}."
 
-                if after.channel is not None:
-                    await before.channel.send(f"**{member.display_name}** ran off to {after.channel.mention}, guess the grass was greener there!")
+            await after.channel.send(embed = embed)
 
-                else:
-                    await before.channel.send(f"**{member.display_name}** has left the voice channel. Goodbye!")
+        if before.channel is not None:
+            if after.channel is not None:
+                embed.description = f"{member.mention} left {before.channel.mention} for {after.channel.mention}."
+            else:
+                embed.description = f"{member.mention} left {before.channel.mention}."
 
+            await before.channel.send(embed = embed)
+        
         #   -----------------VOICE LOCK-----------------
 
         """if after.channel is not None:
