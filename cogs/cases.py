@@ -1,8 +1,6 @@
 import nextcord
 import pickle
 from nextcord.ext import commands
-from nextcord.ui import Button, View
-from os import remove
 
 from baseutils import PageView
 from caseutils import get_member_cases
@@ -47,7 +45,6 @@ class Cases(commands.Cog):
             await view.send_embed(ctx.channel)
             with open(self.case_history_file, "rb") as file:
                 self.case_history = pickle.load(file)
-
 
         elif search_by_member is not True:
             with open(self.case_details_file, "rb") as file:

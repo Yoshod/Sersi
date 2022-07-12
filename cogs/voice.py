@@ -1,5 +1,4 @@
 import nextcord
-import asyncio
 
 from nextcord.ext import commands
 
@@ -47,9 +46,10 @@ class Voice(commands.Cog):
 
     @commands.command(aliases=['mvc', 'movevc', 'vcmove', 'mm'])
     async def massmove(self, ctx, current: nextcord.VoiceChannel, target: nextcord.VoiceChannel):
-        """mass move members from one VC to another
+        """Mass move members from one VC to another.
 
-        both VCs must be referenced to by mention or Channel ID"""
+        both VCs must be referenced to by mention or Channel ID
+        """
         if not await permcheck(ctx, is_mod):
             return
 
@@ -99,10 +99,10 @@ class Voice(commands.Cog):
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
-        if after.channel is before.channel: # we only want to catch channel-related messages
+        if after.channel is before.channel:  # we only want to catch channel-related messages
             return
 
-        embed = nextcord.Embed(color = nextcord.Color.from_rgb(237, 91, 6))
+        embed = nextcord.Embed(color=nextcord.Color.from_rgb(237, 91, 6))
 
         if after.channel is not None:
             if before.channel is not None:
@@ -110,7 +110,7 @@ class Voice(commands.Cog):
             else:
                 embed.description = f"{member.mention} joined {after.channel.mention}."
 
-            await after.channel.send(embed = embed)
+            await after.channel.send(embed=embed)
 
         if before.channel is not None:
             if after.channel is not None:
@@ -118,8 +118,8 @@ class Voice(commands.Cog):
             else:
                 embed.description = f"{member.mention} left {before.channel.mention}."
 
-            await before.channel.send(embed = embed)
-        
+            await before.channel.send(embed=embed)
+
         #   -----------------VOICE LOCK-----------------
 
         """if after.channel is not None:

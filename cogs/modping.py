@@ -64,7 +64,7 @@ class ModPing(commands.Cog):
         for field in new_embed.fields:
             if field.name in ["User:"]:
                 case_data.append(field.value)
-        
+
         converter = commands.MemberConverter()
         await channel.send(case_data[0])
         member = await converter.convert(self, case_data[0])

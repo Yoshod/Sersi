@@ -1,4 +1,3 @@
-import nextcord
 from nextcord.ext import commands
 from configutils import get_config_int
 import datetime

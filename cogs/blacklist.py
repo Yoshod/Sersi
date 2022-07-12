@@ -60,7 +60,7 @@ class Blacklist(commands.Cog):
 
     @commands.command(aliases=['bl', 'bluser', 'addbl', 'modblacklist'])
     async def blacklistuser(self, ctx, member: nextcord.Member, *, reason=""):
-        """sets user onto moderator blacklist"""
+        """Put user onto moderator blacklist."""
         # in case of invocation from s!removemoderator
         if ctx.author == self.bot.user:
             with open(self.filename, "a") as file:
@@ -90,7 +90,7 @@ class Blacklist(commands.Cog):
 
     @commands.command(aliases=['lbl', 'bllist', 'listbl', 'bll', 'showblacklist'])
     async def listblacklist(self, ctx):
-        """lists all members currently on the blacklist"""
+        """List all members currently on the blacklist."""
         if not await permcheck(ctx, is_dark_mod):
             return
 
@@ -140,7 +140,7 @@ class Blacklist(commands.Cog):
 
     @commands.command(aliases=['rmbl', 'removeuserfromblacklist', 'blrmuser', 'blremoveuser'])
     async def removefromblacklist(self, ctx, member: nextcord.Member):
-        """removes user from moderator blacklist"""
+        """Remove user from moderator blacklist."""
         if not await permcheck(ctx, is_dark_mod):
             return
         if member.id not in self.blacklist:

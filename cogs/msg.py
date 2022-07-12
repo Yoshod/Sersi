@@ -167,7 +167,7 @@ class Messages(commands.Cog):
 
     @commands.command(aliases=['lam', 'am', 'listam', 'lab', 'ab', 'listab'])
     async def listanonymousmutes(self, ctx):
-        """lists all members currently muted in anonymous messages"""
+        """List all members currently muted in anonymous messages."""
         if not await permcheck(ctx, is_mod):
             return
 
@@ -219,7 +219,7 @@ class Messages(commands.Cog):
 
     @commands.command(aliases=['anonunmute', 'unmuteanon', 'umanon', 'anonum'])
     async def anonymousunmute(self, ctx, member: nextcord.Member):
-        """removes user from anonymous messages mute"""
+        """Remove user from anonymous messages mute."""
         if not await permcheck(ctx, is_mod):
             return
         if member.id not in self.banlist:

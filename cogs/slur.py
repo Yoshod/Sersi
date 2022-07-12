@@ -93,7 +93,7 @@ class Slur(commands.Cog):
 
     @commands.command(aliases=["addsl"])
     async def addslur(self, ctx, *, slur=""):
-        """adds a new slur to the list of slurs."""
+        """Add a new slur to the list of slurs."""
         if not await permcheck(ctx, is_mod):
             return
 
@@ -135,7 +135,7 @@ class Slur(commands.Cog):
 
     @commands.command(aliases=["addgw"])
     async def addgoodword(self, ctx, *, word=""):
-        """adds a new goodword into the whitelist."""
+        """Add a new goodword into the whitelist."""
         if not await permcheck(ctx, is_mod):
             return
 
@@ -207,7 +207,7 @@ class Slur(commands.Cog):
 
     @commands.command(aliases=["rmsl", "rmslur", "removesl"])
     async def removeslur(self, ctx, slur):
-        """removes a slur from the list of slurs."""
+        """Remove a slur from the list of slurs."""
         if not await permcheck(ctx, is_mod):
             return
 
@@ -227,7 +227,7 @@ class Slur(commands.Cog):
 
     @commands.command(aliases=["rmgw", "rmgoodword", "removegw"])
     async def removegoodword(self, ctx, word):
-        """removes a goodword from the whitelist."""
+        """Remove a goodword from the whitelist."""
         if not await permcheck(ctx, is_mod):
             return
 
@@ -246,9 +246,10 @@ class Slur(commands.Cog):
 
     @commands.command(aliases=["lssl", "listsl", "lsslurs"])
     async def listslurs(self, ctx, page=1):
-        """lists currently detected slurs
+        """List currently detected slurs.
 
-        lists slurs currently being detected by the bot, 100 slurs listed per page."""
+        List slurs currently being detected by the bot, 100 slurs listed per page.
+        """
         if not await permcheck(ctx, is_mod):
             return
 
@@ -266,9 +267,10 @@ class Slur(commands.Cog):
 
     @commands.command(aliases=["lsgw", "lsgoodwords", "listgw"])
     async def listgoodwords(self, ctx, page=1):
-        """list current goodwords
+        """List current goodwords.
 
-        currently whitlested from slur detection, 100 words listed per page"""
+        Currently whitlested from slur detection, 100 words listed per page.
+        """
         if not await permcheck(ctx, is_mod):
             return
 

@@ -12,8 +12,9 @@ class Jokes(commands.Cog):
         self.bot = bot
 
     def generate_uwu(self, input_text: str) -> str:
-        """Shamelessly stolen from https://www.geeksforgeeks.org/uwu-text-convertor-in-python/
-        well, i modified it"""
+        """Shamelessly stolen from https://www.geeksforgeeks.org/uwu-text-convertor-in-python/.
+        well, I modified it.
+        """
 
         output_text = ''
         previous_char = '\0'
@@ -53,7 +54,7 @@ class Jokes(commands.Cog):
     @commands.command()
     async def nevermod(self, ctx, member: nextcord.Member):
         if not is_mod(ctx.author):      # don't replace, it is funny
-            await ctx.send(f"You're not a mod, you should not run this, right? ;)\n\nAnyways let's nevermod **you** instead as a twist.")
+            await ctx.send("You're not a mod, you should not run this, right? ;)\n\nAnyways let's nevermod **you** instead as a twist.")
             member = ctx.author
 
         nevermod_role = ctx.guild.get_role(get_config_int('ROLES', 'nevermod'))
@@ -67,9 +68,10 @@ class Jokes(commands.Cog):
 
     @commands.command()
     async def uwu(self, ctx, *, message=""):
-        """OwO *nuzzles the command*
+        """OwO *nuzzles the command*.
 
-        Takes message and uwuifies it."""
+        Takes message and uwuifies it.
+        """
         if message == "":
             await ctx.send(f"{ctx.author.mention} pwease pwovide a message to uwuify.")
             return
@@ -80,9 +82,10 @@ class Jokes(commands.Cog):
 
     @commands.command()
     async def owo(self, ctx, *, message=""):
-        """OwO *nuzzles the command*
+        """OwO *nuzzles the command*.
 
-        Takes message and owoifies it."""
+        Takes message and owoifies it.
+        """
         if message == "":
             await ctx.send(f"{ctx.author.mention} OwO *notices you did not set a message* pwease pwovide a message~")
             return

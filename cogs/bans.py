@@ -119,7 +119,7 @@ class BanAppealForm(nextcord.ui.Modal):
         self.add_item(self.other)
 
     async def callback(self, interaction):
-        """run whenever the 'submit' button is pressed"""
+        """Run whenever the 'submit' button is pressed."""
         appellant_id = interaction.user.id
 
         appeal_embed = nextcord.Embed(
@@ -161,7 +161,7 @@ class BanAppeals(commands.Cog):
         print(ctx.author.id)
         if ctx.author.id == 261870562798731266 or ctx.author.id == 348142492245426176:
             pass
-        
+
         else:
             return
 

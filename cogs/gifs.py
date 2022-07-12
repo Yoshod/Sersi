@@ -6,7 +6,7 @@ from permutils import permcheck, is_mod
 
 
 class Gif(commands.Cog):
-    """Autodeleteing blacklisted GIFs"""
+    """Autodeleteing blacklisted GIF."""
 
     def __init__(self, bot):
         self.bot = bot
@@ -29,9 +29,10 @@ class Gif(commands.Cog):
 
     @commands.command()
     async def addgif(self, ctx, url):
-        """Adds a GIF to the blacklist
+        """Add a GIF to the blacklist.
 
-        URL must be provided"""
+        URL must be provided.
+        """
         await ctx.message.delete()
         if not await permcheck(ctx, is_mod):
             return
@@ -54,9 +55,10 @@ class Gif(commands.Cog):
 
     @commands.command()
     async def removegif(self, ctx, url):
-        """Removes GIF from blacklist
+        """Remove GIF from blacklist.
 
-        URL must be provided"""
+        URL must be provided.
+        """
         if not await permcheck(ctx, is_mod):
             return
 
@@ -79,7 +81,7 @@ class Gif(commands.Cog):
 
     @commands.command()
     async def listgifs(self, ctx):
-        """Lists GIFs currently blacklisted"""
+        """List GIFs currently blacklisted."""
         if not await permcheck(ctx, is_mod):
             return
 

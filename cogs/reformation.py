@@ -113,10 +113,10 @@ class Reformation(commands.Cog):
     # command
     @commands.command(aliases=['rn', 'reformneeded', 'reform'])
     async def reformationneeded(self, ctx, member: nextcord.Member, *, reason=""):
-        """send a user to reformation centre
+        """Send a user to reformation centre.
 
         Sends a [member] to reformation centre for reform by giving said [member] the @Reformation role. Removes @Civil Engineering Initiate and all Opt-In-Roles.
-        Permission Needed: Moderator, Trial Moderator
+        Permission Needed: Moderator, Trial Moderator.
         """
 
         if not await permcheck(ctx, is_mod):
@@ -291,11 +291,11 @@ class Reformation(commands.Cog):
 
     @commands.command(aliases=['rq', 'reformquery', 'reformq'])
     async def reformationquery(self, ctx, member: nextcord.Member):
-        """query releasing a user from reformation centre
+        """Query releasing a user from reformation centre.
 
         Sends query for release out of reformation centre for [member] into the information centre.
         Three 'Yes' votes will result in an automatic release.
-        Permission Needed: Moderator, Trial Moderator
+        Permission Needed: Moderator, Trial Moderator.
         """
         if not await permcheck(ctx, is_mod):
             return
@@ -338,12 +338,12 @@ class Reformation(commands.Cog):
 
     @commands.command(aliases=['rf', 'reformfailed', 'reformfail', 'reformf'])
     async def reformationfailed(self, ctx, member: nextcord.Member):
-        """query banning a user in reformation centre
+        """Query banning a user in reformation centre.
 
         Sends query for ban of a [member] who is currently in the reformation centre.
         Members should have been in reformation of at least 14 Days.
         Three 'Yes' votes will result in a greenlight for a ban.
-        Permission Needed: Moderator, Trial Moderator
+        Permission Needed: Moderator, Trial Moderator.
         """
         if not await permcheck(ctx, is_mod):
             return

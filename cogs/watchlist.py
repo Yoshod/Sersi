@@ -29,7 +29,7 @@ class Watchlist(commands.Cog):
 
     @commands.command(aliases=['wl', 'wluser', 'addwl', 'watchlist'])
     async def watchlistuser(self, ctx, member: nextcord.Member, *, reason):
-        """sets user onto moderator watchlist"""
+        """Add user onto moderator watchlist."""
         if not await permcheck(ctx, is_mod):
             return
         elif member.id in self.watchlist:
@@ -58,7 +58,7 @@ class Watchlist(commands.Cog):
 
     @commands.command(aliases=['lwl', 'wllist', 'listwl', 'wll', 'showwatchlist'])
     async def listwatchlist(self, ctx):
-        """lists all members currently on the watchlist"""
+        """List all members currently on the watchlist."""
         if not await permcheck(ctx, is_mod):
             return
 
@@ -79,7 +79,7 @@ class Watchlist(commands.Cog):
 
     @commands.command(aliases=['rmwl', 'removeuserfromwatchlist', 'wlrmuser', 'wlremoveuser'])
     async def removefromwatchlist(self, ctx, member: nextcord.Member):
-        """removes user from moderator watchlist"""
+        """Remove user from moderator watchlist."""
         if not await permcheck(ctx, is_mod):
             return
         if member.id not in self.watchlist:
