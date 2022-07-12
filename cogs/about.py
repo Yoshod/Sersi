@@ -18,8 +18,7 @@ class About(commands.Cog):
 
     @commands.command()
     async def about(self, ctx):
-        """Displays basic information about the bot."""
-
+        """Display basic information about the bot."""
         author_string = ""
         for author in self.authors_list:
             author_string = author_string + f"{author}\n"
