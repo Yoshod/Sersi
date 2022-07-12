@@ -38,5 +38,5 @@ def unencrypt_data(encrypted_data, nonce, tag):
     try:
         cipher.verify(tag)
         return unencrypted_data.decode('ascii')
-    except:
+    except ValueError:
         return False
