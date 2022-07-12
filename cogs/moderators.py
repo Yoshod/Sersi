@@ -1,4 +1,3 @@
-from ast import Pass
 import nextcord
 from nextcord.ext import commands
 from nextcord.ui import Button, View, Modal
@@ -29,13 +28,8 @@ class ModAppModal(Modal):
 
 
 class ModAppNextSteps(Modal):
-    def __init__(self):
-        Pass
-
-
-class ModAppRejected(Modal):
-    def __init__(self):
-        Pass
+    def __init__(self, userID: int):
+        self.userID = userID
 
     async def callback(self, interaction):
         """Run whenever the 'submit' button is pressed."""
@@ -52,10 +46,19 @@ class ModAppRejected(Modal):
         application_embed.add_field(name=self.vc.label,   value=self.vc.value,     inline=False)
 
         async def cb_accept(interaction):
-            await interaction.response.send_modal(ModAppNextSteps(applicant_id))
+            next_steps_embed = nextcord.Embed(
+                title="Your Moderator Application: Next Steps",
+                description="Your application to become a moderator on Adam Something Central is being moved forward to the next stage. Please contact <@261870562798731266> to schedule a discussion.",
+                colour=nextcord.Color.from_rgb(237, 91, 6)
+            )
+            user = interaction.client.get_user(self.userID)
 
         async def cb_reject(interaction):
             await interaction.response.send_modal(ModAppRejected(applicant_id))
+
+
+class ModAppRejected(Modal):
+    pass
 
 
 class Moderators(commands.Cog):

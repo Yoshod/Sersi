@@ -25,6 +25,7 @@ class BanAppealRejection(nextcord.ui.Modal):
             colour=nextcord.Colour.from_rgb(237, 91, 6))
         rejected_embed.add_field(name="Reason:", value=self.reason.value, inline=False)
         rejected_embed.add_field(name="Wait Time:", value="You may reapply in 28 days.", inline=False)
+        user.send(rejected_embed)
 
         updated_form = interaction.message.embeds[0]
         updated_form.add_field(name="Rejected by:", value=interaction.user.mention, inline=False)
@@ -61,6 +62,7 @@ class BanAppealAccept(nextcord.ui.Modal):
             colour=nextcord.Colour.from_rgb(237, 91, 6))
         unban_embed.add_field(name="Reason:", value=self.reason.value, inline=False)
         unban_embed.add_field(name="Rejoin URL:", value=get_config('INVITES', 'banappeals'), inline=False)
+        user.send(embed=unban_embed)
 
         try:
             await interaction.guild.unban(user, reason=f"{interaction.user.name} gave reason {self.reason.value}")
