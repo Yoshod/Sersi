@@ -43,7 +43,7 @@ class Slur(commands.Cog):
         converter = commands.MemberConverter()
         await channel.send(case_data[0])
         member = await converter.convert(self, case_data[0])
-        
+
         unique_id = case_history(member.id, "Slur Usage")
         slur_case(unique_id, case_data[1], interaction.message.jump_url, member.id, interaction.user.id)
 

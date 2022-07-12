@@ -2,7 +2,7 @@ import nextcord
 from nextcord.ext import commands
 from nextcord.ui import Button, View
 from configutils import get_config_int, get_config
-from permutils import permcheck, cb_is_dark_mod
+from permutils import cb_is_dark_mod
 
 
 class BanAppealRejection(nextcord.ui.Modal):
@@ -158,7 +158,8 @@ class BanAppeals(commands.Cog):
 
     @commands.command()
     async def appeal(self, ctx):
-        if ctx.author.id in (261870562798731266, 348142492245426176):
+        print(ctx.author.id)
+        if ctx.author.id == 261870562798731266 or ctx.author.id == 348142492245426176:
             pass
         
         else:
