@@ -21,7 +21,7 @@ class ErrorHandling(commands.Cog):
             await ctx.send(f"{sersifail} Please provide an argument to use this command.")
             return
 
-        channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'errors'))
+        channel = self.bot.get_channel(get_config_int('CHANNELS', 'errors'))
         if channel is None:
             await ctx.send(f"Error while executing command: `{error}`")
         else:

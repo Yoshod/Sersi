@@ -43,7 +43,7 @@ class Slur(commands.Cog):
         converter = commands.MemberConverter()
         await channel.send(case_data[0])
         member = await converter.convert(self, case_data[0])
-        
+
         unique_id = case_history(member.id, "Slur Usage")
         slur_case(unique_id, case_data[1], interaction.message.jump_url, member.id, interaction.user.id)
 
@@ -180,7 +180,7 @@ class Slur(commands.Cog):
         embedVar.add_field(name="Added By:", value=f"{ctx.message.author.mention} ({ctx.message.author.id})", inline=False)
         embedVar.add_field(name="Goodword Added:", value=word, inline=False)
         await channel.send(embed=embedVar)
-        await ctx.send("{self.sersisuccess} Goodword added. Detection will start now.")
+        await ctx.send(f"{self.sersisuccess} Goodword added. Detection will start now.")
 
     async def cb_rmslur_confirm(self, interaction):
         mod_id, slur = 0, ""

@@ -93,14 +93,7 @@ class Reformation(commands.Cog):
         with open("Files/Reformation/reformationiter.txt", "w") as file:
             file.write(str(case_num))
 
-        if len(str(case_num)) == 1:
-            case_name = (f"reformation-case-000{case_num}")
-        elif len(str(case_num)) == 2:
-            case_name = (f"reformation-case-00{case_num}")
-        elif len(str(case_num)) == 3:
-            case_name = (f"reformation-case-0{case_num}")
-        elif len(str(case_num)) >= 4:
-            case_name = (f"reformation-case-{case_num}")
+        case_name = (f"reformation-case-{case_num.zfill(4)}")
 
         case_details = [case_name, case_num, interaction.user.id, reason]
         reformation_list[member.id] = case_details
@@ -214,7 +207,7 @@ class Reformation(commands.Cog):
                 await channel.delete()
                 channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'teachers'))
                 await channel.send(f"{self.sersifail} Failed to Generate Transcript!")
-            
+
             else:
                 transcript_file = nextcord.File(
                     io.BytesIO(transcript.encode()),
@@ -420,33 +413,11 @@ class Reformation(commands.Cog):
         else:
             ctx.send(f"{self.sersifail} Failed to find the specified user! Perhaps they do not have a case?")
 
-    @commands.command(aliases=["getb", "bans"])
-    async def getbans(self, ctx):
-        if not await permcheck(ctx, is_mod):
-            return
-
-        async for ban in ctx.guild.bans():
-            await ctx.send(f"{ban.user} - {ban.reason}")
-
-    @commands.command(aliases=["getr", "reformationinmates"])
-    async def getreformationinmates(self, ctx):
-        if not await permcheck(ctx, is_mod):
-            return
-
-        reformation_role = ctx.guild.get_role(get_config_int('ROLES', 'reformation'))
-
-        listembed = nextcord.Embed(
-            title=f"List of Members currently having the @{reformation_role.name} role",
-            description="\n".join([f"**{member}** ({member.id})" for member in reformation_role.members]),
-            colour=nextcord.Color.from_rgb(237, 91, 6))
-
-        await ctx.send(embed=listembed)
-
     @commands.command()
     async def refremove(self, ctx, member: nextcord.Member, *, reason):
         if not await permcheck(ctx, is_senior_mod):
             return
-    
+
         civil_engineering_initiate  = ctx.guild.get_role(get_config_int('ROLES', 'civil engineering initiate'))
         await member.add_roles(civil_engineering_initiate, reason=reason)
         await member.remove_roles(ctx.guild.get_role(get_config_int('ROLES', 'reformation')), reason=reason)
