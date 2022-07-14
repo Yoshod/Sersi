@@ -1,10 +1,12 @@
 import nextcord
+import requests
 
 from nextcord.ext import commands
 
 from baseutils import ConfirmView
 from configutils import get_config, get_config_int
 from permutils import permcheck, is_mod
+import discordTokens
 
 
 class Voice(commands.Cog):
@@ -99,26 +101,44 @@ class Voice(commands.Cog):
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
-        if after.channel is before.channel:  # we only want to catch channel-related messages
-            return
+        def make_embed(message: str):
+            embed_obj = {
+                'color': 0xED5B06,
+                'description': message
+            }
+            return embed_obj
 
-        embed = nextcord.Embed(color=nextcord.Color.from_rgb(237, 91, 6))
+        if after.channel != before.channel:  # channel change. at least one message has to be sent
 
-        if after.channel is not None:
-            if before.channel is not None:
-                embed.description = f"{member.mention} joined {after.channel.mention} from {before.channel.mention}."
-            else:
-                embed.description = f"{member.mention} joined {after.channel.mention}."
+            # specifications regardless of message content
+            headers = {
+                'Authorization': f'Bot {discordTokens.getToken()}',
+                'Content-Type': 'application/json; charset=UTF-8'
+            }
 
-            await after.channel.send(embed=embed)
-
-        if before.channel is not None:
             if after.channel is not None:
-                embed.description = f"{member.mention} left {before.channel.mention} for {after.channel.mention}."
-            else:
-                embed.description = f"{member.mention} left {before.channel.mention}."
+                url = f"https://discord.com/api/v10/channels/{after.channel.id}/messages"
+                if before.channel is not None:
+                    json = {
+                        "embeds": [make_embed(f"Hello {member.mention}, welcome to {after.channel.mention}! Glad you came over from {before.channel.mention}")]
+                    }
+                else:
+                    json = {
+                        "embeds": [make_embed(f"Hello {member.mention}, welcome to {after.channel.mention}!")]
+                    }
+                requests.post(url, headers=headers, json=json)
 
-            await before.channel.send(embed=embed)
+            if before.channel is not None:
+                url = f"https://discord.com/api/v10/channels/{before.channel.id}/messages"
+                if after.channel is not None:
+                    json = {
+                        "embeds": [make_embed(f"{member.mention} ran off to {after.channel.mention}, guess the grass was greener there!")]
+                    }
+                else:
+                    json = {
+                        "embeds": [make_embed(f"{member.mention} has left the voice channel. Goodbye!")]
+                    }
+                requests.post(url, headers=headers, json=json)
 
         #   -----------------VOICE LOCK-----------------
 
