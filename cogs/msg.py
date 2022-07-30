@@ -40,15 +40,24 @@ class Messages(commands.Cog):
                 self.banlist[int(user_id)] = reason           # if the key is not an int, the guild.get_member() won't work
 
     def can_send_anon_msg(self, user):
+
+        guild = self.bot.get_channel(get_config_int("CHANNELS", "secret")).guild
+
         if user.id in self.banlist:
             return False
 
-        guild = self.bot.get_channel(get_config_int("CHANNELS", "secret")).guild
+        async for ban in guild.bans():
+            if user.id == ban.user.id:
+                return False
+
         guild_member = guild.get_member(user.id)
+
         newbie_role = guild.get_role(get_config_int('ROLES', 'newbie'))
         reformation_role = guild.get_role(get_config_int('ROLES', 'reformation'))
 
         if any(role in [newbie_role, reformation_role] for role in guild_member.roles):
+            return False
+        elif guild_member.communication_disabled_until is not None:
             return False
         else:
             return True
