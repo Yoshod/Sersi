@@ -39,26 +39,32 @@ class Messages(commands.Cog):
                 [user_id, reason] = line.split(";", maxsplit=1)
                 self.banlist[int(user_id)] = reason           # if the key is not an int, the guild.get_member() won't work
 
-    def can_send_anon_msg(self, user):
+    def can_send_anon_msg(self, user) -> bool:
 
         guild = self.bot.get_channel(get_config_int("CHANNELS", "secret")).guild
+        guild_member = guild.get_member(user.id)
+        prohibited_roles = [
+            guild.get_role(get_config_int('ROLES', 'newbie')),
+            guild.get_role(get_config_int('ROLES', 'reformation'))
+        ]
 
+        # check the anon mute list
         if user.id in self.banlist:
             return False
 
+        # checks bans on the respective server
         async for ban in guild.bans():
             if user.id == ban.user.id:
                 return False
 
-        guild_member = guild.get_member(user.id)
-
-        newbie_role = guild.get_role(get_config_int('ROLES', 'newbie'))
-        reformation_role = guild.get_role(get_config_int('ROLES', 'reformation'))
-
-        if any(role in [newbie_role, reformation_role] for role in guild_member.roles):
+        # check if the member has any of the roles that prohibit them from sending anon messages
+        if any(role in prohibited_roles for role in guild_member.roles):
             return False
+
+        # check if the member is currently serving a timeout (we do not care about the datetime object this returns)
         elif guild_member.communication_disabled_until is not None:
             return False
+
         else:
             return True
 
