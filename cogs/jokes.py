@@ -163,8 +163,8 @@ class Jokes(commands.Cog):
             else:
                 return
 
-        elif ("it's coming home" in message.content.lower() or "it will come home" in message.content.lower()) and message.author.id == 362340623992356864:
-            await message.reply("No it won't be coming home Solar, and it likely never will in the future.")
+        elif ("it's coming home" in message.content.lower() or "it will come home" in message.content.lower() or "it came home" in message.content.lower()) and message.author.id == 362340623992356864:
+            await message.reply("After **56** years, you lot finally managed to win another title, wow.")
 
         elif message.author.is_on_mobile():
             randomValue = random.randint(1, 100000)
