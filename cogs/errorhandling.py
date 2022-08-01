@@ -16,6 +16,12 @@ class ErrorHandling(commands.Cog):
             await ctx.send(f"{sersifail} That command does not exist.")
             return
 
+        elif isinstance(error, commands.MemberNotFound):
+            sersifail = get_config('EMOTES', "fail")
+            channel = ctx.channel.id
+            await ctx.send(f"{sersifail} That member could not be found.")
+            return
+
         elif isinstance(error, commands.MissingRequiredArgument):
             sersifail = get_config('EMOTES', "fail")
             channel = ctx.channel.id
