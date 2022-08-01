@@ -48,14 +48,13 @@ class Messages(commands.Cog):
             guild.get_role(get_config_int('ROLES', 'reformation'))
         ]
 
+        # check if user is a member of the server
+        if guild_member is None:
+            return False
+
         # check the anon mute list
         if user.id in self.banlist:
             return False
-
-        # checks bans on the respective server
-        async for ban in guild.bans():
-            if user.id == ban.user.id:
-                return False
 
         # check if the member has any of the roles that prohibit them from sending anon messages
         if any(role in prohibited_roles for role in guild_member.roles):
