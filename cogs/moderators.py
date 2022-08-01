@@ -46,12 +46,12 @@ class ModAppNextSteps(Modal):
         application_embed.add_field(name=self.vc.label,   value=self.vc.value,     inline=False)
 
         async def cb_accept(interaction):
-            next_steps_embed = nextcord.Embed(
-                title="Your Moderator Application: Next Steps",
-                description="Your application to become a moderator on Adam Something Central is being moved forward to the next stage. Please contact <@261870562798731266> to schedule a discussion.",
-                colour=nextcord.Color.from_rgb(237, 91, 6)
-            )
-            user = interaction.client.get_user(self.userID)
+            user = interaction.client.get_user(applicant_id)
+            accepted_embed = nextcord.Embed(
+                title="Moderator Application: Next Steps",
+                colour=nextcord.Colour.from_rgb(237, 91, 6),
+                description="Hey there!\n\nYour moderator application has been moved to the next stage. The next step is to arrange a time to talk over voice chat. A Dark Moderator will be in touch shortly.")
+            
 
         async def cb_reject(interaction):
             await interaction.response.send_modal(ModAppRejected(applicant_id))
