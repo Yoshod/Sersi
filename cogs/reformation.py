@@ -7,7 +7,7 @@ from nextcord.ext.commands.errors import MemberNotFound
 from os import remove
 from chat_exporter import export
 
-from baseutils import ConfirmView
+from baseutils import ConfirmView, ban
 from configutils import get_config_int, get_options, get_config
 from permutils import is_senior_mod, permcheck, is_mod, cb_is_mod, is_custom_role
 from caseutils import case_history, reform_case
@@ -17,7 +17,8 @@ class Reformation(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.sersifail = get_config('EMOTES', 'fail')
-        self.case_history_file = ("Files/Cases/casehistory.pkl")
+        self.case_history_file = "Files/Cases/casehistory.pkl"
+        self.case_details_file = "Files/Cases/casedetails.pkl"
 
     async def cb_rn_proceed(self, interaction):
         member_id, reason = 0, ""
@@ -93,7 +94,7 @@ class Reformation(commands.Cog):
         with open("Files/Reformation/reformationiter.txt", "w") as file:
             file.write(str(case_num))
 
-        case_name = (f"reformation-case-{case_num.zfill(4)}")
+        case_name = (f"reformation-case-{str(case_num).zfill(4)}")
 
         case_details = [case_name, case_num, interaction.user.id, reason]
         reformation_list[member.id] = case_details
@@ -247,9 +248,50 @@ class Reformation(commands.Cog):
                 if field.name == "Voted Yes:":
                     yes_men.append(field.value)
 
+            # get person cases
+            case_history = {}
+            with open(self.case_history_file, "rb") as file:
+                case_history = pickle.load(file)
+
+            user_history = case_history[member_id][::-1]    # filter for member_id, most recent first
+
+            for case in user_history:
+                if case[1] == "Reformation":
+                    case_id = case[0]
+
+            # lookup most recent ref case
+            case_details = {}
+            with open(self.case_details_file, "rb") as file:
+                case_details = pickle.load(file)
+
+            # get reason
+            reason = case_details[case_id][5]
+
+            # await member.ban(reason=f"Reformation Failed: {reason}", delete_message_days=0)
+            await ban(member, "rf", reason=f"Reformation Failed: {reason}")
+
+            # transript
+            with open("Files/Reformation/reformationcases.pkl", "rb") as file:
+                reformation_list = pickle.load(file)
+            room_channel_name = reformation_list[member.id][0]
+            room_channel = nextcord.utils.get(interaction.guild.channels, name=room_channel_name)
+
+            transcript = await export(room_channel, military_time=True)
+
+            if transcript is None:
+                channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'teachers'))
+                await channel.send(f"{self.sersifail} Failed to Generate Transcript!")
+            else:
+                transcript_file = nextcord.File(
+                    io.BytesIO(transcript.encode()),
+                    filename=f"transcript-{room_channel_name}.html",
+                )
+
+            await room_channel.delete()
+
             embed = nextcord.Embed(
                 title="Reformation Failed",
-                description=f"Reformation Inmate {member.name} has been deemed unreformable by {', '.join(yes_men)}\n\nThey can be banned **given appropiate reason** by a moderators discretion.",
+                description=f"Reformation Inmate {member.name} has been deemed unreformable by {', '.join(yes_men)}\n\nInitial reason for Reformation was: `{reason}`. They have been banned automatically.",
                 color=nextcord.Color.from_rgb(0, 0, 0))
 
             channel = self.bot.get_channel(get_config_int('CHANNELS', 'alert'))
@@ -260,6 +302,10 @@ class Reformation(commands.Cog):
 
             channel = self.bot.get_channel(get_config_int('CHANNELS', 'modlogs'))
             await channel.send(embed=embed)
+
+            channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'teachers'))
+            await channel.send(embed=embed, file=transcript_file)
+
             await interaction.message.edit(embed=new_embed, view=None)
 
         new_embed.description = f"{new_embed.description[:-1]}{yes_votes}"
@@ -436,8 +482,8 @@ class Reformation(commands.Cog):
 
         if reformation_role is not None:
 
-            async for ban in member.guild.bans():
-                if member.id == ban.user.id:
+            async for ban_entry in member.guild.bans():
+                if member.id == ban_entry.user.id:
                     channel = self.bot.get_channel(get_config_int('CHANNELS', 'modlogs'))
                     embed = nextcord.Embed(
                         title=f"Reformation inmate **{member}** ({member.id}) banned!",
@@ -447,7 +493,8 @@ class Reformation(commands.Cog):
 
                     return
 
-            await member.ban(reason="Left while in reformation centre.", delete_message_days=0)
+            # await member.ban(reason="Left while in reformation centre.", delete_message_days=0)
+            await ban(member, "leave", reason="Left while in reformation centre.")
 
             channel = self.bot.get_channel(get_config_int('CHANNELS', 'alert'))
             embed = nextcord.Embed(

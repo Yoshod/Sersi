@@ -43,8 +43,5 @@ class Photos(commands.Cog):
                 await message.create_thread(name=f"{message.author.display_name} {timestr}")
 
 
-
-
-
 def setup(bot):
     bot.add_cog(Photos(bot))
