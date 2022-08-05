@@ -336,7 +336,7 @@ class Reformation(commands.Cog):
         await interaction.message.edit(embed=new_embed)
 
     @commands.command(aliases=['rq', 'reformquery', 'reformq'])
-    async def reformationquery(self, ctx, member: nextcord.Member):
+    async def reformationquery(self, ctx, member: nextcord.Member, *, reason=""):
         """Query releasing a user from reformation centre.
 
         Sends query for release out of reformation centre for [member] into the information centre.
@@ -344,6 +344,10 @@ class Reformation(commands.Cog):
         Permission Needed: Moderator, Trial Moderator.
         """
         if not await permcheck(ctx, is_mod):
+            return
+
+        elif reason == "":
+            await ctx.send(f"{ctx.author.mention} please provide a reason.")
             return
 
         # member have reformation role check
@@ -363,6 +367,8 @@ class Reformation(commands.Cog):
             embedVar.set_footer(text=f"{member.id}")
         except MemberNotFound:
             await ctx.send("Member not found!")
+
+        embedVar.add_field(name="Reason", value=reason, inline=False)
 
         yes = Button(label="Yes", style=nextcord.ButtonStyle.green)
         yes.callback = self.cb_rq_yes
