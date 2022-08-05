@@ -142,15 +142,7 @@ class Reformation(commands.Cog):
 
     async def cb_rq_yes(self, interaction):
         new_embed = interaction.message.embeds[0]
-
-        # check if user has already voted
-        for field in new_embed.fields:
-            if field.value == interaction.user.mention:
-                await interaction.response.send_message("You already voted", ephemeral=True)
-                return
-
-        # make vote visible
-        new_embed.add_field(name="Voted Yes:", value=interaction.user.mention, inline=True)
+        new_embed.add_field(name="Voted Yes:", value=f"{interaction.user.mention}\n*{interaction.data['components'][0]['components'][0]['value']}*", inline=True)
 
         # retrieve current amount of votes and iterate by 1
         yes_votes = new_embed.description[-1]
@@ -222,16 +214,18 @@ class Reformation(commands.Cog):
         new_embed.description = f"{new_embed.description[:-1]}{yes_votes}"
         await interaction.message.edit(embed=new_embed)
 
-    async def cb_rf_yes(self, interaction):
-        new_embed = interaction.message.embeds[0]
+    async def cb_rq_yes_open_modal(self, interaction):
         # check if user has already voted
-        for field in new_embed.fields:
-            if field.value == interaction.user.mention:
+        for field in interaction.message.embeds[0].fields:
+            if field.value.splitlines()[0] == interaction.user.mention:
                 await interaction.response.send_message("You already voted", ephemeral=True)
                 return
 
-        # make vote visible
-        new_embed.add_field(name="Voted Yes:", value=interaction.user.mention, inline=True)
+        await interaction.response.send_modal(ReasonModal("Reason for voting Yes", self.cb_rq_yes))
+
+    async def cb_rf_yes(self, interaction):
+        new_embed = interaction.message.embeds[0]
+        new_embed.add_field(name="Voted Yes:", value=f"{interaction.user.mention}\n*{interaction.data['components'][0]['components'][0]['value']}*", inline=True)
         # retrieve current amount of votes and iterate by 1
         yes_votes = new_embed.description[-1]
         yes_votes = int(yes_votes) + 1
@@ -311,29 +305,42 @@ class Reformation(commands.Cog):
         new_embed.description = f"{new_embed.description[:-1]}{yes_votes}"
         await interaction.message.edit(embed=new_embed)
 
-    async def cb_no(self, interaction):
-        new_embed = interaction.message.embeds[0]
+    async def cb_rf_yes_open_modal(self, interaction):
         # check if user has already voted
-        for field in new_embed.fields:
-            if field.value == interaction.user.mention:
+        for field in interaction.message.embeds[0].fields:
+            if field.value.splitlines()[0] == interaction.user.mention:
                 await interaction.response.send_message("You already voted", ephemeral=True)
                 return
 
-        # make vote visible
-        new_embed.add_field(name="Voted No:", value=interaction.user.mention, inline=True)
+        await interaction.response.send_modal(ReasonModal("Reason for voting Yes", self.cb_rf_yes))
+
+    async def cb_no(self, interaction):
+        new_embed = interaction.message.embeds[0]
+        new_embed.add_field(name="Voted No:", value=f"{interaction.user.mention}\n*{interaction.data['components'][0]['components'][0]['value']}*", inline=True)
         await interaction.message.edit(embed=new_embed)
+
+    async def cb_no_open_modal(self, interaction):
+        # check if user has already voted
+        for field in interaction.message.embeds[0].fields:
+            if field.value.splitlines()[0] == interaction.user.mention:
+                await interaction.response.send_message("You already voted", ephemeral=True)
+                return
+
+        await interaction.response.send_modal(ReasonModal("Reason for voting No", self.cb_no))
 
     async def cb_maybe(self, interaction):
         new_embed = interaction.message.embeds[0]
+        new_embed.add_field(name="Voted Maybe:", value=f"{interaction.user.mention}\n*{interaction.data['components'][0]['components'][0]['value']}*", inline=True)
+        await interaction.message.edit(embed=new_embed)
+
+    async def cb_maybe_open_modal(self, interaction):
         # check if user has already voted
-        for field in new_embed.fields:
-            if field.value == interaction.user.mention:
+        for field in interaction.message.embeds[0].fields:
+            if field.value.splitlines()[0] == interaction.user.mention:
                 await interaction.response.send_message("You already voted", ephemeral=True)
                 return
 
-        # make vote visible
-        new_embed.add_field(name="Voted Maybe:", value=interaction.user.mention, inline=True)
-        await interaction.message.edit(embed=new_embed)
+        await interaction.response.send_modal(ReasonModal("Reason for voting Maybe", self.cb_maybe))
 
     @commands.command(aliases=['rq', 'reformquery', 'reformq'])
     async def reformationquery(self, ctx, member: nextcord.Member, *, reason=""):
@@ -371,13 +378,13 @@ class Reformation(commands.Cog):
         embedVar.add_field(name="Reason", value=reason, inline=False)
 
         yes = Button(label="Yes", style=nextcord.ButtonStyle.green)
-        yes.callback = self.cb_rq_yes
+        yes.callback = self.cb_rq_yes_open_modal
 
         no = Button(label="No", style=nextcord.ButtonStyle.red)
-        no.callback = self.cb_no
+        no.callback = self.cb_no_open_modal
 
         maybe = Button(label="Maybe")
-        maybe.callback = self.cb_maybe
+        maybe.callback = self.cb_maybe_open_modal
 
         button_view = View(timeout=None)
         button_view.add_item(yes)
@@ -419,13 +426,13 @@ class Reformation(commands.Cog):
             await ctx.send("Member not found!")
 
         yes = Button(label="Yes", style=nextcord.ButtonStyle.green)
-        yes.callback = self.cb_rf_yes
+        yes.callback = self.cb_rf_yes_open_modal
 
         no = Button(label="No", style=nextcord.ButtonStyle.red)
-        no.callback = self.cb_no
+        no.callback = self.cb_no_open_modal
 
         maybe = Button(label="Maybe")
-        maybe.callback = self.cb_maybe
+        maybe.callback = self.cb_maybe_open_modal
 
         button_view = View(timeout=None)
         button_view.add_item(yes)
@@ -508,6 +515,14 @@ class Reformation(commands.Cog):
                 description=f"User has left the server while having the <@&{get_config_int('ROLES', 'reformation')}> role. They have been banned automatically.",
                 colour=nextcord.Color.from_rgb(237, 91, 6))
             await channel.send(embed=embed)
+
+
+class ReasonModal(nextcord.ui.Modal):
+    def __init__(self, name, cb):
+        super().__init__(name)
+        self.field = nextcord.ui.TextInput(label="Reason", min_length=4, max_length=256, required=True, placeholder="please provide a reason")
+        self.add_item(self.field)
+        self.callback = cb
 
 
 def setup(bot):
