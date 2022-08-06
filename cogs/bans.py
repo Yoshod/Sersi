@@ -2,7 +2,7 @@ import nextcord
 from nextcord.ext import commands
 from nextcord.ui import Button, View
 from configutils import get_config_int, get_config
-from permutils import permcheck, is_dark_mod, cb_is_dark_mod
+from permutils import permcheck, is_dark_mod
 
 
 class BanAppealRejection(nextcord.ui.Modal):
@@ -25,7 +25,7 @@ class BanAppealRejection(nextcord.ui.Modal):
             colour=nextcord.Colour.from_rgb(237, 91, 6))
         rejected_embed.add_field(name="Reason:", value=self.reason.value, inline=False)
         rejected_embed.add_field(name="Wait Time:", value="You may reapply in 28 days.", inline=False)
-        user.send(rejected_embed)
+        await user.send(embed=rejected_embed)
 
         updated_form = interaction.message.embeds[0]
         updated_form.add_field(name="Rejected by:", value=interaction.user.mention, inline=False)
@@ -36,7 +36,7 @@ class BanAppealRejection(nextcord.ui.Modal):
             title="Ban Appeal Denied",
             colour=nextcord.Color.from_rgb(237, 91, 6))
         log_embed.add_field(name="User:", value=f"{user} ({user.name})", inline=False)
-        log_embed.add_field(name="Reason:", value=self.reason, inline=False)
+        log_embed.add_field(name="Reason:", value=self.reason.value, inline=False)
 
         channel = interaction.client.get_channel(get_config_int('CHANNELS', 'modlogs'))
         await channel.send(embed=log_embed)
@@ -62,7 +62,7 @@ class BanAppealAccept(nextcord.ui.Modal):
             colour=nextcord.Colour.from_rgb(237, 91, 6))
         unban_embed.add_field(name="Reason:", value=self.reason.value, inline=False)
         unban_embed.add_field(name="Rejoin URL:", value=get_config('INVITES', 'banappeals'), inline=False)
-        user.send(embed=unban_embed)
+        await user.send(embed=unban_embed)
 
         try:
             await interaction.guild.unban(user, reason=f"{interaction.user.name} gave reason {self.reason.value}")
@@ -133,22 +133,12 @@ class BanAppealForm(nextcord.ui.Modal):
         appeal_embed.add_field(name=self.believe.label, value=self.believe.value,   inline=False)
         appeal_embed.add_field(name=self.other.label,   value=self.other.value,     inline=False)
 
-        async def cb_accept(interaction):
-            await interaction.response.send_modal(BanAppealAccept(appellant_id))
+        accept_bttn = Button(custom_id=f"ban-appeal-accept:{appellant_id}", label="Accept Appeal", style=nextcord.ButtonStyle.green)
+        reject_bttn = Button(custom_id=f"ban-appeal-reject:{appellant_id}", label="Reject Appeal", style=nextcord.ButtonStyle.red)
 
-        async def cb_reject(interaction):
-            await interaction.response.send_modal(BanAppealRejection(appellant_id))
-
-        accept_bttn = Button(label="Accept Appeal", style=nextcord.ButtonStyle.green)
-        accept_bttn.callback = cb_accept
-
-        reject_bttn = Button(label="Reject Appeal", style=nextcord.ButtonStyle.red)
-        reject_bttn.callback = cb_reject
-
-        button_view = View(timeout=None)
+        button_view = View(auto_defer=False)
         button_view.add_item(accept_bttn)
         button_view.add_item(reject_bttn)
-        button_view.interaction_check = cb_is_dark_mod
 
         channel = interaction.client.get_channel(get_config_int('CHANNELS', 'banappeals'))
         await channel.send(embed=appeal_embed, view=button_view)
@@ -170,7 +160,7 @@ class BanAppeals(commands.Cog):
             title="Submit Appeal",
             description="Click Button below to submit your ban appeal.",
             colour=nextcord.Color.from_rgb(237, 91, 6))
-        open_modal = Button(custom_id="ban-appeal-open" ,label="Open Form", style=nextcord.ButtonStyle.blurple)
+        open_modal = Button(custom_id="ban-appeal-open", label="Open Form", style=nextcord.ButtonStyle.blurple)
 
         button_view = View(auto_defer=False)
         button_view.add_item(open_modal)
@@ -179,8 +169,29 @@ class BanAppeals(commands.Cog):
 
     @commands.Cog.listener()
     async def on_interaction(self, interaction):
-        if (interaction.data["custom_id"] == "ban-appeal-open"):
+        try:
+            id_name, id_extra = interaction.data["custom_id"].split(":", 1)
+        except ValueError:
+            id_name = interaction.data["custom_id"]
+            id_extra = None
+
+        if id_name == "ban-appeal-open":
             await interaction.response.send_modal(BanAppealForm())
+        elif id_name == "ban-appeal-accept":
+            if await permcheck(interaction, is_dark_mod):
+                await interaction.response.send_modal(BanAppealAccept(int(id_extra)))
+        elif id_name == "ban-appeal-reject":
+            if await permcheck(interaction, is_dark_mod):
+                await interaction.response.send_modal(BanAppealRejection(int(id_extra)))
+        # match id_name:
+        #    case "ban-appeal-open":
+        #        await interaction.response.send_modal(BanAppealForm())
+        #    case "ban-appeal-accept":
+        #        if await permcheck(interaction, is_dark_mod):
+        #            await interaction.response.send_modal(BanAppealAccept())
+        #    case "ban-appael-reject":
+        #        if await permcheck(interaction, is_dark_mod):
+        #            await interaction.response.send_modal(BanAppealRejection())
 
 
 def setup(bot):
