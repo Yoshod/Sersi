@@ -2,7 +2,7 @@ import nextcord
 from nextcord.ext import commands
 from nextcord.ui import Button, View
 from configutils import get_config_int, get_config
-from permutils import cb_is_dark_mod
+from permutils import permcheck, is_dark_mod, cb_is_dark_mod
 
 
 class BanAppealRejection(nextcord.ui.Modal):
@@ -161,28 +161,26 @@ class BanAppeals(commands.Cog):
     @commands.command()
     async def appeal(self, ctx):
         print(ctx.author.id)
-        if ctx.author.id == 261870562798731266 or ctx.author.id == 348142492245426176:
-            pass
-
-        else:
+        if not await permcheck(ctx, is_dark_mod):
             return
 
         await ctx.message.delete()
-
-        async def cb_open_modal(interaction):
-            await interaction.response.send_modal(BanAppealForm())
 
         test_embed = nextcord.Embed(
             title="Submit Appeal",
             description="Click Button below to submit your ban appeal.",
             colour=nextcord.Color.from_rgb(237, 91, 6))
-        open_modal = Button(label="Open Form", style=nextcord.ButtonStyle.blurple)
-        open_modal.callback = cb_open_modal
+        open_modal = Button(custom_id="ban-appeal-open" ,label="Open Form", style=nextcord.ButtonStyle.blurple)
 
-        button_view = View(timeout=None)
+        button_view = View(auto_defer=False)
         button_view.add_item(open_modal)
 
         await ctx.send(embed=test_embed, view=button_view)
+
+    @commands.Cog.listener()
+    async def on_interaction(self, interaction):
+        if (interaction.data["custom_id"] == "ban-appeal-open"):
+            await interaction.response.send_modal(BanAppealForm())
 
 
 def setup(bot):
