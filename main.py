@@ -6,7 +6,6 @@ import datetime
 import time
 
 from nextcord.ext import commands
-from downdetection import down_detection
 
 from configutils import get_config
 from permutils import permcheck, is_sersi_contrib
@@ -133,6 +132,5 @@ async def on_message(message):
 
     await bot.process_commands(message)
 
-down_detection()
 token = discordTokens.getToken()
 bot.run(token)
