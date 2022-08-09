@@ -1,8 +1,7 @@
 import nextcord
 from nextcord.ext import commands
 from nextcord.ui import Button, View
-from configutils import get_config_int, get_config
-from permutils import cb_is_dark_mod, cb_is_cet
+from permutils import cb_is_cet
 
 
 class Suggestions(commands.Cog):
