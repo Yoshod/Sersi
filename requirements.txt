@@ -1,3 +1,6 @@
 nextcord
-shortuuid
+pycryptodome
 pytz
+pyyaml
+shortuuid
+unidecode

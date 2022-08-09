@@ -1,9 +1,10 @@
-.spyproject
 .idea
-cogs/.DS_Store
-__pycache__
-*.ini
-*.pkl
+.spyproject
 .vscode
 
-discordTokens.py
+.DS_Store
+__pycache__
+*.pyc
+
+config.yml
+Sersi.db

@@ -1,0 +1,69 @@
+# Default configuration; no IDs nor a token have been set.
+
+token:    "Token here"
+
+database: "Sersi.db"      # relative to the data folder, in case of SQLite3
+port:     8113            # 8074 for live, 8113 for unstable # NOTE: up for deprecation
+author_list: "authors.md" # relative to the data folder
+
+prefix:   "s!"
+
+activity: "Sword and Shield"
+
+channels:
+    alert:             0
+    logging:           0
+    false positives:   0
+    mod logs:          0
+    reformation:       0
+    reformation info:  0
+    dm forward:        0
+    errors:            0
+    secret:            0
+    teachers:          0
+    reform public log: 0
+    ban appeals:       0
+    photography:       0
+    youtube:           0
+
+roles:
+    reformation:                0
+    reformed:                   0
+    probation:                  0
+    never mod:                  0
+    civil engineering initiate: 0
+    newbie:                     0
+
+opt ins:
+    gaming:         0
+    tech compsci:   0
+    food and drink: 0
+    education:      0
+    art:            0
+    anime:          0
+    furry:          0
+    models:         0
+    shillposting:   0
+    music:          0
+    photography:    0
+
+permission roles:
+    staff:             0
+    reformist:         0
+    ticket_support:    0
+    sersi_contributor: 0
+    trial_moderator:   0
+    moderator:         0
+    senior_moderator:  0
+    dark_moderator:    0
+
+emotes:
+    success: "<:sersisuccess:0>"
+    fail:    "<:sersifail:0>"
+
+invites:
+    support_server: "https://discord.gg/invite"
+    ban_appeals:    "https://discord.gg/invite"
+
+guilds:
+    main: 0
