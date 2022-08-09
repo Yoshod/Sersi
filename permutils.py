@@ -1,3 +1,4 @@
+from discord import Interaction
 import nextcord
 from configutils import get_config, get_config_int
 
@@ -132,9 +133,24 @@ def is_custom_role(member: nextcord.Member, permitted_roles=[]):
     return False
 
 
+def is_cet(member: nextcord.Member):
+    permitted_roles = [
+        get_config_int('PERMISSION ROLES', 'cet')
+    ]
+
+    for role in member.roles:
+        if role.id in permitted_roles:
+            return True
+    return False
+
+
 async def cb_is_mod(interaction):
     return await permcheck(interaction, is_mod)
 
 
 async def cb_is_dark_mod(interaction):
     return await permcheck(interaction, is_dark_mod)
+
+
+async def cb_is_cet(interaction):
+    return await permcheck(interaction, is_cet)
