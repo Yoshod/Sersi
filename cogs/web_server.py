@@ -5,7 +5,7 @@ import xmltodict
 
 from aiohttp import web
 from aiohttp.web import Request
-from nextcord.ext import commands, tasks
+from nextcord.ext import commands
 
 from configuration.configuration import Configuration
 
@@ -18,8 +18,6 @@ class WebServer(commands.Cog, name="Web server", description="HTTP serving and m
     def __init__(self, bot: nextcord.Client, config: Configuration):
         self.bot    = bot
         self.config = config
-
-        self.web_server.start()
 
         @routes.get("/")
         def uptimerobot(request):
@@ -72,8 +70,8 @@ class WebServer(commands.Cog, name="Web server", description="HTTP serving and m
         asyncio.run_coroutine_threadsafe(app.shutdown(), asyncio.get_running_loop())
         super().cog_unload()
 
-    @tasks.loop()
-    async def web_server(self):
+    @commands.Cog.listener()
+    async def on_ready(self):
         runner = web.AppRunner(app)
         await runner.setup()
 
@@ -82,12 +80,6 @@ class WebServer(commands.Cog, name="Web server", description="HTTP serving and m
 
         site = web.TCPSite(runner, port=self.config.port)
         await site.start()
-
-        self.web_server.stop()
-
-    @web_server.before_loop
-    async def web_server_before_loop(self):
-        await self.bot.wait_until_ready()
 
 
 def setup(bot: nextcord.Client, **kwargs: dict[str, Any]):

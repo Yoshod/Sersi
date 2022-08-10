@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from dataclass_wizard import YAMLWizard
 
 from configuration.channels import ConfigurationChannels
+from configuration.cogs import ConfigurationCogs
 from configuration.emotes import ConfigurationEmotes
 from configuration.guilds import ConfigurationGuilds
 from configuration.invites import ConfigurationInvites
@@ -31,6 +32,9 @@ class Configuration(YAMLWizard):
 
     # The game displayed as what the bot is playing.
     activity: str
+
+    # Configuration related to cogs.
+    cogs: ConfigurationCogs
 
     # Configuration related to channels.
     channels: ConfigurationChannels

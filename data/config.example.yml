@@ -10,6 +10,9 @@ prefix:   "s!"
 
 activity: "Sword and Shield"
 
+cogs:
+    disabled:
+
 channels:
     alert:             0
     logging:           0

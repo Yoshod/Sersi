@@ -21,15 +21,16 @@ class Sersi(commands.Bot):
         self.start_time  = start_time
         self.root_folder = root_folder
 
-        self.ready       = False
-
-    async def on_ready(self):
-        print(f"Logged in as {self.user}.\n\nLoading cogs...")
+        print("Loading cogs...")
 
         count = 0
         failed_count = 0
         for filename in os.listdir("cogs"):
             if not filename.endswith(".py"):
+                continue
+
+            if self.config.cogs.disabled is not None and filename[:-3] in self.config.cogs.disabled:
+                print(f"-> {filename[:-3]} (skipped!)")
                 continue
 
             try:
@@ -45,17 +46,20 @@ class Sersi(commands.Bot):
         else:
             print(f"\nSuccessfully loaded {count} cogs.")
 
+    async def on_ready(self):
+        print(f"Logged in as {self.user}.")
         await self.change_presence(activity=nextcord.Game(self.config.activity))
 
-        self.ready = True
         print(f"Sersi is now online. Launch time: {datetime.timedelta(seconds=int(round(time.time() - self.start_time)))}")
 
     async def close(self):
         print("Shutting down.")
+        await self.change_presence(status=nextcord.Status.offline)
+
         await super().close()
 
     async def on_message(self, message: nextcord.Message):
-        if not self.ready or message.author.bot:
+        if message.author.bot:
             return
 
         if message.guild is not None and message.content == self.user.mention:

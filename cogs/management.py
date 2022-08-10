@@ -12,18 +12,19 @@ from utilities.permissions import is_a_sersi_contributor
 
 
 class Management(commands.Cog, name="Management", description="Bot management and information related commands."):
-    def __init__(self, bot: nextcord.Client, config: Configuration, database: Database, start_time: float):
-        self.bot            = bot
-        self.config         = config
-        self.database       = database
-        self.start_time     = start_time
+    def __init__(self, bot: nextcord.Client, config: Configuration, database: Database, start_time: float, data_folder: str):
+        self.bot         = bot
+        self.config      = config
+        self.database    = database
+        self.start_time  = start_time
+        self.data_folder = data_folder
 
     @commands.command(brief="Loads a cog.", help="Loads a cog from the cog folder.")
     @is_a_sersi_contributor()
     async def load(self, ctx: commands.Context, extension: str):
         try:
-            load_cog(self.bot, extension, self.config, self.start_time)
-            await ctx.reply(f"{self.config.emotes.success} The cog {extension} was loaded successfully.")
+            load_cog(self.bot, extension, self.config, self.database, self.start_time, self.data_folder)
+            await ctx.reply(f"{self.config.emotes.success} The cog `{extension}` was loaded successfully.")
         except ExtensionAlreadyLoaded:
             await ctx.reply(f"{self.config.emotes.fail} The cog `{extension}` was already loaded.")
         except ExtensionFailed:
@@ -36,7 +37,7 @@ class Management(commands.Cog, name="Management", description="Bot management an
     async def unload(self, ctx: commands.Context, extension: str):
         try:
             unload_cog(self.bot, extension)
-            await ctx.reply(f"{self.config.emotes.success} The cog {extension} was unloaded successfully.")
+            await ctx.reply(f"{self.config.emotes.success} The cog `{extension}` was unloaded successfully.")
         except ExtensionFailed:
             await ctx.reply(f"{self.config.emotes.fail} The cog `{extension}` failed to unload.")
         except ExtensionNotFound:
@@ -47,8 +48,8 @@ class Management(commands.Cog, name="Management", description="Bot management an
     async def reload(self, ctx: commands.Context, extension: str):
         try:
             unload_cog(self.bot, extension)
-            load_cog(self.bot, extension, self.config, self.start_time)
-            await ctx.reply(f"{self.config.emotes.success} The cog {extension} was reloaded successfully.")
+            load_cog(self.bot, extension, self.config, self.database, self.start_time, self.data_folder)
+            await ctx.reply(f"{self.config.emotes.success} The cog `{extension}` was reloaded successfully.")
         except ExtensionFailed:
             await ctx.reply(f"{self.config.emotes.fail} The cog `{extension}` failed to reload.")
         except ExtensionNotFound:
@@ -63,14 +64,18 @@ class Management(commands.Cog, name="Management", description="Bot management an
         # TODO: protect against accidental (or malicious) token printing
 
         try:
-            exec(script, {
-                "cog":    self,
-                "ctx":    ctx,
-                "script": script,
-                "bot":    self.bot,
-                "config": self.config,
-                "db":     self.database})
+            script_injected = "    " + script.replace('\n', '\n    ')
 
+            _locals = locals()
+            exec(f"async def __ex():\n{script_injected}", {
+                "cog":     self,
+                "ctx":     ctx,
+                "script":  script,
+                "bot":     self.bot,
+                "config":  self.config,
+                "db":      self.database}, _locals)
+
+            result = await _locals['__ex']()
         except Exception as ex:
             embed = nextcord.Embed(
                 title="Evaluation Failure",
@@ -80,6 +85,15 @@ class Management(commands.Cog, name="Management", description="Bot management an
 
             await ctx.send(embed=embed)
             return
+
+        embed = nextcord.Embed(
+            title="Evaluation",
+            description=f"Script:\n```\n{script}\n```\nResult:\n```\n{result}\n```",
+            color=nextcord.Color.from_rgb(208, 29, 29)
+        )
+
+        await ctx.send(embed=embed)
+        return
 
     @commands.command(brief="Checks the uptime of the bot.", help="Checks the current uptime, in hours:minutes:seconds, of the bot.")
     async def uptime(self, ctx):
@@ -92,8 +106,8 @@ class Management(commands.Cog, name="Management", description="Bot management an
 
     @commands.command(brief="Checks the ping of the bot.", help="Checks the current ping of the bot, in milliseconds.")
     async def ping(self, ctx):
-        await ctx.send(f'Pong! Ping: **{round(self.bot.latency * 1000)}ms**')
+        await ctx.send(f"Pong! Ping: **{round(self.bot.latency * 1000)}ms**")
 
 
 def setup(bot, **kwargs):
-    bot.add_cog(Management(bot, kwargs['config'], kwargs["database"], kwargs['start_time']))
+    bot.add_cog(Management(bot, kwargs["config"], kwargs["database"], kwargs["start_time"], kwargs["data_folder"]))
