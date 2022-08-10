@@ -1,4 +1,5 @@
 import asyncio
+from typing import Any
 import nextcord
 import xmltodict
 
@@ -13,7 +14,7 @@ app    = web.Application()
 routes = web.RouteTableDef()
 
 
-class WebServer(commands.Cog):
+class WebServer(commands.Cog, name="Web server", description="HTTP serving and management."):
     def __init__(self, bot: nextcord.Client, config: Configuration):
         self.bot    = bot
         self.config = config
@@ -22,45 +23,72 @@ class WebServer(commands.Cog):
 
         @routes.get("/")
         def uptimerobot(request):
-            return web.Response(text="Hewwo UwuptimeWowobowot!!!")
+            return web.Response(text="Hewwo UwuptimeWowobowot!!!", status=200)
 
         @routes.get("/youtube")
-        @routes.post("/youtube")
-        async def youtube_update(request: Request):
-            if request.query is not None and "hub.challenge" in request.query:
-                print(f"[web_server] {request.query['hub.mode']} for {request.query['hub.topic']}")
-                return web.Response(body=request.query["hub.challenge"].encode("utf8"), status=201)
+        async def youtube_verification(request: Request):
+            if request.query is None or {"hub.challenge", "hub.mode", "hub.topic"} <= request.query.keys():
+                return web.Response(text="Invalid PuSH query", status=400)
 
+            if not request.query["hub.topic"].startswith("https://www.youtube.com/xml/feeds/videos.xml?channel_id="):
+                return web.Response(text="Invalid topic", status=400)
+
+            match request.query["hub.mode"]:
+                case "subscribe":
+                    print(f"[web_server] subscribed to {request.query['hub.topic']}")
+
+                case "unsubscribe":
+                    print(f"[web_server] unsubscribed from {request.query['hub.topic']}")
+
+                case _:
+                    return web.Response(text="Invalid mode", status=400)
+
+            return web.Response(body=request.query["hub.challenge"].encode("utf8"), status=201)
+
+        @routes.post("/youtube")
+        async def youtube_notification(request: Request):
             if not request.has_body:
                 return web.Response(text="No body given", status=400)
 
             data = xmltodict.parse(await request.read())
 
-            channel: nextcord.TextChannel = self.bot.get_channel(self.config["channels"]["youtube"])
-            if channel is None:
-                raise Exception("YouTube text channel is none")
+            origins = data["feed"]["link"]
+            for origin in origins:
+                if not origin["@rel"] == "self":
+                    continue
 
-            await channel.send(f"New video from {data['feed']['entry']['author']['name']}: **{data['feed']['entry']['title']}**\nWatch it here: **{data['feed']['entry']['link']['@href']}**")
-            return web.Response(status=204)
+                if origin["@href"].startswith("https://www.youtube.com/xml/feeds/videos.xml?channel_id="):
+                    channel: nextcord.TextChannel = self.bot.get_channel(self.config.channels.youtube)
+                    await channel.send(f"New video from {data['feed']['entry']['author']['name']}: **{data['feed']['entry']['title']}**\nWatch it here: **{data['feed']['entry']['link']['@href']}**")
+                    return web.Response(status=201)
+                else:
+                    return web.Response(text="Topic ignored", status=204)
+
+            return web.Response(text="Topic not found ", status=400)
 
         app.add_routes(routes)
+
+    def cog_unload(self):
+        asyncio.run_coroutine_threadsafe(app.shutdown(), asyncio.get_running_loop())
+        super().cog_unload()
 
     @tasks.loop()
     async def web_server(self):
         runner = web.AppRunner(app)
         await runner.setup()
 
-        site = web.TCPSite(runner, port=self.config.port)
-        try:
-            await site.start()
-        except OSError:  # TODO: tends to be port in use, check whether this is the cas
-            await asyncio.sleep(5)
+        if len(runner.sites) > 0:
             return
+
+        site = web.TCPSite(runner, port=self.config.port)
+        await site.start()
+
+        self.web_server.stop()
 
     @web_server.before_loop
     async def web_server_before_loop(self):
         await self.bot.wait_until_ready()
 
 
-def setup(bot, **kwargs):
+def setup(bot: nextcord.Client, **kwargs: dict[str, Any]):
     bot.add_cog(WebServer(bot, kwargs["config"]))

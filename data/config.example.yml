@@ -2,9 +2,9 @@
 
 token:    "Token here"
 
-database: "Sersi.db"      # relative to the data folder, in case of SQLite3
-port:     8113            # 8074 for live, 8113 for unstable # NOTE: up for deprecation
-author_list: "authors.md" # relative to the data folder
+database:    "Sersi.db"
+port:        8113         # 8074 for live, 8113 for unstable
+author_list: "authors.md"
 
 prefix:   "s!"
 

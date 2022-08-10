@@ -5,7 +5,7 @@ from nextcord.ext import commands
 from configuration.configuration import Configuration
 
 
-class ErrorHandling(commands.Cog):
+class ErrorHandling(commands.Cog, name="Error Handling", description="Error management and reporting."):
     def __init__(self, bot: nextcord.Client, config: Configuration):
         self.bot    = bot
         self.config = config
@@ -32,16 +32,16 @@ class ErrorHandling(commands.Cog):
             case _:
                 channel = self.bot.get_channel(self.config.channels.errors)
                 if channel is None:
-                    print(f"Error while executing command \"{ctx.message.content}\": \"{error}\"")
+                    print(f"Error while executing command \"{ctx.message.content}\": \"{error}\"") # TODO: use a separate logging implementation
                     return
 
                 embed = nextcord.Embed(title="An Error Has Occurred", color=nextcord.Color.from_rgb(208, 29, 29))
 
-                embed.add_field(name="Server:",  value=f"**{ctx.guild.name}** ({ctx.guild.id})",     inline=False)
-                embed.add_field(name="Channel:", value=f"**{ctx.channel.name}** ({ctx.channel.id})", inline=False)
+                embed.add_field(name="Server:",  value=f"**{ctx.guild.name}** ({ctx.guild.id})",     inline=True)
+                embed.add_field(name="Channel:", value=f"**{ctx.channel.name}** ({ctx.channel.id})", inline=True)
+                embed.add_field(name="URL:",     value=f"[Jump URL]({ctx.message.jump_url})",        inline=True)
                 embed.add_field(name="Command:", value=ctx.message.content,                          inline=False)
                 embed.add_field(name="Error:",   value=f"```\n{error}\n```",                         inline=False)
-                embed.add_field(name="URL:",     value=f"[Jump URL]({ctx.message.jump_url})",        inline=False)
 
                 await channel.send(embed=embed)
 

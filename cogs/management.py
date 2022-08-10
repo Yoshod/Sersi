@@ -6,18 +6,17 @@ from nextcord.ext import commands
 from nextcord.ext.commands.errors import ExtensionAlreadyLoaded, ExtensionFailed, ExtensionNotFound
 
 from configuration.configuration import Configuration
+from database.database import Database
 from utilities.cogs import load_cog, unload_cog
 from utilities.permissions import is_a_sersi_contributor
 
 
-class Management(commands.Cog):
-    def __init__(self, bot: nextcord.Client, config: Configuration, start_time: float):
-        super().qualified_name = "Management"
-        super().description    = "Bot management and information related commands."
-
-        self.bot        = bot
-        self.config     = config
-        self.start_time = start_time
+class Management(commands.Cog, name="Management", description="Bot management and information related commands."):
+    def __init__(self, bot: nextcord.Client, config: Configuration, database: Database, start_time: float):
+        self.bot            = bot
+        self.config         = config
+        self.database       = database
+        self.start_time     = start_time
 
     @commands.command(brief="Loads a cog.", help="Loads a cog from the cog folder.")
     @is_a_sersi_contributor()
@@ -64,7 +63,14 @@ class Management(commands.Cog):
         # TODO: protect against accidental (or malicious) token printing
 
         try:
-            exec(script, {"cog": self, "ctx": ctx, "script": script, "bot": self.bot, "config": self.config})
+            exec(script, {
+                "cog":    self,
+                "ctx":    ctx,
+                "script": script,
+                "bot":    self.bot,
+                "config": self.config,
+                "db":     self.database})
+
         except Exception as ex:
             embed = nextcord.Embed(
                 title="Evaluation Failure",
@@ -90,4 +96,4 @@ class Management(commands.Cog):
 
 
 def setup(bot, **kwargs):
-    bot.add_cog(Management(bot, kwargs['config'], kwargs['start_time']))
+    bot.add_cog(Management(bot, kwargs['config'], kwargs["database"], kwargs['start_time']))
