@@ -69,6 +69,8 @@ class Gif(commands.Cog):
             for gif in self.list:
                 file.write(f"{gif}\n")
 
+        await ctx.send(f"{self.sersisuccess} GIF URL `{url}` removed from blacklist.")
+
         # logging
         embed = nextcord.Embed(
             title="GIF removed from blacklist",
