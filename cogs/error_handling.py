@@ -32,7 +32,7 @@ class ErrorHandling(commands.Cog, name="Error Handling", description="Error mana
             case _:
                 channel = self.bot.get_channel(self.config.channels.errors)
                 if channel is None:
-                    print(f"Error while executing command \"{ctx.message.content}\": \"{error}\"") # TODO: use a separate logging implementation
+                    print(f"Error while executing command \"{ctx.message.content}\": \"{error}\"")  # TODO: use a separate logging implementation
                     return
 
                 embed = nextcord.Embed(title="An Error Has Occurred", color=nextcord.Color.from_rgb(208, 29, 29))

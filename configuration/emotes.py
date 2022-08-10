@@ -8,5 +8,5 @@ class ConfigurationEmotes(YAMLWizard):
     # The emote, in "<:name:id>" format, used to declare success.
     success: str
 
-    # The emote, in "<:name:id>" format, used to declare fail.
+    # The emote, in "<:name:id>" format, used to declare failure.
     fail: str

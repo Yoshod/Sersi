@@ -17,9 +17,6 @@ class ConfigurationChannels(YAMLWizard):
     # Receives notifications about actions taken by moderators, e.g bans.
     mod_log: int
 
-    # TODO: find out what this does lol
-    dm_forward: int
-
     # Receives notifications about errors.
     errors: int
 
