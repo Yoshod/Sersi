@@ -7,12 +7,13 @@ from nextcord.ext.commands.errors import ExtensionAlreadyLoaded, ExtensionFailed
 
 from configuration.configuration import Configuration
 from database.database import Database
+from sersi import Sersi
 from utilities.cogs import load_cog, unload_cog
 from utilities.permissions import is_a_sersi_contributor
 
 
 class Management(commands.Cog, name="Management", description="Bot management and information related commands."):
-    def __init__(self, bot: nextcord.Client, config: Configuration, database: Database, start_time: float, data_folder: str):
+    def __init__(self, bot: Sersi, config: Configuration, database: Database, start_time: float, data_folder: str):
         self.bot         = bot
         self.config      = config
         self.database    = database

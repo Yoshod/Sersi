@@ -3,10 +3,10 @@ from nextcord.ext.commands import Context
 
 
 def is_a_sersi_contributor():
-    def predicate(ctx: Context) -> bool:
-        if ctx.cog.config is None:
+    def predicate(context: Context) -> bool:
+        if context.cog.config is None:
             raise Exception("Configuration not found within the cog")
 
-        return ctx.guild is not None and ctx.guild.get_role(ctx.cog.config.staff_roles.sersi_contributor) in ctx.author.roles
+        return context.guild is not None and context.guild.get_role(context.cog.config.staff_roles.sersi_contributor) in context.author.roles
 
     return commands.check(predicate)

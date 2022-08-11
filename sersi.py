@@ -9,6 +9,7 @@ from nextcord.ext.commands.errors import ExtensionFailed
 
 from configuration.configuration import Configuration
 from database.database import Database
+from help import Help
 from utilities.cogs import load_cog
 
 
@@ -20,6 +21,8 @@ class Sersi(commands.Bot):
         self.database    = database
         self.start_time  = start_time
         self.root_folder = root_folder
+
+        self.help_command = Help(options={"config": config})
 
         print("Loading cogs...")
 
@@ -46,17 +49,17 @@ class Sersi(commands.Bot):
         else:
             print(f"\nSuccessfully loaded {count} cogs.")
 
-    async def on_ready(self):
-        print(f"Logged in as {self.user}.")
-        await self.change_presence(activity=nextcord.Game(self.config.activity))
-
-        print(f"Sersi is now online. Launch time: {datetime.timedelta(seconds=int(round(time.time() - self.start_time)))}")
-
     async def close(self):
         print("Shutting down.")
         await self.change_presence(status=nextcord.Status.offline)
 
         await super().close()
+
+    async def on_ready(self):
+        print(f"Logged in as {self.user}.")
+        await self.change_presence(activity=nextcord.Game(self.config.activity))
+
+        print(f"Sersi is now online. Launch time: {datetime.timedelta(seconds=int(round(time.time() - self.start_time)))}")
 
     async def on_message(self, message: nextcord.Message):
         if message.author.bot:

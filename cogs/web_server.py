@@ -1,13 +1,14 @@
 import asyncio
-from typing import Any
 import nextcord
 import xmltodict
 
 from aiohttp import web
 from aiohttp.web import Request
 from nextcord.ext import commands
+from typing import Any
 
 from configuration.configuration import Configuration
+from sersi import Sersi
 
 
 app    = web.Application()
@@ -15,7 +16,7 @@ routes = web.RouteTableDef()
 
 
 class WebServer(commands.Cog, name="Web server", description="HTTP serving and management."):
-    def __init__(self, bot: nextcord.Client, config: Configuration):
+    def __init__(self, bot: Sersi, config: Configuration):
         self.bot    = bot
         self.config = config
 
@@ -82,5 +83,5 @@ class WebServer(commands.Cog, name="Web server", description="HTTP serving and m
         await site.start()
 
 
-def setup(bot: nextcord.Client, **kwargs: dict[str, Any]):
+def setup(bot: Sersi, **kwargs: dict[str, Any]):
     bot.add_cog(WebServer(bot, kwargs["config"]))

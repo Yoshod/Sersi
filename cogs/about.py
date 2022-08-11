@@ -12,9 +12,9 @@ class About(commands.Cog, name="About", description="Information about the bot, 
 
         author_file.close()
 
-    @commands.command()
-    async def about(self, ctx):
-        about = nextcord.Embed(
+    @commands.command(brief="Displays information regarding the bot itself.", help="Shows information regarding the bot, its authors and where to find its source.")
+    async def about(self, context: commands.Context):
+        about: nextcord.Embed = nextcord.Embed(
             title="About Sersi",
             description="Sersi is the custom moderation help bot for Adam Something Central.",
             color=nextcord.Color.from_rgb(237, 91, 6))
@@ -23,7 +23,7 @@ class About(commands.Cog, name="About", description="Information about the bot, 
         about.add_field(name="Source code:", value="**[GitHub repository](https://github.com/Yoshod/Sersi)**", inline=True)
         about.add_field(name="Authors:",     value=self.authors,                                               inline=False)
 
-        await ctx.send(embed=about)
+        await context.send(embed=about)
 
 
 def setup(bot, **kwargs):
