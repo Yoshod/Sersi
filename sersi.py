@@ -1,11 +1,9 @@
-import datetime
-import time
-import nextcord
-import os
-
-from nextcord import Intents
-from nextcord.ext import commands
+from datetime import timedelta
+from nextcord import Game, Intents, Message, Status
+from nextcord.ext.commands import Bot
 from nextcord.ext.commands.errors import ExtensionFailed
+from os import listdir
+from time import time
 
 from configuration.configuration import Configuration
 from database.database import Database
@@ -13,7 +11,7 @@ from help import Help
 from utilities.cogs import load_cog
 
 
-class Sersi(commands.Bot):
+class Sersi(Bot):
     def __init__(self, config: Configuration, database: Database, start_time: float, root_folder: str):
         super().__init__(command_prefix=config.prefix, intents=Intents.all())
 
@@ -28,7 +26,7 @@ class Sersi(commands.Bot):
 
         count = 0
         failed_count = 0
-        for filename in os.listdir("cogs"):
+        for filename in listdir("cogs"):
             if not filename.endswith(".py"):
                 continue
 
@@ -51,17 +49,17 @@ class Sersi(commands.Bot):
 
     async def close(self):
         print("Shutting down.")
-        await self.change_presence(status=nextcord.Status.offline)
+        await self.change_presence(status=Status.offline)
 
         await super().close()
 
     async def on_ready(self):
-        print(f"Logged in as {self.user}.")
-        await self.change_presence(activity=nextcord.Game(self.config.activity))
+        print(f"Logged in as {self.user.name}#{self.user.discriminator} (ID: {self.user.id}).")
+        await self.change_presence(activity=Game(self.config.activity))
 
-        print(f"Sersi is now online. Launch time: {datetime.timedelta(seconds=int(round(time.time() - self.start_time)))}")
+        print(f"Sersi is now online. Launch time: {timedelta(seconds=int(round(time() - self.start_time)))}")
 
-    async def on_message(self, message: nextcord.Message):
+    async def on_message(self, message: Message):
         if message.author.bot:
             return
 

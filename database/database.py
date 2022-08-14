@@ -13,4 +13,9 @@ class Database:
     def commit_changes(self):
         self.connection.commit()
 
-    # TODO: implement modification methods
+    # Fetches the given channel from the database.
+    #
+    # Names can be found in the database scheme.
+    def guild_get_logging_channel(self, guild_id: int, channel_type: str) -> int | None:
+        result: sqlite3.Cursor = self.connection.execute(f"select {channel_type} from guild_preferences where guild_id = {guild_id}")
+        return result.fetchone()[0]

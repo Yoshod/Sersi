@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from dataclass_wizard import YAMLWizard
 
-from configuration.channels import ConfigurationChannels
 from configuration.cogs import ConfigurationCogs
 from configuration.emotes import ConfigurationEmotes
 from configuration.guilds import ConfigurationGuilds
@@ -35,9 +34,6 @@ class Configuration(YAMLWizard):
 
     # Configuration related to cogs.
     cogs: ConfigurationCogs
-
-    # Configuration related to channels.
-    channels: ConfigurationChannels
 
     # Configuration related to roles.
     roles: ConfigurationRoles

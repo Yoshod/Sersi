@@ -1,8 +1,9 @@
+import nextcord
+
 from nextcord.ext import commands
 
 from configuration.configuration import Configuration
 from database.database import Database
-from sersi import Sersi
 
 
 # Loads the cog by the given name.
@@ -15,7 +16,7 @@ from sersi import Sersi
 # data_folder: The absolute path to the data folder.
 #
 # Exceptions are passed down as-is.
-def load_cog(bot: Sersi, name: str, config: Configuration, database: Database, start_time: float, data_folder: str):
+def load_cog(bot: nextcord.Client, name: str, config: Configuration, database: Database, start_time: float, data_folder: str):
     if config.cogs.disabled is not None and name in config.cogs.disabled:
         raise commands.ExtensionFailed(name, Exception("Tried loading a disabled cog"))
 
@@ -28,5 +29,5 @@ def load_cog(bot: Sersi, name: str, config: Configuration, database: Database, s
 # name: The name of the cog. It already includes cogs., and doesn't need ".py" at the end.
 #
 # Exceptions are passed down as-is.
-def unload_cog(bot: Sersi, name: str):
+def unload_cog(bot: nextcord.Client, name: str):
     bot.unload_extension(f"cogs.{name}")

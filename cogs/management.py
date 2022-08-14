@@ -2,7 +2,7 @@ import datetime
 import nextcord
 import time
 
-from nextcord.ext import commands
+from nextcord.ext.commands import Cog, Context, command
 from nextcord.ext.commands.errors import ExtensionAlreadyLoaded, ExtensionFailed, ExtensionNotFound
 
 from configuration.configuration import Configuration
@@ -12,7 +12,7 @@ from utilities.cogs import load_cog, unload_cog
 from utilities.permissions import is_a_sersi_contributor
 
 
-class Management(commands.Cog, name="Management", description="Bot management and information related commands."):
+class Management(Cog, name="Management", description="Bot management and information related commands."):
     def __init__(self, bot: Sersi, config: Configuration, database: Database, start_time: float, data_folder: str):
         self.bot         = bot
         self.config      = config
@@ -20,48 +20,48 @@ class Management(commands.Cog, name="Management", description="Bot management an
         self.start_time  = start_time
         self.data_folder = data_folder
 
-    @commands.command(brief="Loads a cog.", help="Loads a cog from the cog folder.")
+    @command(brief="Loads a cog.", help="Loads a cog from the cogs folder.")
     @is_a_sersi_contributor()
-    async def load(self, ctx: commands.Context, extension: str):
+    async def load(self, context: Context, extension: str):
         try:
             load_cog(self.bot, extension, self.config, self.database, self.start_time, self.data_folder)
-            await ctx.reply(f"{self.config.emotes.success} The cog `{extension}` was loaded successfully.")
+            await context.reply(f"{self.config.emotes.success} The cog `{extension}` was loaded successfully.")
         except ExtensionAlreadyLoaded:
-            await ctx.reply(f"{self.config.emotes.fail} The cog `{extension}` was already loaded.")
+            await context.reply(f"{self.config.emotes.fail} The cog `{extension}` was already loaded.")
         except ExtensionFailed:
-            await ctx.reply(f"{self.config.emotes.fail} The cog `{extension}` failed to load.")
+            await context.reply(f"{self.config.emotes.fail} The cog `{extension}` failed to load.")
         except ExtensionNotFound:
-            await ctx.reply(f"{self.config.emotes.fail} The cog `{extension}` could not be found.")
+            await context.reply(f"{self.config.emotes.fail} The cog `{extension}` could not be found.")
 
-    @commands.command(brief="Unloads a loaded cog.", help="Unloads a previously loaded cog.")
+    @command(brief="Unloads a loaded cog.", help="Unloads a previously loaded cog.")
     @is_a_sersi_contributor()
-    async def unload(self, ctx: commands.Context, extension: str):
+    async def unload(self, context: Context, extension: str):
         try:
             unload_cog(self.bot, extension)
-            await ctx.reply(f"{self.config.emotes.success} The cog `{extension}` was unloaded successfully.")
+            await context.reply(f"{self.config.emotes.success} The cog `{extension}` was unloaded successfully.")
         except ExtensionFailed:
-            await ctx.reply(f"{self.config.emotes.fail} The cog `{extension}` failed to unload.")
+            await context.reply(f"{self.config.emotes.fail} The cog `{extension}` failed to unload.")
         except ExtensionNotFound:
-            await ctx.reply(f"{self.config.emotes.fail} The cog `{extension}` could not be found.")
+            await context.reply(f"{self.config.emotes.fail} The cog `{extension}` could not be found.")
 
-    @commands.command(brief="Reloads a cog.", help="Reloads a previously loaded cog.")
+    @command(brief="Reloads a cog.", help="Reloads a previously loaded cog.")
     @is_a_sersi_contributor()
-    async def reload(self, ctx: commands.Context, extension: str):
+    async def reload(self, context: Context, extension: str):
         try:
             unload_cog(self.bot, extension)
             load_cog(self.bot, extension, self.config, self.database, self.start_time, self.data_folder)
-            await ctx.reply(f"{self.config.emotes.success} The cog `{extension}` was reloaded successfully.")
+            await context.reply(f"{self.config.emotes.success} The cog `{extension}` was reloaded successfully.")
         except ExtensionFailed:
-            await ctx.reply(f"{self.config.emotes.fail} The cog `{extension}` failed to reload.")
+            await context.reply(f"{self.config.emotes.fail} The cog `{extension}` failed to reload.")
         except ExtensionNotFound:
-            await ctx.reply(f"{self.config.emotes.fail} The cog `{extension}` could not be found.")
+            await context.reply(f"{self.config.emotes.fail} The cog `{extension}` could not be found.")
 
-    @commands.command(
+    @command(
         brief="Executes Python code.",
         help="Executes python code, with the given script, management cog, command context, bot instance and configuration exposed to the script."
     )
     @is_a_sersi_contributor()
-    async def eval(self, ctx: commands.Context, *, script: str):
+    async def eval(self, context: Context, *, script: str):
         # TODO: protect against accidental (or malicious) token printing
 
         try:
@@ -70,7 +70,7 @@ class Management(commands.Cog, name="Management", description="Bot management an
             _locals = locals()
             exec(f"async def __ex():\n{script_injected}", {
                 "cog":     self,
-                "ctx":     ctx,
+                "ctx":     context,
                 "script":  script,
                 "bot":     self.bot,
                 "config":  self.config,
@@ -84,7 +84,7 @@ class Management(commands.Cog, name="Management", description="Bot management an
                 color=nextcord.Color.from_rgb(208, 29, 29)
             )
 
-            await ctx.send(embed=embed)
+            await context.send(embed=embed)
             return
 
         embed = nextcord.Embed(
@@ -93,21 +93,16 @@ class Management(commands.Cog, name="Management", description="Bot management an
             color=nextcord.Color.from_rgb(208, 29, 29)
         )
 
-        await ctx.send(embed=embed)
+        await context.send(embed=embed)
         return
 
-    @commands.command(brief="Checks the uptime of the bot.", help="Checks the current uptime, in hours:minutes:seconds, of the bot.")
-    async def uptime(self, ctx):
-        embed = nextcord.Embed(
-            title="Sersi Uptime",
-            description=f"Uptime: `{datetime.timedelta(seconds=int(round(time.time() - self.start_time)))}`",
-            color=nextcord.Color.from_rgb(237, 91, 6))
+    @command(brief="Checks the uptime of the bot.", help="Checks the current uptime, in hours:minutes:seconds, of the bot.")
+    async def uptime(self, context: Context):
+        await context.send(f"Uptime: `{datetime.timedelta(seconds=int(round(time.time() - self.start_time)))}`")
 
-        await ctx.send(embed=embed)
-
-    @commands.command(brief="Checks the ping of the bot.", help="Checks the current ping of the bot, in milliseconds.")
-    async def ping(self, ctx):
-        await ctx.send(f"Pong! Ping: **{round(self.bot.latency * 1000)}ms**")
+    @command(brief="Checks the ping of the bot.", help="Checks the current ping of the bot, in milliseconds.")
+    async def ping(self, context: Context):
+        await context.send(f"Ping: **{round(self.bot.latency * 1000)}ms**")
 
 
 def setup(bot, **kwargs):
