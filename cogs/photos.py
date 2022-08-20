@@ -1,6 +1,3 @@
-import nextcord
-from nextcord.ext import commands
-
 from nextcord.ext import commands
 from configutils import get_config_int, get_config_bool
 
@@ -13,10 +10,10 @@ class Photos(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        channel = message.guild.get_channel(get_config_int('CHANNELS', 'photography'))
+        """photpraphy channel new post routing"""
 
         # ignore if message is not in photography channel
-        if message.channel.id != channel.id:
+        if message.channel.id != get_config_int('CHANNELS', 'photography'):
             return
 
         elif message.author == self.bot.user:  # ignores message if message is by bot
