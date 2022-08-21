@@ -175,23 +175,15 @@ class BanAppeals(commands.Cog):
             id_name = interaction.data["custom_id"]
             id_extra = None
 
-        if id_name == "ban-appeal-open":
-            await interaction.response.send_modal(BanAppealForm())
-        elif id_name == "ban-appeal-accept":
-            if await permcheck(interaction, is_dark_mod):
-                await interaction.response.send_modal(BanAppealAccept(int(id_extra)))
-        elif id_name == "ban-appeal-reject":
-            if await permcheck(interaction, is_dark_mod):
-                await interaction.response.send_modal(BanAppealRejection(int(id_extra)))
-        # match id_name:
-        #    case "ban-appeal-open":
-        #        await interaction.response.send_modal(BanAppealForm())
-        #    case "ban-appeal-accept":
-        #        if await permcheck(interaction, is_dark_mod):
-        #            await interaction.response.send_modal(BanAppealAccept())
-        #    case "ban-appael-reject":
-        #        if await permcheck(interaction, is_dark_mod):
-        #            await interaction.response.send_modal(BanAppealRejection())
+        match id_name:
+            case "ban-appeal-open":
+                await interaction.response.send_modal(BanAppealForm())
+            case "ban-appeal-accept":
+                if await permcheck(interaction, is_dark_mod):
+                    await interaction.response.send_modal(BanAppealAccept(int(id_extra)))
+            case "ban-appael-reject":
+                if await permcheck(interaction, is_dark_mod):
+                    await interaction.response.send_modal(BanAppealRejection(int(id_extra)))
 
 
 def setup(bot):
