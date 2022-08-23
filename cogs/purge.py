@@ -1,10 +1,12 @@
 import nextcord
 import re
+import io
 from nextcord.ext import commands
 from datetime import timedelta
 
 from configutils import get_config, get_config_int
 from permutils import permcheck, is_mod, is_senior_mod
+from chat_exporter import raw_export
 
 
 class Purge(commands.Cog):
@@ -51,6 +53,20 @@ class Purge(commands.Cog):
         # await asyncio.sleep(2)
         # async for entry in ctx.guild.audit_logs(limit=1, action=nextcord.AuditLogAction.message_bulk_delete):
         #     deletion_count = entry.extra['count']
+
+        transcript = await raw_export(
+            channel=ctx.channel,
+            messages=deleted_msgs,
+            military_time=True
+        )
+
+        if transcript is None:
+            return
+        transcript_file = nextcord.File(
+            io.BytesIO(transcript.encode()),
+            filename=f"purge-{ctx.channel.name}.html",
+        )
+
         deletion_count = len(deleted_msgs) - 1
 
         logging = nextcord.Embed(
@@ -68,7 +84,7 @@ class Purge(commands.Cog):
         await channel.send(embed=logging)
 
         channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'modlogs'))
-        await channel.send(embed=logging)
+        await channel.send(embed=logging, file=transcript_file)
 
     @commands.command(aliases=['tp', 'timedpurge'])
     @commands.cooldown(1, 900, commands.BucketType.user)
@@ -109,6 +125,20 @@ class Purge(commands.Cog):
         # await asyncio.sleep(2)
         # async for entry in ctx.guild.audit_logs(limit=1, action=nextcord.AuditLogAction.message_bulk_delete):
         #     deletion_count = entry.extra['count']
+
+        transcript = await raw_export(
+            channel=ctx.channel,
+            messages=deleted_msgs,
+            military_time=True
+        )
+
+        if transcript is None:
+            return
+        transcript_file = nextcord.File(
+            io.BytesIO(transcript.encode()),
+            filename=f"purge-{ctx.channel.name}.html",
+        )
+
         deletion_count = len(deleted_msgs) - 1
 
         logging = nextcord.Embed(
@@ -126,7 +156,7 @@ class Purge(commands.Cog):
         await channel.send(embed=logging)
 
         channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'modlogs'))
-        await channel.send(embed=logging)
+        await channel.send(embed=logging, file=transcript_file)
 
     @commands.command(aliases=['pu', 'purgeuntil'])
     async def purge_until(self, ctx, message_id=None):
@@ -150,6 +180,20 @@ class Purge(commands.Cog):
         # await asyncio.sleep(2)
         # async for entry in ctx.guild.audit_logs(limit=1, action=nextcord.AuditLogAction.message_bulk_delete):
         #     deletion_count = entry.extra['count']
+
+        transcript = await raw_export(
+            channel=ctx.channel,
+            messages=deleted_msgs,
+            military_time=True
+        )
+
+        if transcript is None:
+            return
+        transcript_file = nextcord.File(
+            io.BytesIO(transcript.encode()),
+            filename=f"purge-{ctx.channel.name}.html",
+        )
+
         deletion_count = len(deleted_msgs) - 1
 
         logging = nextcord.Embed(
@@ -165,7 +209,7 @@ class Purge(commands.Cog):
         await channel.send(embed=logging)
 
         channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'modlogs'))
-        await channel.send(embed=logging)
+        await channel.send(embed=logging, file=transcript_file)
 
 
 def setup(bot):
