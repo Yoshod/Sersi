@@ -173,9 +173,11 @@ class Reformation(commands.Cog):
             await member.remove_roles(interaction.guild.get_role(get_config_int('ROLES', 'reformation')), reason="Released out of the Reformation Centre", atomic=True)
 
             # logs
+            yes_list = '\n• '.join(yes_men)
+
             log_embed = nextcord.Embed(
                 title=f"Successful Reformation: **{member.name}** ({member.id})",
-                description=f"Reformation Member {member.name} was deemed well enough to be considered reformed.\nThis has been approved by {', '.join(yes_men)}.",
+                description=f"Reformation Member {member.name} was deemed well enough to be considered reformed.\nThis has been approved by {yes_list}.",
                 color=nextcord.Color.from_rgb(237, 91, 6))
             channel = self.bot.get_channel(get_config_int('CHANNELS', 'modlogs'))
             await channel.send(embed=log_embed)
@@ -283,9 +285,11 @@ class Reformation(commands.Cog):
 
             await room_channel.delete()
 
+            yes_list = '\n• '.join(yes_men)
+
             embed = nextcord.Embed(
                 title="Reformation Failed",
-                description=f"Reformation Inmate {member.name} has been deemed unreformable by {', '.join(yes_men)}\n\nInitial reason for Reformation was: `{reason}`. They have been banned automatically.",
+                description=f"Reformation Inmate {member.name} has been deemed unreformable by\n\n{yes_list}\n\nInitial reason for Reformation was: `{reason}`. They have been banned automatically.",
                 color=nextcord.Color.from_rgb(0, 0, 0))
 
             channel = self.bot.get_channel(get_config_int('CHANNELS', 'alert'))
