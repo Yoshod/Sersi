@@ -502,7 +502,27 @@ class Reformation(commands.Cog):
                         title=f"Reformation inmate **{member}** ({member.id}) banned!",
                         colour=nextcord.Color.from_rgb(237, 91, 6))
                     embed.add_field(name="Reason:", value=ban.reason)
-                    await channel.send(embed=embed)
+
+                    # transript
+                    with open("Files/Reformation/reformationcases.pkl", "rb") as file:
+                        reformation_list = pickle.load(file)
+                    room_channel_name = reformation_list[member.id][0]
+                    room_channel = nextcord.utils.get(member.guild.channels, name=room_channel_name)
+
+                    transcript = await export(room_channel, military_time=True)
+
+                    if transcript is None:
+                        channel = member.guild.get_channel(get_config_int('CHANNELS', 'teachers'))
+                        await channel.send(f"{self.sersifail} Failed to Generate Transcript!")
+                    else:
+                        transcript_file = nextcord.File(
+                            io.BytesIO(transcript.encode()),
+                            filename=f"transcript-{room_channel_name}.html",
+                        )
+
+                    await room_channel.delete()
+                    channel = member.guild.get_channel(get_config_int('CHANNELS', 'teachers'))
+                    await channel.send(embed=embed, file=transcript_file)
 
                     return
 
@@ -514,7 +534,27 @@ class Reformation(commands.Cog):
                 title=f"User **{member}** ({member.id}) has left the server while in the reformation centre!",
                 description=f"User has left the server while having the <@&{get_config_int('ROLES', 'reformation')}> role. They have been banned automatically.",
                 colour=nextcord.Color.from_rgb(237, 91, 6))
-            await channel.send(embed=embed)
+
+            # transript
+            with open("Files/Reformation/reformationcases.pkl", "rb") as file:
+                reformation_list = pickle.load(file)
+            room_channel_name = reformation_list[member.id][0]
+            room_channel = nextcord.utils.get(member.guild.channels, name=room_channel_name)
+
+            transcript = await export(room_channel, military_time=True)
+
+            if transcript is None:
+                channel = member.guild.get_channel(get_config_int('CHANNELS', 'teachers'))
+                await channel.send(f"{self.sersifail} Failed to Generate Transcript!")
+            else:
+                transcript_file = nextcord.File(
+                    io.BytesIO(transcript.encode()),
+                    filename=f"transcript-{room_channel_name}.html",
+                )
+
+            await room_channel.delete()
+            channel = member.guild.get_channel(get_config_int('CHANNELS', 'teachers'))
+            await channel.send(embed=embed, file=transcript_file)
 
 
 class ReasonModal(nextcord.ui.Modal):
