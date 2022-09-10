@@ -151,7 +151,10 @@ class BanAppeals(commands.Cog):
     @commands.command()
     async def appeal(self, ctx):
         print(ctx.author.id)
-        if not await permcheck(ctx, is_dark_mod):
+        if ctx.author.id == 261870562798731266 or ctx.author.id == 348142492245426176:
+            pass
+
+        else:
             return
 
         await ctx.message.delete()
