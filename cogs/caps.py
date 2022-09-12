@@ -76,7 +76,7 @@ class Caps(commands.Cog):
             if percentage > 0.7:
                 # await replace(self, message, message.author, msg_string)
                 await message.delete(delay=None)
-                if message.mention_everyone:
+                if message.mention_everyone or "@everyone" in msg_string.content.lower:
                     return
 
                 replacement_message = await send_webhook_message(
