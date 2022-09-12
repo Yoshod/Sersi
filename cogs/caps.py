@@ -56,7 +56,7 @@ class Caps(commands.Cog):
     # events
     @commands.Cog.listener()
     async def on_message(self, message):
-        msg_string = message.content
+        msg_string = message.clean_content
         new_msg_string = re.sub(r'(<a?)?:\w+:(\d{18}>)?', '', msg_string)
 
         new_msg_string = re.sub(r'[^a-zA-Z]', '', new_msg_string)
@@ -76,7 +76,7 @@ class Caps(commands.Cog):
             if percentage > 0.7:
                 # await replace(self, message, message.author, msg_string)
                 await message.delete(delay=None)
-                if message.mention_everyone or "@everyone" in msg_string.content.lower:
+                if message.mention_everyone:
                     return
 
                 replacement_message = await send_webhook_message(
@@ -84,7 +84,8 @@ class Caps(commands.Cog):
                     content=msg_string.lower(),
                     username=message.author.display_name,
                     avatar_url=message.author.display_avatar.url,
-                    wait=True)
+                    wait=True,
+                    allowed_mentions=nextcord.AllowedMentions(everyone=False))
 
                 channel = self.bot.get_channel(get_config_int('CHANNELS', 'logging'))
                 logging_embed = nextcord.Embed(
