@@ -117,8 +117,8 @@ class InternalFeedback(commands.Cog):
         await ctx.message.delete()
 
         feedback_embed = nextcord.Embed(
-            title="Submit Appeal",
-            description="Click Button below to submit your ban appeal.",
+            title="Submit Feedback",
+            description="Select one of the buttons below to submit your feedback.",
             colour=nextcord.Color.from_rgb(237, 91, 6))
         feedback = Button(custom_id="internal-feedback", label="Give Feedback", style=nextcord.ButtonStyle.blurple)
         anon_feedback = Button(custom_id="internal-feedback-anon", label="Give Feedback Anonymously", style=nextcord.ButtonStyle.blurple)
