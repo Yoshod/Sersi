@@ -184,7 +184,7 @@ class BanAppeals(commands.Cog):
             case "ban-appeal-accept":
                 if await permcheck(interaction, is_dark_mod):
                     await interaction.response.send_modal(BanAppealAccept(int(id_extra)))
-            case "ban-appael-reject":
+            case "ban-appeal-reject":
                 if await permcheck(interaction, is_dark_mod):
                     await interaction.response.send_modal(BanAppealRejection(int(id_extra)))
 
