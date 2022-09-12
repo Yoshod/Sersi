@@ -128,7 +128,7 @@ class ModPing(commands.Cog):
 
         # elif "<@809891646606409779>" in message.content:   # adam something ping
 
-        elif adam_something is not None and adam_something.mentioned_in(message):  # adam something ping
+        elif adam_something is not None and adam_something.mentioned_in(message) and not message.mention_everyone:  # adam something ping
 
             # notification for mods
             channel = self.bot.get_channel(get_config_int('CHANNELS', 'alert'))
