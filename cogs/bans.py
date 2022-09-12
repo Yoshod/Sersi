@@ -20,12 +20,6 @@ class BanAppealRejection(nextcord.ui.Modal):
 
     async def callback(self, interaction):
         user = interaction.client.get_user(self.userID)
-        rejected_embed = nextcord.Embed(
-            title="Your Ban Appeal Was Rejected",
-            colour=nextcord.Colour.from_rgb(237, 91, 6))
-        rejected_embed.add_field(name="Reason:", value=self.reason.value, inline=False)
-        rejected_embed.add_field(name="Wait Time:", value="You may reapply in 28 days.", inline=False)
-        await user.send(embed=rejected_embed)
 
         updated_form = interaction.message.embeds[0]
         updated_form.add_field(name="Rejected by:", value=interaction.user.mention, inline=False)
@@ -41,6 +35,16 @@ class BanAppealRejection(nextcord.ui.Modal):
         channel = interaction.client.get_channel(get_config_int('CHANNELS', 'modlogs'))
         await channel.send(embed=log_embed)
 
+        rejected_embed = nextcord.Embed(
+            title="Your Ban Appeal Was Rejected",
+            colour=nextcord.Colour.from_rgb(237, 91, 6))
+        rejected_embed.add_field(name="Reason:", value=self.reason.value, inline=False)
+        rejected_embed.add_field(name="Wait Time:", value="You may reapply in 28 days.", inline=False)
+        try:
+            await user.send(embed=rejected_embed)
+        except nextcord.Forbidden:
+            sersifail = get_config('EMOTES', "fail")
+            await interaction.response.send_message(f"{sersifail} Cannot message the user, likely left the appeals server or has closed DMs", ephemeral=True)
 
 class BanAppealAccept(nextcord.ui.Modal):
     def __init__(self, userID: int):
@@ -57,12 +61,6 @@ class BanAppealAccept(nextcord.ui.Modal):
 
     async def callback(self, interaction):
         user = interaction.client.get_user(self.userID)
-        unban_embed = nextcord.Embed(
-            title="You Have Been Unbanned",
-            colour=nextcord.Colour.from_rgb(237, 91, 6))
-        unban_embed.add_field(name="Reason:", value=self.reason.value, inline=False)
-        unban_embed.add_field(name="Rejoin URL:", value=get_config('INVITES', 'banappeals'), inline=False)
-        await user.send(embed=unban_embed)
 
         try:
             await interaction.guild.unban(user, reason=f"{interaction.user.name} gave reason {self.reason.value}")
@@ -83,6 +81,17 @@ class BanAppealAccept(nextcord.ui.Modal):
 
         channel = interaction.client.get_channel(get_config_int('CHANNELS', 'modlogs'))
         await channel.send(embed=log_embed)
+
+        unban_embed = nextcord.Embed(
+            title="You Have Been Unbanned",
+            colour=nextcord.Colour.from_rgb(237, 91, 6))
+        unban_embed.add_field(name="Reason:", value=self.reason.value, inline=False)
+        unban_embed.add_field(name="Rejoin URL:", value=get_config('INVITES', 'banappeals'), inline=False)
+        try:
+            await user.send(embed=unban_embed)
+        except nextcord.Forbidden:
+            sersifail = get_config('EMOTES', "fail")
+            await interaction.response.send_message(f"{sersifail} Cannot message the user, likely left the appeals server or has closed DMs", ephemeral=True)
 
 
 class BanAppealForm(nextcord.ui.Modal):
