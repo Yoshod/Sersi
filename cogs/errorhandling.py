@@ -28,6 +28,12 @@ class ErrorHandling(commands.Cog):
             await ctx.send(f"{sersifail} Please provide an argument to use this command.")
             return
 
+        elif isinstance(error, commands.CommandOnCooldown):
+            sersifail = get_config('EMOTES', "fail")
+            channel = ctx.channel.id
+            await ctx.send(f"{sersifail} You are using this command too quickly. Please wait {round(error.retry_after, 2)}s before trying again.")
+            return
+
         channel = self.error_guild.get_channel(get_config_int('CHANNELS', 'errors'))
         if channel is None:
             await ctx.send(f"Error while executing command: `{error}`")
