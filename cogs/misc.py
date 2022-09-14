@@ -14,6 +14,7 @@ class Misc(commands.Cog):
             url="https://dontasktoask.com",
             description="Don't ask permission to ask a question, just ask the question.\nhttps://dontasktoask.com",
             colour=nextcord.Color.from_rgb(237, 91, 6))
+        ask_embed.set_thumbnail("https://dontasktoask.com/favicon.png")
         await ctx.send(embed=ask_embed)
 
 
