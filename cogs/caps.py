@@ -56,28 +56,26 @@ class Caps(commands.Cog):
     # events
     @commands.Cog.listener()
     async def on_message(self, message):
-        msg_string = message.clean_content
+        msg_string = message.content
+
+        # remove emotes
         new_msg_string = re.sub(r'(<a?)?:\w+:(\d{18}>)?', '', msg_string)
 
+        # remove nums and non-alpanumeric
         new_msg_string = re.sub(r'[^a-zA-Z]', '', new_msg_string)
 
         if len(new_msg_string) > self.MIN_CHARS_FOR_DETECTION:
-            # remove nums and non-alpanumeric
             # msg_string = unidecode.unidecode(msg_string)
 
-            # remove emotes
             uppercase = sum(1 for char in new_msg_string if char.isupper())
-
-            if len(new_msg_string) == 0:
-                return
 
             percentage = uppercase / len(new_msg_string)
 
             if percentage > 0.7:
                 # await replace(self, message, message.author, msg_string)
                 await message.delete(delay=None)
-                if message.mention_everyone:
-                    return
+                # if message.mention_everyone:
+                #     return
 
                 replacement_message = await send_webhook_message(
                     channel=message.channel,
@@ -85,7 +83,7 @@ class Caps(commands.Cog):
                     username=message.author.display_name,
                     avatar_url=message.author.display_avatar.url,
                     wait=True,
-                    allowed_mentions=nextcord.AllowedMentions(everyone=False))
+                    allowed_mentions=nextcord.AllowedMentions.none())
 
                 channel = self.bot.get_channel(get_config_int('CHANNELS', 'logging'))
                 logging_embed = nextcord.Embed(
