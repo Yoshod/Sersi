@@ -1,7 +1,7 @@
 import nextcord
 
 
-async def send_webhook_message(channel: nextcord.abc.GuildChannel = None, **kwargs):
+async def send_webhook_message(channel: nextcord.abc.GuildChannel, **kwargs):
     channel_webhooks = await channel.webhooks()
     msg_sent = False
 
