@@ -4,8 +4,8 @@ import time
 
 from baseutils import get_page
 
-CASE_DETAILS_FILE = ("Files/Cases/casedetails.pkl")
-CASE_HISTORY_FILE = ("Files/Cases/casehistory.pkl")
+CASE_DETAILS_FILE = "Files/Cases/casedetails.pkl"
+CASE_HISTORY_FILE = "Files/Cases/casehistory.pkl"
 
 
 def reform_case(unique_id, case_num, target_id, moderator_id, case_channel_id, reason):

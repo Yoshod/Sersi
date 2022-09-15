@@ -2,16 +2,17 @@ import nextcord
 from nextcord.ext import commands
 
 from baseutils import ConfirmView, DualCustodyView
-from configutils import get_config, get_config_int
+from configutils import Configuration
 from permutils import permcheck, is_mod, is_full_mod
 from caseutils import case_history, probation_case
 
 
 class Probation(commands.Cog):
-    def __init__(self, bot):
-        self.sersisuccess = get_config('EMOTES', 'success')
-        self.sersifail = get_config('EMOTES', 'fail')
+    def __init__(self, bot: nextcord.Client, config: Configuration):
         self.bot = bot
+        self.config = config
+        self.sersisuccess = config.emotes.success
+        self.sersifail = config.emotes.fail
 
     async def cb_addprob_confirm(self, interaction):
         member_id, mod_id, reason = 0, 0, ""
@@ -25,7 +26,7 @@ class Probation(commands.Cog):
         member = interaction.guild.get_member(member_id)
         moderator = interaction.guild.get_member(mod_id)
 
-        probation_role = interaction.guild.get_role(get_config_int('ROLES', 'probation'))
+        probation_role = interaction.guild.get_role(self.config.roles.probation)
         await member.add_roles(probation_role, reason=reason, atomic=True)
 
         confirmation_embed = nextcord.Embed(
@@ -43,10 +44,10 @@ class Probation(commands.Cog):
         log_embed.add_field(name="Member:", value=member.mention, inline=False)
         log_embed.add_field(name="Reason:", value=reason, inline=False)
 
-        log_channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'logging'))
+        log_channel = interaction.guild.get_channel(self.config.channels.logging)
         await log_channel.send(embed=log_embed)
 
-        log_channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'modlogs'))
+        log_channel = interaction.guild.get_channel(self.config.channels.modlogs)
         await log_channel.send(embed=log_embed)
 
         unique_id = case_history(member.id, "Probation")
@@ -78,21 +79,18 @@ class Probation(commands.Cog):
         dialog_embed.add_field(name="Moderator", value=interaction.user.mention)
         dialog_embed.add_field(name="Moderator ID", value=interaction.user.id)
 
-        channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'alert'))
+        channel = interaction.guild.get_channel(self.config.channels.alert)
         view = DualCustodyView(self.cb_addprob_confirm, interaction.user, is_full_mod)
         await view.send_dialogue(channel, embed=dialog_embed)
 
         await interaction.message.edit(f"Putting {member.mention} into probation was sent for approval by another moderator", embed=None, view=None)
 
     @commands.command(aliases=['addp', 'addprob', 'pn'])
-    async def addprobation(self, ctx, member: nextcord.Member, *, reason):
+    async def addprobation(self, ctx, member: nextcord.Member, *, reason="not specified"):
         if not await permcheck(ctx, is_mod):
             return
 
-        probation_role = ctx.guild.get_role(get_config_int('ROLES', 'probation'))
-
-        if reason == "":
-            reason = "not specified"
+        probation_role = ctx.guild.get_role(self.config.roles.probation)
 
         if probation_role in member.roles:
             await ctx.reply(f"{self.sersifail} member is already in probation")
@@ -119,7 +117,7 @@ class Probation(commands.Cog):
         member = interaction.guild.get_member(member_id)
         moderator = interaction.guild.get_member(mod_id)
 
-        probation_role = interaction.guild.get_role(get_config_int('ROLES', 'probation'))
+        probation_role = interaction.guild.get_role(self.config.roles.probation)
         await member.remove_roles(probation_role, reason=reason, atomic=True)
 
         confirmation_embed = nextcord.Embed(
@@ -137,10 +135,10 @@ class Probation(commands.Cog):
         log_embed.add_field(name="Member:", value=member.mention, inline=False)
         log_embed.add_field(name="Reason:", value=reason, inline=False)
 
-        log_channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'logging'))
+        log_channel = interaction.guild.get_channel(self.config.channels.logging)
         await log_channel.send(embed=log_embed)
 
-        log_channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'modlogs'))
+        log_channel = interaction.guild.get_channel(self.config.channels.modlogs)
         await log_channel.send(embed=log_embed)
 
         dm_embed = nextcord.Embed(
@@ -169,7 +167,7 @@ class Probation(commands.Cog):
         dialog_embed.add_field(name="Moderator", value=interaction.user.mention)
         dialog_embed.add_field(name="Moderator ID", value=interaction.user.id)
 
-        channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'alert'))
+        channel = interaction.guild.get_channel(self.config.channels.alert)
         view = DualCustodyView(self.cb_rmprob_confirm, interaction.user, is_full_mod)
         await view.send_dialogue(channel, embed=dialog_embed)
 
@@ -180,7 +178,7 @@ class Probation(commands.Cog):
         if not await permcheck(ctx, is_mod):
             return
 
-        probation_role = ctx.guild.get_role(get_config_int('ROLES', 'probation'))
+        probation_role = ctx.guild.get_role(self.config.roles.probation)
 
         if probation_role not in member.roles:
             await ctx.reply("Error: cannot remove user from probation, member is currently not in probation")
@@ -196,5 +194,5 @@ class Probation(commands.Cog):
             await ConfirmView(self.cb_rmprob_proceed).send_as_reply(ctx, embed=dialog_embed)
 
 
-def setup(bot):
-    bot.add_cog(Probation(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(Probation(bot, kwargs["config"]))

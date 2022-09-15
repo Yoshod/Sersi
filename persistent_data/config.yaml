@@ -1,0 +1,71 @@
+# Default configuration; no IDs nor a token have been set.
+
+token:    "OTc3Mzc2NzQ5NTQzMzg3MTM3.GRK9O-.J6pzhJK0p_Wni65LB3PoNoaQgL-ThnDTvijZ8k"
+
+database:    "Sersi.db"
+port:        8113         # 8074 for live, 8113 for unstable
+author_list: "authors.md"
+
+prefix:   "s!"
+status: "melanie did this"
+
+cogs:
+    disabled:
+
+channels:
+    alert:             977377171054166037
+    logging:           977925156330672198
+    false positives:   978079399066882059
+    mod_logs:          978346814904336484
+    reformation:       984879845727150100
+    reformation_info: 1004289125509238915
+    dm_forward:        982057670594928660
+    errors:            987397664280817754
+    secret:            982057670594928660
+    teachers_lounge:   988931699268280350
+    reform public log: 988937445481512980
+    ban appeals:       991390873239683202
+    photography:       0
+    youtube:           0
+
+roles:
+    reformation:                978334782968721468
+    reformed:                   878289678623703080
+    probation:                  984195306038124558
+    never_mod:                  878045315784114216
+    civil_engineering_initiate: 878040658244403253
+    newbie:                     938465528043954267
+
+opt_ins:
+    gaming:         0
+    tech_compsci:   0
+    food_and_drink: 0
+    education:      0
+    art:            0
+    anime:          0
+    furry:          0
+    models:         0
+    shillposting:   0
+    music:          0
+    photography:    0
+
+permission_roles:
+    staff:             978678150789754890
+    reformist:         943193811574751314
+    ticket_support:    0
+    sersi_contributor: 978677753945657356
+    trial_moderator:   0
+    moderator:         977394150494326855
+    senior_moderator:  963537133589643304
+    dark_moderator:    978681533453971526
+
+emotes:
+    success: "<:sersisuccess:979066662856822844>"
+    fail:    "<:sersifail:979070135799279698>"
+
+invites:
+    adam_something_ban_reinvite:       "https://discord.gg/F6vMRTbuFk"
+    ban_appeal_server:    "https://discord.gg/dGpvCbrBRA"
+
+guilds:
+    main: 0

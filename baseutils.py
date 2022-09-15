@@ -1,9 +1,11 @@
 import nextcord
-from configutils import get_config_int, get_config
+import configutils
 from nextcord.ui import View, Button
 import re
 
 from permutils import permcheck
+
+config = configutils.Configuration.from_yaml_file("./persistent_data/config.yaml")
 
 
 def sanitize_mention(string: str) -> str:
@@ -16,9 +18,9 @@ async def ban(member: nextcord.Member, kind, reason):
         colour=nextcord.Color.from_rgb(237, 91, 6))
 
     if kind == "rf":
-        goodbye_embed.description = f"You have been deemed to have failed reformation. As a result, you have been banned from {member.guild.name}\n\nIf you wish to appeal your ban, please join the ban appeal server:\n{get_config('INVITES', 'appeal server')}"
+        goodbye_embed.description = f"You have been deemed to have failed reformation. As a result, you have been banned from {member.guild.name}\n\nIf you wish to appeal your ban, please join the ban appeal server:\n{config.invites.ban_appeal_server}"
     elif kind == "leave":
-        goodbye_embed.description = f"You have left {member.guild.name} whilst in Reformation, as a result you have been banned\n\nIf you wish to appeal your ban, please join the ban appeal server:\n{get_config('INVITES', 'appeal server')}"
+        goodbye_embed.description = f"You have left {member.guild.name} whilst in Reformation, as a result you have been banned\n\nIf you wish to appeal your ban, please join the ban appeal server:\n{config.invites.ban_appeal_server}"
 
     await member.send(embed=goodbye_embed)
 
@@ -27,10 +29,10 @@ async def ban(member: nextcord.Member, kind, reason):
 
 def modmention_check(messageData):
     modmentions = [
-        f"<@&{get_config_int('PERMISSION ROLES', 'trial moderator')}>",
-        f"<@&{get_config_int('PERMISSION ROLES', 'moderator')}>",
-        f"<@&{get_config_int('PERMISSION ROLES', 'senior moderator')}>",
-        f"<@&{get_config_int('PERMISSION ROLES', 'dark moderator')}>"
+        f"<@&{config.permission_roles.trial_moderator}>",
+        f"<@&{config.permission_roles.moderator}>",
+        f"<@&{config.permission_roles.senior_moderator}>",
+        f"<@&{config.permission_roles.dark_moderator}>"
     ]
 
     for modmention in modmentions:
