@@ -83,12 +83,6 @@ class ConfigurationRoles(YAMLWizard):
 
 
 @dataclass
-class ConfigurationCogs(YAMLWizard):
-    # A list of cogs that should not be loaded.
-    disabled: list[str] | None
-
-
-@dataclass
 class ConfigurationChannels(YAMLWizard):
     # Receives alerts regarding moderation pings and slurs.
     alert: int
@@ -145,9 +139,6 @@ class Configuration(YAMLWizard):
 
     # The game displayed as what the bot is playing.
     status: str
-
-    # Configuration related to cogs.
-    cogs: ConfigurationCogs
 
     # Configuration related to roles.
     roles: ConfigurationRoles

@@ -13,6 +13,7 @@ from permutils import permcheck, is_sersi_contrib
 bot = commands.Bot(intents=nextcord.Intents.all())
 start_time = time.time()
 config = configutils.Configuration.from_yaml_file("./persistent_data/config.yaml")
+root_folder = os.path.dirname(os.path.realpath(__file__))
 
 
 ### COGS ###
@@ -26,7 +27,7 @@ async def load(ctx, extension):
     Permission needed: Sersi contributor"""
     if await permcheck(ctx, is_sersi_contrib):
         try:
-            bot.load_extension(f"cogs.{extension}")
+            bot.load_extension(f"cogs.{extension}", extras={"config": config, "data_folder": f"{root_folder}/persistent_data"})
             await ctx.reply(f"Cog {extension} loaded.")
         except commands.errors.ExtensionNotFound:
             await ctx.reply("Cog not found.")
@@ -63,13 +64,13 @@ async def reload(ctx, extension):
     if await permcheck(ctx, is_sersi_contrib):
         try:
             bot.unload_extension(f"cogs.{extension}")
-            bot.load_extension(f"cogs.{extension}")
+            bot.load_extension(f"cogs.{extension}", extras={"config": config, "data_folder": f"{root_folder}/persistent_data"})
             await ctx.reply(f"Cog {extension} reloaded.")
         except commands.errors.ExtensionNotFound:
             await ctx.reply("Cog not found.")
         except commands.errors.ExtensionNotLoaded:
             try:
-                bot.load_extension(f"cogs.{extension}")
+                bot.load_extension(f"cogs.{extension}", extras={"config": config, "data_folder": f"{root_folder}/persistent_data"})
                 await ctx.reply(f"Cog {extension} loaded.")
             except commands.errors.ExtensionNotFound:
                 await ctx.reply("Cog not found.")
@@ -104,13 +105,10 @@ async def on_message_edit(before, after):
 
 @bot.event
 async def on_ready():
-
-    root_folder = os.path.dirname(os.path.realpath(__file__))
-
     # load all cogs
     for filename in os.listdir('./cogs'):
         if filename.endswith('.py'):
-            bot.load_extension(f"cogs.{filename[:-3]}", extras={"config": config, "start_time": start_time, "data_folder": f"{root_folder}/persistent_data"})
+            bot.load_extension(f"cogs.{filename[:-3]}", extras={"config": config, "data_folder": f"{root_folder}/persistent_data"})
             print(f"Cog {filename[:-3]} loaded.")
 
     # files = [f for f in os.listdir('.') if os.path.isfile(f)] #unused

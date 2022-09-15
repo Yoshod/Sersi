@@ -1,11 +1,12 @@
 # Default configuration; no IDs nor a token have been set.
 
-database:    "Sersi.db"
-port:        8113         # 8074 for live, 8113 for unstable
-author_list: "authors.md"
+datafiles:
+    author_list:    "authors.md"
+    keyfile:        "Files/AnonMessages/key.bin"       
 
-prefix:   "s!"
-status: "melanie did this"
+bot:
+    prefix: "s!"
+    status: "melanie did this"
 
 cogs:
     disabled:
@@ -62,8 +63,8 @@ emotes:
     fail:    "<:sersifail:979070135799279698>"
 
 invites:
-    adam_something_ban_reinvite:       "https://discord.gg/F6vMRTbuFk"
-    ban_appeal_server:    "https://discord.gg/dGpvCbrBRA"
+    adam_something_ban_reinvite:        "https://discord.gg/F6vMRTbuFk"
+    ban_appeal_server:                  "https://discord.gg/dGpvCbrBRA"
 
 guilds:
     main: 0
