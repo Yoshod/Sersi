@@ -373,7 +373,7 @@ class Moderators(commands.Cog):
             title="Moderator Application",
             description="Press the button below to apply to become a moderator on Adam Something Central.",
             colour=nextcord.Color.from_rgb(237, 91, 6))
-        open_modal = Button(label="Open Form", style=nextcord.ButtonStyle.blurple)
+        open_modal = Button(custom_id="mod-application-start", label="Open Form", style=nextcord.ButtonStyle.blurple)
         open_modal.callback = self.cb_open_mod_modal
 
         button_view = View(timeout=None)
@@ -453,6 +453,9 @@ class Moderators(commands.Cog):
                         description="Your moderator application has been received and is now under consideration. You will receive more information in the coming days.",
                         colour=nextcord.Color.from_rgb(237, 91, 6))
                     await user.send(embed=review_embed)
+
+            case "mod-application-start":
+                await interaction.response.send_modal(ModAppModal())
 
 
 def setup(bot):
