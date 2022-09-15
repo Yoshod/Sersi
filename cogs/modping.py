@@ -84,7 +84,7 @@ class ModPing(commands.Cog):
         if message.author.bot:  # ignores message if message is by bot
             return
 
-        elif message.channel.category.name in ["Important Stuff", "Administration Centre", "The Staff Zone"]:  # ignores certain channels on ASC, given by Juniper
+        elif message.channel.category.name in ["Important stuff", "Administration Centre", "The Staff Zone"]:  # ignores certain channels on ASC, given by Juniper
             return
 
         elif modmention_check(message.content):
