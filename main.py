@@ -3,6 +3,7 @@ import os
 import sys
 import datetime
 import time
+import discordTokens
 
 from nextcord.ext import commands
 
@@ -136,4 +137,4 @@ async def on_message(message):
     await bot.process_commands(message)
 
 token = config.token
-bot.run(token)
+bot.run(discordTokens.getToken())

@@ -1,7 +1,5 @@
 # Default configuration; no IDs nor a token have been set.
 
-token:    "OTc3Mzc2NzQ5NTQzMzg3MTM3.GRK9O-.J6pzhJK0p_Wni65LB3PoNoaQgL-ThnDTvijZ8k"
-
 database:    "Sersi.db"
 port:        8113         # 8074 for live, 8113 for unstable
 author_list: "authors.md"

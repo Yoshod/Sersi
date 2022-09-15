@@ -134,7 +134,6 @@ class ConfigurationChannels(YAMLWizard):
 @dataclass
 class Configuration(YAMLWizard):
     # The bot client token.
-    token: str
     prefix: str
 
     # The path, relative to the data folder, that contains the list of authors.
