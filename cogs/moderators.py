@@ -244,7 +244,10 @@ class Moderators(commands.Cog):
 
         for role in get_options('PERMISSION ROLES'):
             role_obj = interaction.guild.get_role(get_config_int('PERMISSION ROLES', role))
-            await member.remove_roles(role_obj, reason=reason, atomic=True)
+            try:
+                await member.remove_roles(role_obj, reason=reason, atomic=True)
+            except:
+                continue
 
         await interaction.message.edit(f"{self.sersisuccess} {member.mention} has been dishonourly discharged from the staff team. Good riddance!", embed=None, view=None)
         ctx = await self.bot.get_context(interaction.message)
@@ -318,7 +321,10 @@ class Moderators(commands.Cog):
 
         for role in get_options('PERMISSION ROLES'):
             role_obj = interaction.guild.get_role(get_config_int('PERMISSION ROLES', role))
-            await member.remove_roles(role_obj)
+            try:
+                await member.remove_roles(role_obj)
+            except:
+                continue
 
         honourable_member = interaction.guild.get_role(get_config_int('ROLES', 'honourable member'))
         await member.add_roles(honourable_member)

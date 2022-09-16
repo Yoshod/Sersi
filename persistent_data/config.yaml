@@ -1,15 +1,12 @@
 # Default configuration; no IDs nor a token have been set.
 
 datafiles:
-    author_list:    "authors.md"
-    keyfile:        "Files/AnonMessages/key.bin"       
+    author_list:    "files/about/authors.md"
+    keyfile:        "files/AnonMessages/key.bin"       
 
 bot:
     prefix: "s!"
     status: "melanie did this"
-
-cogs:
-    disabled:
 
 channels:
     alert:             977377171054166037
