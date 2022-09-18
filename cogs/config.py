@@ -18,8 +18,7 @@ class Config(commands.Cog):
 
     @commands.command()
     async def raw_conf(self, ctx):
-        if not is_staff(ctx.author) and not is_sersi_contrib(ctx.author):   # either is fine
-            await ctx.reply(f"{self.sersifail} Insufficient permission!")
+        if not permcheck(ctx, is_sersi_contrib):
             return
 
         with open(self.yaml_file, 'r') as file:

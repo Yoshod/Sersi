@@ -118,8 +118,8 @@ async def on_ready():
 
     print(f"We have logged in as {bot.user}")
 
-    bot.command_prefix = config.prefix
-    await bot.change_presence(activity=nextcord.Game(config.status))
+    bot.command_prefix = config.bot.prefix
+    await bot.change_presence(activity=nextcord.Game(config.bot.status))
 
 
 @bot.event
@@ -134,5 +134,5 @@ async def on_message(message):
 
     await bot.process_commands(message)
 
-token = config.token
+
 bot.run(discordTokens.getToken())

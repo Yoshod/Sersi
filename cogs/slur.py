@@ -4,7 +4,7 @@ from nextcord.ext import commands
 from nextcord.ui import Button, View
 
 from baseutils import DualCustodyView, PageView
-from configutils import get_config, get_config_int
+from configutils import Configuration
 from permutils import permcheck, is_mod, is_full_mod, cb_is_mod
 from slurdetector import load_slurdetector, load_slurs, load_goodwords, get_slurs, get_goodwords, clear_string, rm_slur, rm_goodword, detect_slur
 from caseutils import case_history, slur_case
@@ -12,11 +12,11 @@ from caseutils import case_history, slur_case
 
 class Slur(commands.Cog):
 
-    def __init__(self, bot):
+    def __init__(self, bot: nextcord.Client, config: Configuration):
         self.bot = bot
-        self.guild = bot.get_guild(get_config_int('GUILDS', 'main'))
-        self.sersisuccess = get_config('EMOTES', 'success')
-        self.sersifail = get_config('EMOTES', 'fail')
+        self.config = config
+        self.sersisuccess = config.emotes.success
+        self.sersifail = config.emotes.success
         load_slurdetector()
 
     async def cb_action_taken(self, interaction):
@@ -26,7 +26,7 @@ class Slur(commands.Cog):
         await interaction.message.edit(embed=new_embed, view=None)
 
         # Logging
-        channel = self.bot.get_channel(get_config_int('CHANNELS', 'logging'))
+        channel = self.bot.get_channel(self.config.channels.logging)
         embedLogVar = nextcord.Embed(
             title="Action Taken Pressed",
             description="Action has been taken by a moderator in response to a report.",
@@ -53,7 +53,7 @@ class Slur(commands.Cog):
         await interaction.message.edit(embed=new_embed, view=None)
 
         # Logging
-        channel = self.bot.get_channel(get_config_int('CHANNELS', 'logging'))
+        channel = self.bot.get_channel(self.config.channels.logging)
         embedLogVar = nextcord.Embed(
             title="Acceptable Use Pressed",
             description="Usage of a slur has been deemed acceptable by a moderator in response to a report.",
@@ -67,7 +67,7 @@ class Slur(commands.Cog):
         new_embed.add_field(name="Deemed As False Positive By:", value=interaction.user.mention, inline=False)
         new_embed.colour = nextcord.Colour.brand_red()
         await interaction.message.edit(embed=new_embed, view=None)
-        channel = self.bot.get_channel(get_config_int('CHANNELS', 'false positives'))
+        channel = self.bot.get_channel(self.config.channels.false_positives)
 
         embedVar = nextcord.Embed(
             title="Marked as false positive",
@@ -81,7 +81,7 @@ class Slur(commands.Cog):
         await channel.send(embed=embedVar)
 
         # Logging
-        channel = self.bot.get_channel(get_config_int('CHANNELS', 'logging'))
+        channel = self.bot.get_channel(self.config.channels.logging)
         embedLogVar = nextcord.Embed(
             title="False Positive Pressed",
             description="Detected slur has been deemed a false positive by a moderator in response to a report.",
@@ -116,13 +116,13 @@ class Slur(commands.Cog):
             return
 
         await ctx.send(f"Slur to be added: {slur}")
-        with open("Files/SlurAlerts/slurs.txt", "a") as file:
+        with open(self.config.datafiles.slurfile, "a") as file:
             file.write(slur)
             file.write("\n")
         load_slurs()    # reloads updated list into memory
 
         # logging
-        channel = self.bot.get_channel(get_config_int('CHANNELS', 'logging'))
+        channel = self.bot.get_channel(self.config.channels.logging)
         embedVar = nextcord.Embed(
             title="Slur Added",
             description="A new slur has been added to the filter.",
@@ -165,13 +165,14 @@ class Slur(commands.Cog):
                 return
 
         await ctx.send(f"Goodword to be added: {word}")
-        with open("Files/SlurAlerts/goodword.txt", "a") as file:
+
+        with open(self.config.datafiles.goodwordfile, "a") as file:
             file.write(word)
             file.write("\n")
         load_goodwords()    # reloads updated list into memory
 
         # logging
-        channel = self.bot.get_channel(get_config_int('CHANNELS', 'logging'))
+        channel = self.bot.get_channel(self.config.channels.logging)
         embedVar = nextcord.Embed(
             title="Goodword Added",
             description="A new goodword has been added to the filter.",
@@ -193,7 +194,7 @@ class Slur(commands.Cog):
         rm_slur(slur)
 
         # logging
-        channel = self.bot.get_channel(get_config_int('CHANNELS', 'logging'))
+        channel = self.bot.get_channel(self.config.channels.logging)
         embed_var = nextcord.Embed(
             title="Slur Removed",
             description="A slur has been removed from the filter.",
@@ -218,7 +219,7 @@ class Slur(commands.Cog):
         dialog_embed.add_field(name="Moderator", value=ctx.author.mention)
         dialog_embed.add_field(name="Moderator ID", value=ctx.author.id)
 
-        channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'alert'))
+        channel = self.bot.get_channel(self.config.channels.alert)
         view = DualCustodyView(self.cb_rmslur_confirm, ctx.author, is_full_mod)
         await view.send_dialogue(channel, embed=dialog_embed)
 
@@ -233,7 +234,7 @@ class Slur(commands.Cog):
         rm_goodword(word)
 
         # logging
-        channel = self.bot.get_channel(get_config_int('CHANNELS', 'logging'))
+        channel = self.bot.get_channel(self.config.channels.logging)
         embedVar = nextcord.Embed(
             title="Goodword Removed",
             description="A goodword has been removed from the filter.",
@@ -293,7 +294,7 @@ class Slur(commands.Cog):
             return
 
         elif len(detected_slurs) > 0:  # checks slur heat
-            channel = self.bot.get_channel(get_config_int('CHANNELS', 'alert'))
+            channel = self.bot.get_channel(self.config.channels.alert)
             slurembed = nextcord.Embed(
                 title="Slur(s) Detected",
                 description="A slur has been detected. Moderation action is advised.",
@@ -329,5 +330,5 @@ class Slur(commands.Cog):
             await channel.send(embed=slurembed, view=button_view)
 
 
-def setup(bot):
-    bot.add_cog(Slur(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(Slur(bot, kwargs["config"]))

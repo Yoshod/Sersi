@@ -3,18 +3,62 @@ from dataclass_wizard import YAMLWizard
 
 
 @dataclass
-class ConfigurationGuilds(YAMLWizard):
-    # The guild ID of the main server.
-    main: str
+class ConfigurationDatafiles(YAMLWizard):
+    author_list:    str
+    keyfile:        str
+    slurfile:       str
+    goodwordfile:   str
 
 
 @dataclass
-class ConfigurationInvites(YAMLWizard):
-    # The invite link to the support server.
-    adam_something_ban_reinvite: str
+class ConfigurationBot(YAMLWizard):
+    prefix: str
+    status: str
 
-    # The invite link to the ban appealing server.
-    ban_appeal_server: str
+
+@dataclass
+class ConfigurationChannels(YAMLWizard):
+
+    # moderator sided channels
+    alert: int  # Receives alerts regarding moderation pings and slurs.
+    logging: int
+    false_positives: int
+    mod_logs: int
+    ban_appeals: int
+    dm_forward: int
+
+    # debugging channels
+    errors: int
+
+    # user sided channels
+    secret: int
+    photography: int
+    youtube: int
+
+    # reformation related channels
+    reformation_info: int
+    teachers_lounge: int
+    reform_public_log: int
+
+
+@dataclass
+class ConfigurationRoles(YAMLWizard):
+
+    # reformation roles
+    reformation: int
+    reformed: int
+
+    # The role assigned to users under probation.
+    probation: int
+
+    # joke roles
+    never_mod: int
+
+    # basic human rights role
+    civil_engineering_initiate: int
+
+    # newbie roles
+    newbie: int
 
 
 @dataclass
@@ -41,10 +85,12 @@ class ConfigurationPermissionRoles(YAMLWizard):
     reformist: int
     ticket_support: int
     sersi_contributor: int
+
+    # AMAB: all mods are bastards ;)
     trial_moderator: int
     moderator: int
     senior_moderator: int
-    dark_moderator: int
+    dark_moderator: int    # AKA: super-duper mega administrators
 
 
 @dataclass
@@ -57,105 +103,29 @@ class ConfigurationEmotes(YAMLWizard):
 
 
 @dataclass
-class ConfigurationRoles(YAMLWizard):
-    # The role assigned to users sent into reformation.
-    #
-    # Any other roles the user had at that point will be removed.
-    # They will be added back in case of a successful reformation.
-    reformation: int
+class ConfigurationInvites(YAMLWizard):
+    # The reinvite for people unbanned from ASC
+    adam_something_ban_reinvite: str
 
-    # The role assigned to users successfully completing reformation.
-    reformed: int
-
-    # The role assigned to users under probation.
-    probation: int
-
-    # The role assigned to users which ask for moderation roles in chats.
-    never_mod: int
-
-    # The role assigned to any user joining the server and completing verification.
-    civil_engineering_initiate: int
-
-    # The role assigned to members who have recently joined.
-    #
-    # It is removed after 3 days have gone by.
-    newbie: int
+    # The invite link to the ban appealing server.
+    ban_appeal_server: str
 
 
 @dataclass
-class ConfigurationChannels(YAMLWizard):
-    # Receives alerts regarding moderation pings and slurs.
-    alert: int
-
-    # Receives logged events, used mainly as a secondary audit log, aside from logging actions not audited by Discord's audit log.
-    logging: int
-
-    # Receives slur usage deemed as false positives.
-    false_positives: int
-
-    # Receives notifications about actions taken by moderators, e.g bans.
-    mod_logs: int
-
-    # TODO: find out what this does lol
-    dm_forward: int
-
-    # Receives notifications about errors.
-    errors: int
-
-    # Receives secret messages.
-    secret: int
-
-    # Used in reformation notifications for users sent into reformation to inform them of which channel to check out for more information.
-    reformation_info: int
-
-    # Receives notifications regarding members being sent into reformation, intended to start a conversation regarding them in the channel dedicated to discussion between reformist and staff.
-    teachers_lounge: int
-
-    # Receives notifications regarding members being sent into reformation, as a public ledger.
-    reform_public_log: int
-
-    # Receives notifications about submitted ban appeals.
-    ban_appeals: int
-
-    # The channel used for the photograph sharing feature.
-    photography: int
-
-    # The channel used for YouTube notifications.
-    youtube: int
+class ConfigurationGuilds(YAMLWizard):
+    # The guild ID of the main server.
+    main: str
 
 
-# Defines the structure of the configuration file.
-@dataclass
+@dataclass(frozen=True)
 class Configuration(YAMLWizard):
-    # The bot client token.
-    prefix: str
 
-    # The path, relative to the data folder, that contains the list of authors.
-    # Expected to be a Markdown formatted document.
-    author_list: str
-
-    # The prefix used for the bot, aside from mentions.
-    prefix: str
-
-    # The game displayed as what the bot is playing.
-    status: str
-
-    # Configuration related to roles.
-    roles: ConfigurationRoles
-
-    # Configuration related to opt-in roles for server members.
-    opt_ins: ConfigurationOptInRoles
-
-    # Configuration related to staff roles.
-    permission_roles: ConfigurationPermissionRoles
-
-    # Configuration related to emotes.
-    emotes: ConfigurationEmotes
-
-    # Configuration related to invites.
-    invites: ConfigurationInvites
-
-    # Configuration related to guilds.
-    guilds: ConfigurationGuilds
-
+    datafiles: ConfigurationDatafiles
+    bot: ConfigurationBot
     channels: ConfigurationChannels
+    roles: ConfigurationRoles
+    opt_ins: ConfigurationOptInRoles
+    permission_roles: ConfigurationPermissionRoles
+    emotes: ConfigurationEmotes
+    invites: ConfigurationInvites
+    guilds: ConfigurationGuilds

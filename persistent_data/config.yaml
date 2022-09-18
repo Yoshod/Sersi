@@ -2,7 +2,9 @@
 
 datafiles:
     author_list:    "files/about/authors.md"
-    keyfile:        "files/AnonMessages/key.bin"       
+    keyfile:        "files/AnonMessages/key.bin"
+    slurfile:       "files/SlurAlerts/slurs.txt"
+    goodwordfile:   "files/SlurAlerts/goodword.txt"
 
 bot:
     prefix: "s!"
