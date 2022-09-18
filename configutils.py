@@ -40,6 +40,10 @@ class ConfigurationChannels(YAMLWizard):
     teachers_lounge: int
     reform_public_log: int
 
+    # logging
+    logging_category: int
+    tamper_logs: int
+
 
 @dataclass
 class ConfigurationRoles(YAMLWizard):

@@ -25,6 +25,8 @@ channels:
     ban appeals:       991390873239683202
     photography:       0
     youtube:           0
+    tamper_logs:      1021128961515847730
+    logging_category: 1006622093347127499
 
 roles:
     reformation:                978334782968721468
