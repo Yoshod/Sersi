@@ -43,6 +43,10 @@ class ConfigurationChannels(YAMLWizard):
     # logging
     logging_category: int
     tamper_logs: int
+    admin_ticket_logs: int
+    senior_ticket_logs: int
+    mod_ticket_logs: int
+    verification_ticket_logs: int
 
 
 @dataclass
