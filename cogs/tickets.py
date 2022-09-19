@@ -32,9 +32,9 @@ class ModeratorTicket(nextcord.ui.Modal):
 
         ticket_embed = nextcord.Embed(
             title="Mod Ticket Received",
-            description=f"{user.mention} ({user.id}) has submitted a Moderator Ticket",
+            description=f"{user.mention} ({user.id}) has submitted a Moderator Ticket.",
             color=nextcord.Color.from_rgb(237, 91, 6))
-        ticket_embed.add_field(name=self.issue.label,    value=self.issue.value,      inline=False)
+        ticket_embed.add_field(name="Initial Remarks:",    value=self.issue.value,      inline=False)
         ticket_embed.set_footer(text=user.display_name, icon_url=user.display_avatar.url)
 
         close_bttn = Button(custom_id=f"moderator-ticket-close:{user.id}", label="Close Ticket", style=nextcord.ButtonStyle.red)
@@ -71,9 +71,9 @@ class SeniorModeratorTicket(nextcord.ui.Modal):
 
         ticket_embed = nextcord.Embed(
             title="Senior Moderator Ticket Received",
-            description=f"{user.mention} ({user.id}) has submitted a Senior Ticket",
+            description=f"{user.mention} ({user.id}) has submitted a Senior Moderator Ticket.",
             color=nextcord.Color.from_rgb(237, 91, 6))
-        ticket_embed.add_field(name=self.issue.label,    value=self.issue.value,      inline=False)
+        ticket_embed.add_field(name="Initial Remarks",    value=self.issue.value,      inline=False)
         ticket_embed.set_footer(text=user.display_name, icon_url=user.display_avatar.url)
 
         close_bttn = Button(custom_id=f"senior-ticket-close:{user.id}", label="Close Ticket", style=nextcord.ButtonStyle.red)
@@ -110,9 +110,9 @@ class AdministratorTicket(nextcord.ui.Modal):
 
         ticket_embed = nextcord.Embed(
             title="Administrator Ticket Received",
-            description=f"{user.mention} ({user.id}) has submitted an Administrator Ticket",
+            description=f"{user.mention} ({user.id}) has submitted an Administrator Ticket.",
             color=nextcord.Color.from_rgb(237, 91, 6))
-        ticket_embed.add_field(name=self.issue.label,    value=self.issue.value,      inline=False)
+        ticket_embed.add_field(name="Initial Remarks:",    value=self.issue.value,      inline=False)
         ticket_embed.set_footer(text=user.display_name, icon_url=user.display_avatar.url)
 
         close_bttn = Button(custom_id=f"admin-ticket-close:{user.id}", label="Close Ticket", style=nextcord.ButtonStyle.red)
@@ -149,9 +149,9 @@ class VerificationTicket(nextcord.ui.Modal):
 
         ticket_embed = nextcord.Embed(
             title="Verification Ticket Received",
-            description=f"{user.mention} ({user.id}) has submitted a Verification Ticket",
+            description=f"{user.mention} ({user.id}) has submitted a Verification Ticket.",
             color=nextcord.Color.from_rgb(237, 91, 6))
-        ticket_embed.add_field(name=self.issue.label,    value=self.issue.value,      inline=False)
+        ticket_embed.add_field(name="Initial Remarks:",    value=self.issue.value,      inline=False)
         ticket_embed.set_footer(text=user.display_name, icon_url=user.display_avatar.url)
 
         close_bttn = Button(custom_id=f"verification-ticket-close:{user.id}", label="Close Ticket", style=nextcord.ButtonStyle.red)
