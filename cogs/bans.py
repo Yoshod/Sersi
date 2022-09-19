@@ -1,8 +1,10 @@
 import nextcord
 from nextcord.ext import commands
 from nextcord.ui import Button, View
-from configutils import get_config_int, get_config
+from configutils import Configuration
 from permutils import permcheck, is_dark_mod
+
+CONFIG = Configuration.from_yaml_file("./persistent_data/config.yaml")
 
 
 class BanAppealRejection(nextcord.ui.Modal):
@@ -32,7 +34,7 @@ class BanAppealRejection(nextcord.ui.Modal):
         log_embed.add_field(name="User:", value=f"{user} ({user.name})", inline=False)
         log_embed.add_field(name="Reason:", value=self.reason.value, inline=False)
 
-        channel = interaction.client.get_channel(get_config_int('CHANNELS', 'modlogs'))
+        channel = interaction.client.get_channel(CONFIG.channels.mod_logs)
         await channel.send(embed=log_embed)
 
         rejected_embed = nextcord.Embed(
@@ -43,8 +45,8 @@ class BanAppealRejection(nextcord.ui.Modal):
         try:
             await user.send(embed=rejected_embed)
         except nextcord.Forbidden:
-            sersifail = get_config('EMOTES', "fail")
-            await interaction.response.send_message(f"{sersifail} Cannot message the user, likely left the appeals server or has closed DMs", ephemeral=True)
+            await interaction.response.send_message(f"{CONFIG.emotes.fail} Cannot message the user, likely left the appeals server or has closed DMs", ephemeral=True)
+
 
 class BanAppealAccept(nextcord.ui.Modal):
     def __init__(self, userID: int):
@@ -65,8 +67,7 @@ class BanAppealAccept(nextcord.ui.Modal):
         try:
             await interaction.guild.unban(user, reason=f"{interaction.user.name} gave reason {self.reason.value}")
         except nextcord.errors.NotFound:
-            sersifail = get_config('EMOTES', "fail")
-            await interaction.response.send_message(f"{sersifail} Ban was not found! (This likely means the person wasn't banned in the first place)", ephemeral=True)
+            await interaction.response.send_message(f"{CONFIG.emotes.fail} Ban was not found! (This likely means the person wasn't banned in the first place)", ephemeral=True)
 
         updated_form = interaction.message.embeds[0]
         updated_form.add_field(name="Approved by:", value=interaction.user.mention)
@@ -79,19 +80,18 @@ class BanAppealAccept(nextcord.ui.Modal):
         log_embed.add_field(name="User:", value=f"{user} ({user.name})", inline=False)
         log_embed.add_field(name="Reason:", value=self.reason.value, inline=False)
 
-        channel = interaction.client.get_channel(get_config_int('CHANNELS', 'modlogs'))
+        channel = interaction.client.get_channel(CONFIG.channels.mod_logs)
         await channel.send(embed=log_embed)
 
         unban_embed = nextcord.Embed(
             title="You Have Been Unbanned",
             colour=nextcord.Colour.from_rgb(237, 91, 6))
         unban_embed.add_field(name="Reason:", value=self.reason.value, inline=False)
-        unban_embed.add_field(name="Rejoin URL:", value=get_config('INVITES', 'banappeals'), inline=False)
+        unban_embed.add_field(name="Rejoin URL:", value=CONFIG.invites.adam_something_ban_reinvite, inline=False)
         try:
             await user.send(embed=unban_embed)
         except nextcord.Forbidden:
-            sersifail = get_config('EMOTES', "fail")
-            await interaction.response.send_message(f"{sersifail} Cannot message the user, likely left the appeals server or has closed DMs", ephemeral=True)
+            await interaction.response.send_message(f"{CONFIG.emotes.fail} Cannot message the user, likely left the appeals server or has closed DMs", ephemeral=True)
 
 
 class BanAppealForm(nextcord.ui.Modal):
@@ -149,13 +149,14 @@ class BanAppealForm(nextcord.ui.Modal):
         button_view.add_item(accept_bttn)
         button_view.add_item(reject_bttn)
 
-        channel = interaction.client.get_channel(get_config_int('CHANNELS', 'banappeals'))
+        channel = interaction.client.get_channel(CONFIG.channels.ban_appeals)
         await channel.send(embed=appeal_embed, view=button_view)
 
 
 class BanAppeals(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot, config: Configuration):
         self.bot = bot
+        self.config = config
 
     @commands.command()
     async def appeal(self, ctx):
@@ -198,5 +199,5 @@ class BanAppeals(commands.Cog):
                     await interaction.response.send_modal(BanAppealRejection(int(id_extra)))
 
 
-def setup(bot):
-    bot.add_cog(BanAppeals(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(BanAppeals(bot, kwargs["config"]))
