@@ -34,6 +34,7 @@ class BanAppealRejection(nextcord.ui.Modal):
         log_embed.add_field(name="Reason:", value=self.reason.value, inline=False)
 
         channel = interaction.client.get_channel(self.config.channels.modlogs)
+
         await channel.send(embed=log_embed)
 
         rejected_embed = nextcord.Embed(
@@ -83,6 +84,7 @@ class BanAppealAccept(nextcord.ui.Modal):
         log_embed.add_field(name="Reason:", value=self.reason.value, inline=False)
 
         channel = interaction.client.get_channel(self.config.channels.modlogs)
+
         await channel.send(embed=log_embed)
 
         unban_embed = nextcord.Embed(
@@ -90,6 +92,7 @@ class BanAppealAccept(nextcord.ui.Modal):
             colour=nextcord.Colour.from_rgb(237, 91, 6))
         unban_embed.add_field(name="Reason:", value=self.reason.value, inline=False)
         unban_embed.add_field(name="Rejoin URL:", value=self.config.invites.adam_something_ban_reinvite, inline=False)
+
         try:
             await user.send(embed=unban_embed)
         except nextcord.Forbidden:

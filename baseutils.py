@@ -22,7 +22,11 @@ async def ban(config: configutils.Configuration, member: nextcord.Member, kind, 
     elif kind == "leave":
         goodbye_embed.description = f"You have left {member.guild.name} whilst in Reformation, as a result you have been banned\n\nIf you wish to appeal your ban, please join the ban appeal server:\n{config.invites.ban_appeal_server}"
 
-    await member.send(embed=goodbye_embed)
+    try:
+        await member.send(embed=goodbye_embed)
+
+    except nextcord.errors.Forbidden:
+        return
 
     await member.ban(reason=reason, delete_message_days=0)
 

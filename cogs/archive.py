@@ -23,7 +23,7 @@ class Archive(commands.Cog):
 
         transcript = await export(logged_channel, military_time=True)
         if transcript is None:
-            await output_channel.send(f"{self.sersifail} Failed to Generate Transcript!")
+            await output_channel.send(f"{self.config.emotes.fail} Failed to Generate Transcript!")
 
         else:
             transcript_file = nextcord.File(

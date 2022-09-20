@@ -31,6 +31,11 @@ channels:
     youtube:           0
     tamper_logs:      1021128961515847730
     logging_category: 1006622093347127499
+    admin_ticket_logs: 1021380970240294922
+    senior_ticket_logs: 1021380970240294922
+    mod_ticket_logs: 1021380970240294922
+    verification_ticket_logs: 1021380970240294922
+
 
 roles:
     reformation:                978334782968721468
@@ -56,11 +61,11 @@ opt_ins:
 permission_roles:
     staff:             978678150789754890
     reformist:         943193811574751314
-    ticket_support:    0
+    ticket_support:    1021477270331850795
     sersi_contributor: 978677753945657356
-    trial_moderator:   0
+    trial_moderator:   1021476974901870652
     moderator:         977394150494326855
-    senior_moderator:  963537133589643304
+    senior_moderator:  1021477021664153653
     dark_moderator:    978681533453971526
 
 emotes:

@@ -110,7 +110,7 @@ def load_goodwords():
 
 
 def clear_string(string):
-    """cleaning up the message by eliminating special characters and making the entire message lowercase"""
+    """clean up the message by eliminating special characters and making the entire message lowercase."""
     special_characters = ['#', '%', '&', '[', ']', ' ', ']', '_', '-', '<', '>', '\'']
 
     string = string.lower()
