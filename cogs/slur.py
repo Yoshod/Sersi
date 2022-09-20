@@ -43,8 +43,8 @@ class Slur(commands.Cog):
         converter = commands.MemberConverter()
         member = await converter.convert(self, case_data[0])
 
-        unique_id = case_history(member.id, "Slur Usage")
-        slur_case(unique_id, case_data[1], interaction.message.jump_url, member.id, interaction.user.id)
+        unique_id = case_history(self.config, member.id, "Slur Usage")
+        slur_case(self.config, unique_id, case_data[1], interaction.message.jump_url, member.id, interaction.user.id)
 
     async def cb_acceptable_use(self, interaction):
         new_embed = interaction.message.embeds[0]

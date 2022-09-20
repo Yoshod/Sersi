@@ -3,79 +3,77 @@ import shortuuid
 import time
 
 from baseutils import get_page
-
-CASE_DETAILS_FILE = "Files/Cases/casedetails.pkl"
-CASE_HISTORY_FILE = "Files/Cases/casehistory.pkl"
+from configutils import Configuration
 
 
-def reform_case(unique_id, case_num, target_id, moderator_id, case_channel_id, reason):
+def reform_case(config: Configuration, unique_id, case_num, target_id, moderator_id, case_channel_id, reason):
     try:
-        with open(CASE_DETAILS_FILE, "rb") as file:
+        with open(config.datafiles.casedetails, "rb") as file:
             case_details = pickle.load(file)
     except EOFError:
         case_details = {}
     timestamp = int(time.time())
     case = ["Reformation", case_num, target_id, moderator_id, case_channel_id, reason, timestamp]
     case_details[unique_id] = case
-    with open(CASE_DETAILS_FILE, "wb") as file:
+    with open(config.datafiles.casedetails, "wb") as file:
         pickle.dump(case_details, file)
 
 
-def probation_case(unique_id, target_id, initial_moderator_id, approving_moderator_id, reason):
+def probation_case(config: Configuration, unique_id, target_id, initial_moderator_id, approving_moderator_id, reason):
     try:
-        with open(CASE_DETAILS_FILE, "rb") as file:
+        with open(config.datafiles.casedetails, "rb") as file:
             case_details = pickle.load(file)
     except EOFError:
         case_details = {}
     timestamp = int(time.time())
     case = ["Probation", target_id, initial_moderator_id, approving_moderator_id, reason, timestamp]
     case_details[unique_id] = case
-    with open(CASE_DETAILS_FILE, "wb") as file:
+    with open(config.datafiles.casedetails, "wb") as file:
         pickle.dump(case_details, file)
 
 
-def anon_message_mute_case(unique_id, target_id, moderator_id, reason):
+def anon_message_mute_case(config: Configuration, unique_id, target_id, moderator_id, reason):
     try:
-        with open(CASE_DETAILS_FILE, "rb") as file:
+        with open(config.datafiles.casedetails, "rb") as file:
             case_details = pickle.load(file)
     except EOFError:
         case_details = {}
     timestamp = int(time.time())
     case = ["Anonymous Message Mute", target_id, moderator_id, reason, timestamp]
     case_details[unique_id] = case
-    with open(CASE_DETAILS_FILE, "wb") as file:
+    with open(config.datafiles.casedetails, "wb") as file:
         pickle.dump(case_details, file)
 
 
-def slur_case(unique_id, slur_used, report_url, target_id, moderator_id):
+def slur_case(config: Configuration, unique_id, slur_used, report_url, target_id, moderator_id):
     try:
-        with open(CASE_DETAILS_FILE, "rb") as file:
+        with open(config.datafiles.casedetails, "rb") as file:
             case_details = pickle.load(file)
     except EOFError:
         case_details = {}
     timestamp = int(time.time())
     case = ["Slur Usage", slur_used, report_url, target_id, moderator_id, timestamp]
     case_details[unique_id] = case
-    with open(CASE_DETAILS_FILE, "wb") as file:
+    with open(config.datafiles.casedetails, "wb") as file:
         pickle.dump(case_details, file)
 
 
-def bad_faith_ping_case(unique_id, report_url, target_id, moderator_id):
+def bad_faith_ping_case(config: Configuration, unique_id, report_url, target_id, moderator_id):
     try:
-        with open(CASE_DETAILS_FILE, "rb") as file:
+        with open(config.datafiles.casedetails, "rb") as file:
             case_details = pickle.load(file)
     except EOFError:
         case_details = {}
     timestamp = int(time.time())
     case = ["Bad Faith Ping", target_id, report_url, moderator_id, timestamp]
     case_details[unique_id] = case
-    with open(CASE_DETAILS_FILE, "wb") as file:
+    with open(config.datafiles.casedetails, "wb") as file:
         pickle.dump(case_details, file)
 
 
-def custom_case(unique_id, case_info: list = []):
+def custom_case(config: Configuration, unique_id, case_info: list = []):
     try:
-        with open(CASE_DETAILS_FILE, "rb") as file:
+        with open(config.datafiles.casedetails, "rb") as file:
             case_details = pickle.load(file)
     except EOFError:
         case_details = {}
@@ -85,12 +83,12 @@ def custom_case(unique_id, case_info: list = []):
         case.append(case_detail)
     case.append(timestamp)
     case_details[unique_id] = case
-    with open(CASE_DETAILS_FILE, "wb") as file:
+    with open(config.datafiles.casedetails, "wb") as file:
         pickle.dump(case_details, file)
 
 
-def get_member_cases(member_id, page, per_page=10):
-    with open(CASE_HISTORY_FILE, "rb") as file:
+def get_member_cases(config: Configuration, member_id, page, per_page=10):
+    with open(config.datafiles.casehistory, "rb") as file:
         case_history = pickle.load(file)
 
     try:
@@ -100,9 +98,9 @@ def get_member_cases(member_id, page, per_page=10):
     return entry_list
 
 
-def case_history(member_id, case_type):
+def case_history(config: Configuration, member_id, case_type):
     try:
-        with open(CASE_HISTORY_FILE, "rb") as file:
+        with open(config.datafiles.casehistory, "rb") as file:
             case_history = pickle.load(file)
     except (EOFError, TypeError):
         case_history = {}
@@ -120,7 +118,7 @@ def case_history(member_id, case_type):
         cases.append([global_case_identifier, case_type, timestamp])
         case_history[member_id] = cases
 
-    with open(CASE_HISTORY_FILE, "wb") as file:
+    with open(config.datafiles.casehistory, "wb") as file:
         pickle.dump(case_history, file)
 
     return global_case_identifier

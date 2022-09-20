@@ -152,8 +152,8 @@ class Messages(commands.Cog):
         logging.add_field(name="User Added:", value=member.mention, inline=False)
         logging.add_field(name="Reason:", value=reason, inline=False)
 
-        unique_id = case_history(member.id, "Anonymous Message Mute")
-        anon_message_mute_case(unique_id, member.id, interaction.user.id, reason)
+        unique_id = case_history(self.config, member.id, "Anonymous Message Mute")
+        anon_message_mute_case(self.config, unique_id, member.id, interaction.user.id, reason)
 
         channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'logging'))
         await channel.send(embed=logging)

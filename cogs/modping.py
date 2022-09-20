@@ -66,11 +66,10 @@ class ModPing(commands.Cog):
                 case_data.append(field.value)
 
         converter = commands.MemberConverter()
-        await channel.send(case_data[0])
         member = await converter.convert(self, case_data[0])
 
-        unique_id = case_history(member.id, "Bad Faith Ping")
-        bad_faith_ping_case(unique_id, interaction.message.jump_url, member.id, interaction.user.id)
+        unique_id = case_history(self.config, member.id, "Bad Faith Ping")
+        bad_faith_ping_case(self.config, unique_id, interaction.message.jump_url, member.id, interaction.user.id)
 
     # events
     @commands.Cog.listener()

@@ -50,8 +50,8 @@ class Probation(commands.Cog):
         log_channel = interaction.guild.get_channel(self.config.channels.modlogs)
         await log_channel.send(embed=log_embed)
 
-        unique_id = case_history(member.id, "Probation")
-        probation_case(unique_id, member.id, moderator.id, interaction.user.id, reason)
+        unique_id = case_history(self.config, member.id, "Probation")
+        probation_case(self.config, unique_id, member.id, moderator.id, interaction.user.id, reason)
 
         dm_embed = nextcord.Embed(
             title="Adam Something Central Probation",

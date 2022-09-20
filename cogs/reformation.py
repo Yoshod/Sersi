@@ -105,8 +105,8 @@ class Reformation(commands.Cog):
         with open("Files/Reformation/reformationcases.pkl", "wb") as file:
             pickle.dump(reformation_list, file)
 
-        unique_id = case_history(member.id, "Reformation")
-        reform_case(unique_id, case_num, member.id, interaction.user.id, channel.id, reason)
+        unique_id = case_history(self. config, member.id, "Reformation")
+        reform_case(self.config, unique_id, case_num, member.id, interaction.user.id, channel.id, reason)
 
         channel = nextcord.utils.get(interaction.guild.channels, name=case_name)
         await channel.send(embed=welcome_embed)

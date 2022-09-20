@@ -34,14 +34,14 @@ def leet(word):
     return [''.join(permutations) for permutations in product(*possibles)]
 
 
-def get_slurs(page=None, per_page=10):
+def get_slurs(config=None, page=None, per_page=10):
     if page is None:
         return slurs_list
     else:
         return get_page(sorted(slurs_list), page, per_page)
 
 
-def get_goodwords(page=None, per_page=10):
+def get_goodwords(config=None, page=None, per_page=10):
     if page is None:
         return goodword
     else:
