@@ -11,6 +11,9 @@ class ConfigurationDatafiles(YAMLWizard):
     blacklist:      str
     casedetails:    str
     casehistory:    str
+    gifblacklist:   str
+    secret_dms:     str
+    secret_mutes:   str
 
 
 @dataclass
@@ -30,6 +33,8 @@ class ConfigurationChannels(YAMLWizard):
     mod_logs: int
     ban_appeals: int
     dm_forward: int
+    mod_applications: int
+    internalfeedback: int
 
     # debugging channels
     errors: int
@@ -51,6 +56,7 @@ class ConfigurationChannels(YAMLWizard):
     senior_ticket_logs: int
     mod_ticket_logs: int
     verification_ticket_logs: int
+    deleted_messages: int
 
 
 @dataclass
@@ -71,6 +77,9 @@ class ConfigurationRoles(YAMLWizard):
 
     # newbie roles
     newbie: int
+
+    # former moderator role
+    honourable_member: int
 
 
 @dataclass
@@ -126,7 +135,8 @@ class ConfigurationInvites(YAMLWizard):
 @dataclass
 class ConfigurationGuilds(YAMLWizard):
     # The guild ID of the main server.
-    main: str
+    main: int
+    errors: int
 
 
 @dataclass(frozen=True)

@@ -1,7 +1,7 @@
 import nextcord
 from nextcord.ext import commands
 from nextcord.ui import Button, View
-from configutils import get_config_int
+from configutils import Configuration
 from permutils import permcheck, is_dark_mod
 
 
@@ -28,8 +28,9 @@ class FeedbackResponse(nextcord.ui.Modal):
 
 
 class AnonymousFeedbackForm(nextcord.ui.Modal):
-    def __init__(self):
+    def __init__(self, config: Configuration):
         super().__init__("Adam Something Central Anon Internal Feedback")
+        self.config = config
 
         self.feedback = nextcord.ui.TextInput(
             label="What is the matter you wish to raise:",
@@ -62,13 +63,14 @@ class AnonymousFeedbackForm(nextcord.ui.Modal):
         button_view = View(auto_defer=False)
         button_view.add_item(respond_bttn)
 
-        channel = interaction.client.get_channel(get_config_int('CHANNELS', 'internalfeedback'))
+        channel = interaction.client.get_channel(self.config.channels.internalfeedback)
         await channel.send(embed=appeal_embed, view=button_view)
 
 
 class FeedbackForm(nextcord.ui.Modal):
-    def __init__(self):
+    def __init__(self, config: Configuration):
         super().__init__("Adam Something Central Internal Feedback")
+        self.config = config
 
         self.feedback = nextcord.ui.TextInput(
             label="What is the matter you wish to raise:",
@@ -101,13 +103,14 @@ class FeedbackForm(nextcord.ui.Modal):
         button_view = View(auto_defer=False)
         button_view.add_item(respond_bttn)
 
-        channel = interaction.client.get_channel(get_config_int('CHANNELS', 'internalfeedback'))
+        channel = interaction.client.get_channel(self.config.channels.internalfeedback)
         await channel.send(embed=appeal_embed, view=button_view)
 
 
 class InternalFeedback(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot, config: Configuration):
         self.bot = bot
+        self.config = config
 
     @commands.command()
     async def feedbackpost(self, ctx):
@@ -139,13 +142,13 @@ class InternalFeedback(commands.Cog):
 
         match id_name:
             case "internal-feedback":
-                await interaction.response.send_modal(FeedbackForm())
+                await interaction.response.send_modal(FeedbackForm(self.config))
             case "internal-feedback-anon":
-                await interaction.response.send_modal(AnonymousFeedbackForm())
+                await interaction.response.send_modal(AnonymousFeedbackForm(self.config))
             case "internal-feedback-response":
                 if await permcheck(interaction, is_dark_mod):
                     await interaction.response.send_modal(FeedbackResponse(int(id_extra)))
 
 
-def setup(bot):
-    bot.add_cog(InternalFeedback(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(InternalFeedback(bot, kwargs["config"]))

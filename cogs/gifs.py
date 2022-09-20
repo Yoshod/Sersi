@@ -1,14 +1,14 @@
 import nextcord
 from nextcord.ext import commands
 
-from configutils import get_config, get_config_int
+from configutils import Configuration
 from permutils import permcheck, is_mod
 
 
 class Gif(commands.Cog):
     """Autodeleteing blacklisted GIF."""
 
-    def __init__(self, bot):
+    def __init__(self, bot, config: Configuration):
         self.bot = bot
         self.filename = "Files/WBList/gifblacklist.txt"
         try:
@@ -17,7 +17,7 @@ class Gif(commands.Cog):
         except FileExistsError:             # ignores error if it does
             pass
         self.list = self.loadlist()
-        self.sersisuccess = get_config('EMOTES', 'success')
+        self.sersisuccess = config.emotes.success
 
     def loadlist(self):
         giflist = []
@@ -50,7 +50,7 @@ class Gif(commands.Cog):
         embed.add_field(name="Moderator:", value=ctx.author.mention, inline=False)
         embed.add_field(name="GIF URL:", value=url, inline=False)
 
-        channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'logging'))
+        channel = ctx.guild.get_channel(self.config.channels.logging)
         await channel.send(embed=embed)
 
     @commands.command()
@@ -78,7 +78,7 @@ class Gif(commands.Cog):
         embed.add_field(name="Moderator:", value=ctx.author.mention, inline=False)
         embed.add_field(name="GIF URL:", value=url, inline=False)
 
-        channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'logging'))
+        channel = ctx.guild.get_channel(self.config.channels.logging)
         await channel.send(embed=embed)
 
     @commands.command()
@@ -106,9 +106,9 @@ class Gif(commands.Cog):
             embed.add_field(name="Channel:", value=message.channel.mention, inline=False)
             embed.add_field(name="Message:", value=message.content, inline=False)
 
-            channel = self.bot.get_channel(get_config_int('CHANNELS', 'logging'))
+            channel = self.bot.get_channel(self.config.channels.logging)
             await channel.send(embed=embed)
 
 
-def setup(bot):
-    bot.add_cog(Gif(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(Gif(bot, kwargs["config"]))

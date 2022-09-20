@@ -8,6 +8,9 @@ datafiles:
     blacklist:      "files/WBList/blacklist.csv"
     casedetails:    "files/Cases/casedetails.pkl"
     casehistory:    "files/Cases/casehistory.pkl"
+    gifblacklist:   "files/WBList/gifblacklist.txt"
+    secret_dms:     "files/AnonMessages/secret_dms.pkl"
+    secret_mutes:   "files/AnonMessages/banned.csv"
 
 bot:
     prefix: "s!"
@@ -35,6 +38,9 @@ channels:
     senior_ticket_logs: 1021380970240294922
     mod_ticket_logs: 1021380970240294922
     verification_ticket_logs: 1021380970240294922
+    deleted_messages: 0
+    mod applications: 0
+    internalfeedback: 0
 
 
 roles:
@@ -44,6 +50,7 @@ roles:
     never_mod:                  878045315784114216
     civil_engineering_initiate: 878040658244403253
     newbie:                     938465528043954267
+    honourable_member:          0
 
 opt_ins:
     gaming:         0
@@ -78,3 +85,4 @@ invites:
 
 guilds:
     main: 0
+    errors: 977377117895536640

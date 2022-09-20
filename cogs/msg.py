@@ -5,7 +5,7 @@ from nextcord.ext import commands
 from nextcord.ui import Button, View
 
 from baseutils import ConfirmView, DualCustodyView
-from configutils import get_config, get_config_int, get_config_bool
+from configutils import Configuration
 from permutils import permcheck, is_dark_mod, is_full_mod, is_mod, cb_is_mod
 from encryptionutils import encrypt_data, unencrypt_data
 from slurdetector import detect_slur
@@ -15,14 +15,14 @@ from webhookutils import send_webhook_message
 
 class Messages(commands.Cog):
 
-    def __init__(self, bot):
+    def __init__(self, bot, config: Configuration):
         self.bot = bot
         self.recdms = False
-        self.sersisuccess = get_config('EMOTES', 'success')
-        self.sersifail = get_config('EMOTES', 'fail')
+        self.sersisuccess = config.emotes.success
+        self.sersifail = config.emotes.fail
         self.active_secret_dms = []
-        self.filename = ("Files/AnonMessages/secret_dms.pkl")
-        self.banned_filename = "Files/AnonMessages/banned.csv"
+        self.filename = config.datafiles.secret_dms
+        self.banned_filename = config.datafiles.secret_mutes
         self.banlist = {}
 
         try:
@@ -41,11 +41,11 @@ class Messages(commands.Cog):
 
     def can_send_anon_msg(self, user) -> bool:
 
-        guild = self.bot.get_channel(get_config_int("CHANNELS", "secret")).guild
+        guild = self.bot.get_channel(self.config.channels.secret).guild
         guild_member = guild.get_member(user.id)
         prohibited_roles = [
-            guild.get_role(get_config_int('ROLES', 'newbie')),
-            guild.get_role(get_config_int('ROLES', 'reformation'))
+            guild.get_role(self.config.roles.newbie),
+            guild.get_role(self.config.roles.reformation)
         ]
 
         # check if user is a member of the server
@@ -74,7 +74,7 @@ class Messages(commands.Cog):
         await interaction.message.edit(embed=new_embed, view=None)
 
         # Logging
-        channel = self.bot.get_channel(get_config_int('CHANNELS', 'logging'))
+        channel = self.bot.get_channel(self.config.channels.logging)
         embedLogVar = nextcord.Embed(
             title="Action Taken Pressed",
             description="Action has been taken by a moderator in response to a report.",
@@ -90,7 +90,7 @@ class Messages(commands.Cog):
         await interaction.message.edit(embed=new_embed, view=None)
 
         # Logging
-        channel = self.bot.get_channel(get_config_int('CHANNELS', 'logging'))
+        channel = self.bot.get_channel(self.config.channels.logging)
         embedLogVar = nextcord.Embed(
             title="Acceptable Use Pressed",
             description="Usage of a slur has been deemed acceptable by a moderator in response to a report.",
@@ -104,7 +104,7 @@ class Messages(commands.Cog):
         new_embed.add_field(name="Deemed As False Positive By:", value=interaction.user.mention, inline=False)
         new_embed.colour = nextcord.Colour.brand_red()
         await interaction.message.edit(embed=new_embed, view=None)
-        channel = self.bot.get_channel(get_config_int('CHANNELS', 'false positives'))
+        channel = self.bot.get_channel(self.config.channels.false_positives)
 
         embedVar = nextcord.Embed(
             title="Marked as false positive",
@@ -118,7 +118,7 @@ class Messages(commands.Cog):
         await channel.send(embed=embedVar)
 
         # Logging
-        channel = self.bot.get_channel(get_config_int('CHANNELS', 'logging'))
+        channel = self.bot.get_channel(self.config.channels.logging)
         embedLogVar = nextcord.Embed(
             title="False Positive Pressed",
             description="Detected slur has been deemed a false positive by a moderator in response to a report.",
@@ -155,10 +155,10 @@ class Messages(commands.Cog):
         unique_id = case_history(self.config, member.id, "Anonymous Message Mute")
         anon_message_mute_case(self.config, unique_id, member.id, interaction.user.id, reason)
 
-        channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'logging'))
+        channel = interaction.guild.get_channel(self.config.channels.logging)
         await channel.send(embed=logging)
 
-        channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'modlogs'))
+        channel = interaction.guild.get_channel(self.config.channels.modlogs)
         await channel.send(embed=logging)
 
     @commands.command(aliases=['anonban', 'anonmute'])
@@ -225,10 +225,10 @@ class Messages(commands.Cog):
         logging.add_field(name="Moderator:", value=interaction.user.mention, inline=False)
         logging.add_field(name="User Unmuted:", value=member.mention, inline=False)
 
-        channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'logging'))
+        channel = interaction.guild.get_channel(self.config.channels.logging)
         await channel.send(embed=logging)
 
-        channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'modlogs'))
+        channel = interaction.guild.get_channel(self.config.channels.modlogs)
         await channel.send(embed=logging)
 
     @commands.command(aliases=['anonunmute', 'unmuteanon', 'umanon', 'anonum'])
@@ -272,7 +272,7 @@ class Messages(commands.Cog):
         await recipient.send(message)
         await ctx.send(f"{self.sersisuccess} Direkt Message sent to {recipient}!")
 
-        channel = self.bot.get_channel(get_config_int('CHANNELS', 'logging'))
+        channel = self.bot.get_channel(self.config.channels.logging)
         logging = nextcord.Embed(
             title="DM Sent",
             description="A DM has been sent.",
@@ -325,11 +325,11 @@ class Messages(commands.Cog):
             logging.add_field(name="Message Revealed:", value=secret_id, inline=False)
             logging.add_field(name="Reason:", value=reason, inline=False)
 
-            channel = self.bot.get_channel(get_config_int('CHANNELS', 'logging'))
+            channel = self.bot.get_channel(self.config.channels.logging)
             await channel.send(embed=logging)
-            channel = self.bot.get_channel(get_config_int('CHANNELS', 'modlogs'))
+            channel = self.bot.get_channel(self.config.channels.modlogs)
             await channel.send(embed=logging)
-            channel = self.bot.get_channel(get_config_int('CHANNELS', 'secret'))
+            channel = self.bot.get_channel(self.config.channels.secret)
             await channel.send(embed=logging)
         else:
             await interaction.message.edit(f"Message with ID `{secret_id}` was sent by `{member_id}`, who is not found on this server", embed=None, view=None)
@@ -350,7 +350,7 @@ class Messages(commands.Cog):
         dialog_embed.add_field(name="Moderator ID", value=interaction.user.id)
         dialog_embed.add_field(name="Reason", value=reason, inline=False)
 
-        channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'alert'))
+        channel = interaction.guild.get_channel(self.config.channels.alert)
         view = DualCustodyView(self.cb_da_confirm, interaction.user, is_full_mod)
         await view.send_dialogue(channel, embed=dialog_embed)
 
@@ -392,12 +392,16 @@ class Messages(commands.Cog):
 
         if message.guild is None and message.author != self.bot.user:
 
-            if message.content.lower() == "secret" and self.can_send_anon_msg(message.author):
+            if not self.can_send_anon_msg(message.author):
+                await message.author.send("You are currently unable to use the anonymous chat. Most likely this is as you have joined this server less than 3 days ago.")
+                return
+
+            if message.content.lower() == "secret":
                 self.active_secret_dms.append(message.author.id)
                 await message.author.send("The next DM will be secret! Do not share personal private information or impersonate other users on the server. Rule breakers will be deanonymised and punished.")
                 return
 
-            elif message.author.id in self.active_secret_dms and self.can_send_anon_msg(message.author):
+            elif message.author.id in self.active_secret_dms:
                 self.active_secret_dms.remove(message.author.id)
                 ID = str(uuid.uuid4())
 
@@ -432,13 +436,13 @@ class Messages(commands.Cog):
                 with open(self.filename, 'wb') as file:
                     pickle.dump(secretlist, file)
 
-                secret_channel = self.bot.get_channel(get_config_int("CHANNELS", "secret"))
+                secret_channel = self.bot.get_channel(self.config.channels.secret)
                 await send_webhook_message(secret_channel, embed=secret, username="Anonymous User")
 
                 detected_slurs = detect_slur(message.content)
 
                 if len(detected_slurs) > 0:  # checks slur heat
-                    channel = self.bot.get_channel(get_config_int('CHANNELS', 'alert'))
+                    channel = self.bot.get_channel(self.config.channels.alert)
                     slurembed = nextcord.Embed(
                         title="Slur(s) Detected",
                         description="A slur has been detected in an anonymous message. If moderator action is required you should deanonymise the message.",
@@ -477,14 +481,6 @@ class Messages(commands.Cog):
             elif message.author.id in self.active_secret_dms and message.author.id in self.banlist:
                 await message.author.send(f"{self.sersifail} You cannot send anonymous messages.")
 
-            else:
-                if not get_config_bool("MSG", "forward dms", False):
-                    return
 
-                dm_channel = self.bot.get_channel(get_config_int("CHANNELS", "dm forward"))   # please name and config
-
-                await send_webhook_message(dm_channel, content=message.content, username=str(message.author), avatar_url=message.author.display_avatar.url)
-
-
-def setup(bot):
-    bot.add_cog(Messages(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(Messages(bot, kwargs["config"]))

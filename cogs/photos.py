@@ -1,11 +1,12 @@
 from nextcord.ext import commands
-from configutils import get_config_int, get_config_bool
+from configutils import Configuration
 
 
 class Photos(commands.Cog):
 
-    def __init__(self, bot):
+    def __init__(self, bot, config: Configuration):
         self.bot = bot
+        self.config = config
         self.emotes = ["👍", "❤", "😲"]
 
     @commands.Cog.listener()
@@ -13,7 +14,7 @@ class Photos(commands.Cog):
         """photpraphy channel new post routing"""
 
         # ignore if message is not in photography channel
-        if message.channel.id != get_config_int('CHANNELS', 'photography'):
+        if message.channel.id != self.config.channels.photography:
             return
 
         elif message.author == self.bot.user:  # ignores message if message is by bot
@@ -35,10 +36,9 @@ class Photos(commands.Cog):
                 await message.add_reaction(emote)
 
             # create thread if wanted
-            if get_config_bool('PHOTOS', 'create_thread'):
-                timestr = message.created_at.strftime("%H.%M")
-                await message.create_thread(name=f"{message.author.display_name} {timestr}")
+            timestr = message.created_at.strftime("%H.%M")
+            await message.create_thread(name=f"{message.author.display_name} {timestr}")
 
 
-def setup(bot):
-    bot.add_cog(Photos(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(Photos(bot, kwargs["config"]))

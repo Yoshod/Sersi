@@ -9,8 +9,6 @@ from permutils import permcheck, is_dark_mod
 class Archive(commands.Cog):
 
     def __init__(self, bot, config: Configuration):
-        self.sersisuccess = self.config.emotes.success
-        self.sersifail = self.config.emotes.fail
         self.bot = bot
         self.config = config
 

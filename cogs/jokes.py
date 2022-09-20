@@ -2,14 +2,15 @@ import nextcord
 import random
 from nextcord.ext import commands
 
-from configutils import get_config_int
+from configutils import Configuration
 from permutils import is_mod
 from webhookutils import send_webhook_message
 
 
 class Jokes(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot, config: Configuration):
         self.bot = bot
+        self.config = config
 
     def generate_uwu(self, input_text: str) -> str:
         """Shamelessly stolen from https://www.geeksforgeeks.org/uwu-text-convertor-in-python/.
@@ -57,7 +58,7 @@ class Jokes(commands.Cog):
             await ctx.send("You're not a mod, you should not run this, right? ;)\n\nAnyways let's nevermod **you** instead as a twist.")
             member = ctx.author
 
-        nevermod_role = ctx.guild.get_role(get_config_int('ROLES', 'nevermod'))
+        nevermod_role = ctx.guild.get_role(self.config.roles.never_mod)
 
         await member.add_roles(nevermod_role, reason="nevermod command", atomic=True)
         nevermod_embed = nextcord.Embed(
@@ -174,5 +175,5 @@ class Jokes(commands.Cog):
                 await message.reply("Phone user detected, opinion rejected")
 
 
-def setup(bot):
-    bot.add_cog(Jokes(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(Jokes(bot, kwargs["config"]))

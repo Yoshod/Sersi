@@ -4,17 +4,18 @@ import io
 from nextcord.ext import commands
 from datetime import timedelta
 
-from configutils import get_config, get_config_int
+from configutils import Configuration
 from permutils import permcheck, is_mod, is_senior_mod
 from chat_exporter import raw_export
 
 
 class Purge(commands.Cog):
 
-    def __init__(self, bot):
+    def __init__(self, bot, config: Configuration):
         self.bot = bot
-        self.sersisuccess = get_config('EMOTES', 'success')
-        self.sersifail = get_config('EMOTES', 'fail')
+        self.config = config
+        self.sersisuccess = config.emotes.success
+        self.sersifail = config.emotes.fail
         self.MAXMESSAGES = 100
         self.MAXTIME = 15
 
@@ -80,10 +81,10 @@ class Purge(commands.Cog):
         if member is not None:
             logging.add_field(name="User Targeted:", value=f"{member.mention} ({member.id})")
 
-        channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'logging'))
+        channel = ctx.guild.get_channel(self.config.channels.logging)
         await channel.send(embed=logging)
 
-        channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'modlogs'))
+        channel = ctx.guild.get_channel(self.config.channels.modlogs)
         await channel.send(embed=logging, file=transcript_file)
 
     @commands.command(aliases=['tp', 'timedpurge'])
@@ -152,10 +153,10 @@ class Purge(commands.Cog):
         if target is not None:
             logging.add_field(name="User Targeted:", value=f"{target.mention} ({target.id})")
 
-        channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'logging'))
+        channel = ctx.guild.get_channel(self.config.channels.logging)
         await channel.send(embed=logging)
 
-        channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'modlogs'))
+        channel = ctx.guild.get_channel(self.config.channels.modlogs)
         await channel.send(embed=logging, file=transcript_file)
 
     @commands.command(aliases=['pu', 'purgeuntil'])
@@ -205,12 +206,12 @@ class Purge(commands.Cog):
         logging.add_field(name="Messages Purged:", value=deletion_count, inline=False)
         logging.add_field(name="Channel Purged:", value=ctx.channel.mention, inline=False)
 
-        channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'logging'))
+        channel = ctx.guild.get_channel(self.config.channels.logging)
         await channel.send(embed=logging)
 
-        channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'modlogs'))
+        channel = ctx.guild.get_channel(self.config.channels.modlogs)
         await channel.send(embed=logging, file=transcript_file)
 
 
-def setup(bot):
-    bot.add_cog(Purge(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(Purge(bot, kwargs["config"]))

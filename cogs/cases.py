@@ -4,17 +4,17 @@ from nextcord.ext import commands
 
 from baseutils import PageView
 from caseutils import get_member_cases
-from configutils import get_config
+from configutils import Configuration
 from permutils import permcheck, is_mod
 
 
 class Cases(commands.Cog):
 
-    def __init__(self, bot):
+    def __init__(self, bot, config: Configuration):
         self.bot = bot
-        self.sersifail = get_config('EMOTES', 'fail')
-        self.case_history_file = ("Files/Cases/casehistory.pkl")
-        self.case_details_file = ("Files/Cases/casedetails.pkl")
+        self.sersifail = config.emotes.fail
+        self.case_history_file = config.datafiles.casehistory
+        self.case_details_file = config.datafiles.casedetails
         self.case_history = {}
         self.case_details = {}
 
@@ -142,5 +142,5 @@ class Cases(commands.Cog):
                 return
 
 
-def setup(bot):
-    bot.add_cog(Cases(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(Cases(bot, kwargs["config"]))

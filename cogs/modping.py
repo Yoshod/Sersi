@@ -5,15 +5,15 @@ from nextcord.ui import Button, View
 
 from baseutils import modmention_check
 from permutils import cb_is_mod
-from configutils import get_config_int
+from configutils import Configuration
 from caseutils import case_history, bad_faith_ping_case
 
 
 class ModPing(commands.Cog):
 
-    def __init__(self, bot):
+    def __init__(self, bot, config: Configuration):
         self.bot = bot
-        self.guild = bot.get_guild(get_config_int('GUILDS', 'main'))
+        self.config = config
 
     async def cb_action_taken(self, interaction):
         new_embed = interaction.message.embeds[0]
@@ -21,7 +21,7 @@ class ModPing(commands.Cog):
         new_embed.colour = nextcord.Colour.brand_green()
         await interaction.message.edit(embed=new_embed, view=None)
         # Logging
-        channel = self.bot.get_channel(get_config_int('CHANNELS', 'logging'))
+        channel = self.bot.get_channel(self.config.channels.logging)
         embedLogVar = nextcord.Embed(
             title="Action Taken Pressed",
             description="Action has been taken by a moderator in response to a report.",
@@ -36,7 +36,7 @@ class ModPing(commands.Cog):
         new_embed.colour = nextcord.Colour.light_grey()
         await interaction.message.edit(embed=new_embed, view=None)
         # Logging
-        channel = self.bot.get_channel(get_config_int('CHANNELS', 'logging'))
+        channel = self.bot.get_channel(self.config.channels.logging)
         embedLogVar = nextcord.Embed(
             title="Action Not Necessary Pressed",
             description="A Moderator has deemed that no action is needed in response to a report.",
@@ -51,7 +51,7 @@ class ModPing(commands.Cog):
         new_embed.colour = nextcord.Colour.brand_red()
         await interaction.message.edit(embed=new_embed, view=None)
         # Logging
-        channel = self.bot.get_channel(get_config_int('CHANNELS', 'logging'))
+        channel = self.bot.get_channel(self.config.channels.logging)
         embedLogVar = nextcord.Embed(
             title="Bad Faith Ping Pressed",
             description="A moderation ping has been deemed bad faith by a moderator in response to a report.",
@@ -94,10 +94,10 @@ class ModPing(commands.Cog):
                 color=nextcord.Color.from_rgb(237, 91, 6))
             embedVar.set_footer(text="Sersi Ping Detection Alert")
             await message.channel.send(embed=embedVar)
-            await message.channel.send(f"<@&{get_config_int('ROLES', 'trial moderator')}>", delete_after=0.1)
+            await message.channel.send(f"<@&{self.config.permission_roles.trial_moderator}>", delete_after=1)
 
             # notification for mods
-            channel = self.bot.get_channel(get_config_int('CHANNELS', 'alert'))
+            channel = self.bot.get_channel(self.config.channels.alert)
             embedVar = nextcord.Embed(
                 title="Moderator Ping",
                 description="A moderation role has been pinged, please investigate the ping and take action as appropriate.",
@@ -130,7 +130,7 @@ class ModPing(commands.Cog):
         elif adam_something is not None and adam_something.mentioned_in(message) and not message.mention_everyone:  # adam something ping
 
             # notification for mods
-            channel = self.bot.get_channel(get_config_int('CHANNELS', 'alert'))
+            channel = self.bot.get_channel(self.config.channels.alert)
             embedVar = nextcord.Embed(
                 title="Adam Something Ping",
                 description="Adam Something has been pinged, please take appropriate action.",
@@ -155,5 +155,5 @@ class ModPing(commands.Cog):
             await channel.send(embed=embedVar, view=button_view)
 
 
-def setup(bot):
-    bot.add_cog(ModPing(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(ModPing(bot, kwargs["config"]))
