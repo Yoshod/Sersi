@@ -87,7 +87,7 @@ class ModPing(commands.Cog):
         elif message.channel.category.name in ["Important stuff", "Administration Centre", "The Staff Zone"]:  # ignores certain channels on ASC, given by Juniper
             return
 
-        elif modmention_check(message.content):
+        elif modmention_check(self.config, message.content):
             # Reply to user
             embedVar = nextcord.Embed(
                 title="Moderator Ping Acknowledgment",

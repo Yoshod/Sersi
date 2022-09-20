@@ -264,7 +264,7 @@ class Reformation(commands.Cog):
             reason = case_details[case_id][5]
 
             # await member.ban(reason=f"Reformation Failed: {reason}", delete_message_days=0)
-            await ban(member, "rf", reason=f"Reformation Failed: {reason}")
+            await ban(self, member, "rf", reason=f"Reformation Failed: {reason}")
 
             # transript
             with open("Files/Reformation/reformationcases.pkl", "rb") as file:
@@ -531,7 +531,7 @@ class Reformation(commands.Cog):
                     return
 
             # await member.ban(reason="Left while in reformation centre.", delete_message_days=0)
-            await ban(member, "leave", reason="Left while in reformation centre.")
+            await ban(self.config, member, "leave", reason="Left while in reformation centre.")
 
             channel = self.bot.get_channel(get_config_int('CHANNELS', 'alert'))
             embed = nextcord.Embed(

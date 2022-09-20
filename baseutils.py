@@ -12,7 +12,7 @@ def sanitize_mention(string: str) -> str:
     return re.sub(r"[^0-9]*", "",  string)
 
 
-async def ban(member: nextcord.Member, kind, reason):
+async def ban(config: configutils.Configuration, member: nextcord.Member, kind, reason):
     goodbye_embed = nextcord.Embed(
         title=f"You have been banned from {member.guild.name}",
         colour=nextcord.Color.from_rgb(237, 91, 6))
@@ -27,7 +27,7 @@ async def ban(member: nextcord.Member, kind, reason):
     await member.ban(reason=reason, delete_message_days=0)
 
 
-def modmention_check(messageData):
+def modmention_check(config: configutils.Configuration, message: str) -> bool:
     modmentions = [
         f"<@&{config.permission_roles.trial_moderator}>",
         f"<@&{config.permission_roles.moderator}>",
@@ -36,7 +36,7 @@ def modmention_check(messageData):
     ]
 
     for modmention in modmentions:
-        if modmention in messageData:
+        if modmention in message:
             return True
     return False
 

@@ -8,12 +8,16 @@ class ConfigurationDatafiles(YAMLWizard):
     keyfile:        str
     slurfile:       str
     goodwordfile:   str
+    blacklist:      str
+    casedetails:    str
+    casehistory:    str
 
 
 @dataclass
 class ConfigurationBot(YAMLWizard):
     prefix: str
     status: str
+    minimum_caps_length: int
 
 
 @dataclass

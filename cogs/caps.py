@@ -2,17 +2,18 @@ import nextcord
 from nextcord.ext import commands
 import re
 
-from configutils import get_config, get_config_int, set_config
+from configutils import Configuration
 from permutils import permcheck, is_mod
 from webhookutils import send_webhook_message
 
 
 class Caps(commands.Cog):
-    def __init__(self, bot):
-        self.sersisuccess = get_config('EMOTES', 'success')
-        self.sersifail = get_config('EMOTES', 'fail')
+    def __init__(self, bot, config: Configuration):
+        self.sersisuccess = config.emotes.success
+        self.sersifail = config.emotes.fail
         self.bot = bot
-        self.MIN_CHARS_FOR_DETECTION = get_config_int('CAPS', 'capslength', 5)
+        self.config = config
+        self.MIN_CHARS_FOR_DETECTION = config.bot.minimum_caps_length
 
     @commands.command()
     async def setcapslength(self, ctx, number):
@@ -31,7 +32,7 @@ class Caps(commands.Cog):
 
         old_val = self.MIN_CHARS_FOR_DETECTION
         self.MIN_CHARS_FOR_DETECTION = value
-        set_config('CAPS', 'capslength', number)
+        self.config.bot.minimum_caps_length = number
 
         await ctx.send(f"{self.sersisuccess} Caps lock detection starts now at messages longer than **{value}**.")
 
@@ -43,7 +44,7 @@ class Caps(commands.Cog):
         embed.add_field(name="Old Value", value=str(old_val))
         embed.add_field(name="New Value", value=str(value))
 
-        channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'logging'))
+        channel = ctx.guild.get_channel(self.config.channels.logging)
         await channel.send(embed=embed)
 
     @commands.command()
@@ -85,7 +86,7 @@ class Caps(commands.Cog):
                     wait=True,
                     allowed_mentions=nextcord.AllowedMentions.none())
 
-                channel = self.bot.get_channel(get_config_int('CHANNELS', 'logging'))
+                channel = self.bot.get_channel(self.config.channels.logging)
                 logging_embed = nextcord.Embed(
                     title="Caps Lock Message replaced",
                     description="",

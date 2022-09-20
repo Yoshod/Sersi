@@ -2,16 +2,17 @@ import nextcord
 from nextcord.ext import commands
 import io
 from chat_exporter import export
-from configutils import get_config
+from configutils import Configuration
 from permutils import permcheck, is_dark_mod
 
 
 class Archive(commands.Cog):
 
-    def __init__(self, bot):
-        self.sersisuccess = get_config('EMOTES', 'success')
-        self.sersifail = get_config('EMOTES', 'fail')
+    def __init__(self, bot, config: Configuration):
+        self.sersisuccess = self.config.emotes.success
+        self.sersifail = self.config.emotes.fail
         self.bot = bot
+        self.config = config
 
     @commands.command()
     async def archive(self, ctx, logged_channel: nextcord.TextChannel, output_channel: nextcord.TextChannel):
@@ -38,5 +39,5 @@ class Archive(commands.Cog):
             await output_channel.send(embed=log_embed, file=transcript_file)
 
 
-def setup(bot):
-    bot.add_cog(Archive(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(Archive(bot, kwargs["config"]))

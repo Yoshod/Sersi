@@ -5,10 +5,14 @@ datafiles:
     keyfile:        "files/AnonMessages/key.bin"
     slurfile:       "files/SlurAlerts/slurs.txt"
     goodwordfile:   "files/SlurAlerts/goodword.txt"
+    blacklist:      "files/WBList/blacklist.csv"
+    casedetails:    "files/Cases/casedetails.pkl"
+    casehistory:    "files/Cases/casehistory.pkl"
 
 bot:
     prefix: "s!"
     status: "melanie did this"
+    minimum caps length: 8
 
 channels:
     alert:             977377171054166037
