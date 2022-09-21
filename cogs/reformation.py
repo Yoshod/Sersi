@@ -8,17 +8,17 @@ from os import remove
 from chat_exporter import export
 
 from baseutils import ConfirmView, ban
-from configutils import get_config_int, get_options, get_config
+from configutils import Configuration
 from permutils import is_senior_mod, permcheck, is_mod, cb_is_mod, is_custom_role
 from caseutils import case_history, reform_case
 
 
 class Reformation(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot, config: Configuration):
         self.bot = bot
-        self.sersifail = get_config('EMOTES', 'fail')
-        self.case_history_file = "Files/Cases/casehistory.pkl"
-        self.case_details_file = "Files/Cases/casedetails.pkl"
+        self.sersifail = config.emotes.fail
+        self.case_history_file = config.datafiles.casehistory
+        self.case_details_file = config.datafiles.casedetails
 
     async def cb_rn_proceed(self, interaction):
         member_id, reason = 0, ""
@@ -29,89 +29,89 @@ class Reformation(commands.Cog):
                 reason = field.value
         member = interaction.guild.get_member(member_id)
 
+        # ------------------------------- ROLES CHANNELS
         # give reformation role
-        reformation_role = interaction.guild.get_role(get_config_int('ROLES', 'reformation'))
+        reformation_role = interaction.guild.get_role(self.config.roles.reformation)
         await member.add_roles(reformation_role, reason=reason, atomic=True)
 
         # remove civil engineering initiate
-        role_obj = interaction.guild.get_role(get_config_int('ROLES', 'civil engineering initiate'))
+        role_obj = interaction.guild.get_role(self.config.roles.civil_engineering_initiate)
         await member.remove_roles(role_obj, reason=reason, atomic=True)
 
         # remove opt-ins
-        roles = member.roles
-        for role in get_options('OPT IN ROLES'):
-            role_obj = interaction.guild.get_role(get_config_int('PERMISSION ROLES', role))
-            if role_obj in roles:
-                await member.remove_roles(role_obj, reason=reason, atomic=True)
+        for role in vars(self.config.opt_in_roles):
+            role_obj = interaction.guild.get_role(vars(self.config.opt_in_roles)[role])
+            await member.remove_roles(role_obj, reason=reason, atomic=True)
+
+        # ------------------------------- CREATING THE CASE CHANNEL
+        # updating the case number in the iter file
+        with open(self.config.datafiles.reform_iter, "r") as file:
+            case_num = file.readline()
+            case_num = int(case_num) + 1
+
+        with open(self.config.datafiles.reform_iter, "w") as file:
+            file.write(str(case_num))
+
+        case_name = f"reformation-case-{str(case_num).zfill(4)}"
+
+        overwrites = {
+            interaction.guild.default_role: nextcord.PermissionOverwrite(read_messages=False),
+            interaction.guild.me: nextcord.PermissionOverwrite(read_messages=True),
+            interaction.guild.get_role(self.config.permission_roles.reformist): nextcord.PermissionOverwrite(read_messages=True),
+            interaction.guild.get_role(self.config.permission_roles.moderator): nextcord.PermissionOverwrite(read_messages=True),
+            member: nextcord.PermissionOverwrite(read_messages=True, create_public_threads=False, create_private_threads=False, external_stickers=False, embed_links=False, attach_files=False, use_external_emojis=False)
+        }
+        category = nextcord.utils.get(interaction.guild.categories, name="REFORMATION ROOMS")
+        case_channel = await interaction.guild.create_text_channel(case_name, overwrites=overwrites, category=category)
+
+        # ------------------------------- CREATING THE CASEFILE ENTRY
+        # load the reformation cases
+        try:
+            with open(self.config.datafiles.reformation_cases, "rb") as file:
+                reformation_list = pickle.load(file)
+        except (EOFError, TypeError):
+            reformation_list = {}
+
+        case_details = [case_name, case_num, interaction.user.id, reason]
+        reformation_list[member.id] = case_details
+
+        with open(self.config.datafiles.reformation_cases, "wb") as file:
+            pickle.dump(reformation_list, file)
+
+        unique_id = case_history(self. config, member.id, "Reformation")
+        reform_case(self.config, unique_id, case_num, member.id, interaction.user.id, case_channel.id, reason)
 
         await interaction.message.edit(f"Member {member.mention} has been sent to reformation by {interaction.user.mention} for reason: `{reason}`", embed=None, view=None)
+
+        # ------------------------------- LOGGING
 
         # Giving a welcome to the person sent to reformation
         welcome_embed = nextcord.Embed(
             title="Welcome to Reformation",
-            description=f"Hello {member.mention}, you have been sent to reformation by {interaction.user.mention}. The reason given for this is `{reason}`. \n\nFor more information on reformation check out <#{get_config_int('CHANNELS', 'reformation info')}> or talk to a <@&{get_config_int('PERMISSION ROLES', 'reformist')}>.",
+            description=f"Hello {member.mention}, you have been sent to reformation by {interaction.user.mention}. The reason given for this is `{reason}`. \n\nFor more information on reformation check out <#{self.config.channels.reformation_info}> or talk to a <@&{self.config.permission_roles.reformist}>.",
             color=nextcord.Color.from_rgb(237, 91, 6))
 
-        # # LOGGING
+        channel = nextcord.utils.get(interaction.guild.channels, name=case_name)
+        await channel.send(embed=welcome_embed)
+
         embed = nextcord.Embed(
             title="User Has Been Sent to Reformation",
             description=f"Moderator {interaction.user.mention} ({interaction.user.id}) has sent user {member.mention} ({member.id}) to reformation.\n\n"
                         + f"**__Reason:__**\n{reason}",
             color=nextcord.Color.from_rgb(237, 91, 6))
 
-        channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'logging'))
+        channel = interaction.guild.get_channel(self.config.channels.logging)
         await channel.send(embed=embed)
 
-        channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'modlogs'))
+        channel = interaction.guild.get_channel(self.config.channels.modlogs)
         await channel.send(embed=embed)
 
-        channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'teachers'))
+        channel = interaction.guild.get_channel(self.config.channels.teachers_lounge)
         await channel.send(embed=embed)
 
-        channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'reformpubliclog'))
+        channel = interaction.guild.get_channel(self.config.channels.reform_public_log)
         await channel.send(embed=embed)
 
-        overwrites = {
-            interaction.guild.default_role: nextcord.PermissionOverwrite(read_messages=False),
-            interaction.guild.me: nextcord.PermissionOverwrite(read_messages=True),
-            interaction.guild.get_role(get_config_int('PERMISSION ROLES', 'reformist')): nextcord.PermissionOverwrite(read_messages=True),
-            interaction.guild.get_role(get_config_int('PERMISSION ROLES', 'moderator')): nextcord.PermissionOverwrite(read_messages=True),
-            member: nextcord.PermissionOverwrite(read_messages=True, create_public_threads=False, create_private_threads=False, external_stickers=False, embed_links=False, attach_files=False, use_external_emojis=False)
-        }
-        try:
-            with open("Files/Reformation/reformationcases.pkl", "rb") as file:
-                reformation_list = pickle.load(file)
-
-        except (EOFError, TypeError):
-            reformation_list = {}
-
-        with open("Files/Reformation/reformationiter.txt", "r") as file:
-            case_num = file.readline()
-            case_num = int(case_num) + 1
-
-        remove("Files/Reformation/reformationiter.txt")
-
-        with open("Files/Reformation/reformationiter.txt", "w") as file:
-            file.write(str(case_num))
-
-        case_name = (f"reformation-case-{str(case_num).zfill(4)}")
-
-        case_details = [case_name, case_num, interaction.user.id, reason]
-        reformation_list[member.id] = case_details
-
-        category = nextcord.utils.get(interaction.guild.categories, name="REFORMATION ROOMS")
-        channel = await interaction.guild.create_text_channel(case_name, overwrites=overwrites, category=category)
-
-        with open("Files/Reformation/reformationcases.pkl", "wb") as file:
-            pickle.dump(reformation_list, file)
-
-        unique_id = case_history(self. config, member.id, "Reformation")
-        reform_case(self.config, unique_id, case_num, member.id, interaction.user.id, channel.id, reason)
-
-        channel = nextcord.utils.get(interaction.guild.channels, name=case_name)
-        await channel.send(embed=welcome_embed)
-
-    # command
     @commands.command(aliases=['rn', 'reformneeded', 'reform'])
     async def reformationneeded(self, ctx, member: nextcord.Member, *, reason=""):
         """Send a user to reformation centre.
@@ -164,13 +164,13 @@ class Reformation(commands.Cog):
 
             # roles
             try:
-                civil_engineering_initiate  = interaction.guild.get_role(get_config_int('ROLES', 'civil engineering initiate'))
-                reformed                    = interaction.guild.get_role(get_config_int('ROLES', 'reformed'))
+                civil_engineering_initiate  = interaction.guild.get_role(self.config.roles.civil_engineering_initiate)
+                reformed                    = interaction.guild.get_role(self.config.roles.reformed)
 
                 await member.add_roles(civil_engineering_initiate, reformed, reason="Released out of the Reformation Centre", atomic=True)
             except AttributeError:
                 await interaction.send("Could not assign roles.")
-            await member.remove_roles(interaction.guild.get_role(get_config_int('ROLES', 'reformation')), reason="Released out of the Reformation Centre", atomic=True)
+            await member.remove_roles(interaction.guild.get_role(self.config.roles.reformation), reason="Released out of the Reformation Centre", atomic=True)
 
             # logs
             yes_list = '\n• '.join(yes_men)
@@ -178,19 +178,21 @@ class Reformation(commands.Cog):
             log_embed = nextcord.Embed(
                 title=f"Successful Reformation: **{member.name}** ({member.id})",
                 description=f"Reformation Member {member.name} was deemed well enough to be considered reformed.\nThis has been approved by {yes_list}.",
-                color=nextcord.Color.from_rgb(237, 91, 6))
-            channel = self.bot.get_channel(get_config_int('CHANNELS', 'modlogs'))
+                color=nextcord.Color.from_rgb(237, 91, 6)
+            )
+            channel = self.bot.get_channel(self.config.channels.modlogs)
             await channel.send(embed=log_embed)
-            await interaction.send(f"**{member.name}** ({member.id}) will now be considered reformed.")
 
-            channel = self.bot.get_channel(get_config_int('CHANNELS', 'reformpubliclog'))
+            channel = self.bot.get_channel(self.config.channels.reform_public_log)
             await channel.send(embed=log_embed)
+
+            await interaction.send(f"**{member.name}** ({member.id}) will now be considered reformed.")
 
             # updates embed and removed buttons
             await interaction.message.edit(embed=new_embed, view=None)
 
             # close case
-            with open("Files/Reformation/reformationcases.pkl", "rb") as file:
+            with open(self.config.datafiles.reformation_cases, "rb") as file:
                 reformation_list = pickle.load(file)
 
             channel_name = reformation_list[member.id][0]
@@ -200,7 +202,7 @@ class Reformation(commands.Cog):
 
             if transcript is None:
                 await channel.delete()
-                channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'teachers'))
+                channel = interaction.guild.get_channel(self.config.channels.teachers_lounge)
                 await channel.send(f"{self.sersifail} Failed to Generate Transcript!")
 
             else:
@@ -210,7 +212,7 @@ class Reformation(commands.Cog):
                 )
 
             await channel.delete()
-            channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'teachers'))
+            channel = interaction.guild.get_channel(self.config.channels.teachers_lounge)
             await channel.send(embed=log_embed, file=transcript_file)
 
         new_embed.description = f"{new_embed.description[:-1]}{yes_votes}"
@@ -267,22 +269,12 @@ class Reformation(commands.Cog):
             await ban(self, member, "rf", reason=f"Reformation Failed: {reason}")
 
             # transript
-            with open("Files/Reformation/reformationcases.pkl", "rb") as file:
+            with open(self.config.datafiles.reformation_cases, "rb") as file:
                 reformation_list = pickle.load(file)
             room_channel_name = reformation_list[member.id][0]
             room_channel = nextcord.utils.get(interaction.guild.channels, name=room_channel_name)
 
             transcript = await export(room_channel, military_time=True)
-
-            if transcript is None:
-                channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'teachers'))
-                await channel.send(f"{self.sersifail} Failed to Generate Transcript!")
-            else:
-                transcript_file = nextcord.File(
-                    io.BytesIO(transcript.encode()),
-                    filename=f"transcript-{room_channel_name}.html",
-                )
-
             await room_channel.delete()
 
             yes_list = '\n• '.join(yes_men)
@@ -290,18 +282,28 @@ class Reformation(commands.Cog):
             embed = nextcord.Embed(
                 title="Reformation Failed",
                 description=f"Reformation Inmate {member.name} has been deemed unreformable by\n\n{yes_list}\n\nInitial reason for Reformation was: `{reason}`. They have been banned automatically.",
-                color=nextcord.Color.from_rgb(0, 0, 0))
+                color=nextcord.Color.from_rgb(0, 0, 0)
+            )
 
-            channel = self.bot.get_channel(get_config_int('CHANNELS', 'alert'))
+            if transcript is None:
+                channel = interaction.guild.get_channel(self.config.channels.teachers_lounge)
+                await channel.send(f"{self.sersifail} Failed to Generate Transcript!")
+            else:
+                transcript_file = nextcord.File(
+                    io.BytesIO(transcript.encode()),
+                    filename=f"transcript-{room_channel_name}.html",
+                )
+
+            channel = self.bot.get_channel(self.config.channels.alert)
             await channel.send(embed=embed)
 
-            channel = self.bot.get_channel(get_config_int('CHANNELS', 'logging'))
+            channel = self.bot.get_channel(self.config.channels.logging)
             await channel.send(embed=embed)
 
-            channel = self.bot.get_channel(get_config_int('CHANNELS', 'modlogs'))
+            channel = self.bot.get_channel(self.config.channels.modlogs)
             await channel.send(embed=embed)
 
-            channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'teachers'))
+            channel = interaction.guild.get_channel(self.config.channels.teachers_lounge)
             await channel.send(embed=embed, file=transcript_file)
 
             await interaction.message.edit(embed=new_embed, view=None)
@@ -364,7 +366,7 @@ class Reformation(commands.Cog):
         # member have reformation role check
         is_in_reformation = False
         for role in member.roles:
-            if role.id == get_config_int('ROLES', 'reformation'):
+            if role.id == self.config.roles.reformation:
                 is_in_reformation = True
         if not is_in_reformation:
             await ctx.send("Member is not in reformation.")
@@ -396,7 +398,7 @@ class Reformation(commands.Cog):
         button_view.add_item(maybe)
         button_view.interaction_check = cb_is_mod
 
-        channel = self.bot.get_channel(get_config_int('CHANNELS', 'alert'))
+        channel = self.bot.get_channel(self.config.channels.alert)
         await channel.send(embed=embedVar, view=button_view)
 
     @commands.command(aliases=['rf', 'reformfailed', 'reformfail', 'reformf'])
@@ -414,7 +416,7 @@ class Reformation(commands.Cog):
         # member have reformation role check
         is_in_reformation = False
         for role in member.roles:
-            if role.id == get_config_int('ROLES', 'reformation'):
+            if role.id == self.config.roles.reformation:
                 is_in_reformation = True
         if not is_in_reformation:
             await ctx.send("Member is not in reformation.")
@@ -444,19 +446,24 @@ class Reformation(commands.Cog):
         button_view.add_item(maybe)
         button_view.interaction_check = cb_is_mod
 
-        channel = self.bot.get_channel(get_config_int('CHANNELS', 'alert'))
+        channel = self.bot.get_channel(self.config.channels.alert)
         await channel.send(embed=embedVar, view=button_view)
 
     @commands.command(aliases=["rcase", "reformcase"])
     async def reformationcase(self, ctx, user: nextcord.Member):
-        if not await permcheck(ctx, is_custom_role(ctx.author, [get_config_int('PERMISSION ROLES', 'moderator'), get_config_int('PERMISSION ROLES', 'trial moderator'), get_config_int('PERMISSION ROLES', 'reformist')])):
+        permitted_roles = [
+            self.config.permission_roles.moderator,
+            self.config.permission_roles.trial_moderator,
+            self.config.permission_roles.reformist
+        ]
+        if not await permcheck(ctx, is_custom_role(ctx.author, permitted_roles)):
             return
 
         elif user is None:
             await ctx.send(f"{self.sersifail} Please provide a user.")
 
         elif user is not None:
-            with open("Files/Reformation/reformationcases.pkl", "rb") as file:
+            with open(self.config.datafiles.reformation_cases, "rb") as file:
                 reformation_list = pickle.load(file)
             keys = reformation_list.keys()
             if user.id in keys:
@@ -476,39 +483,24 @@ class Reformation(commands.Cog):
         else:
             ctx.send(f"{self.sersifail} Failed to find the specified user! Perhaps they do not have a case?")
 
-    @commands.command()
-    async def refremove(self, ctx, member: nextcord.Member, *, reason):
-        if not await permcheck(ctx, is_senior_mod):
-            return
-
-        civil_engineering_initiate  = ctx.guild.get_role(get_config_int('ROLES', 'civil engineering initiate'))
-        await member.add_roles(civil_engineering_initiate, reason=reason)
-        await member.remove_roles(ctx.guild.get_role(get_config_int('ROLES', 'reformation')), reason=reason)
-
-        # logs
-        log_embed = nextcord.Embed(
-            title=f"Reformation Release: **{member.name}** ({member.id})",
-            description=f"Reformation Member {member.name} was forcefully released by {ctx.author.mention} ({ctx.author.id}).",
-            color=nextcord.Color.from_rgb(237, 91, 6))
-        channel = self.bot.get_channel(get_config_int('CHANNELS', 'modlogs'))
-        await channel.send(embed=log_embed)
-
     @commands.Cog.listener()
     async def on_member_remove(self, member):
-        reformation_role = member.get_role(get_config_int('ROLES', 'reformation'))
+        reformation_role = member.get_role(self.config.roles.re)
 
         if reformation_role is not None:
 
             async for ban_entry in member.guild.bans():
                 if member.id == ban_entry.user.id:
-                    channel = self.bot.get_channel(get_config_int('CHANNELS', 'modlogs'))
-                    embed = nextcord.Embed(
+
+                    ban_embed = nextcord.Embed(
                         title=f"Reformation inmate **{member}** ({member.id}) banned!",
                         colour=nextcord.Color.from_rgb(237, 91, 6))
-                    embed.add_field(name="Reason:", value=ban.reason)
+                    ban_embed.add_field(name="Reason:", value=ban.reason)
+                    channel = self.bot.get_channel(self.config.channels.modlogs)
+                    await channel.send(embed=ban_embed)
 
                     # transript
-                    with open("Files/Reformation/reformationcases.pkl", "rb") as file:
+                    with open(self.config.datafiles.reformation_cases, "rb") as file:
                         reformation_list = pickle.load(file)
                     room_channel_name = reformation_list[member.id][0]
                     room_channel = nextcord.utils.get(member.guild.channels, name=room_channel_name)
@@ -516,7 +508,7 @@ class Reformation(commands.Cog):
                     transcript = await export(room_channel, military_time=True)
 
                     if transcript is None:
-                        channel = member.guild.get_channel(get_config_int('CHANNELS', 'teachers'))
+                        channel = member.guild.get_channel(self.config.channels.teachers_lounge)
                         await channel.send(f"{self.sersifail} Failed to Generate Transcript!")
                     else:
                         transcript_file = nextcord.File(
@@ -525,22 +517,23 @@ class Reformation(commands.Cog):
                         )
 
                     await room_channel.delete()
-                    channel = member.guild.get_channel(get_config_int('CHANNELS', 'teachers'))
-                    await channel.send(embed=embed, file=transcript_file)
+                    channel = member.guild.get_channel(self.config.channels.teachers_lounge)
+                    await channel.send(embed=ban_embed, file=transcript_file)
 
                     return
 
+            # member not yet banned, proceed to ban
             # await member.ban(reason="Left while in reformation centre.", delete_message_days=0)
             await ban(self.config, member, "leave", reason="Left while in reformation centre.")
 
-            channel = self.bot.get_channel(get_config_int('CHANNELS', 'alert'))
+            channel = self.bot.get_channel(self.config.channels.alert)
             embed = nextcord.Embed(
                 title=f"User **{member}** ({member.id}) has left the server while in the reformation centre!",
-                description=f"User has left the server while having the <@&{get_config_int('ROLES', 'reformation')}> role. They have been banned automatically.",
+                description=f"User has left the server while having the <@&{self.config.roles.reformation}> role. They have been banned automatically.",
                 colour=nextcord.Color.from_rgb(237, 91, 6))
 
             # transript
-            with open("Files/Reformation/reformationcases.pkl", "rb") as file:
+            with open(self.config.datafiles.reformation_cases, "rb") as file:
                 reformation_list = pickle.load(file)
             room_channel_name = reformation_list[member.id][0]
             room_channel = nextcord.utils.get(member.guild.channels, name=room_channel_name)
@@ -548,7 +541,7 @@ class Reformation(commands.Cog):
             transcript = await export(room_channel, military_time=True)
 
             if transcript is None:
-                channel = member.guild.get_channel(get_config_int('CHANNELS', 'teachers'))
+                channel = member.guild.get_channel(self.config.channels.teachers_lounge)
                 await channel.send(f"{self.sersifail} Failed to Generate Transcript!")
             else:
                 transcript_file = nextcord.File(
@@ -557,7 +550,7 @@ class Reformation(commands.Cog):
                 )
 
             await room_channel.delete()
-            channel = member.guild.get_channel(get_config_int('CHANNELS', 'teachers'))
+            channel = member.guild.get_channel(self.config.channels.teachers_lounge)
             await channel.send(embed=embed, file=transcript_file)
 
 
@@ -569,5 +562,5 @@ class ReasonModal(nextcord.ui.Modal):
         self.callback = cb
 
 
-def setup(bot):
-    bot.add_cog(Reformation(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(Reformation(bot, kwargs["config"]))

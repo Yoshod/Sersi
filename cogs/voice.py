@@ -4,16 +4,17 @@ import requests
 from nextcord.ext import commands
 
 from baseutils import ConfirmView
-from configutils import get_config, get_config_int
+from configutils import Configuration
 from permutils import permcheck, is_mod
 import discordTokens
 
 
 class Voice(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot, config: Configuration):
         self.bot = bot
-        self.sersisuccess = get_config('EMOTES', 'success')
-        self.sersifail = get_config('EMOTES', 'fail')
+        self.config = config
+        self.sersisuccess = self.config.emotes.success
+        self.sersifail = self.config.emotes.fail
         self.unlocked_channels = []
 
     async def cb_massmove_proceed(self, interaction):
@@ -43,7 +44,7 @@ class Voice(commands.Cog):
         embed.add_field(name="Members moved to channel:", value=target.mention, inline=False)
         embed.add_field(name="Members Moved:", value=memberlist, inline=False)
 
-        channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'logging'))
+        channel = interaction.guild.get_channel(self.config.logging.channel)
         await channel.send(embed=embed)
 
     @commands.command(aliases=['mvc', 'movevc', 'vcmove', 'mm'])
@@ -182,5 +183,5 @@ class Voice(commands.Cog):
                     await channel.send(embed=log_embed)"""
 
 
-def setup(bot):
-    bot.add_cog(Voice(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(Voice(bot, kwargs["config"]))

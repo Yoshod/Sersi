@@ -2,11 +2,13 @@ import nextcord
 from nextcord.ext import commands
 from nextcord.ui import Button, View
 from permutils import cb_is_cet
+from configutils import Configuration
 
 
 class Suggestions(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot, config: Configuration):
         self.bot = bot
+        self.config = config
 
 
 @commands.command()
@@ -31,5 +33,5 @@ async def suggest(self, ctx):
     button_view.interaction_check = cb_is_cet
 
 
-def setup(bot):
-    bot.add_cog(Suggestions(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(Suggestions(bot, kwargs["config"]))

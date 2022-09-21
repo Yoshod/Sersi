@@ -1,16 +1,19 @@
 # Default configuration; no IDs nor a token have been set.
 
 datafiles:
-    author_list:    "files/about/authors.md"
-    keyfile:        "files/AnonMessages/key.bin"
-    slurfile:       "files/SlurAlerts/slurs.txt"
-    goodwordfile:   "files/SlurAlerts/goodword.txt"
-    blacklist:      "files/WBList/blacklist.csv"
-    casedetails:    "files/Cases/casedetails.pkl"
-    casehistory:    "files/Cases/casehistory.pkl"
-    gifblacklist:   "files/WBList/gifblacklist.txt"
-    secret_dms:     "files/AnonMessages/secret_dms.pkl"
-    secret_mutes:   "files/AnonMessages/banned.csv"
+    author_list:        "files/about/authors.md"
+    keyfile:            "files/AnonMessages/key.bin"
+    slurfile:           "files/SlurAlerts/slurs.txt"
+    goodwordfile:       "files/SlurAlerts/goodword.txt"
+    blacklist:          "files/WBList/blacklist.csv"
+    casedetails:        "files/Cases/casedetails.pkl"
+    casehistory:        "files/Cases/casehistory.pkl"
+    gifblacklist:       "files/WBList/gifblacklist.txt"
+    secret_dms:         "files/AnonMessages/secret_dms.pkl"
+    secret_mutes:       "files/AnonMessages/banned.csv"
+    reform_iter:        "files/Reformation/reformationiter.txt"
+    reformation_cases:  "files/Reformation/reformationcases.pkl"
+    watchlist:          "files/WBList/watchlist.csv"
 
 bot:
     prefix: "s!"
@@ -41,6 +44,7 @@ channels:
     deleted_messages: 0
     mod applications: 0
     internalfeedback: 0
+    timeoutappeals: 0
 
 
 roles:
@@ -52,7 +56,7 @@ roles:
     newbie:                     938465528043954267
     honourable_member:          0
 
-opt_ins:
+opt_in_roles:
     gaming:         0
     tech_compsci:   0
     food_and_drink: 0

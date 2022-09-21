@@ -14,6 +14,9 @@ class ConfigurationDatafiles(YAMLWizard):
     gifblacklist:   str
     secret_dms:     str
     secret_mutes:   str
+    reform_iter:    str
+    reformation_cases: str
+    watchlist: str
 
 
 @dataclass
@@ -35,6 +38,7 @@ class ConfigurationChannels(YAMLWizard):
     dm_forward: int
     mod_applications: int
     internalfeedback: int
+    timeoutappeals: int
 
     # debugging channels
     errors: int
@@ -146,7 +150,7 @@ class Configuration(YAMLWizard):
     bot: ConfigurationBot
     channels: ConfigurationChannels
     roles: ConfigurationRoles
-    opt_ins: ConfigurationOptInRoles
+    opt_in_roles: ConfigurationOptInRoles
     permission_roles: ConfigurationPermissionRoles
     emotes: ConfigurationEmotes
     invites: ConfigurationInvites

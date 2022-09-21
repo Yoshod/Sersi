@@ -163,7 +163,7 @@ class VerificationTicket(nextcord.ui.Modal):
 
 
 class TicketingSystem(commands.Cog):
-    def __init__(self, bot, config):
+    def __init__(self, bot, config: Configuration):
         self.bot = bot
         self.config = config
 

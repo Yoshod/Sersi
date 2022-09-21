@@ -1,14 +1,15 @@
 import nextcord
 from nextcord.ext import commands
 from nextcord.ui import Button, View
-from configutils import get_config_int
+from configutils import Configuration
 from permutils import permcheck, is_dark_mod
 
 
 class ToAppealRejection(nextcord.ui.Modal):
-    def __init__(self, userID: int):
+    def __init__(self, config: Configuration, userID: int):
         super().__init__("Adam Something Central Timeout Appeal")
         self.userID = userID
+        self.config = config
 
         self.reason = nextcord.ui.TextInput(
             label="Reason for Timeout Appeal Rejection:",
@@ -37,16 +38,16 @@ class ToAppealRejection(nextcord.ui.Modal):
         log_embed.add_field(name="User:", value=f"{user} ({user.name})", inline=False)
         log_embed.add_field(name="Reason:", value=self.reason.value, inline=False)
 
-        guild = nextcord.Client.get_guild(856262303795380224)
-        print(guild)
+        guild = nextcord.Client.get_guild(self.config.guilds.main)
 
-        channel = guild.get_channel(get_config_int('CHANNELS', 'modlogs'))
+        channel = guild.get_channel(self.config.channels.modlogs)
         await channel.send(embed=log_embed)
 
 
 class ToAppealAccept(nextcord.ui.Modal):
-    def __init__(self, userID: int):
+    def __init__(self, config: Configuration, userID: int):
         super().__init__("Adam Something Central Timeout Appeal")
+        self.config = config
         self.userID = userID
 
         self.reason = nextcord.ui.TextInput(
@@ -76,16 +77,17 @@ class ToAppealAccept(nextcord.ui.Modal):
         log_embed.add_field(name="User:", value=f"{user} ({user.name})", inline=False)
         log_embed.add_field(name="Reason:", value=self.reason.value, inline=False)
 
-        guild = nextcord.Client.get_guild(get_config_int("GUILDS", "main"))
-        print(guild)
+        guild = nextcord.Client.get_guild(self.config.guilds.main)
 
-        channel = guild.get_channel(get_config_int('CHANNELS', 'modlogs'))
+        channel = guild.get_channel(self.config.channels.modlogs)
         await channel.send(embed=log_embed)
 
 
 class ToAppealForm(nextcord.ui.Modal):
-    def __init__(self):
+    def __init__(self, config: Configuration):
         super().__init__("Adam Something Central Timeout Appeal")
+        self.config = config
+
         self.reason = nextcord.ui.TextInput(
             label="The Reason Given for your Timeout:",
             max_length=1024,
@@ -129,21 +131,20 @@ class ToAppealForm(nextcord.ui.Modal):
         button_view.add_item(accept_bttn)
         button_view.add_item(reject_bttn)
 
-        guild = nextcord.Client.get_guild(get_config_int("GUILDS", "main"))
-        print(guild)
-
+        guild = nextcord.Client.get_guild(self.config.guilds.main)
         member = guild.get_member(interaction.user.id)
+
         if member.communication_disabled_until is None:
             return
 
-        channel = guild.get_channel(get_config_int('CHANNELS', 'timeoutappeals'))
+        channel = guild.get_channel(self.config.channels.timeoutappeals)
         await channel.send(embed=appeal_embed, view=button_view)
 
 
 class ToAppeals(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot, config: Configuration):
         self.bot = bot
-        self.guild = self.bot.get_guild(get_config_int("GUILDS", "main"))
+        self.config = config
 
     @commands.command()
     async def toappeal(self, ctx):
@@ -197,5 +198,5 @@ class ToAppeals(commands.Cog):
             await message.author.send(embed=test_embed, view=button_view)
 
 
-def setup(bot):
-    bot.add_cog(ToAppeals(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(ToAppeals(bot, kwargs["config"]))

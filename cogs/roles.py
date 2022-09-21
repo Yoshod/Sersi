@@ -1,12 +1,12 @@
 from nextcord.ext import commands
-from configutils import get_config_int
+from configutils import Configuration
 import datetime
 import pytz
 
 
 class Roles(commands.Cog):
 
-    def __init__(self, bot):
+    def __init__(self, bot, config: Configuration):
         self.bot = bot
 
     @commands.Cog.listener()
@@ -14,7 +14,7 @@ class Roles(commands.Cog):
         if member.bot:  # do not apply newbie role do bots
             return
 
-        newbie_role = member.guild.get_role(get_config_int('ROLES', 'newbie'))
+        newbie_role = member.guild.get_role(self.config.roles.newbie)
         await member.add_roles(newbie_role)
 
     @commands.Cog.listener()
@@ -22,10 +22,10 @@ class Roles(commands.Cog):
         if message.author.bot:  # ignores message if message is by bot
             return
 
-        if message.guild is None:
+        if message.guild is None:   # ignores if message is a DM
             return
 
-        newbie_role = message.guild.get_role(get_config_int('ROLES', 'newbie'))
+        newbie_role = message.guild.get_role(self.config.roles.newbie)
 
         if newbie_role in message.author.roles:
 
@@ -37,5 +37,5 @@ class Roles(commands.Cog):
                 await message.author.remove_roles(newbie_role)
 
 
-def setup(bot):
-    bot.add_cog(Roles(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(Roles(bot, kwargs["config"]))
