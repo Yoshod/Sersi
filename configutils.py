@@ -24,6 +24,7 @@ class ConfigurationDatafiles(YAMLWizard):
 class ConfigurationBot(YAMLWizard):
     prefix: str
     status: str
+    port: int
     minimum_caps_length: int
 
 

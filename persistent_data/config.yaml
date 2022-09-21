@@ -19,6 +19,7 @@ datafiles:
 bot:
     prefix: "s!"
     status: "melanie did this"
+    port:   8113 # 8074 for live, 8113 for unstable
     minimum caps length: 8
 
 channels:

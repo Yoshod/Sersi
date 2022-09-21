@@ -182,12 +182,19 @@ class TicketingSystem(commands.Cog):
         ticket_embed = nextcord.Embed(
             title="Contact Server Staff",
             description="Select one of the buttons below to contact server staff. Please select the staff group most appropriate for your query. The examples below are just that, examples. They are not strict rules or limitations on which ticket should be used for your specific circumstances.",
-            colour=nextcord.Color.from_rgb(237, 91, 6))
-        ticket_embed.add_field(name="Administrator", value=f"<@&{self.config.permission_roles.dark_moderator}> is best contacted for:\n- Complaints about Senior Moderators or Community Engagement Team\n- Business queries for Adam Something\n- You want something deleted from server logs")
-        ticket_embed.add_field(name="Senior Moderator", value=f"<@&{self.config.permission_roles.senior_moderator}> is best contacted for:\n- Complaints about Moderators\n- Questions regarding server rules\n- Appealing moderator action taken against you")
-        ticket_embed.add_field(name="Moderator", value=f"<@&{self.config.permission_roles.moderator}> is best contacted for:\n- Reporting user misconduct\n- Enquiries into moderator actions\n- Anonymous Chat Reports")
+            colour=nextcord.Color.from_rgb(237, 91, 6)
+        )
+
+        ticket_embed.add_field(name="Administrator",
+                               value=f"<@&{self.config.permission_roles.dark_moderator}> is best contacted for:\n- Complaints about Senior Moderators or Community Engagement Team\n- Business queries for Adam Something\n- You want something deleted from server logs")
         admin = Button(custom_id="admin-ticket", label="Administrator Ticket", style=nextcord.ButtonStyle.red)
+
+        ticket_embed.add_field(name="Senior Moderator",
+                               value=f"<@&{self.config.permission_roles.senior_moderator}> is best contacted for:\n- Complaints about Moderators\n- Questions regarding server rules\n- Appealing moderator action taken against you")
         senior = Button(custom_id="senior-moderator-ticket", label="Senior Moderator Ticket", style=nextcord.ButtonStyle.blurple)
+
+        ticket_embed.add_field(name="Moderator",
+                               value=f"<@&{self.config.permission_roles.moderator}> is best contacted for:\n- Reporting user misconduct\n- Enquiries into moderator actions\n- Anonymous Chat Reports")
         moderator = Button(custom_id="moderator-ticket", label="Moderator Ticket", style=nextcord.ButtonStyle.blurple)
 
         button_view = View(auto_defer=False)
