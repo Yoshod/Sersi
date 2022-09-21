@@ -18,5 +18,5 @@ class Misc(commands.Cog):
         await ctx.send(embed=ask_embed)
 
 
-def setup(bot):
+def setup(bot, **kwargs):
     bot.add_cog(Misc(bot))

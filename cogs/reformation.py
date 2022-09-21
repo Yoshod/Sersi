@@ -4,12 +4,11 @@ import io
 from nextcord.ext import commands
 from nextcord.ui import Button, View
 from nextcord.ext.commands.errors import MemberNotFound
-from os import remove
 from chat_exporter import export
 
 from baseutils import ConfirmView, ban
 from configutils import Configuration
-from permutils import is_senior_mod, permcheck, is_mod, cb_is_mod, is_custom_role
+from permutils import permcheck, is_mod, cb_is_mod, is_custom_role
 from caseutils import case_history, reform_case
 
 

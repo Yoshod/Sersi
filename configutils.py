@@ -112,6 +112,7 @@ class ConfigurationPermissionRoles(YAMLWizard):
     reformist: int
     ticket_support: int
     sersi_contributor: int
+    cet: int
 
     # AMAB: all mods are bastards ;)
     trial_moderator: int

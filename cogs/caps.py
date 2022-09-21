@@ -100,5 +100,5 @@ class Caps(commands.Cog):
                 await channel.send(embed=logging_embed)
 
 
-def setup(bot):
-    bot.add_cog(Caps(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(Caps(bot, kwargs["config"]))

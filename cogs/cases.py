@@ -12,6 +12,7 @@ class Cases(commands.Cog):
 
     def __init__(self, bot, config: Configuration):
         self.bot = bot
+        self.config = config
         self.sersifail = config.emotes.fail
         self.case_history_file = config.datafiles.casehistory
         self.case_details_file = config.datafiles.casedetails
@@ -37,6 +38,7 @@ class Cases(commands.Cog):
             cases_embed.set_thumbnail(url=member.display_avatar.url)
 
             view = PageView(
+                config=self.config,
                 base_embed=cases_embed,
                 fetch_function=get_member_cases,
                 author=ctx.author,
@@ -47,8 +49,10 @@ class Cases(commands.Cog):
                 self.case_history = pickle.load(file)
 
         elif search_by_member is not True:
+
             with open(self.case_details_file, "rb") as file:
                 self.case_details = pickle.load(file)
+
             if search_term not in self.case_details:
                 ctx.send(f"{self.sersifail} Case {search_term} not found.")
 

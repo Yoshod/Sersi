@@ -8,6 +8,7 @@ class Roles(commands.Cog):
 
     def __init__(self, bot, config: Configuration):
         self.bot = bot
+        self.config = config
 
     @commands.Cog.listener()
     async def on_member_join(self, member):

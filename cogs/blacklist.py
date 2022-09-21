@@ -11,7 +11,7 @@ class Blacklist(commands.Cog):
     def __init__(self, bot, config: Configuration):
         self.sersisuccess = config.emotes.success
         self.sersifail = config.emotes.fail
-        self.filename = self.config.datafiles.blacklist
+        self.filename = config.datafiles.blacklist
         self.bot = bot
         self.config = config
         self.blacklist = {}

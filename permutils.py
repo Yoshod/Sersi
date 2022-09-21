@@ -126,6 +126,17 @@ def is_sersi_contrib(member: nextcord.Member):
     return False
 
 
+def is_cet(member: nextcord.Member):
+    permitted_roles = [
+        config.permission_roles.sersi_contributor
+    ]
+
+    for role in member.roles:
+        if role.id in permitted_roles:
+            return True
+    return False
+
+
 # This does not work, perhaps if I knew more about why I could fix it
 def is_custom_role(member: nextcord.Member, permitted_roles=[]):
     for role in member.roles:
@@ -140,3 +151,7 @@ async def cb_is_mod(interaction):
 
 async def cb_is_dark_mod(interaction):
     return await permcheck(interaction, is_dark_mod)
+
+
+async def cb_is_cet(interaction):
+    return await permcheck(interaction, is_cet)

@@ -80,6 +80,7 @@ permission_roles:
     moderator:         977394150494326855
     senior_moderator:  1021477021664153653
     dark_moderator:    978681533453971526
+    cet: 0
 
 emotes:
     success: "<:sersisuccess:979066662856822844>"

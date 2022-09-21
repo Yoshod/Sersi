@@ -1,12 +1,13 @@
 import nextcord
-
+from configutils import Configuration
 from nextcord.ext import commands
 
 
 class About(commands.Cog):
 
-    def __init__(self, bot):
+    def __init__(self, bot, config: Configuration):
         self.bot = bot
+        self.config = config
         self.version_num = "`4.0.0`"
 
         with open(self.config.datafiles.author_list, "r") as file:
@@ -25,5 +26,5 @@ class About(commands.Cog):
         await ctx.send(embed=about)
 
 
-def setup(bot):
-    bot.add_cog(About(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(About(bot, kwargs["config"]))
