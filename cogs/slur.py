@@ -1,9 +1,10 @@
 import nextcord
+import pickle
 
 from nextcord.ext import commands
 from nextcord.ui import Button, View
 
-from baseutils import DualCustodyView, PageView
+from baseutils import DualCustodyView, PageView, sanitize_mention
 from configutils import Configuration
 from permutils import permcheck, is_mod, is_full_mod, cb_is_mod
 from slurdetector import load_slurdetector, load_slurs, load_goodwords, get_slurs, get_goodwords, clear_string, rm_slur, rm_goodword, detect_slur
@@ -40,8 +41,7 @@ class Slur(commands.Cog):
             if field.name in ["User:", "Slurs Found:"]:
                 case_data.append(field.value)
 
-        converter = commands.MemberConverter()
-        member = await converter.convert(self, case_data[0])
+        member = interaction.guild.get_member(int(sanitize_mention(case_data[0])))
 
         unique_id = case_history(self.config, member.id, "Slur Usage")
         slur_case(self.config, unique_id, case_data[1], interaction.message.jump_url, member.id, interaction.user.id)
@@ -258,6 +258,7 @@ class Slur(commands.Cog):
             color=nextcord.Color.from_rgb(237, 91, 6))
 
         view = PageView(
+            config=self.config,
             base_embed=embed,
             fetch_function=get_slurs,
             author=ctx.author,
@@ -279,6 +280,7 @@ class Slur(commands.Cog):
             color=nextcord.Color.from_rgb(237, 91, 6))
 
         view = PageView(
+            config=self.config,
             base_embed=embed,
             fetch_function=get_goodwords,
             author=ctx.author,
@@ -311,6 +313,50 @@ class Slur(commands.Cog):
             slurembed.add_field(name="Slurs Found:", value=", ".join(set(detected_slurs)), inline=False)
             slurembed.add_field(name="URL:", value=message.jump_url, inline=False)
             slurembed.set_footer(text="Sersi Slur Detection Alert")
+
+            with open(self.config.datafiles.casehistory, "rb") as file:
+                case_history = pickle.load(file)
+
+            # --> dict of list
+            user_history = case_history.get(message.author.id, [])  # -> list
+
+            slur_virgin = True  # noone was there to stop me naming a variable like this
+            previous_offenses = []
+
+            for case in user_history:
+                if case[1] == "Slur Usage":
+                    slur_virgin = False
+
+                    # check if slur was done before
+                    uid = case[0]
+                    with open(self.config.datafiles.casedetails, "rb") as file:
+                        case_details = pickle.load(file)
+                        slur_used = case_details[uid][1]
+
+                        previous_slurs = slur_used.split(", ")
+
+                        if any(new_slur in previous_slurs for new_slur in detected_slurs):  # slur has been said before by user
+                            report_url = case_details[uid][2]
+                            previous_offenses.append(f"`{uid}` [Jump!]({report_url})")
+
+            if not slur_virgin and not previous_offenses:  # user has said slurs before, however not that particular one
+                slurembed.add_field(name="Previous Slur Uses:",
+                                    value=f"{self.config.emotes.success} user has said slurs before, but not this/these one/ones",
+                                    inline=False
+                                    )
+
+            elif previous_offenses:  # user has said that slur before
+                prev_offenses = "\n".join(previous_offenses)
+                if len(prev_offenses) < 1024:
+                    slurembed.add_field(name="Previous Slur Uses:",
+                                        value=f"{self.config.emotes.success} user has said __this/these__ slur/slurs before:\n{prev_offenses}",
+                                        inline=False
+                                        )
+                else:
+                    slurembed.add_field(name="Previous Slur Uses:", value="`CASE LIST TOO LONG`", inline=False)
+
+            else:
+                slurembed.add_field(name="Previous Slur Uses:", value=f"{self.config.emotes.fail} this user is a first offender", inline=False)
 
             action_taken = Button(label="Action Taken")
             action_taken.callback = self.cb_action_taken
