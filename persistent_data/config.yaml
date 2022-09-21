@@ -14,6 +14,7 @@ datafiles:
     reform_iter:        "files/Reformation/reformationiter.txt"
     reformation_cases:  "files/Reformation/reformationcases.pkl"
     watchlist:          "files/WBList/watchlist.csv"
+    ticketers:          "files/Tickets/ticketers.pkl"
 
 bot:
     prefix: "s!"

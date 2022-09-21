@@ -17,6 +17,7 @@ class ConfigurationDatafiles(YAMLWizard):
     reform_iter:    str
     reformation_cases: str
     watchlist: str
+    ticketers: str
 
 
 @dataclass

@@ -4,11 +4,13 @@ import ticketutils
 from nextcord.ext import commands
 from nextcord.ui import Button, View
 from permutils import permcheck, is_dark_mod, is_senior_mod, is_mod
+from configutils import Configuration
 
 
 class ModeratorTicket(nextcord.ui.Modal):
-    def __init__(self):
+    def __init__(self, config: Configuration):
         super().__init__("Moderator Ticket")
+        self.config = config
 
         self.issue = nextcord.ui.TextInput(
             label="What is the reason for your ticket:",
@@ -22,10 +24,10 @@ class ModeratorTicket(nextcord.ui.Modal):
         """Run whenever the 'submit' button is pressed."""
         user = interaction.user
 
-        if not ticketutils.ticket_check(user.id, "mod_ticket"):
+        if not ticketutils.ticket_check(self.config, user.id, "mod_ticket"):
             return
 
-        overwrites, case_name = ticketutils.ticket_prep(interaction, user, "mod_ticket")
+        overwrites, case_name = ticketutils.ticket_prep(self.config, interaction, user, "mod_ticket")
 
         category = nextcord.utils.get(interaction.guild.categories, name="MODERATION SUPPORT")
         channel = await interaction.guild.create_text_channel(case_name, overwrites=overwrites, category=category)
@@ -46,8 +48,9 @@ class ModeratorTicket(nextcord.ui.Modal):
 
 
 class SeniorModeratorTicket(nextcord.ui.Modal):
-    def __init__(self):
+    def __init__(self, config: Configuration):
         super().__init__("Senior Moderator Ticket")
+        self.config = config
 
         self.issue = nextcord.ui.TextInput(
             label="What is the reason for your ticket:",
@@ -61,10 +64,10 @@ class SeniorModeratorTicket(nextcord.ui.Modal):
         """Run whenever the 'submit' button is pressed."""
         user = interaction.user
 
-        if not ticketutils.ticket_check(user.id, "senior_ticket"):
+        if not ticketutils.ticket_check(self.config, user.id, "senior_ticket"):
             return
 
-        overwrites, case_name = ticketutils.ticket_prep(interaction, user, "senior_ticket")
+        overwrites, case_name = ticketutils.ticket_prep(self.config, interaction, user, "senior_ticket")
 
         category = nextcord.utils.get(interaction.guild.categories, name="MODERATION SUPPORT")
         channel = await interaction.guild.create_text_channel(case_name, overwrites=overwrites, category=category)
@@ -85,8 +88,9 @@ class SeniorModeratorTicket(nextcord.ui.Modal):
 
 
 class AdministratorTicket(nextcord.ui.Modal):
-    def __init__(self):
+    def __init__(self, config: Configuration):
         super().__init__("Administrator Ticket")
+        self.config = config
 
         self.issue = nextcord.ui.TextInput(
             label="What is the reason for your ticket:",
@@ -100,10 +104,10 @@ class AdministratorTicket(nextcord.ui.Modal):
         """Run whenever the 'submit' button is pressed."""
         user = interaction.user
 
-        if not ticketutils.ticket_check(user.id, "admin_ticket"):
+        if not ticketutils.ticket_check(self.config, user.id, "admin_ticket"):
             return
 
-        overwrites, case_name = ticketutils.ticket_prep(interaction, user, "admin_ticket")
+        overwrites, case_name = ticketutils.ticket_prep(self.config, interaction, user, "admin_ticket")
 
         category = nextcord.utils.get(interaction.guild.categories, name="MODERATION SUPPORT")
         channel = await interaction.guild.create_text_channel(case_name, overwrites=overwrites, category=category)
@@ -124,8 +128,9 @@ class AdministratorTicket(nextcord.ui.Modal):
 
 
 class VerificationTicket(nextcord.ui.Modal):
-    def __init__(self):
+    def __init__(self, config: Configuration):
         super().__init__("Verification Ticket")
+        self.config = config
 
         self.issue = nextcord.ui.TextInput(
             label="What is the reason for your ticket:",
@@ -139,10 +144,10 @@ class VerificationTicket(nextcord.ui.Modal):
         """Run whenever the 'submit' button is pressed."""
         user = interaction.user
 
-        if not ticketutils.ticket_check(user.id, "verification_ticket"):
+        if not ticketutils.ticket_check(self.config, user.id, "verification_ticket"):
             return
 
-        overwrites, case_name = ticketutils.ticket_prep(interaction, user, "verification_ticket")
+        overwrites, case_name = ticketutils.ticket_prep(self.config, interaction, user, "verification_ticket")
 
         category = nextcord.utils.get(interaction.guild.categories, name="VERIFICATON SUPPORT")
         channel = await interaction.guild.create_text_channel(case_name, overwrites=overwrites, category=category)
@@ -151,7 +156,7 @@ class VerificationTicket(nextcord.ui.Modal):
             title="Verification Ticket Received",
             description=f"{user.mention} ({user.id}) has submitted a Verification Ticket.",
             color=nextcord.Color.from_rgb(237, 91, 6))
-        ticket_embed.add_field(name="Initial Remarks:",    value=self.issue.value,      inline=False)
+        ticket_embed.add_field(name="Initial Remarks:", value=self.issue.value, inline=False)
         ticket_embed.set_footer(text=user.display_name, icon_url=user.display_avatar.url)
 
         close_bttn = Button(custom_id=f"verification-ticket-close:{user.id}", label="Close Ticket", style=nextcord.ButtonStyle.red)
@@ -223,13 +228,13 @@ class TicketingSystem(commands.Cog):
 
         match id_name:
             case "admin-ticket":
-                await interaction.response.send_modal(AdministratorTicket())
+                await interaction.response.send_modal(AdministratorTicket(self.config))
             case "senior-moderator-ticket":
-                await interaction.response.send_modal(SeniorModeratorTicket())
+                await interaction.response.send_modal(SeniorModeratorTicket(self.config))
             case "moderator-ticket":
-                await interaction.response.send_modal(ModeratorTicket())
+                await interaction.response.send_modal(ModeratorTicket(self.config))
             case "verification-ticket":
-                await interaction.response.send_modal(VerificationTicket())
+                await interaction.response.send_modal(VerificationTicket(self.config))
 
             case "support-ask":
                 support = Button(custom_id="verification-ticket", label="✔️", style=nextcord.ButtonStyle.green)
@@ -244,24 +249,24 @@ class TicketingSystem(commands.Cog):
             case "admin-ticket-close":
                 if await permcheck(interaction, is_dark_mod):
                     user = self.bot.get_user(int(id_extra))
-                    await ticketutils.ticket_close(interaction, user, "admin_ticket")
+                    await ticketutils.ticket_close(self.config, interaction, user, "admin_ticket")
                     await interaction.channel.delete(reason="Ticket closed")
 
             case "senior-ticket-close":
                 if await permcheck(interaction, is_senior_mod):
                     user = self.bot.get_user(int(id_extra))
-                    await ticketutils.ticket_close(interaction, user, "senior_ticket")
+                    await ticketutils.ticket_close(self.config, interaction, user, "senior_ticket")
                     await interaction.channel.delete(reason="Ticket closed")
 
             case "moderator-ticket-close":
                 if await permcheck(interaction, is_mod):
                     user = self.bot.get_user(int(id_extra))
-                    await ticketutils.ticket_close(interaction, user, "mod_ticket")
+                    await ticketutils.ticket_close(self.config, interaction, user, "mod_ticket")
                     await interaction.channel.delete(reason="Ticket closed")
 
             case "verification-ticket-close":
                 user = self.bot.get_user(int(id_extra))
-                await ticketutils.ticket_close(interaction, user, "verification_ticket")
+                await ticketutils.ticket_close(self.config, interaction, user, "verification_ticket")
                 await interaction.channel.delete(reason="Ticket closed")
 
 
