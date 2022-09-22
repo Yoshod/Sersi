@@ -83,8 +83,7 @@ class Caps(commands.Cog):
                     content=msg_string.lower(),
                     username=message.author.display_name,
                     avatar_url=message.author.display_avatar.url,
-                    wait=True,
-                    allowed_mentions=nextcord.AllowedMentions.none())
+                    wait=True)
 
                 channel = self.bot.get_channel(self.config.channels.logging)
                 logging_embed = nextcord.Embed(
