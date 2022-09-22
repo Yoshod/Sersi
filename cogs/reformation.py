@@ -179,13 +179,19 @@ class Reformation(commands.Cog):
                 description=f"Reformation Member {member.name} was deemed well enough to be considered reformed.\nThis has been approved by {yes_list}.",
                 color=nextcord.Color.from_rgb(237, 91, 6)
             )
-            channel = self.bot.get_channel(self.config.channels.modlogs)
+            channel = interaction.guild.get_channel(self.config.channels.alert)
             await channel.send(embed=log_embed)
 
-            channel = self.bot.get_channel(self.config.channels.reform_public_log)
+            channel = interaction.guild.get_channel(self.config.channels.logging)
             await channel.send(embed=log_embed)
 
-            await interaction.send(f"**{member.name}** ({member.id}) will now be considered reformed.")
+            channel = interaction.guild.get_channel(self.config.channels.modlogs)
+            await channel.send(embed=log_embed)
+
+            channel = interaction.guild.get_channel(self.config.channels.teachers_lounge)
+            await channel.send(embed=log_embed)
+
+            # await interaction.send(f"**{member.name}** ({member.id}) will now be considered reformed.")
 
             # updates embed and removed buttons
             await interaction.message.edit(embed=new_embed, view=None)
