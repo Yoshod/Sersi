@@ -315,10 +315,9 @@ class Slur(commands.Cog):
             slurembed.set_footer(text="Sersi Slur Detection Alert")
 
             with open(self.config.datafiles.casehistory, "rb") as file:
-                case_history = pickle.load(file)
+                case_history = pickle.load(file)  # --> dict of list; one dict entry per user ID
 
-            # --> dict of list
-            user_history = case_history.get(message.author.id, [])  # -> list
+            user_history = case_history.get(message.author.id, [])  # -> list of user offenses, empty list if none
 
             slur_virgin = True  # noone was there to stop me naming a variable like this
             previous_offenses = []
