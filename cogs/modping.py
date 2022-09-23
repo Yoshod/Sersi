@@ -78,7 +78,7 @@ class ModPing(commands.Cog):
         if message.guild is not None:
             adam_something = message.guild.get_member(809891646606409779)
         else:
-            adam_something = None
+            return              # ignores message if it is a DM
 
         if message.author.bot:  # ignores message if message is by bot
             return

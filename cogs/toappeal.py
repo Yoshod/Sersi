@@ -132,7 +132,7 @@ class ToAppealForm(nextcord.ui.Modal):
         button_view.add_item(reject_bttn)
 
         guild = nextcord.Client.get_guild(self.config.guilds.main)
-        member = guild.get_member(interaction.user.id)
+        member = interaction.guild.get_member(interaction.user.id)
 
         if member.communication_disabled_until is None:
             return
@@ -174,13 +174,13 @@ class ToAppeals(commands.Cog):
 
         match id_name:
             case "to-appeal-open":
-                await interaction.response.send_modal(ToAppealForm())
+                await interaction.response.send_modal(ToAppealForm(self.config))
             case "to-appeal-accept":
                 if await permcheck(interaction, is_dark_mod):
-                    await interaction.response.send_modal(ToAppealAccept(int(id_extra)))
+                    await interaction.response.send_modal(ToAppealAccept(self.config, int(id_extra)))
             case "to-appael-reject":
                 if await permcheck(interaction, is_dark_mod):
-                    await interaction.response.send_modal(ToAppealRejection(int(id_extra)))
+                    await interaction.response.send_modal(ToAppealRejection(self.config, int(id_extra)))
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -190,12 +190,12 @@ class ToAppeals(commands.Cog):
                     title="Submit Appeal",
                     description="If you have been timedout, press the button below to appeal the timeout.",
                     colour=nextcord.Color.from_rgb(237, 91, 6))
-            open_modal = Button(custom_id="to-appeal-open", label="Open Form", style=nextcord.ButtonStyle.blurple)
+                open_modal = Button(custom_id="to-appeal-open", label="Open Form", style=nextcord.ButtonStyle.blurple)
 
-            button_view = View(auto_defer=False)
-            button_view.add_item(open_modal)
+                button_view = View(auto_defer=False)
+                button_view.add_item(open_modal)
 
-            await message.author.send(embed=test_embed, view=button_view)
+                await message.author.send(embed=test_embed, view=button_view)
 
 
 def setup(bot, **kwargs):
