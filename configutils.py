@@ -18,6 +18,7 @@ class ConfigurationDatafiles(YAMLWizard):
     reformation_cases: str
     watchlist: str
     ticketers: str
+    video_history: str
 
 
 @dataclass
@@ -49,6 +50,7 @@ class ConfigurationChannels(YAMLWizard):
     secret: int
     photography: int
     youtube: int
+    video_discussion: int
 
     # reformation related channels
     reformation_info: int

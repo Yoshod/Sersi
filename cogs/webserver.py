@@ -3,14 +3,16 @@ import nextcord
 import xmltodict
 
 from aiohttp import web
-from aiohttp.web import Request
 from nextcord.ext import commands, tasks
 
-from configuration.configuration import Configuration
+from configutils import Configuration
 
 
 app    = web.Application()
 routes = web.RouteTableDef()
+
+# http://77.68.125.175:8113
+# https://www.youtube.com/xml/feeds/videos.xml?channel_id=UCE9-NjoFfHqekXmJLt5WMLg
 
 
 class WebServer(commands.Cog):
@@ -22,29 +24,68 @@ class WebServer(commands.Cog):
 
         @routes.get("/")
         def uptimerobot(request):
-            return web.Response(text="Empty Request")
+            return web.Response(text="Hewwo UwuptimeWowobowot!!!", status=200)
 
         @routes.get("/youtube")
+        async def youtube_verification(request: web.Request):
+
+            if "hub.challenge" not in request.query:
+                return web.Response(text="403 You are not meant to be here.", status=403)
+
+            match request.query["hub.mode"]:
+                case "subscribe":
+                    print(f"[web_server] subscribed to {request.query['hub.topic']}")
+
+                case "unsubscribe":
+                    print(f"[web_server] unsubscribed from {request.query['hub.topic']}")
+
+                case _:
+                    return web.Response(text="Invalid mode", status=400)
+
+            return web.Response(body=request.query["hub.challenge"].encode("utf8"), status=200)
+
         @routes.post("/youtube")
-        async def youtube_update(request: Request):
-            if request.query is not None and "hub.challenge" in request.query:
-                print(f"[web_server] {request.query['hub.mode']} for {request.query['hub.topic']}")
-                return web.Response(body=request.query["hub.challenge"].encode("utf8"), status=201)
+        async def youtube_update(request: web.Request):
 
             if not request.has_body:
                 return web.Response(text="No body given", status=400)
 
             data = xmltodict.parse(await request.read())
 
-            channel: nextcord.TextChannel = self.bot.get_channel(self.config.channels.youtube)
-            if channel is None:
-                raise Exception("YouTube text channel is none")
+            prev_vids = []
+            try:
+                with open(self.config.datafiles.video_history, 'r') as file:
+                    for line in file:
+                        line = line.replace('\n', '')
+                        prev_vids.append(line)
+
+            except FileNotFoundError:
+                with open(self.config.datafiles.video_history, 'x'):
+                    pass
+                pass
 
             channel_name = data['feed']['entry']['author']['name']
             video_title  = data['feed']['entry']['title']
             video_url    = data['feed']['entry']['link']['@href']
+            video_id     = data['feed']['entry']['yt:videoId']
 
-            await channel.send(f"New video from {channel_name}: **{video_title}**\nWatch it here: **{video_url}**")
+            if video_id in prev_vids:
+                print(f"Recieved Update for Video {video_id}, nothing to be done.")
+                return web.Response(status=204)
+
+            print(f"Recieved Update for Video {video_id}, now processing.")
+            with open(self.config.datafiles.video_history, 'a') as file:
+                file.write(f"{video_id}\n")
+
+            channel = self.bot.get_channel(self.config.channels.youtube)
+            await channel.send(f"__**New {channel_name} Video**__\n{channel_name} has uploaded a video: {video_title} {video_url}\n@everyone")
+
+            forum = self.bot.get_channel(self.config.channels.video_discussion)
+            messagestr = f"New video by {channel_name}: {video_url}"
+
+            # for some reason they call forum posts threads (they behave very similar)
+            await forum.create_thread(name=video_title, content=messagestr,  reason="Creating Video Thread")
+
             return web.Response(status=204)
 
         app.add_routes(routes)
@@ -53,9 +94,7 @@ class WebServer(commands.Cog):
     async def web_server(self):
         runner = web.AppRunner(app)
         await runner.setup()
-
         site = web.TCPSite(runner, port=self.config.bot.port)
-
         try:
             await site.start()
         except OSError:  # TODO: tends to be port in use, check whether this is the cas

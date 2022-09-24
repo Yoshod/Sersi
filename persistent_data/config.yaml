@@ -15,6 +15,7 @@ datafiles:
     reformation_cases:  "files/Reformation/reformationcases.pkl"
     watchlist:          "files/WBList/watchlist.csv"
     ticketers:          "files/Tickets/ticketers.pkl"
+    video_history:      "files/youtube/processed_videos.txt"
 
 bot:
     prefix: "s!"
@@ -47,6 +48,7 @@ channels:
     mod applications: 0
     internalfeedback: 0
     timeoutappeals: 0
+    video_discussion: 0
 
 
 roles:
