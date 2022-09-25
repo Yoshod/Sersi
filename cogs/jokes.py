@@ -168,10 +168,10 @@ class Jokes(commands.Cog):
             await message.reply("After **56** years, you lot finally managed to win another title, wow.")
 
         elif message.author.is_on_mobile():
-            randomValue = random.randint(1, 100000)
-            if randomValue == 1:
+            randomValue = random.randint(1, 200000)
+            if randomValue in [1, 2]:
                 await message.reply("Discord mobile was the greatest mistake in the history of mankind")
-            elif randomValue in [2, 3, 4, 5]:
+            elif randomValue in [3, 4, 5]:
                 await message.reply("Phone user detected, opinion rejected")
 
 
