@@ -17,6 +17,7 @@ class Messages(commands.Cog):
 
     def __init__(self, bot, config: Configuration):
         self.bot = bot
+        self.config = config
         self.recdms = False
         self.sersisuccess = config.emotes.success
         self.sersifail = config.emotes.fail
