@@ -24,7 +24,7 @@ class WebServer(commands.Cog):
 
         @routes.get("/")
         def uptimerobot(request):
-            return web.Response(text="Hewwo UwuptimeWowobowot!!!", status=200)
+            return web.Response(text="Pong!", status=200)
 
         @routes.get("/youtube")
         async def youtube_verification(request: web.Request):
@@ -77,14 +77,14 @@ class WebServer(commands.Cog):
             with open(self.config.datafiles.video_history, 'a') as file:
                 file.write(f"{video_id}\n")
 
+            # create announcement
             channel = self.bot.get_channel(self.config.channels.youtube)
             await channel.send(f"__**New {channel_name} Video**__\n{channel_name} has uploaded a video: {video_title} {video_url}\n@everyone")
 
+            # create forum post
             forum = self.bot.get_channel(self.config.channels.video_discussion)
             messagestr = f"New video by {channel_name}: {video_url}"
-
-            # for some reason they call forum posts threads (they behave very similar)
-            await forum.create_thread(name=video_title, content=messagestr,  reason="Creating Video Thread")
+            await forum.create_thread(name=video_title, content=messagestr,  reason="Creating Video Thread")  # for some reason they call forum posts threads (they behave very similar)
 
             return web.Response(status=204)
 

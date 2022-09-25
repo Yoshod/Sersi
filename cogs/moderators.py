@@ -1,57 +1,9 @@
 import nextcord
 from nextcord.ext import commands
-from nextcord.ui import Button, View, Modal
 
 from baseutils import ConfirmView, DualCustodyView
 from configutils import Configuration
-from permutils import is_dark_mod, permcheck, is_staff, is_senior_mod
-
-
-class ModAppModal(Modal):
-    def __init__(self, config: Configuration):
-        super().__init__("Moderator Application")
-        self.config = config
-
-        self.aboutq = nextcord.ui.TextInput(label="Tell Us About Yourself", min_length=2, max_length=1024, required=True, style=nextcord.TextInputStyle.paragraph)
-        self.add_item(self.aboutq)
-
-        self.whymod = nextcord.ui.TextInput(label="Why Do You Want To Become A Moderator", min_length=2, max_length=1024, required=True, style=nextcord.TextInputStyle.paragraph)
-        self.add_item(self.whymod)
-
-        self.priorexp = nextcord.ui.TextInput(label="Do You Have Prior Moderation Experience", min_length=2, max_length=1024, required=True, style=nextcord.TextInputStyle.paragraph)
-        self.add_item(self.priorexp)
-
-        self.age = nextcord.ui.TextInput(label="How Old Are You", min_length=1, max_length=2, required=True)
-        self.add_item(self.age)
-
-        self.vc = nextcord.ui.TextInput(label="Are You Able To Voice Chat", min_length=2, max_length=1024, required=True)
-        self.add_item(self.vc)
-
-    async def callback(self, interaction):
-        """Run whenever the 'submit' button is pressed."""
-        applicant_id = interaction.user.id
-
-        application_embed = nextcord.Embed(
-            title="Moderator Application Sent",
-            description=f"User {interaction.user.name} ({interaction.user.id})",
-            color=nextcord.Color.from_rgb(237, 91, 6))
-        application_embed.add_field(name=self.aboutq.label,     value=self.aboutq.value,    inline=False)
-        application_embed.add_field(name=self.whymod.label,     value=self.whymod.value,    inline=False)
-        application_embed.add_field(name=self.priorexp.label,   value=self.priorexp.value,  inline=False)
-        application_embed.add_field(name=self.age.label,        value=self.age.value,       inline=False)
-        application_embed.add_field(name=self.vc.label,         value=self.vc.value,        inline=False)
-
-        accept_bttn = Button(custom_id=f"mod-application-next-steps:{applicant_id}", label="Move To Next Steps", style=nextcord.ButtonStyle.green)
-        reject_bttn = Button(custom_id=f"mod-application-reject:{applicant_id}", label="Reject Application", style=nextcord.ButtonStyle.red)
-        review_bttn = Button(custom_id=f"mod-application-review:{applicant_id}", label="Under Review", style=nextcord.ButtonStyle.grey)
-
-        button_view = View(auto_defer=False)
-        button_view.add_item(accept_bttn)
-        button_view.add_item(reject_bttn)
-        button_view.add_item(review_bttn)
-
-        channel = interaction.client.get_channel(self.config.channels.mod_applications)
-        await channel.send(embed=application_embed, view=button_view)
+from permutils import permcheck, is_staff, is_senior_mod
 
 
 class Moderators(commands.Cog):
@@ -60,9 +12,6 @@ class Moderators(commands.Cog):
         self.config = config
         self.sersisuccess = config.emotes.success
         self.sersifail = config.emotes.fail
-
-    async def cb_open_mod_modal(self, interaction):
-        await interaction.response.send_modal(ModAppModal(self.config))
 
     async def cb_addticket_proceed(self, interaction):
         member_id = 0
@@ -246,7 +195,9 @@ class Moderators(commands.Cog):
             role_obj = interaction.guild.get_role(vars(self.config.permission_roles)[role])
             try:
                 await member.remove_roles(role_obj, reason=reason, atomic=True)
-            except:
+            except nextcord.errors.HTTPException:
+                continue
+            except nextcord.errors.NotFound:
                 continue
 
         await interaction.message.edit(f"{self.sersisuccess} {member.mention} has been dishonourly discharged from the staff team. Good riddance!", embed=None, view=None)
@@ -323,7 +274,9 @@ class Moderators(commands.Cog):
             role_obj = interaction.guild.get_role(vars(self.config.permission_roles)[role])
             try:
                 await member.remove_roles(role_obj)
-            except:
+            except nextcord.errors.HTTPException:
+                continue
+            except nextcord.errors.NotFound:
                 continue
 
         honourable_member = interaction.guild.get_role(self.config.roles.honourable_member)
@@ -411,6 +364,8 @@ class Moderators(commands.Cog):
         except ValueError:
             id_name = interaction.data["custom_id"]
             id_extra = None
+        except KeyError:
+            return
 
         match id_name:
             case "mod-application-next-steps":
