@@ -40,6 +40,7 @@ class ConfigurationChannels(YAMLWizard):
     ban_appeals: int
     dm_forward: int
     mod_applications: int
+    cet_applications: int
     internalfeedback: int
     timeoutappeals: int
 
