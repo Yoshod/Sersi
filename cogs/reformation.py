@@ -15,6 +15,7 @@ from caseutils import case_history, reform_case
 class Reformation(commands.Cog):
     def __init__(self, bot, config: Configuration):
         self.bot = bot
+        self.config = config
         self.sersifail = config.emotes.fail
         self.case_history_file = config.datafiles.casehistory
         self.case_details_file = config.datafiles.casedetails
@@ -147,8 +148,13 @@ class Reformation(commands.Cog):
         yes_votes = new_embed.description[-1]
         yes_votes = int(yes_votes) + 1
 
+        new_embed.description = f"{new_embed.description[:-1]}{yes_votes}"
+        await interaction.message.edit(embed=new_embed)
+        await interaction.response.defer()
+
         # automatically releases inmate at 3 yes votes
         if (yes_votes >= 3):
+            await interaction.message.edit(view=None)
 
             # get member object of member to be released
             member_string   = new_embed.footer.text
@@ -176,7 +182,7 @@ class Reformation(commands.Cog):
 
             log_embed = nextcord.Embed(
                 title=f"Successful Reformation: **{member.name}** ({member.id})",
-                description=f"Reformation Member {member.name} was deemed well enough to be considered reformed.\nThis has been approved by {yes_list}.",
+                description=f"Reformation Member {member.name} was deemed well enough to be considered reformed.\nThis has been approved by:\n• {yes_list}.",
                 color=nextcord.Color.from_rgb(237, 91, 6)
             )
             channel = interaction.guild.get_channel(self.config.channels.alert)
@@ -220,9 +226,6 @@ class Reformation(commands.Cog):
             channel = interaction.guild.get_channel(self.config.channels.teachers_lounge)
             await channel.send(embed=log_embed, file=transcript_file)
 
-        new_embed.description = f"{new_embed.description[:-1]}{yes_votes}"
-        await interaction.message.edit(embed=new_embed)
-
     async def cb_rq_yes_open_modal(self, interaction):
         # check if user has already voted
         for field in interaction.message.embeds[0].fields:
@@ -239,8 +242,13 @@ class Reformation(commands.Cog):
         yes_votes = new_embed.description[-1]
         yes_votes = int(yes_votes) + 1
 
+        new_embed.description = f"{new_embed.description[:-1]}{yes_votes}"
+        await interaction.message.edit(embed=new_embed)
+        await interaction.response.defer()
+
         # automatically releases inmate at 3 yes votes
         if (yes_votes >= 3):
+            await interaction.message.edit(view=None)
 
             member_string   = new_embed.footer.text
             member_id       = int(member_string)
@@ -286,7 +294,7 @@ class Reformation(commands.Cog):
 
             embed = nextcord.Embed(
                 title="Reformation Failed",
-                description=f"Reformation Inmate {member.name} has been deemed unreformable by\n\n{yes_list}\n\nInitial reason for Reformation was: `{reason}`. They have been banned automatically.",
+                description=f"Reformation Inmate {member.name} has been deemed unreformable by\n•{yes_list}\n\nInitial reason for Reformation was: `{reason}`. They have been banned automatically.",
                 color=nextcord.Color.from_rgb(0, 0, 0)
             )
 
@@ -310,11 +318,6 @@ class Reformation(commands.Cog):
 
             channel = interaction.guild.get_channel(self.config.channels.teachers_lounge)
             await channel.send(embed=embed, file=transcript_file)
-
-            await interaction.message.edit(embed=new_embed, view=None)
-
-        new_embed.description = f"{new_embed.description[:-1]}{yes_votes}"
-        await interaction.message.edit(embed=new_embed)
 
     async def cb_rf_yes_open_modal(self, interaction):
         # check if user has already voted
