@@ -96,17 +96,13 @@ class Config(commands.Cog):
 
             await ctx.send(f"{self.sersisuccess} `[{section}] {setting}` has been set to `{value}`")
 
-            if section == "bot":
-                await ctx.invoke(self.bot.get_command('reloadbot'))
+            await ctx.invoke(self.bot.get_command('reloadbot'))
 
         else:
             dialog_embed = nextcord.Embed(
-                title="Add new setting",
-                description="Specified setting does not exist, do you wish to create it?",
-                color=nextcord.Color.from_rgb(237, 91, 6))
-            dialog_embed.add_field(name="Section", value=section)
-            dialog_embed.add_field(name="Setting", value=setting)
-            dialog_embed.add_field(name="Value", value=value)
+                title="Setting not found.",
+                color=nextcord.Color.from_rgb(237, 91, 6)
+            )
 
             await ConfirmView(self.cb_create_proceed).send_as_reply(ctx, embed=dialog_embed)
 

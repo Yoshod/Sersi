@@ -171,6 +171,8 @@ class ToAppeals(commands.Cog):
         except ValueError:
             id_name = interaction.data["custom_id"]
             id_extra = None
+        except KeyError:
+            return
 
         match id_name:
             case "to-appeal-open":

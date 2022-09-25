@@ -116,10 +116,11 @@ async def on_ready():
 
     print(f"Nextcord Version:\n{nextcord.__version__}")
 
-    print(f"We have logged in as {bot.user}")
-
     bot.command_prefix = config.bot.prefix
     await bot.change_presence(activity=nextcord.Game(config.bot.status))
+
+    await bot.sync_all_application_commands()
+    print(f"We have logged in as {bot.user}")
 
 
 @bot.event
