@@ -17,7 +17,7 @@ class Slur(commands.Cog):
         self.bot = bot
         self.config = config
         self.sersisuccess = config.emotes.success
-        self.sersifail = config.emotes.success
+        self.sersifail = config.emotes.fail
         load_slurdetector()
 
     async def cb_action_taken(self, interaction):
@@ -105,7 +105,7 @@ class Slur(commands.Cog):
         existing_slur = None
         for s in get_slurs():
             if s in slur:
-                existing_slur = True
+                existing_slur = s
 
         if existing_slur is not None:
             await ctx.send(f"{self.sersifail} {slur} is in conflict with existing slur {existing_slur}; cannot be added.")
