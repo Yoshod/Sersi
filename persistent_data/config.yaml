@@ -46,6 +46,7 @@ channels:
     verification_ticket_logs: 1021380970240294922
     deleted_messages: 0
     mod applications: 0
+    cet applications: 0
     internalfeedback: 0
     timeoutappeals: 0
     video_discussion: 0
