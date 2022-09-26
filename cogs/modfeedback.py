@@ -135,21 +135,18 @@ class InternalFeedback(commands.Cog):
     @commands.Cog.listener()
     async def on_interaction(self, interaction):
         try:
-            id_name, id_extra = interaction.data["custom_id"].split(":", 1)
-        except ValueError:
-            id_name = interaction.data["custom_id"]
-            id_extra = None
+            btn_id = interaction.data["custom_id"]
         except KeyError:
             return
 
-        match id_name:
-            case "internal-feedback":
+        match btn_id.split(":", 1):
+            case ["internal-feedback"]:
                 await interaction.response.send_modal(FeedbackForm(self.config))
-            case "internal-feedback-anon":
+            case ["internal-feedback-anon"]:
                 await interaction.response.send_modal(AnonymousFeedbackForm(self.config))
-            case "internal-feedback-response":
+            case ["internal-feedback-response", user_id]:
                 if await permcheck(interaction, is_dark_mod):
-                    await interaction.response.send_modal(FeedbackResponse(int(id_extra)))
+                    await interaction.response.send_modal(FeedbackResponse(int(user_id)))
 
 
 def setup(bot, **kwargs):

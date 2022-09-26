@@ -170,15 +170,14 @@ class Applications(commands.Cog):
     @commands.Cog.listener()
     async def on_interaction(self, interaction):
         try:
-            id_name, id_extra = interaction.data["custom_id"].split(":", 1)
-        except ValueError:
-            id_name = interaction.data["custom_id"]
-            id_extra = None
+            btn_id = interaction.data["custom_id"]
+        except KeyError:
+            return
 
-        match id_name:
-            case "mod-application-next-steps":
+        match btn_id.split(":", 1):
+            case ["mod-application-next-steps", user_id]:
                 if await permcheck(interaction, is_senior_mod):
-                    user = interaction.guild.get_member(int(id_extra))
+                    user = interaction.guild.get_member(int(user_id))
 
                     updated_form = interaction.message.embeds[0]
                     updated_form.add_field(name="Application Advanced by:", value=interaction.user.mention)
@@ -190,9 +189,9 @@ class Applications(commands.Cog):
                         colour=nextcord.Color.from_rgb(237, 91, 6))
                     await user.send(embed=advance_embed)
 
-            case "mod-application-reject":
+            case ["mod-application-reject", user_id]:
                 if await permcheck(interaction, is_senior_mod):
-                    user = interaction.guild.get_member(int(id_extra))
+                    user = interaction.guild.get_member(int(user_id))
 
                     updated_form = interaction.message.embeds[0]
                     updated_form.add_field(name="Application Rejected by:", value=interaction.user.mention)
@@ -204,14 +203,14 @@ class Applications(commands.Cog):
                         colour=nextcord.Color.from_rgb(237, 91, 6))
                     await user.send(embed=rejection_embed)
 
-            case "mod-application-review":
+            case ["mod-application-review", user_id]:
                 if await permcheck(interaction, is_senior_mod):
-                    user = interaction.guild.get_member(int(id_extra))
+                    user = interaction.guild.get_member(int(user_id))
 
                     updated_form = interaction.message.embeds[0]
                     updated_form.add_field(name="Review notified by:", value=interaction.user.mention)
-                    accept_bttn = Button(custom_id=f"mod-application-next-steps:{id_extra}", label="Move To Next Steps", style=nextcord.ButtonStyle.green)
-                    reject_bttn = Button(custom_id=f"mod-application-reject:{id_extra}", label="Reject Application", style=nextcord.ButtonStyle.red)
+                    accept_bttn = Button(custom_id=f"mod-application-next-steps:{user_id}", label="Move To Next Steps", style=nextcord.ButtonStyle.green)
+                    reject_bttn = Button(custom_id=f"mod-application-reject:{user_id}", label="Reject Application", style=nextcord.ButtonStyle.red)
                     button_view = View(auto_defer=False)
                     button_view.add_item(accept_bttn)
                     button_view.add_item(reject_bttn)
@@ -223,12 +222,12 @@ class Applications(commands.Cog):
                         colour=nextcord.Color.from_rgb(237, 91, 6))
                     await user.send(embed=review_embed)
 
-            case "mod-application-start":
+            case ["mod-application-start"]:
                 await interaction.response.send_modal(ModAppModal(self.config))
 
-            case "cet-application-next-steps":
+            case ["cet-application-next-steps", user_id]:
                 if await permcheck(interaction, is_cet):
-                    user = interaction.guild.get_member(int(id_extra))
+                    user = interaction.guild.get_member(int(user_id))
 
                     updated_form = interaction.message.embeds[0]
                     updated_form.add_field(name="Application Advanced by:", value=interaction.user.mention)
@@ -240,9 +239,9 @@ class Applications(commands.Cog):
                         colour=nextcord.Color.from_rgb(237, 91, 6))
                     await user.send(embed=advance_embed)
 
-            case "cet-application-reject":
+            case ["cet-application-reject", user_id]:
                 if await permcheck(interaction, is_cet):
-                    user = interaction.guild.get_member(int(id_extra))
+                    user = interaction.guild.get_member(int(user_id))
 
                     updated_form = interaction.message.embeds[0]
                     updated_form.add_field(name="Application Rejected by:", value=interaction.user.mention)
@@ -254,14 +253,14 @@ class Applications(commands.Cog):
                         colour=nextcord.Color.from_rgb(237, 91, 6))
                     await user.send(embed=rejection_embed)
 
-            case "cet-application-review":
+            case ["cet-application-review", user_id]:
                 if await permcheck(interaction, is_cet):
-                    user = interaction.guild.get_member(int(id_extra))
+                    user = interaction.guild.get_member(int(user_id))
 
                     updated_form = interaction.message.embeds[0]
                     updated_form.add_field(name="Review notified by:", value=interaction.user.mention)
-                    accept_bttn = Button(custom_id=f"cet-application-next-steps:{id_extra}", label="Move To Next Steps", style=nextcord.ButtonStyle.green)
-                    reject_bttn = Button(custom_id=f"cet-application-reject:{id_extra}", label="Reject Application", style=nextcord.ButtonStyle.red)
+                    accept_bttn = Button(custom_id=f"cet-application-next-steps:{user_id}", label="Move To Next Steps", style=nextcord.ButtonStyle.green)
+                    reject_bttn = Button(custom_id=f"cet-application-reject:{user_id}", label="Reject Application", style=nextcord.ButtonStyle.red)
                     button_view = View(auto_defer=False)
                     button_view.add_item(accept_bttn)
                     button_view.add_item(reject_bttn)
@@ -273,7 +272,7 @@ class Applications(commands.Cog):
                         colour=nextcord.Color.from_rgb(237, 91, 6))
                     await user.send(embed=review_embed)
 
-            case "cet-application-start":
+            case ["cet-application-start"]:
                 await interaction.response.send_modal(CetAppModal(self.config))
 
 

@@ -228,24 +228,21 @@ class TicketingSystem(commands.Cog):
     @commands.Cog.listener()
     async def on_interaction(self, interaction):
         try:
-            id_name, id_extra = interaction.data["custom_id"].split(":", 1)
-        except ValueError:
-            id_name = interaction.data["custom_id"]
-            id_extra = None
+            btn_id = interaction.data["custom_id"]
         except KeyError:
             return
 
-        match id_name:
-            case "admin-ticket":
+        match btn_id.split(":", 1):
+            case ["admin-ticket"]:
                 await interaction.response.send_modal(AdministratorTicket(self.config))
-            case "senior-moderator-ticket":
+            case ["senior-moderator-ticket"]:
                 await interaction.response.send_modal(SeniorModeratorTicket(self.config))
-            case "moderator-ticket":
+            case ["moderator-ticket"]:
                 await interaction.response.send_modal(ModeratorTicket(self.config))
-            case "verification-ticket":
+            case ["verification-ticket"]:
                 await interaction.response.send_modal(VerificationTicket(self.config))
 
-            case "support-ask":
+            case ["support-ask"]:
                 support = Button(custom_id="verification-ticket", label="✔️", style=nextcord.ButtonStyle.green)
                 no_support = Button(custom_id="no-support", label="❌", style=nextcord.ButtonStyle.red)
 
@@ -255,26 +252,27 @@ class TicketingSystem(commands.Cog):
 
                 await interaction.response.send_message("Have you read the support ticket guidelines?", view=button_view, ephemeral=True)
 
-            case "admin-ticket-close":
+            case ["admin-ticket-close", user_id]:
                 if await permcheck(interaction, is_dark_mod):
-                    user = self.bot.get_user(int(id_extra))
+                    user = self.bot.get_user(int(user_id))
                     await ticketutils.ticket_close(self.config, interaction, user, "admin_ticket")
                     await interaction.channel.delete(reason="Ticket closed")
 
-            case "senior-ticket-close":
+            case ["senior-ticket-close", user_id]:
                 if await permcheck(interaction, is_senior_mod):
-                    user = self.bot.get_user(int(id_extra))
+                    user = self.bot.get_user(int(user_id))
                     await ticketutils.ticket_close(self.config, interaction, user, "senior_ticket")
                     await interaction.channel.delete(reason="Ticket closed")
 
-            case "moderator-ticket-close":
+            case ["moderator-ticket-close", user_id]:
                 if await permcheck(interaction, is_mod):
-                    user = self.bot.get_user(int(id_extra))
+                    print(user_id)
+                    user = self.bot.get_user(int(user_id))
                     await ticketutils.ticket_close(self.config, interaction, user, "mod_ticket")
                     await interaction.channel.delete(reason="Ticket closed")
 
-            case "verification-ticket-close":
-                user = self.bot.get_user(int(id_extra))
+            case ["verification-ticket-close", user_id]:
+                user = self.bot.get_user(int(user_id))
                 await ticketutils.ticket_close(self.config, interaction, user, "verification_ticket")
                 await interaction.channel.delete(reason="Ticket closed")
 

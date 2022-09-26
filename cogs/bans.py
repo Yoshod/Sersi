@@ -204,22 +204,19 @@ class BanAppeals(commands.Cog):
     @commands.Cog.listener()
     async def on_interaction(self, interaction):
         try:
-            id_name, id_extra = interaction.data["custom_id"].split(":", 1)
-        except ValueError:
-            id_name = interaction.data["custom_id"]
-            id_extra = None
+            btn_id = interaction.data["custom_id"]
         except KeyError:
             return
 
-        match id_name:
-            case "ban-appeal-open":
+        match btn_id.split(":", 1):
+            case ["ban-appeal-open"]:
                 await interaction.response.send_modal(BanAppealForm(self.config))
-            case "ban-appeal-accept":
+            case ["ban-appeal-accept", user_id]:
                 if await permcheck(interaction, is_dark_mod):
-                    await interaction.response.send_modal(BanAppealAccept(self.config, int(id_extra)))
-            case "ban-appeal-reject":
+                    await interaction.response.send_modal(BanAppealAccept(self.config, int(user_id)))
+            case ["ban-appeal-reject", user_id]:
                 if await permcheck(interaction, is_dark_mod):
-                    await interaction.response.send_modal(BanAppealRejection(self.config, int(id_extra)))
+                    await interaction.response.send_modal(BanAppealRejection(self.config, int(user_id)))
 
 
 def setup(bot, **kwargs):

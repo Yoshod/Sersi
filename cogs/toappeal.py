@@ -167,22 +167,19 @@ class ToAppeals(commands.Cog):
     @commands.Cog.listener()
     async def on_interaction(self, interaction):
         try:
-            id_name, id_extra = interaction.data["custom_id"].split(":", 1)
-        except ValueError:
-            id_name = interaction.data["custom_id"]
-            id_extra = None
+            btn_id = interaction.data["custom_id"]
         except KeyError:
             return
 
-        match id_name:
-            case "to-appeal-open":
+        match btn_id.split(":", 1):
+            case ["to-appeal-open"]:
                 await interaction.response.send_modal(ToAppealForm(self.config))
-            case "to-appeal-accept":
+            case ["to-appeal-accept", user_id]:
                 if await permcheck(interaction, is_dark_mod):
-                    await interaction.response.send_modal(ToAppealAccept(self.config, int(id_extra)))
-            case "to-appael-reject":
+                    await interaction.response.send_modal(ToAppealAccept(self.config, int(user_id)))
+            case ["to-appael-reject", user_id]:
                 if await permcheck(interaction, is_dark_mod):
-                    await interaction.response.send_modal(ToAppealRejection(self.config, int(id_extra)))
+                    await interaction.response.send_modal(ToAppealRejection(self.config, int(user_id)))
 
     @commands.Cog.listener()
     async def on_message(self, message):
