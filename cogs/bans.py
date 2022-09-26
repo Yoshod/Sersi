@@ -4,6 +4,8 @@ from nextcord.ui import Button, View
 from configutils import Configuration
 from permutils import permcheck, is_dark_mod
 
+CONFIG = Configuration
+
 
 class BanAppealRejection(nextcord.ui.Modal):
     def __init__(self, config: Configuration, userID: int):
@@ -139,6 +141,13 @@ class BanAppealForm(nextcord.ui.Modal):
     async def callback(self, interaction):
         """Run whenever the 'submit' button is pressed."""
         appellant_id = interaction.user.id
+
+        guild = nextcord.Client.get_guild(CONFIG.guilds.main)
+        try:
+            _ = await guild.get_ban(interaction.user)
+        except nextcord.errors.NotFound:
+            await interaction.response.send_message(f"{CONFIG.emotes.fail} You are not banned on Adam Something Central")
+            return
 
         appeal_embed = nextcord.Embed(
             title="Ban Appeal Sent",
