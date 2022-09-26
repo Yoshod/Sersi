@@ -10,6 +10,7 @@ from nextcord.ext import commands
 
 import configutils
 from permutils import permcheck, is_sersi_contrib
+from cogutils import load_all_cogs
 
 bot = commands.Bot(intents=nextcord.Intents.all())
 start_time = time.time()
@@ -106,15 +107,8 @@ async def on_message_edit(before, after):
 
 @bot.event
 async def on_ready():
-    # load all cogs
-    for filename in os.listdir('./cogs'):
-        if filename.endswith('.py'):
-            try:
-                bot.load_extension(f"cogs.{filename[:-3]}", extras={"config": config, "data_folder": f"{root_folder}/persistent_data"})
-                print(f"Cog {filename[:-3]} loaded.")
-            except commands.errors.ExtensionFailed:
-                print(f"Could not load {filename[:-3]}.")
-                traceback.print_exc()
+
+    await load_all_cogs(bot, config=config, root_folder=root_folder)
 
     # files = [f for f in os.listdir('.') if os.path.isfile(f)] #unused
     print(f"System Version:\n{sys.version}")
