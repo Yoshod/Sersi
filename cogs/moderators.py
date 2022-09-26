@@ -310,7 +310,7 @@ class Moderators(commands.Cog):
         else:
             dialog_embed = nextcord.Embed(
                 title="Retire Moderator",
-                description="Following Moderator will be retired from the staff and given the Honourable member role:",
+                description="Following Moderator will be retired from the staff and given the Honoured Member role:",
                 color=nextcord.Color.from_rgb(237, 91, 6))
             dialog_embed.add_field(name="User", value=member.mention)
             dialog_embed.add_field(name="User ID", value=member.id)

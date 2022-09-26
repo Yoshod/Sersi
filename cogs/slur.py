@@ -340,7 +340,7 @@ class Slur(commands.Cog):
 
             if not slur_virgin and not previous_offenses:  # user has said slurs before, however not that particular one
                 slurembed.add_field(name="Previous Slur Uses:",
-                                    value=f"{self.config.emotes.success} user has said slurs before, but not this/these one/ones",
+                                    value=f"{self.config.emotes.success} The user has a history of using slurs that were not detected in this message.",
                                     inline=False
                                     )
 
@@ -348,14 +348,14 @@ class Slur(commands.Cog):
                 prev_offenses = "\n".join(previous_offenses)
                 if len(prev_offenses) < 1024:
                     slurembed.add_field(name="Previous Slur Uses:",
-                                        value=f"{self.config.emotes.success} user has said __this/these__ slur/slurs before:\n{prev_offenses}",
+                                        value=f"{self.config.emotes.success} The user has a history of using a slur detected in this message:\n{prev_offenses}",
                                         inline=False
                                         )
                 else:
                     slurembed.add_field(name="Previous Slur Uses:", value="`CASE LIST TOO LONG`", inline=False)
 
             else:
-                slurembed.add_field(name="Previous Slur Uses:", value=f"{self.config.emotes.fail} this user is a first offender", inline=False)
+                slurembed.add_field(name="Previous Slur Uses:", value=f"{self.config.emotes.fail} The user is a first time offender.", inline=False)
 
             action_taken = Button(label="Action Taken")
             action_taken.callback = self.cb_action_taken
