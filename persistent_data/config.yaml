@@ -85,6 +85,14 @@ permission_roles:
     dark_moderator:    875805670799179799
     cet: 956795983621132289
 
+punishment roles:
+    annoying: 925191425904238592
+    terrible_ideas: 912816038163398727
+    politics_and_debate_mute: 931474944611745812
+    probation: 957671793844445204
+    ancap: 877680362829021194
+    problem_child: 903368456433451069
+
 emotes:
     success: "<:sersisuccess:979066662856822844>"
     fail:    "<:sersifail:979070135799279698>"
