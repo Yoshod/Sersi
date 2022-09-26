@@ -1,3 +1,4 @@
+from datetime import timedelta
 import nextcord
 from nextcord.ext import commands
 from nextcord.ui import Button, View
@@ -49,6 +50,13 @@ class BanAppealRejection(nextcord.ui.Modal):
         except nextcord.Forbidden:
             sersifail = self.config.emotes.fail
             await interaction.response.send_message(f"{sersifail} Cannot message the user, likely left the appeals server or has closed DMs", ephemeral=True)
+
+        guild = nextcord.Client.get_guild(963568193635496037)
+        member = guild.get_member(user.id)
+        try:
+            await member.timeout(timeout=timedelta(days=28), reason="Failed ban appeal")
+        except nextcord.errors.HTTPException:
+            pass
 
 
 class BanAppealAccept(nextcord.ui.Modal):
