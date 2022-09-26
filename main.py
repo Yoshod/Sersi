@@ -3,6 +3,7 @@ import os
 import sys
 import datetime
 import time
+import traceback
 import discordTokens
 
 from nextcord.ext import commands
@@ -108,8 +109,12 @@ async def on_ready():
     # load all cogs
     for filename in os.listdir('./cogs'):
         if filename.endswith('.py'):
-            bot.load_extension(f"cogs.{filename[:-3]}", extras={"config": config, "data_folder": f"{root_folder}/persistent_data"})
-            print(f"Cog {filename[:-3]} loaded.")
+            try:
+                bot.load_extension(f"cogs.{filename[:-3]}", extras={"config": config, "data_folder": f"{root_folder}/persistent_data"})
+                print(f"Cog {filename[:-3]} loaded.")
+            except commands.errors.ExtensionFailed:
+                print(f"Could not load {filename[:-3]}.")
+                traceback.print_exc()
 
     # files = [f for f in os.listdir('.') if os.path.isfile(f)] #unused
     print(f"System Version:\n{sys.version}")
