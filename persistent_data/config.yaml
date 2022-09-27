@@ -24,32 +24,32 @@ bot:
     minimum caps length: 8
 
 channels:
-    alert:             897874682198511648
-    logging:           977609240107700244
-    false positives:   978078399635550269
-    mod_logs:          903367950554259466
-    reformation:       943180985632169984
-    reformation_info:  878292548785958982
-    dm_forward:        0
-    errors:            987397664280817754
-    secret:            988184848462131250
-    teachers_lounge:   943194039921016922
-    reform public log: 988938011179900928
-    ban appeals:       963567357966573629
-    photography:       1003714017803653181
-    youtube:           856973356658458714
-    tamper_logs:      1024017147216797877
-    logging_category: 875816745414303754
-    admin_ticket_logs: 960179898838827078
-    senior_ticket_logs: 1024017619466059926
-    mod_ticket_logs: 902670845044998224
+    alert:                    897874682198511648
+    logging:                  977609240107700244
+    false positives:          978078399635550269
+    mod_logs:                 903367950554259466
+    reformation:              943180985632169984
+    reformation_info:         878292548785958982
+    dm_forward:                                0
+    errors:                   987397664280817754
+    secret:                   988184848462131250
+    teachers_lounge:          943194039921016922
+    reform public log:        988938011179900928
+    ban appeals:              963567357966573629
+    photography:             1003714017803653181
+    youtube:                  856973356658458714
+    tamper_logs:             1024017147216797877
+    logging_category:         875816745414303754
+    admin_ticket_logs:        960179898838827078
+    senior_ticket_logs:      1024017619466059926
+    mod_ticket_logs:          902670845044998224
     verification_ticket_logs: 879842297842401300
-    deleted_messages: 0
-    mod applications: 963572589249314887
-    cet applications: 1023684027946897459
-    internalfeedback: 1018936341687443476
-    timeoutappeals: 0
-    video_discussion: 1006389347257417859
+    deleted_messages:                          0
+    mod applications:         963572589249314887
+    cet applications:        1023684027946897459
+    internalfeedback:        1018936341687443476
+    timeoutappeals:                            0
+    video_discussion:        1006389347257417859
 
 
 roles:
@@ -72,7 +72,7 @@ opt_in_roles:
     models:         960558722839642212
     shillposting:   960558757463605298
     music:          960558800442646578
-    photography:    1003725859695370260
+    photography:   1003725859695370260
 
 permission_roles:
     staff:             974166116618350642
@@ -83,24 +83,24 @@ permission_roles:
     moderator:         856424878437040168
     senior_moderator:  963537133589643304
     dark_moderator:    875805670799179799
-    cet: 956795983621132289
+    cet:               956795983621132289
 
 punishment roles:
-    annoying: 925191425904238592
-    terrible_ideas: 912816038163398727
+    annoying:                 925191425904238592
+    terrible_ideas:           912816038163398727
     politics_and_debate_mute: 931474944611745812
-    probation: 957671793844445204
-    ancap: 877680362829021194
-    problem_child: 903368456433451069
+    probation:                957671793844445204
+    ancap:                    877680362829021194
+    problem_child:            903368456433451069
 
 emotes:
     success: "<:sersisuccess:979066662856822844>"
     fail:    "<:sersifail:979070135799279698>"
 
 invites:
-    adam_something_ban_reinvite:        "https://discord.gg/F6vMRTbuFk"
-    ban_appeal_server:                  "https://discord.gg/dGpvCbrBRA"
+    adam_something_ban_reinvite: "https://discord.gg/F6vMRTbuFk"
+    ban_appeal_server:           "https://discord.gg/dGpvCbrBRA"
 
 guilds:
-    main: 856262303795380224
+    main:   856262303795380224
     errors: 977377117895536640
