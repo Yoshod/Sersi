@@ -3,7 +3,6 @@ import os
 import sys
 import datetime
 import time
-import traceback
 import discordTokens
 
 from nextcord.ext import commands
@@ -108,9 +107,8 @@ async def on_message_edit(before, after):
 @bot.event
 async def on_ready():
 
-    await load_all_cogs(bot, config=config, root_folder=root_folder)
+    await load_all_cogs(bot, config=config, data_folder=f"{root_folder}/persistent_data")
 
-    # files = [f for f in os.listdir('.') if os.path.isfile(f)] #unused
     print(f"System Version:\n{sys.version}")
 
     print(f"Nextcord Version:\n{nextcord.__version__}")

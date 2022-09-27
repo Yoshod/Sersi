@@ -2,15 +2,17 @@ import nextcord
 import yaml
 
 from nextcord.ext import commands
-from baseutils import sanitize_mention, ConfirmView
+from baseutils import sanitize_mention
 from configutils import Configuration
-from permutils import permcheck, is_sersi_contrib, is_staff, is_mod, is_dark_mod
+from permutils import permcheck, is_sersi_contrib, is_staff
+from cogutils import reload_all_cogs
 
 
 class Config(commands.Cog):
     def __init__(self, bot: nextcord.Client, config: Configuration, data_folder: str):
         self.bot = bot
         self.config = config
+        self.data_folder = data_folder
         self.yaml_file = f"{data_folder}/config.yaml"
         self.sersisuccess = config.emotes.success
         self.sersifail = config.emotes.fail
@@ -65,13 +67,12 @@ class Config(commands.Cog):
 
     @commands.command(aliases=['set'])
     async def setsetting(self, ctx, section, setting, value):
+        if not await permcheck(ctx, is_sersi_contrib):
+            return
+
         section = section.lower()
         with open(self.yaml_file, 'r') as file:
             config = yaml.safe_load(file)
-
-        # sections only modifiable by dark moderators
-        if not await permcheck(ctx, is_dark_mod):
-            return
 
         if 'channels' in section.lower() or 'roles' in section.lower():
             value = sanitize_mention(value)
@@ -104,15 +105,14 @@ class Config(commands.Cog):
                 color=nextcord.Color.from_rgb(237, 91, 6)
             )
 
-            await ConfirmView(self.cb_create_proceed).send_as_reply(ctx, embed=dialog_embed)
+            await ctx.send(embed=dialog_embed)
 
     @commands.command()
     async def reloadbot(self, ctx):
-        if not await permcheck(ctx, is_mod):
+        if not await permcheck(ctx, is_sersi_contrib):
             return
 
-        self.bot.command_prefix = self.config.prefix
-        await self.bot.change_presence(activity=nextcord.Game(self.config.status))
+        await reload_all_cogs(self.bot,  config=self.config, data_folder=self.data_folder)
         await ctx.send(f"{self.sersisuccess} Bot reloaded.")
 
     @commands.command(aliases=['config', 'conf'])
