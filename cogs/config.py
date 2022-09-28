@@ -30,40 +30,7 @@ class Config(commands.Cog):
         with open(self.yaml_file, 'w') as file:
             yaml.dump(config_dict, file)
 
-        self.config = Configuration.from_yaml_file(self.yaml_file)
-
-    async def cb_create_proceed(self, interaction):
-        section, setting, value = "", "", ""
-        for field in interaction.message.embeds[0].fields:
-            if field.name == "Section":
-                section = field.value
-            elif field.name == "Setting":
-                setting = field.value
-            elif field.name == "Value":
-                value = field.value
-
-        self.set_config(section, setting, value)
-
-        embed = nextcord.Embed(
-            title="Add new setting",
-            description="New setting added to Sersi configuration!",
-            color=nextcord.Color.from_rgb(237, 91, 6))
-        embed.add_field(name="Section", value=section)
-        embed.add_field(name="Setting", value=setting)
-        embed.add_field(name="Value", value=value)
-        await interaction.message.edit(embed=embed, view=None)
-
-        # logging
-        log_embed = nextcord.Embed(
-            title="New Configuration Setting Added",
-            colour=nextcord.Color.from_rgb(237, 91, 6))
-        log_embed.add_field(name="Staff Member:", value=interaction.user.mention, inline=False)
-        log_embed.add_field(name="Section:", value=section, inline=False)
-        log_embed.add_field(name="Setting:", value=setting, inline=False)
-        log_embed.add_field(name="Value:", value=value, inline=False)
-
-        channel = interaction.guild.get_channel(self.config.channels.logging)
-        await channel.send(embed=log_embed)
+        # self.config = Configuration.from_yaml_file(self.yaml_file)
 
     @commands.command(aliases=['set'])
     async def setsetting(self, ctx, section, setting, value):
@@ -97,7 +64,7 @@ class Config(commands.Cog):
 
             await ctx.send(f"{self.sersisuccess} `[{section}] {setting}` has been set to `{value}`")
 
-            await ctx.invoke(self.bot.get_command('reloadbot'))
+            await ctx.invoke(self.bot.get_command('reloadbot')) # if removed, uncomment last line of set_config
 
         else:
             dialog_embed = nextcord.Embed(
@@ -112,6 +79,7 @@ class Config(commands.Cog):
         if not await permcheck(ctx, is_sersi_contrib):
             return
 
+        self.config = Configuration.from_yaml_file(self.yaml_file)
         await reload_all_cogs(self.bot,  config=self.config, data_folder=self.data_folder)
         await ctx.send(f"{self.sersisuccess} Bot reloaded.")
 
