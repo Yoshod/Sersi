@@ -115,6 +115,30 @@ def is_senior_mod(member: nextcord.Member):
     return False
 
 
+def is_cet_lead(member: nextcord.Member):
+    permitted_roles = [
+        config.permission_roles.cet_lead
+    ]
+
+    for role in member.roles:
+        if role.id in permitted_roles:
+            return True
+    return False
+
+
+def is_slt(member: nextcord.Member):
+    permitted_roles = [
+        config.permission_roles.cet_lead,
+        config.permission_roles.senior_moderator,
+        config.permission_roles.dark_moderator
+    ]
+
+    for role in member.roles:
+        if role.id in permitted_roles:
+            return True
+    return False
+
+
 def is_sersi_contrib(member: nextcord.Member):
     permitted_roles = [
         config.permission_roles.sersi_contributor
@@ -128,7 +152,8 @@ def is_sersi_contrib(member: nextcord.Member):
 
 def is_cet(member: nextcord.Member):
     permitted_roles = [
-        config.permission_roles.sersi_contributor
+        config.permission_roles.cet,
+        config.permission_roles.cet_lead
     ]
 
     for role in member.roles:

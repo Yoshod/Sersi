@@ -119,6 +119,7 @@ class ConfigurationPermissionRoles(YAMLWizard):
     ticket_support: int
     sersi_contributor: int
     cet: int
+    cet_lead: int
 
     # AMAB: all mods are bastards ;)
     trial_moderator: int
