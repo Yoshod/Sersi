@@ -27,6 +27,9 @@ class ConfigurationBot(YAMLWizard):
     status: str
     port: int
     minimum_caps_length: int
+    version: str
+    git_url: str
+    authors: list[str]
 
 
 @dataclass
