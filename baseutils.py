@@ -102,7 +102,7 @@ class DualCustodyView(View):
         if interaction.user == self.author:
             return False
 
-        return permcheck(interaction, self.has_perms)
+        return await permcheck(interaction, self.has_perms)
 
     async def send_dialogue(self, channel, content: str = None, embed=None):
         self.message = await channel.send(content, embed=embed, view=self)
