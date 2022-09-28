@@ -1,3 +1,9 @@
 nextcord
 shortuuid
 pytz
+dataclass-wizard
+chat-exporter
+xmltodict
+requests
+pycryptodome
+aiohttp
