@@ -56,6 +56,7 @@ channels:
     internalfeedback: 0
     timeoutappeals: 0
     video_discussion: 0
+    role_logs:                                 0
 
 
 roles:

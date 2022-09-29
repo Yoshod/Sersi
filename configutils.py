@@ -69,6 +69,7 @@ class ConfigurationChannels(YAMLWizard):
     mod_ticket_logs: int
     verification_ticket_logs: int
     deleted_messages: int
+    role_logs: int
 
 
 @dataclass
