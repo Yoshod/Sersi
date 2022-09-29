@@ -3,7 +3,7 @@ from nextcord.ext import commands
 
 from baseutils import ConfirmView
 from configutils import Configuration
-from permutils import permcheck, is_dark_mod
+from permutils import permcheck, is_slt
 
 
 class Blacklist(commands.Cog):
@@ -70,7 +70,7 @@ class Blacklist(commands.Cog):
             self.loadblacklist()
             return
 
-        if not await permcheck(ctx, is_dark_mod):
+        if not await permcheck(ctx, is_slt):
             return
         elif member.id in self.blacklist:
             await ctx.reply(f"{self.sersifail} {member} already on blacklist!")
@@ -92,7 +92,7 @@ class Blacklist(commands.Cog):
     @commands.command(aliases=['lbl', 'bllist', 'listbl', 'bll', 'showblacklist'])
     async def listblacklist(self, ctx):
         """List all members currently on the blacklist."""
-        if not await permcheck(ctx, is_dark_mod):
+        if not await permcheck(ctx, is_slt):
             return
 
         nicelist = ""
@@ -142,7 +142,7 @@ class Blacklist(commands.Cog):
     @commands.command(aliases=['rmbl', 'removeuserfromblacklist', 'blrmuser', 'blremoveuser'])
     async def removefromblacklist(self, ctx, member: nextcord.Member):
         """Remove user from moderator blacklist."""
-        if not await permcheck(ctx, is_dark_mod):
+        if not await permcheck(ctx, is_slt):
             return
         if member.id not in self.blacklist:
             await ctx.send(f"{self.sersifail} Member {member} not found on list!")
@@ -158,7 +158,7 @@ class Blacklist(commands.Cog):
 
     @commands.command(aliases=['checklb', 'ckbl'])
     async def checkblacklist(self, ctx, member: nextcord.Member):
-        if not await permcheck(ctx, is_dark_mod):
+        if not await permcheck(ctx, is_slt):
             return
         if member.id in self.blacklist:
             await ctx.send(f"{self.sersifail} Member {member} found on blacklist!")

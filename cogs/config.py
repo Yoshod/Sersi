@@ -64,7 +64,7 @@ class Config(commands.Cog):
 
             await ctx.send(f"{self.sersisuccess} `[{section}] {setting}` has been set to `{value}`")
 
-            await ctx.invoke(self.bot.get_command('reloadbot')) # if removed, uncomment last line of set_config
+            await ctx.invoke(self.bot.get_command('reloadbot'))  # if removed, uncomment last line of set_config
 
         else:
             dialog_embed = nextcord.Embed(
@@ -80,7 +80,11 @@ class Config(commands.Cog):
             return
 
         self.config = Configuration.from_yaml_file(self.yaml_file)
-        await reload_all_cogs(self.bot,  config=self.config, data_folder=self.data_folder)
+        await reload_all_cogs(self.bot, config=self.config, data_folder=self.data_folder)
+
+        self.bot.command_prefix = self.config.bot.prefix
+        await self.bot.change_presence(activity=nextcord.Game(self.config.bot.status))
+
         await ctx.send(f"{self.sersisuccess} Bot reloaded.")
 
     @commands.command(aliases=['config', 'conf'])

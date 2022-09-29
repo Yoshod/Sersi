@@ -200,7 +200,7 @@ class Moderators(commands.Cog):
 
         await interaction.message.edit(f"{self.sersisuccess} {member.mention} has been dishonourly discharged from the staff team. Good riddance!", embed=None, view=None)
         ctx = await self.bot.get_context(interaction.message)
-        await ctx.invoke(self.bot.get_command('blacklistuser'), member=member, reason="Moderator purged with reason: " + reason)
+        await ctx.invoke(self.bot.get_command('blacklistuser'), member=member, reason=f"Moderator purged with reason: {reason}")
 
         # logging
         log_embed = nextcord.Embed(
