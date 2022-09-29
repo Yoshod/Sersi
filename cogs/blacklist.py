@@ -3,7 +3,7 @@ from nextcord.ext import commands
 
 from baseutils import ConfirmView
 from configutils import Configuration
-from permutils import permcheck, is_dark_mod, is_slt
+from permutils import permcheck, is_slt
 
 
 class Blacklist(commands.Cog):
