@@ -7,7 +7,7 @@ from nextcord.ui import Button, View
 from baseutils import DualCustodyView, PageView, sanitize_mention
 from configutils import Configuration
 from permutils import permcheck, is_mod, is_full_mod, cb_is_mod
-from slurdetector import load_slurdetector, load_slurs, load_goodwords, get_slurs, get_goodwords, clear_string, rm_slur, rm_goodword, detect_slur
+from slurdetector import load_slurdetector, load_slurs, load_goodwords, get_slurs, get_slurs_leet, get_goodwords, clear_string, rm_slur, rm_goodword, detect_slur
 from caseutils import case_history, slur_case
 
 
@@ -103,16 +103,16 @@ class Slur(commands.Cog):
         slur = clear_string(slur)
 
         existing_slur = None
-        for s in get_slurs():
+        for s in get_slurs_leet():
             if s in slur:
                 existing_slur = s
 
         if existing_slur is not None:
-            await ctx.send(f"{self.sersifail} {slur} is in conflict with existing slur {existing_slur}; cannot be added.")
+            await ctx.send(f"{self.sersifail} `{slur}` is in conflict with existing slur `{existing_slur}`; cannot be added.")
             return
 
-        if slur in get_slurs():
-            await ctx.send(f"{self.sersifail} {slur} is already on the list of slurs")
+        if slur in get_slurs_leet():
+            await ctx.send(f"{self.sersifail} `{slur}` is already on the list of slurs")
             return
 
         await ctx.send(f"Slur to be added: {slur}")
@@ -144,24 +144,24 @@ class Slur(commands.Cog):
         word = "".join(word)
         word = clear_string(word)
         if word in get_goodwords():
-            await ctx.send(f"{self.sersifail} {word} is already on the whitelist")
+            await ctx.send(f"{self.sersifail} `{word}` is already on the whitelist")
             return
 
         word_contains_slur = False
-        for slur in get_slurs():
+        for slur in get_slurs_leet():
             if slur in word:
                 word_contains_slur = True
 
         if not word_contains_slur:
-            await ctx.send(f"{self.sersifail} {word} does not contain any slurs; cannot be added.")
+            await ctx.send(f"{self.sersifail} `{word}` does not contain any slurs; cannot be added.")
             return
 
         for existing_word in get_goodwords():
             if word in existing_word:
-                await ctx.send(f"{self.sersifail} {word} is substring to existing goodword {existing_word}; cannot be added.")
+                await ctx.send(f"{self.sersifail} `{word}` is substring to existing goodword `{existing_word}`; cannot be added.")
                 return
             elif existing_word in word:
-                await ctx.send(f"{self.sersifail} existing goodword {existing_word} is substring to {word}; cannot be added.")
+                await ctx.send(f"{self.sersifail} existing goodword `{existing_word}` is substring to `{word}`; cannot be added.")
                 return
 
         await ctx.send(f"Goodword to be added: {word}")

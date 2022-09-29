@@ -41,6 +41,10 @@ def get_slurs(config=None, page=None, per_page=10):
         return get_page(sorted(slurs_list), page, per_page)
 
 
+def get_slurs_leet():
+    return slurs
+
+
 def get_goodwords(config=None, page=None, per_page=10):
     if page is None:
         return goodword
