@@ -1,6 +1,6 @@
 import nextcord
-# import pytz
-# from datetime import datetime
+import pytz
+from datetime import datetime
 from nextcord.ext import commands
 from configutils import Configuration
 
@@ -22,6 +22,8 @@ class MemberRoles(commands.Cog):
                 description="A role has been removed",
                 colour=nextcord.Color.from_rgb(237, 91, 6),
             )
+            logging.timestamp = datetime.now(pytz.UTC)
+            logging.set_footer(text=self.bot)
             logging.set_author(name=log.user, icon_url=log.user.display_avatar.url)
             logging.add_field(name="User affected:", value=before.mention, inline=False)
             for role in log.before.roles:
@@ -35,6 +37,8 @@ class MemberRoles(commands.Cog):
                 description="A role has been added",
                 colour=nextcord.Color.from_rgb(237, 91, 6),
             )
+            logging.timestamp = datetime.now(pytz.UTC)
+            logging.set_footer(text=self.bot)
             logging.set_author(name=log.user, icon_url=log.user.display_avatar.url)
             logging.add_field(name="User affected:", value=before.mention, inline=False)
             for role in log.after.roles:
