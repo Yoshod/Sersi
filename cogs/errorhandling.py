@@ -1,28 +1,41 @@
 import nextcord
 from nextcord.ext import commands
-from configutils import get_config_int, get_config
+from configutils import Configuration
 
 
 class ErrorHandling(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot, config: Configuration):
         self.bot = bot
-        self.error_guild = bot.get_guild(977377117895536640)
+        self.config = config
+        self.error_guild = bot.get_guild(config.guilds.errors)
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
         if isinstance(error, commands.CommandNotFound):
-            sersifail = get_config('EMOTES', "fail")
+            sersifail = self.config.emotes.fail
             channel = ctx.channel.id
             await ctx.send(f"{sersifail} That command does not exist.")
             return
 
+        elif isinstance(error, commands.MemberNotFound):
+            sersifail = self.config.emotes.fail
+            channel = ctx.channel.id
+            await ctx.send(f"{sersifail} That member could not be found.")
+            return
+
         elif isinstance(error, commands.MissingRequiredArgument):
-            sersifail = get_config('EMOTES', "fail")
+            sersifail = self.config.emotes.fail
             channel = ctx.channel.id
             await ctx.send(f"{sersifail} Please provide an argument to use this command.")
             return
 
-        channel = self.error_guild.get_channel(get_config_int('CHANNELS', 'errors'))
+        elif isinstance(error, commands.CommandOnCooldown):
+            sersifail = self.config.emotes.fail
+            channel = ctx.channel.id
+            await ctx.send(f"{sersifail} You are using this command too quickly. Please wait {round(error.retry_after, 2)}s before trying again.")
+            return
+
+        channel = self.error_guild.get_channel(self.config.channels.errors)
         if channel is None:
             await ctx.send(f"Error while executing command: `{error}`")
         else:
@@ -38,11 +51,11 @@ class ErrorHandling(commands.Cog):
 
             error_receipt = nextcord.Embed(
                 title="An Error Has Occurred",
-                description=("An error has occurred. An alert has been sent to my creators."),
+                description="An error has occurred. An alert has been sent to my creators.",
                 color=nextcord.Color.from_rgb(208, 29, 29))
-            error_receipt.set_footer(text=("Sersi Support Server: https://discord.gg/TgrPmDwVwq"))
+            error_receipt.set_footer(text="Sersi Support Server: https://discord.gg/TgrPmDwVwq")
             await ctx.send(embed=error_receipt)
 
 
-def setup(bot):
-    bot.add_cog(ErrorHandling(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(ErrorHandling(bot, kwargs["config"]))

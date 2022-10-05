@@ -2,17 +2,18 @@ import nextcord
 from nextcord.ext import commands
 
 from baseutils import ConfirmView
-from configutils import get_config, get_config_int
-from permutils import permcheck, is_dark_mod
+from configutils import Configuration
+from permutils import permcheck, is_slt
 
 
 class Blacklist(commands.Cog):
 
-    def __init__(self, bot):
-        self.sersisuccess = get_config('EMOTES', 'success')
-        self.sersifail = get_config('EMOTES', 'fail')
-        self.filename = "Files/WBList/blacklist.csv"
+    def __init__(self, bot, config: Configuration):
+        self.sersisuccess = config.emotes.success
+        self.sersifail = config.emotes.fail
+        self.filename = config.datafiles.blacklist
         self.bot = bot
+        self.config = config
         self.blacklist = {}
         try:
             with open(self.filename, 'x'):  # creates CSV file if not exists
@@ -52,15 +53,15 @@ class Blacklist(commands.Cog):
         logging.add_field(name="Moderator:", value=interaction.user.mention, inline=False)
         logging.add_field(name="User Added:", value=member.mention, inline=False)
 
-        channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'logging'))
+        channel = interaction.guild.get_channel(self.config.channels.logging)
         await channel.send(embed=logging)
 
-        channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'modlogs'))
+        channel = interaction.guild.get_channel(self.config.channels.modlogs)
         await channel.send(embed=logging)
 
     @commands.command(aliases=['bl', 'bluser', 'addbl', 'modblacklist'])
     async def blacklistuser(self, ctx, member: nextcord.Member, *, reason=""):
-        """sets user onto moderator blacklist"""
+        """Put user onto moderator blacklist."""
         # in case of invocation from s!removemoderator
         if ctx.author == self.bot.user:
             with open(self.filename, "a") as file:
@@ -69,7 +70,7 @@ class Blacklist(commands.Cog):
             self.loadblacklist()
             return
 
-        if not await permcheck(ctx, is_dark_mod):
+        if not await permcheck(ctx, is_slt):
             return
         elif member.id in self.blacklist:
             await ctx.reply(f"{self.sersifail} {member} already on blacklist!")
@@ -90,8 +91,8 @@ class Blacklist(commands.Cog):
 
     @commands.command(aliases=['lbl', 'bllist', 'listbl', 'bll', 'showblacklist'])
     async def listblacklist(self, ctx):
-        """lists all members currently on the blacklist"""
-        if not await permcheck(ctx, is_dark_mod):
+        """List all members currently on the blacklist."""
+        if not await permcheck(ctx, is_slt):
             return
 
         nicelist = ""
@@ -132,16 +133,16 @@ class Blacklist(commands.Cog):
         logging.add_field(name="Moderator:", value=interaction.user.mention, inline=False)
         logging.add_field(name="User Removed:", value=member.mention, inline=False)
 
-        channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'logging'))
+        channel = interaction.guild.get_channel(self.config.channels.logging)
         await channel.send(embed=logging)
 
-        channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'modlogs'))
+        channel = interaction.guild.get_channel(self.config.channels.modlogs)
         await channel.send(embed=logging)
 
     @commands.command(aliases=['rmbl', 'removeuserfromblacklist', 'blrmuser', 'blremoveuser'])
     async def removefromblacklist(self, ctx, member: nextcord.Member):
-        """removes user from moderator blacklist"""
-        if not await permcheck(ctx, is_dark_mod):
+        """Remove user from moderator blacklist."""
+        if not await permcheck(ctx, is_slt):
             return
         if member.id not in self.blacklist:
             await ctx.send(f"{self.sersifail} Member {member} not found on list!")
@@ -157,7 +158,7 @@ class Blacklist(commands.Cog):
 
     @commands.command(aliases=['checklb', 'ckbl'])
     async def checkblacklist(self, ctx, member: nextcord.Member):
-        if not await permcheck(ctx, is_dark_mod):
+        if not await permcheck(ctx, is_slt):
             return
         if member.id in self.blacklist:
             await ctx.send(f"{self.sersifail} Member {member} found on blacklist!")
@@ -167,5 +168,5 @@ class Blacklist(commands.Cog):
             return False
 
 
-def setup(bot):
-    bot.add_cog(Blacklist(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(Blacklist(bot, kwargs["config"]))

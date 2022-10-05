@@ -1,63 +1,178 @@
-import configparser
+from dataclasses import dataclass
+from dataclass_wizard import YAMLWizard
 
 
-def get_options(module):
-    config = configparser.ConfigParser()
-    config.read("config.ini")
-    if module not in config:
-        return []
-    return config[module]
+@dataclass
+class ConfigurationDatafiles(YAMLWizard):
+    author_list:    str
+    keyfile:        str
+    slurfile:       str
+    goodwordfile:   str
+    blacklist:      str
+    casedetails:    str
+    casehistory:    str
+    gifblacklist:   str
+    secret_dms:     str
+    secret_mutes:   str
+    reform_iter:    str
+    reformation_cases: str
+    watchlist: str
+    ticketers: str
+    video_history: str
 
 
-def setting_present(module, var):
-    config = configparser.ConfigParser()
-    config.read("config.ini")
-    return config.has_option(module, var)
+@dataclass
+class ConfigurationBot(YAMLWizard):
+    prefix: str
+    status: str
+    port: int
+    minimum_caps_length: int
+    version: str
+    git_url: str
+    authors: list[str]
 
 
-def get_config(module, var, default=None):
-    config = configparser.ConfigParser()
-    config.read("config.ini")
-    return config.get(module, var, fallback=default)
+@dataclass
+class ConfigurationChannels(YAMLWizard):
+
+    # moderator sided channels
+    alert: int  # Receives alerts regarding moderation pings and slurs.
+    logging: int
+    false_positives: int
+    mod_logs: int
+    ban_appeals: int
+    dm_forward: int
+    mod_applications: int
+    cet_applications: int
+    internalfeedback: int
+    timeoutappeals: int
+
+    # debugging channels
+    errors: int
+
+    # user sided channels
+    secret: int
+    photography: int
+    youtube: int
+    video_discussion: int
+
+    # reformation related channels
+    reformation_info: int
+    teachers_lounge: int
+    reform_public_log: int
+
+    # logging
+    logging_category: int
+    tamper_logs: int
+    admin_ticket_logs: int
+    senior_ticket_logs: int
+    mod_ticket_logs: int
+    verification_ticket_logs: int
+    deleted_messages: int
 
 
-def get_config_bool(module, var, default=None):
-    config = configparser.ConfigParser()
-    config.read("config.ini")
-    return config.getboolean(module, var, fallback=default)
+@dataclass
+class ConfigurationRoles(YAMLWizard):
+
+    # reformation roles
+    reformation: int
+    reformed: int
+
+    # The role assigned to users under probation.
+    probation: int
+
+    # joke roles
+    never_mod: int
+
+    # basic human rights role
+    civil_engineering_initiate: int
+
+    # newbie roles
+    newbie: int
+
+    # former moderator role
+    honourable_member: int
 
 
-def get_config_int(module, var, default=0):
-    config = configparser.ConfigParser()
-    config.read("config.ini")
-    return config.getint(module, var, fallback=default)
+@dataclass
+class ConfigurationOptInRoles(YAMLWizard):
+    # The opt-in roles IDs saved as integers.
+
+    gaming: int
+    tech_compsci: int
+    food_and_drink: int
+    education: int
+    art: int
+    anime: int
+    furry: int
+    shillposting: int
+    music: int
+    photography: int
 
 
-def get_config_float(module, var, default=0.0):
-    config = configparser.ConfigParser()
-    config.read("config.ini")
-    return config.getfloat(module, var, fallback=default)
+@dataclass
+class ConfigurationPermissionRoles(YAMLWizard):
+    # The permission roles IDs saved as integers.
+
+    staff: int
+    reformist: int
+    ticket_support: int
+    sersi_contributor: int
+    cet: int
+    cet_lead: int
+
+    # AMAB: all mods are bastards ;)
+    trial_moderator: int
+    moderator: int
+    senior_moderator: int
+    dark_moderator: int    # AKA: super-duper mega administrators
 
 
-def get_config_list(module, var, default=[]):
-    config = configparser.ConfigParser()
-    config.read("config.ini")
-    value = config.get(module, var, fallback=None)
-    if value is None:
-        return default
-    else:
-        return value.split(",")
+@dataclass
+class ConfigurationPunishmentRoles(YAMLWizard):
+    annoying: int
+    terrible_ideas: int
+    politics_and_debate_mute: int
+    probation: int
+    ancap: int
+    problem_child: int
 
 
-def set_config(module, var, value):
-    config = configparser.ConfigParser()
-    config.read("config.ini")
-    module = module.upper()
+@dataclass
+class ConfigurationEmotes(YAMLWizard):
+    # The emote, in "<:name:id>" format, used to declare success.
+    success: str
 
-    if module not in config:
-        config[module] = {}     # sets new category if not exist
+    # The emote, in "<:name:id>" format, used to declare failure.
+    fail: str
 
-    config[module][var] = value
 
-    with open("config.ini", "w") as file:
-        config.write(file)
+@dataclass
+class ConfigurationInvites(YAMLWizard):
+    # The reinvite for people unbanned from ASC
+    adam_something_ban_reinvite: str
+
+    # The invite link to the ban appealing server.
+    ban_appeal_server: str
+
+
+@dataclass
+class ConfigurationGuilds(YAMLWizard):
+    # The guild ID of the main server.
+    main: int
+    errors: int
+
+
+@dataclass(frozen=True)
+class Configuration(YAMLWizard):
+
+    datafiles: ConfigurationDatafiles
+    bot: ConfigurationBot
+    channels: ConfigurationChannels
+    roles: ConfigurationRoles
+    opt_in_roles: ConfigurationOptInRoles
+    permission_roles: ConfigurationPermissionRoles
+    punishment_roles: ConfigurationPunishmentRoles
+    emotes: ConfigurationEmotes
+    invites: ConfigurationInvites
+    guilds: ConfigurationGuilds

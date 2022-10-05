@@ -1,7 +1,10 @@
 .spyproject
 .idea
 cogs/.DS_Store
-/__pycache__
+__pycache__
 *.ini
 *.pkl
-.vscode/settings.json
+.vscode
+
+discordTokens.py
+.DS_Store

@@ -2,15 +2,16 @@ import nextcord
 from nextcord.ext import commands
 
 from baseutils import ConfirmView, DualCustodyView
-from configutils import get_options, get_config, get_config_int
-from permutils import permcheck, is_staff, is_mod, is_senior_mod
+from configutils import Configuration
+from permutils import permcheck, is_staff, is_senior_mod
 
 
 class Moderators(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot, config: Configuration):
         self.bot = bot
-        self.sersisuccess = get_config('EMOTES', 'success')
-        self.sersifail = get_config('EMOTES', 'fail')
+        self.config = config
+        self.sersisuccess = config.emotes.success
+        self.sersifail = config.emotes.fail
 
     async def cb_addticket_proceed(self, interaction):
         member_id = 0
@@ -19,7 +20,7 @@ class Moderators(commands.Cog):
                 member_id = int(field.value)
         member = interaction.guild.get_member(member_id)
 
-        ticket_support = interaction.guild.get_role(get_config_int('PERMISSION ROLES', 'ticket support'))
+        ticket_support = interaction.guild.get_role(self.config.permission_roles.ticket_support)
         await member.add_roles(ticket_support)
         await interaction.message.edit(f"{self.sersisuccess} {member.mention} was given the {ticket_support.name} role.", embed=None, view=None)
 
@@ -30,10 +31,10 @@ class Moderators(commands.Cog):
         log_embed.add_field(name="Responsible Staff Member:", value=interaction.user.mention, inline=False)
         log_embed.add_field(name=f"New {ticket_support.name}:", value=member.mention, inline=False)
 
-        channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'logging'))
+        channel = interaction.guild.get_channel(self.config.channels.logging)
         await channel.send(embed=log_embed)
 
-        channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'modlogs'))
+        channel = interaction.guild.get_channel(self.config.channels.modlogs)
         await channel.send(embed=log_embed)
 
     @commands.command(aliases=["addticket"])
@@ -57,7 +58,7 @@ class Moderators(commands.Cog):
                 member_id = int(field.value)
         member = interaction.guild.get_member(member_id)
 
-        ticket_support = interaction.guild.get_role(get_config_int('PERMISSION ROLES', 'ticket support'))
+        ticket_support = interaction.guild.get_role(self.config.permission_roles.ticket_support)
         await member.remove_roles(ticket_support)
         await interaction.message.edit(f"{self.sersisuccess} {member.mention} was removed from the {ticket_support.name} role.", embed=None, view=None)
 
@@ -68,10 +69,10 @@ class Moderators(commands.Cog):
         log_embed.add_field(name="Responsible Staff Member:", value=interaction.user.mention, inline=False)
         log_embed.add_field(name=f"Former {ticket_support.name}:", value=member.mention, inline=False)
 
-        channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'logging'))
+        channel = interaction.guild.get_channel(self.config.channels.logging)
         await channel.send(embed=log_embed)
 
-        channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'modlogs'))
+        channel = interaction.guild.get_channel(self.config.channels.modlogs)
         await channel.send(embed=log_embed)
 
     @commands.command(aliases=["rmticket"])
@@ -95,7 +96,7 @@ class Moderators(commands.Cog):
                 member_id = int(field.value)
         member = interaction.guild.get_member(member_id)
 
-        trial_moderator = interaction.guild.get_role(get_config_int('PERMISSION ROLES', 'trial moderator'))
+        trial_moderator = interaction.guild.get_role(self.config.permission_roles.trial_moderator)
         await member.add_roles(trial_moderator, reason="Sersi addtrialmod command", atomic=True)
         await interaction.message.edit(f"{self.sersisuccess} {member.mention} was given the {trial_moderator.name} role.", embed=None, view=None)
 
@@ -106,10 +107,10 @@ class Moderators(commands.Cog):
         log_embed.add_field(name="Responsible Moderator:", value=interaction.user.mention, inline=False)
         log_embed.add_field(name=f"New {trial_moderator.name}:", value=member.mention, inline=False)
 
-        channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'logging'))
+        channel = interaction.guild.get_channel(self.config.channels.logging)
         await channel.send(embed=log_embed)
 
-        channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'modlogs'))
+        channel = interaction.guild.get_channel(self.config.channels.modlogs)
         await channel.send(embed=log_embed)
 
     @commands.command()
@@ -138,8 +139,8 @@ class Moderators(commands.Cog):
                 member_id = int(field.value)
         member = interaction.guild.get_member(member_id)
 
-        trial_moderator = interaction.guild.get_role(get_config_int('PERMISSION ROLES', 'trial moderator'))
-        moderator       = interaction.guild.get_role(get_config_int('PERMISSION ROLES', 'moderator'))
+        trial_moderator = interaction.guild.get_role(self.config.permission_roles.ticket_support)
+        moderator       = interaction.guild.get_role(self.config.permission_roles.moderator)
 
         await member.remove_roles(trial_moderator, reason="Sersi makefullmod command", atomic=True)
         await member.add_roles(moderator, reason="Sersi makefullmod command", atomic=True)
@@ -152,10 +153,10 @@ class Moderators(commands.Cog):
         log_embed.add_field(name="Responsible Moderator:", value=interaction.user.mention, inline=False)
         log_embed.add_field(name="New Moderator:", value=member.mention, inline=False)
 
-        channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'logging'))
+        channel = interaction.guild.get_channel(self.config.channels.logging)
         await channel.send(embed=log_embed)
 
-        channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'modlogs'))
+        channel = interaction.guild.get_channel(self.config.channels.modlogs)
         await channel.send(embed=log_embed)
 
     @commands.command()
@@ -163,10 +164,10 @@ class Moderators(commands.Cog):
         if not await permcheck(ctx, is_senior_mod):
             return
 
-        trial_moderator = ctx.guild.get_role(get_config_int('PERMISSION ROLES', 'trial moderator'))
+        trial_moderator = ctx.guild.get_role(self.config.permission_roles.trial_moderator)
 
         if trial_moderator not in member.roles:
-            await ctx.reply(f"{self.sersifail} Member is not a trial mod")
+            await ctx.reply(f"{self.sersifail} Member is not a trial moderator.")
             return
 
         dialog_embed = nextcord.Embed(
@@ -190,13 +191,16 @@ class Moderators(commands.Cog):
         member = interaction.guild.get_member(member_id)
         moderator = interaction.guild.get_member(mod_id)
 
-        for role in get_options('PERMISSION ROLES'):
-            role_obj = interaction.guild.get_role(get_config_int('PERMISSION ROLES', role))
-            await member.remove_roles(role_obj, reason=reason, atomic=True)
+        for role in vars(self.config.permission_roles):
+            role_obj = interaction.guild.get_role(vars(self.config.permission_roles)[role])
+            try:
+                await member.remove_roles(role_obj, reason=reason, atomic=True)
+            except nextcord.errors.HTTPException:
+                continue
 
         await interaction.message.edit(f"{self.sersisuccess} {member.mention} has been dishonourly discharged from the staff team. Good riddance!", embed=None, view=None)
         ctx = await self.bot.get_context(interaction.message)
-        await ctx.invoke(self.bot.get_command('blacklistuser'), member=member, reason="Moderator purged with reason: " + reason)
+        await ctx.invoke(self.bot.get_command('blacklistuser'), member=member, reason=f"Moderator purged with reason: {reason}")
 
         # logging
         log_embed = nextcord.Embed(
@@ -207,10 +211,10 @@ class Moderators(commands.Cog):
         log_embed.add_field(name="Purged Moderator:", value=member.mention, inline=False)
         log_embed.add_field(name="Reason:", value=reason, inline=False)
 
-        channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'logging'))
+        channel = interaction.guild.get_channel(self.config.channels.logging)
         await channel.send(embed=log_embed)
 
-        channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'modlogs'))
+        channel = interaction.guild.get_channel(self.config.channels.modlogs)
         await channel.send(embed=log_embed)
 
     async def cb_purgemod_proceed(self, interaction):
@@ -234,7 +238,7 @@ class Moderators(commands.Cog):
         dialog_embed.add_field(name="Responsible Moderator", value=interaction.user.mention)
         dialog_embed.add_field(name="Moderator ID", value=interaction.user.id)
 
-        channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'alert'))
+        channel = interaction.guild.get_channel(self.config.channels.alert)
         view = DualCustodyView(self.cb_purgemod_confirm, interaction.user, is_senior_mod)
         await view.send_dialogue(channel, embed=dialog_embed)
 
@@ -264,11 +268,14 @@ class Moderators(commands.Cog):
                 member_id = int(field.value)
         member = interaction.guild.get_member(member_id)
 
-        for role in get_options('PERMISSION ROLES'):
-            role_obj = interaction.guild.get_role(get_config_int('PERMISSION ROLES', role))
-            await member.remove_roles(role_obj)
+        for role in vars(self.config.permission_roles):
+            role_obj = interaction.guild.get_role(vars(self.config.permission_roles)[role])
+            try:
+                await member.remove_roles(role_obj)
+            except nextcord.errors.HTTPException:
+                continue
 
-        honourable_member = interaction.guild.get_role(get_config_int('ROLES', 'honourable member'))
+        honourable_member = interaction.guild.get_role(self.config.roles.honourable_member)
         await member.add_roles(honourable_member)
 
         await interaction.message.edit(f"{self.sersisuccess} {member.mention} has retired from the mod team. Thank you for your service!", embed=None, view=None)
@@ -280,10 +287,10 @@ class Moderators(commands.Cog):
         log_embed.add_field(name="Responsible Moderator:", value=interaction.user.mention, inline=False)
         log_embed.add_field(name="Retired Moderator:", value=member.mention, inline=False)
 
-        channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'logging'))
+        channel = interaction.guild.get_channel(self.config.channels.logging)
         await channel.send(embed=log_embed)
 
-        channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'modlogs'))
+        channel = interaction.guild.get_channel(self.config.channels.modlogs)
         await channel.send(embed=log_embed)
 
     @commands.command()
@@ -303,7 +310,7 @@ class Moderators(commands.Cog):
         else:
             dialog_embed = nextcord.Embed(
                 title="Retire Moderator",
-                description="Following Moderator will be retired from the staff and given the Honourable member role:",
+                description="Following Moderator will be retired from the staff and given the Honoured Member role:",
                 color=nextcord.Color.from_rgb(237, 91, 6))
             dialog_embed.add_field(name="User", value=member.mention)
             dialog_embed.add_field(name="User ID", value=member.id)
@@ -311,5 +318,5 @@ class Moderators(commands.Cog):
         await ConfirmView(self.cb_retire_proceed).send_as_reply(ctx, embed=dialog_embed)
 
 
-def setup(bot):
-    bot.add_cog(Moderators(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(Moderators(bot, kwargs["config"]))

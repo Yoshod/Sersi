@@ -1,18 +1,20 @@
 import nextcord
-import asyncio
+import requests
 
 from nextcord.ext import commands
 
 from baseutils import ConfirmView
-from configutils import get_config, get_config_int
+from configutils import Configuration
 from permutils import permcheck, is_mod
+import discordTokens
 
 
 class Voice(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot, config: Configuration):
         self.bot = bot
-        self.sersisuccess = get_config('EMOTES', 'success')
-        self.sersifail = get_config('EMOTES', 'fail')
+        self.config = config
+        self.sersisuccess = self.config.emotes.success
+        self.sersifail = self.config.emotes.fail
         self.unlocked_channels = []
 
     async def cb_massmove_proceed(self, interaction):
@@ -42,14 +44,15 @@ class Voice(commands.Cog):
         embed.add_field(name="Members moved to channel:", value=target.mention, inline=False)
         embed.add_field(name="Members Moved:", value=memberlist, inline=False)
 
-        channel = interaction.guild.get_channel(get_config_int('CHANNELS', 'logging'))
+        channel = interaction.guild.get_channel(self.config.logging.channel)
         await channel.send(embed=embed)
 
     @commands.command(aliases=['mvc', 'movevc', 'vcmove', 'mm'])
     async def massmove(self, ctx, current: nextcord.VoiceChannel, target: nextcord.VoiceChannel):
-        """mass move members from one VC to another
+        """Mass move members from one VC to another.
 
-        both VCs must be referenced to by mention or Channel ID"""
+        both VCs must be referenced to by mention or Channel ID
+        """
         if not await permcheck(ctx, is_mod):
             return
 
@@ -99,19 +102,44 @@ class Voice(commands.Cog):
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
+        def make_embed(message: str):
+            embed_obj = {
+                'color': 0xED5B06,
+                'description': message
+            }
+            return embed_obj
 
         if after.channel != before.channel:  # channel change. at least one message has to be sent
 
+            # specifications regardless of message content
+            headers = {
+                'Authorization': f'Bot {discordTokens.getToken()}',
+                'Content-Type': 'application/json; charset=UTF-8'
+            }
+
             if after.channel is not None:
-                await after.channel.send(f"Hello {member.mention}, welcome to {after.channel.mention}!")
+                url = f"https://discord.com/api/v10/channels/{after.channel.id}/messages"
+                if before.channel is not None:
+                    json = {
+                        "embeds": [make_embed(f"Hello {member.mention}, welcome to {after.channel.mention}! Glad you came over from {before.channel.mention}")]
+                    }
+                else:
+                    json = {
+                        "embeds": [make_embed(f"Hello {member.mention}, welcome to {after.channel.mention}!")]
+                    }
+                requests.post(url, headers=headers, json=json)
 
             if before.channel is not None:
-
+                url = f"https://discord.com/api/v10/channels/{before.channel.id}/messages"
                 if after.channel is not None:
-                    await before.channel.send(f"**{member.display_name}** ran off to {after.channel.mention}, guess the grass was greener there!")
-
+                    json = {
+                        "embeds": [make_embed(f"{member.mention} ran off to {after.channel.mention}, guess the grass was greener there!")]
+                    }
                 else:
-                    await before.channel.send(f"**{member.display_name}** has left the voice channel. Goodbye!")
+                    json = {
+                        "embeds": [make_embed(f"{member.mention} has left the voice channel. Goodbye!")]
+                    }
+                requests.post(url, headers=headers, json=json)
 
         #   -----------------VOICE LOCK-----------------
 
@@ -155,5 +183,5 @@ class Voice(commands.Cog):
                     await channel.send(embed=log_embed)"""
 
 
-def setup(bot):
-    bot.add_cog(Voice(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(Voice(bot, kwargs["config"]))

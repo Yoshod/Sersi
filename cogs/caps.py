@@ -2,17 +2,18 @@ import nextcord
 from nextcord.ext import commands
 import re
 
-from configutils import get_config, get_config_int, set_config
+from configutils import Configuration
 from permutils import permcheck, is_mod
 from webhookutils import send_webhook_message
 
 
 class Caps(commands.Cog):
-    def __init__(self, bot):
-        self.sersisuccess = get_config('EMOTES', 'success')
-        self.sersifail = get_config('EMOTES', 'fail')
+    def __init__(self, bot, config: Configuration):
+        self.sersisuccess = config.emotes.success
+        self.sersifail = config.emotes.fail
         self.bot = bot
-        self.MIN_CHARS_FOR_DETECTION = get_config_int('CAPS', 'capslength', 5)
+        self.config = config
+        self.MIN_CHARS_FOR_DETECTION = config.bot.minimum_caps_length
 
     @commands.command()
     async def setcapslength(self, ctx, number):
@@ -31,7 +32,7 @@ class Caps(commands.Cog):
 
         old_val = self.MIN_CHARS_FOR_DETECTION
         self.MIN_CHARS_FOR_DETECTION = value
-        set_config('CAPS', 'capslength', number)
+        self.config.bot.minimum_caps_length = number
 
         await ctx.send(f"{self.sersisuccess} Caps lock detection starts now at messages longer than **{value}**.")
 
@@ -43,7 +44,7 @@ class Caps(commands.Cog):
         embed.add_field(name="Old Value", value=str(old_val))
         embed.add_field(name="New Value", value=str(value))
 
-        channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'logging'))
+        channel = ctx.guild.get_channel(self.config.channels.logging)
         await channel.send(embed=embed)
 
     @commands.command()
@@ -57,25 +58,25 @@ class Caps(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message):
         msg_string = message.content
+
+        # remove emotes
         new_msg_string = re.sub(r'(<a?)?:\w+:(\d{18}>)?', '', msg_string)
 
+        # remove nums and non-alpanumeric
         new_msg_string = re.sub(r'[^a-zA-Z]', '', new_msg_string)
 
         if len(new_msg_string) > self.MIN_CHARS_FOR_DETECTION:
-            # remove nums and non-alpanumeric
             # msg_string = unidecode.unidecode(msg_string)
 
-            # remove emotes
             uppercase = sum(1 for char in new_msg_string if char.isupper())
-
-            if len(new_msg_string) == 0:
-                return
 
             percentage = uppercase / len(new_msg_string)
 
             if percentage > 0.7:
                 # await replace(self, message, message.author, msg_string)
                 await message.delete(delay=None)
+                # if message.mention_everyone:
+                #     return
 
                 replacement_message = await send_webhook_message(
                     channel=message.channel,
@@ -84,7 +85,7 @@ class Caps(commands.Cog):
                     avatar_url=message.author.display_avatar.url,
                     wait=True)
 
-                channel = self.bot.get_channel(get_config_int('CHANNELS', 'logging'))
+                channel = self.bot.get_channel(self.config.channels.logging)
                 logging_embed = nextcord.Embed(
                     title="Caps Lock Message replaced",
                     description="",
@@ -98,5 +99,5 @@ class Caps(commands.Cog):
                 await channel.send(embed=logging_embed)
 
 
-def setup(bot):
-    bot.add_cog(Caps(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(Caps(bot, kwargs["config"]))

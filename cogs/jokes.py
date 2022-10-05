@@ -2,18 +2,20 @@ import nextcord
 import random
 from nextcord.ext import commands
 
-from configutils import get_config_int
+from configutils import Configuration
 from permutils import is_mod
 from webhookutils import send_webhook_message
 
 
 class Jokes(commands.Cog):
-    def __init__(self, bot):
+    def __init__(self, bot, config: Configuration):
         self.bot = bot
+        self.config = config
 
     def generate_uwu(self, input_text: str) -> str:
-        """Shamelessly stolen from https://www.geeksforgeeks.org/uwu-text-convertor-in-python/
-        well, i modified it"""
+        """Shamelessly stolen from https://www.geeksforgeeks.org/uwu-text-convertor-in-python/.
+        well, I modified it.
+        """
 
         output_text = ''
         previous_char = '\0'
@@ -53,10 +55,10 @@ class Jokes(commands.Cog):
     @commands.command()
     async def nevermod(self, ctx, member: nextcord.Member):
         if not is_mod(ctx.author):      # don't replace, it is funny
-            await ctx.send(f"You're not a mod, you should not run this, right? ;)\n\nAnyways let's nevermod **you** instead as a twist.")
+            await ctx.send("You're not a mod, you should not run this, right? ;)\n\nAnyways let's nevermod **you** instead as a twist.")
             member = ctx.author
 
-        nevermod_role = ctx.guild.get_role(get_config_int('ROLES', 'nevermod'))
+        nevermod_role = ctx.guild.get_role(self.config.roles.never_mod)
 
         await member.add_roles(nevermod_role, reason="nevermod command", atomic=True)
         nevermod_embed = nextcord.Embed(
@@ -67,9 +69,10 @@ class Jokes(commands.Cog):
 
     @commands.command()
     async def uwu(self, ctx, *, message=""):
-        """OwO *nuzzles the command*
+        """OwO *nuzzles the command*.
 
-        Takes message and uwuifies it."""
+        Takes message and uwuifies it.
+        """
         if message == "":
             await ctx.send(f"{ctx.author.mention} pwease pwovide a message to uwuify.")
             return
@@ -80,9 +83,10 @@ class Jokes(commands.Cog):
 
     @commands.command()
     async def owo(self, ctx, *, message=""):
-        """OwO *nuzzles the command*
+        """OwO *nuzzles the command*.
 
-        Takes message and owoifies it."""
+        Takes message and owoifies it.
+        """
         if message == "":
             await ctx.send(f"{ctx.author.mention} OwO *notices you did not set a message* pwease pwovide a message~")
             return
@@ -160,16 +164,16 @@ class Jokes(commands.Cog):
             else:
                 return
 
-        elif ("it's coming home" in message.content.lower() or "it will come home" in message.content.lower()) and message.author.id == 362340623992356864:
-            await message.reply("No it won't be coming home Solar, and it likely never will in the future.")
+        elif ("it's coming home" in message.content.lower() or "it will come home" in message.content.lower() or "it came home" in message.content.lower()) and message.author.id == 362340623992356864:
+            await message.reply("After **56** years, you lot finally managed to win another title, wow.")
 
         elif message.author.is_on_mobile():
-            randomValue = random.randint(1, 100000)
-            if randomValue == 1:
+            randomValue = random.randint(1, 200000)
+            if randomValue in [1, 2]:
                 await message.reply("Discord mobile was the greatest mistake in the history of mankind")
-            elif randomValue in [2, 3, 4, 5]:
+            elif randomValue in [3, 4, 5]:
                 await message.reply("Phone user detected, opinion rejected")
 
 
-def setup(bot):
-    bot.add_cog(Jokes(bot))
+def setup(bot, **kwargs):
+    bot.add_cog(Jokes(bot, kwargs["config"]))
