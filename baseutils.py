@@ -2,10 +2,32 @@ import nextcord
 import configutils
 from nextcord.ui import View, Button
 import re
+from datetime import datetime
+import pytz
 
 from permutils import permcheck
 
 config = configutils.Configuration.from_yaml_file("./persistent_data/config.yaml")
+
+
+class SersiEmbed(nextcord.Embed):
+    def __init__(self, *, fields: dict[str, str] = None, footer: str = "", **kwargs):
+        super().__init__(**kwargs)
+
+        # Configure Embed Footer
+        if footer == "":
+            footer = "Sersi Embed"
+        self.set_footer(text=footer)
+        self.timestamp = datetime.now(pytz.UTC)
+
+        # Configure Colour
+        if "color" not in kwargs and "colour" not in kwargs:
+            self.colour = nextcord.Color.from_rgb(237, 91, 6)
+
+        # Configure Fields
+        if fields:
+            for field in fields:
+                self.add_field(name=field, value=fields[field], inline=False)
 
 
 def sanitize_mention(string: str) -> str:
