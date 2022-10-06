@@ -279,7 +279,7 @@ class Reformation(commands.Cog):
             reason = case_details[case_id][5]
 
             # await member.ban(reason=f"Reformation Failed: {reason}", delete_message_days=0)
-            await ban(self, member, "rf", reason=f"Reformation Failed: {reason}")
+            await ban(self.config, member, "rf", reason=f"Reformation Failed: {reason}")
 
             # transript
             with open(self.config.datafiles.reformation_cases, "rb") as file:
