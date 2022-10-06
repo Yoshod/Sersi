@@ -1,8 +1,7 @@
 import nextcord
-import pytz
-from datetime import datetime
 from nextcord.ext import commands
 from configutils import Configuration
+from baseutils import SersiEmbed
 
 
 class MemberRoles(commands.Cog):
@@ -18,12 +17,10 @@ class MemberRoles(commands.Cog):
             log = entry
 
         if log.before.roles:  # audit log shows roles as prviously had, so this is a role removal entry
-            logging = nextcord.Embed(
+            logging = SersiEmbed(
                 description="A role has been removed",
-                colour=nextcord.Color.from_rgb(237, 91, 6),
+                footer="Sersi Role Logging",
             )
-            logging.timestamp = datetime.now(pytz.UTC)
-            logging.set_footer(text=self.bot)
             logging.set_author(name=log.user, icon_url=log.user.display_avatar.url)
             logging.add_field(name="User affected:", value=before.mention, inline=False)
             for role in log.before.roles:
@@ -33,12 +30,10 @@ class MemberRoles(commands.Cog):
             await channel.send(embed=logging)
 
         elif log.after.roles:  # audit log shows roles as now have, so this is an added role entry
-            logging = nextcord.Embed(
-                description="A role has been added",
-                colour=nextcord.Color.from_rgb(237, 91, 6),
+            logging = SersiEmbed(
+                description="A role has been removed",
+                footer="Sersi Role Logging",
             )
-            logging.timestamp = datetime.now(pytz.UTC)
-            logging.set_footer(text=self.bot)
             logging.set_author(name=log.user, icon_url=log.user.display_avatar.url)
             logging.add_field(name="User affected:", value=before.mention, inline=False)
             for role in log.after.roles:
