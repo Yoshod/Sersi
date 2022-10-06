@@ -4,7 +4,7 @@ import pickle
 from nextcord.ext import commands
 from nextcord.ui import Button, View
 
-from baseutils import DualCustodyView, PageView, sanitize_mention
+from baseutils import DualCustodyView, PageView, sanitize_mention, SersiEmbed
 from configutils import Configuration
 from permutils import permcheck, is_mod, is_full_mod, cb_is_mod
 from slurdetector import load_slurdetector, load_slurs, load_goodwords, get_slurs, get_slurs_leet, get_goodwords, clear_string, rm_slur, rm_goodword, detect_slur
@@ -28,12 +28,13 @@ class Slur(commands.Cog):
 
         # Logging
         channel = self.bot.get_channel(self.config.channels.logging)
-        embedLogVar = nextcord.Embed(
+        embedLogVar = SersiEmbed(
             title="Action Taken Pressed",
             description="Action has been taken by a moderator in response to a report.",
-            color=nextcord.Color.from_rgb(237, 91, 6))
-        embedLogVar.add_field(name="Report:", value=interaction.message.jump_url, inline=False)
-        embedLogVar.add_field(name="Moderator:", value=f"{interaction.user.mention} ({interaction.user.id})", inline=False)
+            fields={
+                "Report:": interaction.message.jump_url,
+                "Moderator:": f"{interaction.user.mention} ({interaction.user.id})"
+            })
         await channel.send(embed=embedLogVar)
 
         case_data = []
@@ -54,12 +55,13 @@ class Slur(commands.Cog):
 
         # Logging
         channel = self.bot.get_channel(self.config.channels.logging)
-        embedLogVar = nextcord.Embed(
+        embedLogVar = SersiEmbed(
             title="Acceptable Use Pressed",
             description="Usage of a slur has been deemed acceptable by a moderator in response to a report.",
-            color=nextcord.Color.from_rgb(237, 91, 6))
-        embedLogVar.add_field(name="Report:", value=interaction.message.jump_url, inline=False)
-        embedLogVar.add_field(name="Moderator:", value=f"{interaction.user.mention} ({interaction.user.id})", inline=False)
+            fields={
+                "Report:": interaction.message.jump_url,
+                "Moderator:": f"{interaction.user.mention} ({interaction.user.id})"
+            })
         await channel.send(embed=embedLogVar)
 
     async def cb_false_positive(self, interaction):
@@ -69,9 +71,7 @@ class Slur(commands.Cog):
         await interaction.message.edit(embed=new_embed, view=None)
         channel = self.bot.get_channel(self.config.channels.false_positives)
 
-        embedVar = nextcord.Embed(
-            title="Marked as false positive",
-            color=nextcord.Color.from_rgb(237, 91, 6))
+        embedVar = SersiEmbed(title="Marked as false positive")
 
         for field in new_embed.fields:
             if field.name in ["Context:", "Slurs Found:"]:
@@ -82,12 +82,13 @@ class Slur(commands.Cog):
 
         # Logging
         channel = self.bot.get_channel(self.config.channels.logging)
-        embedLogVar = nextcord.Embed(
+        embedLogVar = SersiEmbed(
             title="False Positive Pressed",
             description="Detected slur has been deemed a false positive by a moderator in response to a report.",
-            color=nextcord.Color.from_rgb(237, 91, 6))
-        embedLogVar.add_field(name="Report:", value=interaction.message.jump_url, inline=False)
-        embedLogVar.add_field(name="Moderator:", value=f"{interaction.user.mention} ({interaction.user.id})", inline=False)
+            fields={
+                "Report:": interaction.message.jump_url,
+                "Moderator:": f"{interaction.user.mention} ({interaction.user.id})"
+            })
         await channel.send(embed=embedLogVar)
 
     @commands.command(aliases=["addsl"])
@@ -123,13 +124,15 @@ class Slur(commands.Cog):
 
         # logging
         channel = self.bot.get_channel(self.config.channels.logging)
-        embedVar = nextcord.Embed(
+        embedVar = SersiEmbed(
             title="Slur Added",
             description="A new slur has been added to the filter.",
-            color=nextcord.Color.from_rgb(237, 91, 6))
-        embedVar.add_field(name="Added By:", value=f"{ctx.message.author.mention} ({ctx.message.author.id})", inline=False)
-        embedVar.add_field(name="Slur Added:", value=slur, inline=False)
+            fields={
+                "Added By:": f"{ctx.message.author.mention} ({ctx.message.author.id})",
+                "Slur Added:": slur
+            })
         await channel.send(embed=embedVar)
+
         await ctx.send(f"{self.sersisuccess} Slur added. Detection will start now.")
 
     @commands.command(aliases=["addgw"])
@@ -173,12 +176,13 @@ class Slur(commands.Cog):
 
         # logging
         channel = self.bot.get_channel(self.config.channels.logging)
-        embedVar = nextcord.Embed(
+        embedVar = SersiEmbed(
             title="Goodword Added",
             description="A new goodword has been added to the filter.",
-            color=nextcord.Color.from_rgb(237, 91, 6))
-        embedVar.add_field(name="Added By:", value=f"{ctx.message.author.mention} ({ctx.message.author.id})", inline=False)
-        embedVar.add_field(name="Goodword Added:", value=word, inline=False)
+            fields={
+                "Added By:": f"{ctx.message.author.mention} ({ctx.message.author.id})",
+                "Goodword Added:": word
+            })
         await channel.send(embed=embedVar)
         await ctx.send(f"{self.sersisuccess} Goodword added. Detection will start now.")
 
@@ -195,13 +199,14 @@ class Slur(commands.Cog):
 
         # logging
         channel = self.bot.get_channel(self.config.channels.logging)
-        embed_var = nextcord.Embed(
+        embed_var = SersiEmbed(
             title="Slur Removed",
             description="A slur has been removed from the filter.",
-            color=nextcord.Color.from_rgb(237, 91, 6))
-        embed_var.add_field(name="Removed By:", value=f"{moderator.mention} ({moderator.id})", inline=False)
-        embed_var.add_field(name="Confirming Moderator:", value=f"{interaction.user.mention} ({interaction.user.id})", inline=False)
-        embed_var.add_field(name="Slur Removed:", value=slur, inline=False)
+            fields={
+                "Removed By:": f"{moderator.mention} ({moderator.id})",
+                "Confirming Moderator:": f"{moderator.mention} ({moderator.id})",
+                "Slur Removed:": slur
+            })
         await channel.send(embed=embed_var)
         await interaction.message.edit(f"{self.sersisuccess} Slur {slur} is no longer in the list", embed=None, view=None)
 
@@ -211,13 +216,14 @@ class Slur(commands.Cog):
         if not await permcheck(ctx, is_mod):
             return
 
-        dialog_embed = nextcord.Embed(
+        dialog_embed = SersiEmbed(
             title="Remove Slur",
             description="Following slur will be removed from slur detection:",
-            color=nextcord.Color.from_rgb(237, 91, 6))
-        dialog_embed.add_field(name="Slur", value=slur)
-        dialog_embed.add_field(name="Moderator", value=ctx.author.mention)
-        dialog_embed.add_field(name="Moderator ID", value=ctx.author.id)
+            fields={
+                "Slur:": slur,
+                "Moderator": ctx.author.mention,
+                "Moderator ID": ctx.author.id
+            })
 
         channel = self.bot.get_channel(self.config.channels.alert)
         view = DualCustodyView(self.cb_rmslur_confirm, ctx.author, is_full_mod)
@@ -235,13 +241,15 @@ class Slur(commands.Cog):
 
         # logging
         channel = self.bot.get_channel(self.config.channels.logging)
-        embedVar = nextcord.Embed(
+        embedVar = SersiEmbed(
             title="Goodword Removed",
             description="A goodword has been removed from the filter.",
-            color=nextcord.Color.from_rgb(237, 91, 6))
-        embedVar.add_field(name="Removed By:", value=f"{ctx.message.author.mention} ({ctx.message.author.id})", inline=False)
-        embedVar.add_field(name="Goodword Removed:", value=word, inline=False)
+            fields={
+                "Removed By:": f"{ctx.message.author.mention} ({ctx.message.author.id})",
+                "Goodword Removed:": word
+            })
         await channel.send(embed=embedVar)
+
         await ctx.send(f"{self.sersisuccess} Goodword {word} is no longer in the list")
 
     @commands.command(aliases=["lssl", "listsl", "lsslurs"])
@@ -253,9 +261,7 @@ class Slur(commands.Cog):
         if not await permcheck(ctx, is_mod):
             return
 
-        embed = nextcord.Embed(
-            title="List of currently detected slurs",
-            color=nextcord.Color.from_rgb(237, 91, 6))
+        embed = SersiEmbed(title="List of currently detected slurs")
 
         view = PageView(
             config=self.config,
@@ -275,9 +281,7 @@ class Slur(commands.Cog):
         if not await permcheck(ctx, is_mod):
             return
 
-        embed = nextcord.Embed(
-            title="List of goodwords currently whitelisted from slur detection",
-            color=nextcord.Color.from_rgb(237, 91, 6))
+        embed = SersiEmbed(title="List of goodwords currently whitelisted from slur detection")
 
         view = PageView(
             config=self.config,
@@ -297,22 +301,23 @@ class Slur(commands.Cog):
 
         elif len(detected_slurs) > 0:  # checks slur heat
             channel = self.bot.get_channel(self.config.channels.alert)
-            slurembed = nextcord.Embed(
-                title="Slur(s) Detected",
-                description="A slur has been detected. Moderation action is advised.",
-                color=nextcord.Color.from_rgb(237, 91, 6)
-            )
-            slurembed.add_field(name="Channel:", value=message.channel.mention, inline=False)
-            slurembed.add_field(name="User:", value=message.author.mention)
 
             if len(message.content) < 1024:
-                slurembed.add_field(name="Context:", value=message.content, inline=False)
+                citation = message.content
             else:
-                slurembed.add_field(name="Context:", value="`MESSAGE TOO LONG`", inline=False)
+                citation = "`MESSAGE TOO LONG`"
 
-            slurembed.add_field(name="Slurs Found:", value=", ".join(set(detected_slurs)), inline=False)
-            slurembed.add_field(name="URL:", value=message.jump_url, inline=False)
-            slurembed.set_footer(text="Sersi Slur Detection Alert")
+            slurembed = SersiEmbed(
+                title="Slur(s) Detected",
+                description="A slur has been detected. Moderation action is advised.",
+                footer="Sersi Slur Detection Alert",
+                fields={
+                    "Channel:": message.channel.mention,
+                    "User:": message.author.mention,
+                    "Context:": citation,
+                    "Slurs Found:": ", ".join(set(detected_slurs)),
+                    "URL:": message.jump_url
+                })
 
             with open(self.config.datafiles.casehistory, "rb") as file:
                 case_history = pickle.load(file)  # --> dict of list; one dict entry per user ID
@@ -339,18 +344,20 @@ class Slur(commands.Cog):
                             previous_offenses.append(f"`{uid}` [Jump!]({report_url})")
 
             if not slur_virgin and not previous_offenses:  # user has said slurs before, however not that particular one
-                slurembed.add_field(name="Previous Slur Uses:",
-                                    value=f"{self.config.emotes.success} The user has a history of using slurs that were not detected in this message.",
-                                    inline=False
-                                    )
+                slurembed.add_field(
+                    name="Previous Slur Uses:",
+                    value=f"{self.config.emotes.success} The user has a history of using slurs that were not detected in this message.",
+                    inline=False
+                )
 
             elif previous_offenses:  # user has said that slur before
                 prev_offenses = "\n".join(previous_offenses)
                 if len(prev_offenses) < 1024:
-                    slurembed.add_field(name="Previous Slur Uses:",
-                                        value=f"{self.config.emotes.success} The user has a history of using a slur detected in this message:\n{prev_offenses}",
-                                        inline=False
-                                        )
+                    slurembed.add_field(
+                        name="Previous Slur Uses:",
+                        value=f"{self.config.emotes.success} The user has a history of using a slur detected in this message:\n{prev_offenses}",
+                        inline=False
+                    )
                 else:
                     slurembed.add_field(name="Previous Slur Uses:", value="`CASE LIST TOO LONG`", inline=False)
 

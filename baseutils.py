@@ -11,12 +11,10 @@ config = configutils.Configuration.from_yaml_file("./persistent_data/config.yaml
 
 
 class SersiEmbed(nextcord.Embed):
-    def __init__(self, *, fields: dict[str, str] = None, footer: str = "", **kwargs):
+    def __init__(self, *, fields: dict[str, str] = None, footer: str = "\u200b", **kwargs):
         super().__init__(**kwargs)
 
         # Configure Embed Footer
-        if footer == "":
-            footer = "Sersi Embed"
         self.set_footer(text=footer)
         self.timestamp = datetime.now(pytz.UTC)
 
