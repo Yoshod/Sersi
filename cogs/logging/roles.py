@@ -20,9 +20,11 @@ class MemberRoles(commands.Cog):
             logging = SersiEmbed(
                 description="A role has been removed",
                 footer="Sersi Role Logging",
+                fields={
+                    "User affected:": before.mention
+                }
             )
             logging.set_author(name=log.user, icon_url=log.user.display_avatar.url)
-            logging.add_field(name="User affected:", value=before.mention, inline=False)
             for role in log.before.roles:
                 logging.add_field(name="Role removed:", value=role.mention, inline=False)
                 logging.add_field(name="IDs:", value=f"```ini\nRole = {role.id}\nPerpetrator = {log.user.id}```", inline=False)
@@ -33,9 +35,11 @@ class MemberRoles(commands.Cog):
             logging = SersiEmbed(
                 description="A role has been removed",
                 footer="Sersi Role Logging",
+                fields={
+                    "User affected:": before.mention
+                }
             )
             logging.set_author(name=log.user, icon_url=log.user.display_avatar.url)
-            logging.add_field(name="User affected:", value=before.mention, inline=False)
             for role in log.after.roles:
                 logging.add_field(name="Role added:", value=role.mention, inline=False)
                 logging.add_field(name="IDs:", value=f"```ini\nRole = {role.id}\nPerpetrator = {log.user.id}```", inline=False)

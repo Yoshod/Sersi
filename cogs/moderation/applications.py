@@ -3,6 +3,7 @@ from nextcord.ext import commands
 from nextcord.ui import Button, View, Modal
 from configutils import Configuration
 from permutils import is_dark_mod, permcheck, is_senior_mod, is_cet
+from baseutils import SersiEmbed
 
 
 class ModAppModal(Modal):
@@ -29,15 +30,16 @@ class ModAppModal(Modal):
         """Run whenever the 'submit' button is pressed."""
         applicant_id = interaction.user.id
 
-        application_embed = nextcord.Embed(
+        application_embed = SersiEmbed(
             title="Moderator Application Sent",
             description=f"User {interaction.user.name} ({interaction.user.id})",
-            color=nextcord.Color.from_rgb(237, 91, 6))
-        application_embed.add_field(name=self.aboutq.label,     value=self.aboutq.value,    inline=False)
-        application_embed.add_field(name=self.whymod.label,     value=self.whymod.value,    inline=False)
-        application_embed.add_field(name=self.priorexp.label,   value=self.priorexp.value,  inline=False)
-        application_embed.add_field(name=self.age.label,        value=self.age.value,       inline=False)
-        application_embed.add_field(name=self.vc.label,         value=self.vc.value,        inline=False)
+            fields={
+                self.aboutq.label: self.aboutq.value,
+                self.whymod.label: self.whymod.value,
+                self.priorexp.label: self.priorexp.value,
+                self.age.label: self.age.value,
+                self.vc.label: self.vc.value
+            })
 
         accept_bttn = Button(custom_id=f"mod-application-next-steps:{applicant_id}", label="Move To Next Steps", style=nextcord.ButtonStyle.green)
         reject_bttn = Button(custom_id=f"mod-application-reject:{applicant_id}", label="Reject Application", style=nextcord.ButtonStyle.red)
@@ -76,15 +78,16 @@ class CetAppModal(Modal):
         """Run whenever the 'submit' button is pressed."""
         applicant_id = interaction.user.id
 
-        application_embed = nextcord.Embed(
+        application_embed = SersiEmbed(
             title="CET Application Received",
             description=f"User {interaction.user.name} ({interaction.user.id})",
-            color=nextcord.Color.from_rgb(237, 91, 6))
-        application_embed.add_field(name=self.aboutq.label,     value=self.aboutq.value,    inline=False)
-        application_embed.add_field(name=self.whycet.label,     value=self.whycet.value,    inline=False)
-        application_embed.add_field(name=self.priorexp.label,   value=self.priorexp.value,  inline=False)
-        application_embed.add_field(name=self.age.label,        value=self.age.value,       inline=False)
-        application_embed.add_field(name=self.vc.label,         value=self.vc.value,        inline=False)
+            fields={
+                self.aboutq.label: self.aboutq.value,
+                self.whycet.label: self.whycet.value,
+                self.priorexp.label: self.priorexp.value,
+                self.age.label: self.age.value,
+                self.vc.label: self.vc.value
+            })
 
         accept_bttn = Button(custom_id=f"cet-application-next-steps:{applicant_id}", label="Move To Next Steps", style=nextcord.ButtonStyle.green)
         reject_bttn = Button(custom_id=f"cet-application-reject:{applicant_id}", label="Reject Application", style=nextcord.ButtonStyle.red)
@@ -119,10 +122,9 @@ class Applications(commands.Cog):
 
         await ctx.message.delete()
 
-        test_embed = nextcord.Embed(
+        test_embed = SersiEmbed(
             title="Moderator Application",
-            description="Press the button below to apply to become a moderator on Adam Something Central.",
-            colour=nextcord.Color.from_rgb(237, 91, 6))
+            description="Press the button below to apply to become a moderator on Adam Something Central.")
         open_modal = Button(custom_id="mod-application-start", label="Open Form", style=nextcord.ButtonStyle.blurple)
         open_modal.callback = self.cb_open_mod_modal
 
@@ -138,14 +140,16 @@ class Applications(commands.Cog):
 
         await ctx.message.delete()
 
-        info_embed = nextcord.Embed(
+        info_embed = SersiEmbed(
             title="Staff Application Information",
             description="Staff applications are open all year round! If you wish to be a moderator, member of CET, or anything else on Adam Something Central, here are somethings to be aware of:",
-            colour=nextcord.Color.from_rgb(237, 91, 6))
-        info_embed.add_field(name="Server Membership", value="We want all of our staff to be members of the Adam Something Central community. This means if you have been here for less than two months we will not be able to consider you.", inline=False)
-        info_embed.add_field(name="Moderation History", value="Whilst having a moderation history on the server does not automatically prevent you from becoming a member of staff, expect to be challenged on your moderation history.", inline=False)
-        info_embed.add_field(name="Age", value="Whilst we do not explicitly require staff to be of a certain age, bar the fact they must be old enough to use discord, those under the age of 18 can expect a little more grilling in order to determine maturity.", inline=False)
-        info_embed.add_field(name="Applying", value="To apply all you have to do is press the 'Open Form' button above. This will show a short form inside of discord that you can fill in. The process is easy, and you will usually get a response within two days.", inline=False)
+            fields={
+                "Server Membership": "We want all of our staff to be members of the Adam Something Central community. This means if you have been here for less than two months we will not be able to consider you.",
+                "Moderation History": "Whilst having a moderation history on the server does not automatically prevent you from becoming a member of staff, expect to be challenged on your moderation history.",
+                "Age": "Whilst we do not explicitly require staff to be of a certain age, bar the fact they must be old enough to use discord, those under the age of 18 can expect a little more grilling in order to determine maturity.",
+                "Applying": "To apply all you have to do is press the 'Open Form' button above. This will show a short form inside of discord that you can fill in. The process is easy, and you will usually get a response within two days."
+            })
+
         await ctx.send(embed=info_embed)
 
     @commands.command()
@@ -155,10 +159,9 @@ class Applications(commands.Cog):
 
         await ctx.message.delete()
 
-        test_embed = nextcord.Embed(
+        test_embed = SersiEmbed(
             title="Community Engagement Team Application",
-            description="Press the button below to apply to become a member of the Community Engagement Team on Adam Something Central.",
-            colour=nextcord.Color.from_rgb(237, 91, 6))
+            description="Press the button below to apply to become a member of the Community Engagement Team on Adam Something Central.")
         open_modal = Button(custom_id="cet-application-start", label="Open Form", style=nextcord.ButtonStyle.blurple)
         open_modal.callback = self.cb_open_cet_modal
 

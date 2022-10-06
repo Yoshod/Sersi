@@ -4,6 +4,7 @@ import io
 from chat_exporter import export
 from configutils import Configuration
 from permutils import permcheck, is_dark_mod
+from baseutils import SersiEmbed
 
 
 class Archive(commands.Cog):
@@ -29,10 +30,9 @@ class Archive(commands.Cog):
                 filename=f"transcript-{logged_channel.name}.html",
             )
 
-            log_embed = nextcord.Embed(
+            log_embed = SersiEmbed(
                 title=f"Channel {logged_channel.name} archived",
-                description=f"The channel {logged_channel.name} has been archived.",
-                color=nextcord.Color.from_rgb(237, 91, 6))
+                description=f"The channel {logged_channel.name} has been archived.")
 
             await output_channel.send(embed=log_embed, file=transcript_file)
 

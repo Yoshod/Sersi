@@ -3,6 +3,7 @@ import pytz
 from datetime import datetime
 from nextcord.ext import commands
 from configutils import Configuration
+from baseutils import SersiEmbed
 
 
 class Antitamper(commands.Cog):
@@ -24,13 +25,15 @@ class Antitamper(commands.Cog):
         if (datetime.now(pytz.UTC) - log.created_at).seconds > 1:
             return
 
-        warning_embed = nextcord.Embed(
-            colour=nextcord.Color.from_rgb(237, 91, 6),
+        warning_embed = SersiEmbed(
             title="Logs have been tampered with.",
-            description="A message in a logging channel has been tampered with. An inquiry into the incident seems appropiate."
+            description="A message in a logging channel has been tampered with. An inquiry into the incident seems appropiate.",
+            footer="Antitamper Alert",
+            fields={
+                "Perpetrator:": f"{log.user} ({log.user.id})",
+                "Channel:": log.extra.channel.mention
+            }
         )
-        warning_embed.add_field(name="Perpetrator:", value=f"{log.user} ({log.user.id})", inline=False)
-        warning_embed.add_field(name="Channel:", value=log.extra.channel.mention, inline=False)
 
         channel = message.guild.get_channel(self.config.channels.tamper_logs)
         mega_admin = message.guild.get_role(self.config.permission_roles.dark_moderator)
