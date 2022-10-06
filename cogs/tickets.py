@@ -149,7 +149,7 @@ class VerificationTicket(nextcord.ui.Modal):
 
         overwrites, case_name = ticketutils.ticket_prep(self.config, interaction, user, "verification_ticket")
 
-        category = nextcord.utils.get(interaction.guild.categories, name="VERIFICATON SUPPORT")
+        category = nextcord.utils.get(interaction.guild.categories, name="VERIFICATION SUPPORT")
         channel = await interaction.guild.create_text_channel(case_name, overwrites=overwrites, category=category)
 
         ticket_embed = nextcord.Embed(
