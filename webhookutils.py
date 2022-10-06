@@ -4,11 +4,8 @@ import nextcord
 async def send_webhook_message(*, channel: nextcord.abc.GuildChannel, **kwargs):
     channel_webhooks = await channel.webhooks()
     msg_sent = False
-    try:
+    if "allowed_mentions" in kwargs:
         del kwargs["allowed_mentions"]
-
-    except KeyError:
-        pass
 
     for webhook in channel_webhooks:                  # tries to find existing webhook
         if webhook.name == "sersi webhook":
