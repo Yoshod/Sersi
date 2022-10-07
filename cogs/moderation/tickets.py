@@ -5,6 +5,7 @@ from nextcord.ext import commands
 from nextcord.ui import Button, View
 from permutils import permcheck, is_dark_mod, is_senior_mod, is_mod
 from configutils import Configuration
+from baseutils import SersiEmbed
 
 
 class ModeratorTicket(nextcord.ui.Modal):
@@ -167,6 +168,23 @@ class VerificationTicket(nextcord.ui.Modal):
         await channel.send(embed=ticket_embed, view=button_view)
 
 
+class CloseReason(nextcord.ui.Modal):
+    def __init__(self, config: Configuration):
+        super().__init__("Interaction Notes")
+        self.config = config
+
+        self.notes = nextcord.ui.TextInput(
+            label="Interaction Notes:",
+            max_length=1024,
+            required=True,
+            placeholder="Please give a brief explanation of the outcome.",
+            style=nextcord.TextInputStyle.paragraph)
+        self.add_item(self.notes)
+
+    async def callback(self, interaction):
+        pass
+
+
 class TicketingSystem(commands.Cog):
     def __init__(self, bot, config: Configuration):
         self.bot = bot
@@ -254,24 +272,28 @@ class TicketingSystem(commands.Cog):
 
             case ["admin-ticket-close", user_id]:
                 if await permcheck(interaction, is_dark_mod):
+                    await interaction.response.send_modal(CloseReason(self.config))
                     user = self.bot.get_user(int(user_id))
                     await ticketutils.ticket_close(self.config, interaction, user, "admin_ticket")
                     await interaction.channel.delete(reason="Ticket closed")
 
             case ["senior-ticket-close", user_id]:
                 if await permcheck(interaction, is_senior_mod):
+                    await interaction.response.send_modal(CloseReason(self.config))
                     user = self.bot.get_user(int(user_id))
                     await ticketutils.ticket_close(self.config, interaction, user, "senior_ticket")
                     await interaction.channel.delete(reason="Ticket closed")
 
             case ["moderator-ticket-close", user_id]:
                 if await permcheck(interaction, is_mod):
+                    await interaction.response.send_modal(CloseReason(self.config))
                     print(user_id)
                     user = self.bot.get_user(int(user_id))
                     await ticketutils.ticket_close(self.config, interaction, user, "mod_ticket")
                     await interaction.channel.delete(reason="Ticket closed")
 
             case ["verification-ticket-close", user_id]:
+                await interaction.response.send_modal(CloseReason(self.config))
                 user = self.bot.get_user(int(user_id))
                 await ticketutils.ticket_close(self.config, interaction, user, "verification_ticket")
                 await interaction.channel.delete(reason="Ticket closed")
