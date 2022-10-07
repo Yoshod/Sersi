@@ -27,7 +27,7 @@ class Antitamper(commands.Cog):
 
         warning_embed = SersiEmbed(
             title="Logs have been tampered with.",
-            description="A message in a logging channel has been tampered with. An inquiry into the incident seems appropiate.",
+            description="A message in a logging channel has either been deleted or edited. Please investigate at nearest convenience.",
             footer="Antitamper Alert",
             fields={
                 "Perpetrator:": f"{log.user} ({log.user.id})",
