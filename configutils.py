@@ -108,6 +108,7 @@ class ConfigurationOptInRoles(YAMLWizard):
     shillposting: int
     music: int
     photography: int
+    environment: int
 
 
 @dataclass
