@@ -1,8 +1,8 @@
-import nextcord
 from nextcord.ext import commands
 
 from configutils import Configuration
 from permutils import permcheck, is_mod
+from baseutils import SersiEmbed
 
 
 class Gif(commands.Cog):
@@ -45,11 +45,14 @@ class Gif(commands.Cog):
         await ctx.send(f"{self.sersisuccess} GIF URL `{url}` added to blacklist.")
 
         # logging
-        embed = nextcord.Embed(
+        embed = SersiEmbed(
             title="GIF added to blacklist",
-            color=nextcord.Colour.from_rgb(237, 91, 6))
-        embed.add_field(name="Moderator:", value=ctx.author.mention, inline=False)
-        embed.add_field(name="GIF URL:", value=url, inline=False)
+            fields={
+                "Moderator:": ctx.author.mention,
+                "GIF URL:": url
+            },
+            footer="GIF Blacklist"
+        )
 
         channel = ctx.guild.get_channel(self.config.channels.logging)
         await channel.send(embed=embed)
@@ -73,11 +76,14 @@ class Gif(commands.Cog):
         await ctx.send(f"{self.sersisuccess} GIF URL `{url}` removed from blacklist.")
 
         # logging
-        embed = nextcord.Embed(
+        embed = SersiEmbed(
             title="GIF removed from blacklist",
-            color=nextcord.Colour.from_rgb(237, 91, 6))
-        embed.add_field(name="Moderator:", value=ctx.author.mention, inline=False)
-        embed.add_field(name="GIF URL:", value=url, inline=False)
+            fields={
+                "Moderator:": ctx.author.mention,
+                "GIF URL:": url
+            },
+            footer="GIF Blacklist"
+        )
 
         channel = ctx.guild.get_channel(self.config.channels.logging)
         await channel.send(embed=embed)
@@ -88,10 +94,9 @@ class Gif(commands.Cog):
         if not await permcheck(ctx, is_mod):
             return
 
-        embed = nextcord.Embed(
+        embed = SersiEmbed(
             title="List of GIFs currently being blacklisted",
-            description="\n".join(self.list),
-            colour=nextcord.Color.from_rgb(237, 91, 6))
+            description="\n".join(self.list))
         await ctx.send(embed=embed)
 
     @commands.Cog.listener()
@@ -100,12 +105,14 @@ class Gif(commands.Cog):
             await message.delete()
 
             # logging
-            embed = nextcord.Embed(
+            embed = SersiEmbed(
                 title="Blacklisted GIF deleted",
-                color=nextcord.Colour.from_rgb(237, 91, 6))
-            embed.add_field(name="Message Author:", value=message.author.mention, inline=False)
-            embed.add_field(name="Channel:", value=message.channel.mention, inline=False)
-            embed.add_field(name="Message:", value=message.content, inline=False)
+                fields={
+                    "Message Author:": message.author.mention,
+                    "Channel:": message.channel.mention,
+                    "Message:": message.content
+                }
+            )
 
             channel = self.bot.get_channel(self.config.channels.logging)
             await channel.send(embed=embed)
