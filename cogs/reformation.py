@@ -493,7 +493,7 @@ class Reformation(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_remove(self, member):
-        reformation_role = member.get_role(self.config.roles.re)
+        reformation_role = member.get_role(self.config.roles.reformation)
 
         if reformation_role is not None:
 
