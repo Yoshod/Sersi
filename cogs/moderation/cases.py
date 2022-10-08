@@ -2,7 +2,7 @@ import nextcord
 import pickle
 from nextcord.ext import commands
 
-from baseutils import PageView
+from baseutils import PageView, SersiEmbed
 from caseutils import get_member_cases
 from configutils import Configuration
 from permutils import permcheck, is_mod
@@ -32,7 +32,7 @@ class Cases(commands.Cog):
             search_by_member = False
 
         if search_by_member is True:
-            cases_embed = nextcord.Embed(
+            cases_embed = SersiEmbed(
                 title=(f"{member.name}'s Cases"),
                 colour=nextcord.Color.from_rgb(237, 91, 6))
             cases_embed.set_thumbnail(url=member.display_avatar.url)
@@ -57,88 +57,97 @@ class Cases(commands.Cog):
                 ctx.send(f"{self.sersifail} Case {search_term} not found.")
 
             elif self.case_details[search_term][0] == "Reformation":
-                case_embed = nextcord.Embed(
-                    title=(f"__**Reformation Case {search_term}**__"),
-                    colour=nextcord.Color.from_rgb(237, 91, 6)
-                )
 
                 user = ctx.guild.get_member(self.case_details[search_term][2])
                 moderator = ctx.guild.get_member(self.case_details[search_term][3])
                 reform_channel = ctx.guild.get_channel(self.case_details[search_term][4])
 
-                case_embed.add_field(name="User:", value=(f"{user.mention} ({user.id})"), inline=False)
-                case_embed.add_field(name="Moderator:", value=(f"{moderator.mention} ({moderator.id})"), inline=False)
-                case_embed.add_field(name="Reformation Case Number:", value=self.case_details[search_term][1], inline=False)
-                case_embed.add_field(name="Reformation Channel:", value=(f"{reform_channel.mention} ({reform_channel.id})"), inline=False)
-                case_embed.add_field(name="Reason:", value=self.case_details[search_term][5], inline=False)
-                case_embed.add_field(name="Timestamp:", value=(f"<t:{self.case_details[search_term][5]}:R>"), inline=False)
+                case_embed = SersiEmbed(
+                    title=f"__**Reformation Case {search_term}**__",
+                    fields={
+                        "User:": f"{user.mention} ({user.id})",
+                        "Moderator:": f"{moderator.mention} ({moderator.id})",
+                        "Reformation Case Number:": self.case_details[search_term][1],
+                        "Reformation Channel:": f"{reform_channel.mention} ({reform_channel.id})",
+                        "Reason:": self.case_details[search_term][5],
+                        "Timestamp:": f"<t:{self.case_details[search_term][5]}:R>"
+                    })
                 case_embed.set_thumbnail(url=user.display_avatar.url)
+
                 await ctx.send(embed=case_embed)
 
             elif self.case_details[search_term][0] == "Probation":
-                case_embed = nextcord.Embed(
-                    title=(f"__**Probation Case {search_term}**__"),
-                    colour=nextcord.Color.from_rgb(237, 91, 6)
-                )
 
                 user = ctx.guild.get_member(self.case_details[search_term][1])
                 initial_moderator = ctx.guild.get_member(self.case_details[search_term][2])
                 approval_moderator = ctx.guild.get_member(self.case_details[search_term][3])
 
-                case_embed.add_field(name="User:", value=(f"{user.mention} ({user.id})"), inline=False)
-                case_embed.add_field(name="Initial Moderator:", value=(f"{initial_moderator.mention} ({initial_moderator.id})"), inline=False)
-                case_embed.add_field(name="Approving Moderator:", value=(f"{approval_moderator.mention} ({approval_moderator.id})"), inline=False)
-                case_embed.add_field(name="Reason:", value=self.case_details[search_term][4], inline=False)
-                case_embed.add_field(name="Timestamp:", value=(f"<t:{self.case_details[search_term][5]}:R>"), inline=False)
+                case_embed = SersiEmbed(
+                    title=f"__**Probation Case {search_term}**__",
+                    fields={
+                        "User:": f"{user.mention} ({user.id})",
+                        "Initial Moderator:": f"{initial_moderator.mention} ({initial_moderator.id})",
+                        "Approving Moderator:": f"{approval_moderator.mention} ({approval_moderator.id})",
+                        "Reason:": self.case_details[search_term][4],
+                        "Timestamp:": f"<t:{self.case_details[search_term][5]}:R>"
+                    }
+                )
+
                 case_embed.set_thumbnail(url=user.display_avatar.url)
                 await ctx.send(embed=case_embed)
 
             elif self.case_details[search_term][0] == "Anonymous Message Mute":
-                case_embed = nextcord.Embed(
-                    title=(f"__**Anonymous Message Mute Case {search_term}**__"),
-                    colour=nextcord.Color.from_rgb(237, 91, 6)
-                )
 
                 user = ctx.guild.get_member(self.case_details[search_term][1])
                 moderator = ctx.guild.get_member(self.case_details[search_term][2])
 
-                case_embed.add_field(name="User:", value=(f"{user.mention} ({user.id})"), inline=False)
-                case_embed.add_field(name="Moderator:", value=(f"{moderator.mention} ({moderator.id})"), inline=False)
-                case_embed.add_field(name="Reason:", value=self.case_details[search_term][3], inline=False)
-                case_embed.add_field(name="Timestamp:", value=(f"<t:{self.case_details[search_term][4]}:R>"), inline=False)
+                case_embed = SersiEmbed(
+                    title=f"__**Anonymous Message Mute Case {search_term}**__",
+                    fields={
+                        "User:": f"{user.mention} ({user.id})",
+                        "Moderator:": f"{moderator.mention} ({moderator.id})",
+                        "Reason:": self.case_details[search_term][3],
+                        "Timestamp:": f"<t:{self.case_details[search_term][4]}:R>"
+                    }
+                )
+
                 case_embed.set_thumbnail(url=user.display_avatar.url)
                 await ctx.send(embed=case_embed)
 
             elif self.case_details[search_term][0] == "Slur Usage":
-                case_embed = nextcord.Embed(
-                    title=(f"__**Slur Usage Case {search_term}**__"),
-                    colour=nextcord.Color.from_rgb(237, 91, 6)
-                )
 
                 user = ctx.guild.get_member(self.case_details[search_term][3])
                 moderator = ctx.guild.get_member(self.case_details[search_term][4])
 
-                case_embed.add_field(name="User:", value=(f"{user.mention} ({user.id})"), inline=False)
-                case_embed.add_field(name="Moderator:", value=(f"{moderator.mention} ({moderator.id})"), inline=False)
-                case_embed.add_field(name="Slur Used:", value=self.case_details[search_term][1], inline=False)
-                case_embed.add_field(name="Report URL:", value=self.case_details[search_term][2], inline=False)
-                case_embed.add_field(name="Timestamp:", value=(f"<t:{self.case_details[search_term][5]}:R>"), inline=False)
+                case_embed = SersiEmbed(
+                    title=f"__**Slur Usage Case {search_term}**__",
+                    fields={
+                        "User:": f"{user.mention} ({user.id})",
+                        "Moderator:": f"{moderator.mention} ({moderator.id})",
+                        "Slur Used:": self.case_details[search_term][1],
+                        "Report URL:": self.case_details[search_term][2],
+                        "Timestamp:": f"<t:{self.case_details[search_term][5]}:R>"
+                    }
+                )
+
                 case_embed.set_thumbnail(url=user.display_avatar.url)
                 await ctx.send(embed=case_embed)
 
             elif self.case_details[search_term][0] == "Bad Faith Ping":
-                case_embed = nextcord.Embed(
-                    title=(f"__**Bad Faith Ping Case {search_term}**__"),
-                    colour=nextcord.Color.from_rgb(237, 91, 6)
-                )
 
                 user = ctx.guild.get_member(self.case_details[search_term][1])
                 moderator = ctx.guild.get_member(self.case_details[search_term][3])
 
-                case_embed.add_field(name="User:", value=(f"{user.mention} ({user.id})"), inline=False)
-                case_embed.add_field(name="Moderator:", value=(f"{moderator.mention} ({moderator.id})"), inline=False)
-                case_embed.add_field(name="Report URL:", value=self.case_details[search_term][2], inline=False)
-                case_embed.add_field(name="Timestamp:", value=(f"<t:{self.case_details[search_term][4]}:R>"), inline=False)
+                case_embed = SersiEmbed(
+                    title=f"__**Bad Faith Ping Case {search_term}**__",
+                    fields={
+                        "User:": f"{user.mention} ({user.id})",
+                        "Moderator:": f"{moderator.mention} ({moderator.id})",
+                        "Report URL:": self.case_details[search_term][2],
+                        "Timestamp:": f"<t:{self.case_details[search_term][4]}:R>"
+                    }
+                )
+
                 case_embed.set_thumbnail(url=user.display_avatar.url)
                 await ctx.send(embed=case_embed)
 
