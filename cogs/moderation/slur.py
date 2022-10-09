@@ -1,5 +1,6 @@
 import nextcord
 import pickle
+import asyncio
 
 from nextcord.ext import commands
 from nextcord.ui import Button, View
@@ -379,7 +380,11 @@ class Slur(commands.Cog):
             button_view.add_item(false_positive)
             button_view.interaction_check = cb_is_mod
 
-            await channel.send(embed=slurembed, view=button_view)
+            alert = await channel.send(embed=slurembed, view=button_view)
+
+            await asyncio.sleep(10800)  # 3 hours
+            if alert.components:  # message has components like ActionRow, Button, SelectMenu
+                await alert.reply(content=f"<@&{self.config.permission_roles.moderator}> untreated alert.")
 
 
 def setup(bot, **kwargs):
