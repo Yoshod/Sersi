@@ -75,8 +75,7 @@ class ModPing(commands.Cog):
             if field.name in ["User:"]:
                 case_data.append(field.value)
 
-        converter = commands.MemberConverter()
-        member = await converter.convert(self, case_data[0])
+        member = interaction.guild.get_member(case_data[0])
 
         unique_id = case_history(self.config, member.id, "Bad Faith Ping")
         bad_faith_ping_case(self.config, unique_id, interaction.message.jump_url, member.id, interaction.user.id)
