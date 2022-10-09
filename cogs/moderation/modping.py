@@ -1,9 +1,10 @@
 import nextcord
+import asyncio
 
 from nextcord.ext import commands
 from nextcord.ui import Button, View
 
-from baseutils import modmention_check
+from baseutils import modmention_check, SersiEmbed
 from permutils import cb_is_mod
 from configutils import Configuration
 from caseutils import case_history, bad_faith_ping_case
@@ -20,14 +21,17 @@ class ModPing(commands.Cog):
         new_embed.add_field(name="Action Taken By", value=interaction.user.mention, inline=True)
         new_embed.colour = nextcord.Colour.brand_green()
         await interaction.message.edit(embed=new_embed, view=None)
+
         # Logging
-        channel = self.bot.get_channel(self.config.channels.logging)
-        embedLogVar = nextcord.Embed(
+        embedLogVar = SersiEmbed(
             title="Action Taken Pressed",
             description="Action has been taken by a moderator in response to a report.",
-            color=nextcord.Color.from_rgb(237, 91, 6))
-        embedLogVar.add_field(name="Report:", value=interaction.message.jump_url, inline=False)
-        embedLogVar.add_field(name="Moderator:", value=f"{interaction.user.mention} ({interaction.user.id})", inline=False)
+            fields={
+                "Report:": interaction.message.jump_url,
+                "Moderator:": f"{interaction.user.mention} ({interaction.user.id})"
+            })
+
+        channel = self.bot.get_channel(self.config.channels.logging)
         await channel.send(embed=embedLogVar)
 
     async def cb_action_not_neccesary(self, interaction):
@@ -35,14 +39,17 @@ class ModPing(commands.Cog):
         new_embed.add_field(name="Action Not Neccesary", value=interaction.user.mention, inline=True)
         new_embed.colour = nextcord.Colour.light_grey()
         await interaction.message.edit(embed=new_embed, view=None)
+
         # Logging
-        channel = self.bot.get_channel(self.config.channels.logging)
-        embedLogVar = nextcord.Embed(
+        embedLogVar = SersiEmbed(
             title="Action Not Necessary Pressed",
             description="A Moderator has deemed that no action is needed in response to a report.",
-            color=nextcord.Color.from_rgb(237, 91, 6))
-        embedLogVar.add_field(name="Report:", value=interaction.message.jump_url, inline=False)
-        embedLogVar.add_field(name="Moderator:", value=f"{interaction.user.mention} ({interaction.user.id})", inline=False)
+            fields={
+                "Report:": interaction.message.jump_url,
+                "Moderator:": f"{interaction.user.mention} ({interaction.user.id})"
+            })
+
+        channel = self.bot.get_channel(self.config.channels.logging)
         await channel.send(embed=embedLogVar)
 
     async def cb_bad_faith_ping(self, interaction):
@@ -50,14 +57,17 @@ class ModPing(commands.Cog):
         new_embed.add_field(name="Bad Faith Ping", value=interaction.user.mention, inline=True)
         new_embed.colour = nextcord.Colour.brand_red()
         await interaction.message.edit(embed=new_embed, view=None)
+
         # Logging
-        channel = self.bot.get_channel(self.config.channels.logging)
-        embedLogVar = nextcord.Embed(
+        embedLogVar = SersiEmbed(
             title="Bad Faith Ping Pressed",
             description="A moderation ping has been deemed bad faith by a moderator in response to a report.",
-            color=nextcord.Color.from_rgb(237, 91, 6))
-        embedLogVar.add_field(name="Report:", value=interaction.message.jump_url, inline=False)
-        embedLogVar.add_field(name="Moderator:", value=f"{interaction.user.mention} ({interaction.user.id})", inline=False)
+            fields={
+                "Report:": interaction.message.jump_url,
+                "Moderator:": f"{interaction.user.mention} ({interaction.user.id})"
+            })
+
+        channel = self.bot.get_channel(self.config.channels.logging)
         await channel.send(embed=embedLogVar)
 
         case_data = []
@@ -83,30 +93,30 @@ class ModPing(commands.Cog):
         if message.author.bot:  # ignores message if message is by bot
             return
 
-        elif message.channel.category.name in ["Important stuff", "Administration Centre", "The Staff Zone"]:  # ignores certain channels on ASC, given by Juniper
+        if message.channel.category.name in ["Important stuff", "Administration Centre", "The Staff Zone"]:  # ignores certain channels on ASC, given by Juniper
             return
 
-        elif modmention_check(self.config, message.content):
+        if modmention_check(self.config, message.content):
             # Reply to user
-            embedVar = nextcord.Embed(
+            embedVar = SersiEmbed(
                 title="Moderator Ping Acknowledgment",
                 description=f"{message.author.mention} moderators have been notified of your ping and will investigate when able to do so.",
-                color=nextcord.Color.from_rgb(237, 91, 6))
-            embedVar.set_footer(text="Sersi Ping Detection Alert")
+                footer="Sersi Ping Detection Alert")
             await message.channel.send(embed=embedVar)
             await message.channel.send(f"<@&{self.config.permission_roles.trial_moderator}>", delete_after=1)
 
             # notification for mods
             channel = self.bot.get_channel(self.config.channels.alert)
-            embedVar = nextcord.Embed(
+            embedVar = SersiEmbed(
                 title="Moderator Ping",
                 description="A moderation role has been pinged, please investigate the ping and take action as appropriate.",
-                color=nextcord.Color.from_rgb(237, 91, 6))
-            embedVar.add_field(name="Channel:", value=message.channel.mention, inline=False)
-            embedVar.add_field(name="User:", value=message.author.mention, inline=False)
-            embedVar.add_field(name="Context:", value=message.content, inline=False)
-            embedVar.add_field(name="URL:", value=message.jump_url, inline=False)
-            embedVar.set_footer(text="Sersi Ping Detection Alert")
+                fields={
+                    "Channel:": message.channel.mention,
+                    "User:": message.author.mention,
+                    "Context:": message.content,
+                    "URL:": message.jump_url
+                },
+                footer="Sersi Ping Detection Alert")
 
             action_taken = Button(label="Action Taken")
             action_taken.callback = self.cb_action_taken
@@ -123,7 +133,11 @@ class ModPing(commands.Cog):
             button_view.add_item(bad_faith_ping)
             button_view.interaction_check = cb_is_mod
 
-            await channel.send(embed=embedVar, view=button_view)
+            alert = await channel.send(embed=embedVar, view=button_view)
+
+            await asyncio.sleep(10800)  # 3 hours
+            if alert.components:  # message has components like ActionRow, Button, SelectMenu
+                await alert.reply(content=f"<@&{self.config.permission_roles.moderator}> untreated alert.")
 
         # elif "<@809891646606409779>" in message.content:   # adam something ping
 
@@ -131,15 +145,16 @@ class ModPing(commands.Cog):
 
             # notification for mods
             channel = self.bot.get_channel(self.config.channels.alert)
-            embedVar = nextcord.Embed(
-                title="Adam Something Ping",
-                description="Adam Something has been pinged, please take appropriate action.",
-                color=nextcord.Color.from_rgb(237, 91, 6))
-            embedVar.add_field(name="Channel:", value=message.channel.mention, inline=False)
-            embedVar.add_field(name="User:", value=message.author.mention, inline=False)
-            embedVar.add_field(name="Context:", value=message.content, inline=False)
-            embedVar.add_field(name="URL:", value=message.jump_url, inline=False)
-            embedVar.set_footer(text="Sersi Ping Detection Alert")
+            embedVar = SersiEmbed(
+                title="Moderator Ping",
+                description="A moderation role has been pinged, please investigate the ping and take action as appropriate.",
+                fields={
+                    "Channel:": message.channel.mention,
+                    "User:": message.author.mention,
+                    "Context:": message.content,
+                    "URL:": message.jump_url
+                },
+                footer="Sersi Ping Detection Alert")
 
             action_taken = Button(label="Action Taken")
             action_taken.callback = self.cb_action_taken
@@ -152,7 +167,11 @@ class ModPing(commands.Cog):
             button_view.add_item(action_not_neccesary)
             button_view.interaction_check = cb_is_mod
 
-            await channel.send(embed=embedVar, view=button_view)
+            alert = await channel.send(embed=embedVar, view=button_view)
+
+            await asyncio.sleep(10800)  # 3 hours
+            if alert.components:  # message has components like ActionRow, Button, SelectMenu
+                await alert.reply(content=f"<@&{self.config.permission_roles.moderator}> untreated alert.")
 
 
 def setup(bot, **kwargs):
