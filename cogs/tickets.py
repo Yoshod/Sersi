@@ -245,8 +245,8 @@ class TicketingSystem(commands.Cog):
             case ["no-support"]:
                 await interaction.edit_original_message(content="Please read the self help guide before opening a verification support ticket.", view=None)
             case ["support-ask"]:
-                support = Button(custom_id="verification-ticket", label="✔️", style=nextcord.ButtonStyle.green)
-                no_support = Button(custom_id="no-support", label="❌", style=nextcord.ButtonStyle.red)
+                support = Button(custom_id="verification-ticket", label="Yes", style=nextcord.ButtonStyle.green)
+                no_support = Button(custom_id="no-support", label="No", style=nextcord.ButtonStyle.red)
 
                 button_view = View(auto_defer=True)
                 button_view.add_item(support)
