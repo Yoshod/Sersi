@@ -187,6 +187,9 @@ async def ticket_close(config: configutils.Configuration, interaction, user, tic
             color=nextcord.Color.from_rgb(237, 91, 6))
 
         await output_channel.send(embed=log_embed, file=transcript_file)
+
+        # DO NOT DELETE
+        # For some reason you cannot send a transcript twice so it has to be remade each time it is to be re-sent
         transcript_file = nextcord.File(
             io.BytesIO(transcript.encode()),
             filename=f"transcript-{channel.name}.html",
