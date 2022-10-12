@@ -208,3 +208,11 @@ async def ticket_close(config: configutils.Configuration, interaction, user, tic
             await user.send(embed=log_embed, file=transcript_file)
         except nextcord.errors.Forbidden:
             pass
+
+
+async def ticket_escalate(config: configutils.Configuration, interaction, user, ticket_type):
+    pass
+
+
+async def ticket_deescalate(config: configutils.Configuration, interaction, user, ticket_type):
+    pass
