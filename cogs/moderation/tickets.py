@@ -169,9 +169,10 @@ class VerificationTicket(nextcord.ui.Modal):
 
 
 class CloseReason(nextcord.ui.Modal):
-    def __init__(self, config: Configuration):
+    def __init__(self, config: Configuration, client: nextcord.Client):
         super().__init__("Interaction Notes")
         self.config = config
+        self.client = client
 
         self.notes = nextcord.ui.TextInput(
             label="Interaction Notes:",
@@ -180,9 +181,98 @@ class CloseReason(nextcord.ui.Modal):
             placeholder="Please give a brief explanation of the outcome.",
             style=nextcord.TextInputStyle.paragraph)
         self.add_item(self.notes)
+        self.timeout = 30
 
     async def callback(self, interaction):
-        pass
+        user = interaction.user
+        try:
+            initial_embed = interaction.message.embeds[0]
+        except IndexError:
+            raise Exception("Could not find embed when attempting to log ticket closure! Index out of range!")
+
+        complainer_id = initial_embed.description[2:21]
+        if str(complainer_id)[0] == "!":
+            complainer_id = initial_embed.description[3:21]
+
+        complainer_id = int(complainer_id)
+
+        try:
+            complainer = self.client.get_user(complainer_id)
+        except ValueError:
+            raise Exception("Could not translate user ID into user")
+
+        match (interaction.channel.name[:-5]):  # Removes last four digits and dash leaving just the ticket type
+            case "admin-ticket":
+                close_embed = SersiEmbed(
+                    title=f"Administrator Ticket {interaction.channel.name[-4:]} Closed",
+                    description=f"The Administrator Ticket with ID number {interaction.channel.name[-4:]} has been closed.",
+                    footer=(interaction.user.name, interaction.user.display_avatar.url),
+                    fields={
+                        "Ticket Opened By:": f"{complainer.mention} ({complainer.id})",
+                        "Ticket Initial Remarks:": initial_embed.fields[0].value,
+                        "Ticket Closed By:": f"{user.mention} ({user.id})",
+                        "Ticket Close Notes:": self.notes.value
+                    }
+                )
+                close_embed.set_footer(text=interaction.user.display_name, icon_url=interaction.user.display_avatar.url)
+                output_channel = interaction.guild.get_channel(self.config.channels.admin_ticket_logs)
+                await output_channel.send(embed=close_embed)
+                await ticketutils.ticket_close(self.config, interaction, user, "admin_ticket")
+                await interaction.channel.delete(reason="Ticket closed")
+
+            case "senior-ticket":
+                close_embed = SersiEmbed(
+                    title=f"Senior Moderator Ticket {interaction.channel.name[-4:]} Closed",
+                    description=f"The Senior Moderator Ticket with ID number {interaction.channel.name[-4:]} has been closed.",
+                    footer=(interaction.user.name, interaction.user.display_avatar.url),
+                    fields={
+                        "Ticket Opened By:": f"{complainer.mention} ({complainer.id})",
+                        "Ticket Initial Remarks:": initial_embed.fields[0].value,
+                        "Ticket Closed By:": f"{user.mention} ({user.id})",
+                        "Ticket Close Notes:": self.notes.value
+                    }
+                )
+                close_embed.set_footer(text=interaction.user.display_name, icon_url=interaction.user.display_avatar.url)
+                output_channel = interaction.guild.get_channel(self.config.channels.senior_ticket_logs)
+                await output_channel.send(embed=close_embed)
+                await ticketutils.ticket_close(self.config, interaction, user, "senior_ticket")
+                await interaction.channel.delete(reason="Ticket closed")
+
+            case "mod-ticket":
+                print("Identified Ticket Type")
+                close_embed = SersiEmbed(
+                    title=f"Moderator Ticket {interaction.channel.name[-4:]} Closed",
+                    description=f"The Moderator Ticket with ID number {interaction.channel.name[-4:]} has been closed.",
+                    footer=(interaction.user.name, interaction.user.display_avatar.url),
+                    fields={
+                        "Ticket Opened By:": f"{complainer.mention} ({complainer.id})",
+                        "Ticket Initial Remarks:": initial_embed.fields[0].value,
+                        "Ticket Closed By:": f"{user.mention} ({user.id})",
+                        "Ticket Close Notes:": self.notes.value
+                    }
+                )
+                close_embed.set_footer(text=interaction.user.display_name, icon_url=interaction.user.display_avatar.url)
+                output_channel = interaction.guild.get_channel(self.config.channels.mod_ticket_logs)
+                await output_channel.send(embed=close_embed)
+                await ticketutils.ticket_close(self.config, interaction, user, "mod_ticket")
+                await interaction.channel.delete(reason="Ticket closed")
+
+            case "verification-ticket":
+                close_embed = SersiEmbed(
+                    title=f"Verification Ticket {interaction.channel.name[-4:]} Closed",
+                    description=f"The Verification Ticket with ID number {interaction.channel.name[-4:]} has been closed.",
+                    fields={
+                        "Ticket Opened By:": f"{complainer.mention} ({complainer.id})",
+                        "Ticket Initial Remarks:": initial_embed.fields[0].value,
+                        "Ticket Closed By:": f"{user.mention} ({user.id})",
+                        "Ticket Close Notes:": self.notes.value
+                    }
+                )
+                close_embed.set_footer(text=interaction.user.display_name, icon_url=interaction.user.display_avatar.url)
+                output_channel = interaction.guild.get_channel(self.config.channels.verification_ticket_logs)
+                await output_channel.send(embed=close_embed)
+                await ticketutils.ticket_close(self.config, interaction, user, "verification_ticket")
+                await interaction.channel.delete(reason="Ticket closed")
 
 
 class TicketingSystem(commands.Cog):
@@ -245,9 +335,12 @@ class TicketingSystem(commands.Cog):
 
     @commands.Cog.listener()
     async def on_interaction(self, interaction):
+        print("Interaction Noticed")
         try:
             btn_id = interaction.data["custom_id"]
+            print("No Key Error")
         except KeyError:
+            print("Key Error")
             return
 
         match btn_id.split(":", 1):
@@ -275,31 +368,18 @@ class TicketingSystem(commands.Cog):
 
             case ["admin-ticket-close", user_id]:
                 if await permcheck(interaction, is_dark_mod):
-                    await interaction.response.send_modal(CloseReason(self.config))
-                    user = self.bot.get_user(int(user_id))
-                    await ticketutils.ticket_close(self.config, interaction, user, "admin_ticket")
-                    await interaction.channel.delete(reason="Ticket closed")
+                    await interaction.response.send_modal(CloseReason(self.config, self.bot))
 
             case ["senior-ticket-close", user_id]:
                 if await permcheck(interaction, is_senior_mod):
-                    await interaction.response.send_modal(CloseReason(self.config))
-                    user = self.bot.get_user(int(user_id))
-                    await ticketutils.ticket_close(self.config, interaction, user, "senior_ticket")
-                    await interaction.channel.delete(reason="Ticket closed")
+                    await interaction.response.send_modal(CloseReason(self.config, self.bot))
 
             case ["moderator-ticket-close", user_id]:
                 if await permcheck(interaction, is_mod):
-                    await interaction.response.send_modal(CloseReason(self.config))
-                    print(user_id)
-                    user = self.bot.get_user(int(user_id))
-                    await ticketutils.ticket_close(self.config, interaction, user, "mod_ticket")
-                    await interaction.channel.delete(reason="Ticket closed")
+                    await interaction.response.send_modal(CloseReason(self.config, self.bot))
 
             case ["verification-ticket-close", user_id]:
-                await interaction.response.send_modal(CloseReason(self.config))
-                user = self.bot.get_user(int(user_id))
-                await ticketutils.ticket_close(self.config, interaction, user, "verification_ticket")
-                await interaction.channel.delete(reason="Ticket closed")
+                await interaction.response.send_modal(CloseReason(self.config, self.bot))
 
 
 def setup(bot, **kwargs):
