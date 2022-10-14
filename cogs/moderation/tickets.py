@@ -437,7 +437,7 @@ class TicketingSystem(commands.Cog):
                     await interaction.response.send_modal(EscalationChange(self.config, self.bot, current_type, requested_type))
 
                 else:
-                    await interaction.response.send_message(f"{self.config.emotes.fail} The ticket is already a Senior Moderator Ticket")
+                    await interaction.response.send_message(f"{self.config.emotes.fail} The ticket is already a Senior Moderator Ticket", ephemeral=True)
 
             case ["moderator-ticket-escalation", _]:
                 print("Mod Ticket Escalation")
@@ -448,7 +448,7 @@ class TicketingSystem(commands.Cog):
                     await interaction.response.send_modal(EscalationChange(self.config, self.bot, current_type, requested_type))
 
                 else:
-                    await interaction.response.send_message(f"{self.config.emotes.fail} The ticket is already a Moderator Ticket")
+                    await interaction.response.send_message(f"{self.config.emotes.fail} The ticket is already a Moderator Ticket", ephemeral=True)
 
 
 def setup(bot, **kwargs):
