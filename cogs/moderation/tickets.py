@@ -2,7 +2,7 @@ import nextcord
 import ticketutils
 
 from nextcord.ext import commands
-from nextcord.ui import Button, View
+from nextcord.ui import Button, View, Select
 from permutils import permcheck, is_dark_mod, is_senior_mod, is_mod
 from configutils import Configuration
 from baseutils import SersiEmbed
@@ -42,7 +42,15 @@ class ModeratorTicket(nextcord.ui.Modal):
 
         close_bttn = Button(custom_id=f"moderator-ticket-close:{user.id}", label="Close Ticket", style=nextcord.ButtonStyle.red)
 
+        select_options = [
+            nextcord.SelectOption(label="Moderator Ticket", description="Change escalation level to: Moderator"),
+            nextcord.SelectOption(label="Senior Moderator Ticket", description="Change escalation level to: Senior Moderator"),
+            nextcord.SelectOption(label="Administrator Ticket", description="Change escalation level to: Administrator")
+        ]
+        escalation_dropdown = Select(custom_id=f"moderator-ticket-escalation:{user.id}", options=select_options, min_values=1, max_values=1, placeholder="Escalation Options")
+
         button_view = View(auto_defer=False)
+        button_view.add_item(escalation_dropdown)
         button_view.add_item(close_bttn)
 
         await channel.send(embed=ticket_embed, view=button_view)
@@ -82,7 +90,15 @@ class SeniorModeratorTicket(nextcord.ui.Modal):
 
         close_bttn = Button(custom_id=f"senior-ticket-close:{user.id}", label="Close Ticket", style=nextcord.ButtonStyle.red)
 
+        select_options = [
+            nextcord.SelectOption(label="Moderator Ticket", description="Change escalation level to: Moderator"),
+            nextcord.SelectOption(label="Senior Moderator Ticket", description="Change escalation level to: Senior Moderator"),
+            nextcord.SelectOption(label="Administrator Ticket", description="Change escalation level to: Administrator")
+        ]
+        escalation_dropdown = Select(custom_id=f"senior-ticket-escalation:{user.id}", options=select_options, min_values=1, max_values=1, placeholder="Escalation Options")
+
         button_view = View(auto_defer=False)
+        button_view.add_item(escalation_dropdown)
         button_view.add_item(close_bttn)
 
         await channel.send(embed=ticket_embed, view=button_view)
@@ -122,7 +138,15 @@ class AdministratorTicket(nextcord.ui.Modal):
 
         close_bttn = Button(custom_id=f"admin-ticket-close:{user.id}", label="Close Ticket", style=nextcord.ButtonStyle.red)
 
+        select_options = [
+            nextcord.SelectOption(label="Moderator Ticket", description="Change escalation level to: Moderator"),
+            nextcord.SelectOption(label="Senior Moderator Ticket", description="Change escalation level to: Senior Moderator"),
+            nextcord.SelectOption(label="Administrator Ticket", description="Change escalation level to: Administrator")
+        ]
+        escalation_dropdown = Select(custom_id=f"admin-ticket-escalation:{user.id}", options=select_options, min_values=1, max_values=1, placeholder="Escalation Options")
+
         button_view = View(auto_defer=False)
+        button_view.add_item(escalation_dropdown)
         button_view.add_item(close_bttn)
 
         await channel.send(embed=ticket_embed, view=button_view)
@@ -275,6 +299,28 @@ class CloseReason(nextcord.ui.Modal):
                 await interaction.channel.delete(reason="Ticket closed")
 
 
+class EscalationChange(nextcord.ui.Modal):
+    def __init__(self, config: Configuration, client: nextcord.Client, current_type, requested_type):
+        super().__init__("Interaction Notes")
+        self.config = config
+        self.client = client
+        self.current_type = current_type
+        self.requested_type = requested_type
+
+        self.notes = nextcord.ui.TextInput(
+            label="Interaction Notes:",
+            max_length=1024,
+            required=True,
+            placeholder="Please give a reason for the escalation change. This will be viewable by the ticket creator.",
+            style=nextcord.TextInputStyle.paragraph)
+        self.add_item(self.notes)
+        self.timeout = 30
+
+    async def callback(self, interaction):
+        print("We're in the callback")
+        await ticketutils.escalation_change(self.config, interaction, interaction.user, self.current_type, self.requested_type, self.notes.value, self.client)
+
+
 class TicketingSystem(commands.Cog):
     def __init__(self, bot, config: Configuration):
         self.bot = bot
@@ -334,13 +380,10 @@ class TicketingSystem(commands.Cog):
         await ctx.send(embed=support_embed, view=button_view)
 
     @commands.Cog.listener()
-    async def on_interaction(self, interaction):
-        print("Interaction Noticed")
+    async def on_interaction(self, interaction: nextcord.Interaction):
         try:
             btn_id = interaction.data["custom_id"]
-            print("No Key Error")
         except KeyError:
-            print("Key Error")
             return
 
         match btn_id.split(":", 1):
@@ -363,20 +406,49 @@ class TicketingSystem(commands.Cog):
 
                 await interaction.response.send_message("Have you read the support ticket guidelines?", view=button_view, ephemeral=True)
 
-            case ["admin-ticket-close", user_id]:
+            case ["admin-ticket-close", _]:
                 if await permcheck(interaction, is_dark_mod):
                     await interaction.response.send_modal(CloseReason(self.config, self.bot))
 
-            case ["senior-ticket-close", user_id]:
+            case ["senior-ticket-close", _]:
                 if await permcheck(interaction, is_senior_mod):
                     await interaction.response.send_modal(CloseReason(self.config, self.bot))
 
-            case ["moderator-ticket-close", user_id]:
+            case ["moderator-ticket-close", _]:
                 if await permcheck(interaction, is_mod):
                     await interaction.response.send_modal(CloseReason(self.config, self.bot))
 
-            case ["verification-ticket-close", user_id]:
+            case ["verification-ticket-close", _]:
                 await interaction.response.send_modal(CloseReason(self.config, self.bot))
+
+            case ["admin-ticket-escalation", _]:
+                requested_type = interaction.data["values"][0]
+                if await permcheck(interaction, is_dark_mod) and requested_type != "Administrator Ticket":
+                    current_type = "admin_ticket"
+                    await interaction.response.send_modal(EscalationChange(self.config, self.bot, current_type, requested_type))
+
+                else:
+                    await interaction.response.send_message(f"{self.config.emotes.fail} The ticket is already an Administrator Ticket", ephemeral=True)
+
+            case ["senior-ticket-escalation", _]:
+                requested_type = interaction.data["values"][0]
+                if await permcheck(interaction, is_senior_mod) and requested_type != "Senior Moderator Ticket":
+                    current_type = "senior_ticket"
+                    await interaction.response.send_modal(EscalationChange(self.config, self.bot, current_type, requested_type))
+
+                else:
+                    await interaction.response.send_message(f"{self.config.emotes.fail} The ticket is already a Senior Moderator Ticket")
+
+            case ["moderator-ticket-escalation", _]:
+                print("Mod Ticket Escalation")
+                requested_type = interaction.data["values"][0]
+                if await permcheck(interaction, is_mod) and requested_type != "Moderator Ticket":
+                    print("Pass chekcks")
+                    current_type = "mod_ticket"
+                    await interaction.response.send_modal(EscalationChange(self.config, self.bot, current_type, requested_type))
+
+                else:
+                    await interaction.response.send_message(f"{self.config.emotes.fail} The ticket is already a Moderator Ticket")
 
 
 def setup(bot, **kwargs):
