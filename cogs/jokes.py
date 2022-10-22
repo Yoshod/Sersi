@@ -79,7 +79,11 @@ class Jokes(commands.Cog):
 
         await ctx.message.delete(delay=None)
 
-        await send_webhook_message(ctx.channel, content=self.generate_uwu(message), username=self.generate_uwu(ctx.author.display_name), avatar_url=ctx.author.display_avatar.url)
+        await send_webhook_message(
+            channel=ctx.channel,
+            content=self.generate_uwu(message),
+            username=self.generate_uwu(ctx.author.display_name),
+            avatar_url=ctx.author.display_avatar.url)
 
     @commands.command()
     async def owo(self, ctx, *, message=""):
