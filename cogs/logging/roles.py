@@ -12,11 +12,14 @@ class MemberRoles(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_update(self, before: nextcord.Member, after: nextcord.Member):
-        channel = before.guild.get_channel(self.config.channels.role_logs)
+        channel: nextcord.TextChannel = before.guild.get_channel(self.config.channels.role_logs)
         async for entry in after.guild.audit_logs(action=nextcord.AuditLogAction.member_role_update, limit=1):
-            log = entry
+            log: nextcord.AuditLogEntry = entry
 
-        if log.before.roles:  # audit log shows roles as prviously had, so this is a role removal entry
+        if log.user.bot:  # role was assigned or removed by a bot
+            return
+
+        elif log.before.roles:  # audit log shows roles as prviously had, so this is a role removal entry
             logging = SersiEmbed(
                 description="A role has been removed",
                 footer="Sersi Role Logging",
@@ -33,7 +36,7 @@ class MemberRoles(commands.Cog):
 
         elif log.after.roles:  # audit log shows roles as now have, so this is an added role entry
             logging = SersiEmbed(
-                description="A role has been removed",
+                description="A role has been added",
                 footer="Sersi Role Logging",
                 fields={
                     "User affected:": before.mention
