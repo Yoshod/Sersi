@@ -240,15 +240,16 @@ class TicketingSystem(commands.Cog):
             case ["moderator-ticket"]:
                 await interaction.response.send_modal(ModeratorTicket(self.config))
             case ["verification-ticket"]:
-                await interaction.edit_original_message(view=None)
                 await interaction.response.send_modal(VerificationTicket(self.config))
+                await interaction.edit_original_message(view=None)
             case ["no-support"]:
+                await interaction.response.defer()
                 await interaction.edit_original_message(content="Please read the self help guide before opening a verification support ticket.", view=None)
             case ["support-ask"]:
                 support = Button(custom_id="verification-ticket", label="Yes", style=nextcord.ButtonStyle.green)
                 no_support = Button(custom_id="no-support", label="No", style=nextcord.ButtonStyle.red)
 
-                button_view = View(auto_defer=True)
+                button_view = View(auto_defer=False)
                 button_view.add_item(support)
                 button_view.add_item(no_support)
 
