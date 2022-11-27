@@ -290,8 +290,12 @@ class Slur(commands.Cog):
 
     # events
     @commands.Cog.listener()
-    async def on_message(self, message):
+    async def on_message(self, message: nextcord.message.Message):
         detected_slurs = detect_slur(message.content)
+
+        if message.channel.category.name == "Administration Centre":  # ignores message if sent inside of the administration centre
+            return
+
         if message.author == self.bot.user:  # ignores message if message is by bot
             return
 
