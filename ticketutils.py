@@ -74,7 +74,16 @@ def ticket_prep(config: configutils.Configuration, interaction, user, ticket_typ
     overwrites = {
         interaction.guild.default_role: nextcord.PermissionOverwrite(read_messages=False),
         interaction.guild.me: nextcord.PermissionOverwrite(read_messages=True),
-        user: nextcord.PermissionOverwrite(read_messages=True, create_public_threads=False, create_private_threads=False, external_stickers=True, embed_links=True, attach_files=True, use_external_emojis=True)
+        user: nextcord.PermissionOverwrite(
+            read_messages=True,
+            send_messages=True,
+            create_public_threads=False,
+            create_private_threads=False,
+            external_stickers=True,
+            embed_links=True,
+            attach_files=True,
+            use_external_emojis=True
+        )
     }
 
     with open("files/Tickets/ticketiters.json", "r", encoding="utf-8") as f:
