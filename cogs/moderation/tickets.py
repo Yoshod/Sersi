@@ -54,7 +54,7 @@ class ModeratorTicket(nextcord.ui.Modal):
         button_view.add_item(close_bttn)
 
         await channel.send(embed=ticket_embed, view=button_view)
-        await channel.send(f"<@{self.config.permission_roles.moderator}>")
+        await channel.send(f"<@&{self.config.permission_roles.moderator}>")
 
 
 class SeniorModeratorTicket(nextcord.ui.Modal):
@@ -103,7 +103,7 @@ class SeniorModeratorTicket(nextcord.ui.Modal):
         button_view.add_item(close_bttn)
 
         await channel.send(embed=ticket_embed, view=button_view)
-        await channel.send(f"<@{self.config.permission_roles.senior_moderator}>")
+        await channel.send(f"<@&{self.config.permission_roles.senior_moderator}>")
 
 
 class AdministratorTicket(nextcord.ui.Modal):
@@ -152,7 +152,7 @@ class AdministratorTicket(nextcord.ui.Modal):
         button_view.add_item(close_bttn)
 
         await channel.send(embed=ticket_embed, view=button_view)
-        await channel.send(f"<@{self.config.permission_roles.dark_moderator}>")
+        await channel.send(f"<@&{self.config.permission_roles.dark_moderator}>")
 
 
 class VerificationTicket(nextcord.ui.Modal):
