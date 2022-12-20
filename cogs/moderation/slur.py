@@ -387,8 +387,9 @@ class Slur(commands.Cog):
             alert = await channel.send(embed=slurembed, view=button_view)
 
             await asyncio.sleep(10800)  # 3 hours
-            if alert.components:  # message has components like ActionRow, Button, SelectMenu
-                await alert.reply(content=f"<@&{self.config.permission_roles.moderator}> untreated alert.")
+            updated_message = await alert.channel.fetch_message(alert.id)
+            if len(updated_message.embeds[0].fields) < 7:  # If there are less than 7 fields that means there is no field for response
+                await alert.reply(content=f"<@&{self.config.permission_roles.moderator}> This alert has not had a recorded response.")
 
 
 def setup(bot, **kwargs):
