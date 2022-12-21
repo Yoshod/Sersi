@@ -1,13 +1,11 @@
 import nextcord
 import pickle
 import asyncio
-import csv
 
 from nextcord.ext import commands
 from nextcord.ui import Button, View
 
 from baseutils import DualCustodyView, PageView, sanitize_mention, SersiEmbed
-from datetime import datetime
 from configutils import Configuration
 from permutils import permcheck, is_mod, is_full_mod, cb_is_mod
 from slurdetector import load_slurdetector, load_slurs, load_goodwords, get_slurs, get_slurs_leet, get_goodwords, clear_string, rm_slur, rm_goodword, detect_slur
@@ -23,7 +21,7 @@ class Slur(commands.Cog):
         self.sersifail = config.emotes.fail
         load_slurdetector()
 
-    async def cb_action_taken(self, interaction: nextcord.Interaction):
+    async def cb_action_taken(self, interaction):
         new_embed = interaction.message.embeds[0]
         new_embed.add_field(name="Action Taken By", value=interaction.user.mention, inline=False)
         new_embed.colour = nextcord.Colour.brand_green()
@@ -50,16 +48,6 @@ class Slur(commands.Cog):
         unique_id = case_history(self.config, member.id, "Slur Usage")
         slur_case(self.config, unique_id, case_data[1], interaction.message.jump_url, member.id, interaction.user.id)
 
-        with open("files/Alerts/alerts.pkl", "rb") as previous_alerts:
-            previous_data = pickle.load(previous_alerts)
-
-        payload = ["Slur Alert", previous_data[str(interaction.message.created_at.timestamp())][1], datetime.now().timestamp()]
-
-        previous_data.update({str(interaction.message.created_at.timestamp()): payload})
-
-        with open("files/Alerts/alerts.pkl", "wb") as previous_alerts:
-            pickle.dump(previous_data, previous_alerts, protocol=pickle.HIGHEST_PROTOCOL)
-
     async def cb_acceptable_use(self, interaction):
         new_embed = interaction.message.embeds[0]
         new_embed.add_field(name="Usage Deemed Acceptable By", value=interaction.user.mention, inline=False)
@@ -76,16 +64,6 @@ class Slur(commands.Cog):
                 "Moderator:": f"{interaction.user.mention} ({interaction.user.id})"
             })
         await channel.send(embed=embedLogVar)
-
-        with open("files/Alerts/alerts.pkl", "rb") as previous_alerts:
-            previous_data = pickle.load(previous_alerts)
-
-        payload = ["Slur Alert", previous_data[str(interaction.message.created_at.timestamp())][1], datetime.now().timestamp()]
-
-        previous_data.update({str(interaction.message.created_at.timestamp()): payload})
-
-        with open("files/Alerts/alerts.pkl", "wb") as previous_alerts:
-            pickle.dump(previous_data, previous_alerts, protocol=pickle.HIGHEST_PROTOCOL)
 
     async def cb_false_positive(self, interaction):
         new_embed = interaction.message.embeds[0]
@@ -113,28 +91,6 @@ class Slur(commands.Cog):
                 "Moderator:": f"{interaction.user.mention} ({interaction.user.id})"
             })
         await channel.send(embed=embedLogVar)
-
-        with open("files/Alerts/alerts.pkl", "rb") as previous_alerts:
-            previous_data = pickle.load(previous_alerts)
-
-        payload = ["Slur Alert", previous_data[str(interaction.message.created_at.timestamp())][1], datetime.now().timestamp()]
-
-        previous_data.update({str(interaction.message.created_at.timestamp()): payload})
-
-        with open("files/Alerts/alerts.pkl", "wb") as previous_alerts:
-            pickle.dump(previous_data, previous_alerts, protocol=pickle.HIGHEST_PROTOCOL)
-
-    @commands.command()
-    async def export_alerts(self, ctx):
-        """Export all alerts into a CSV file."""
-
-    with open("files/Alerts/alerts.pkl", "rb") as previous_alerts:
-        previous_data = pickle.load(previous_alerts)
-
-    with open("files/export.csv", "w") as export_file:
-        write = csv.writer(export_file)
-        for key in previous_data:
-            write.writerow(previous_data[key])
 
     @commands.command(aliases=["addsl"])
     async def addslur(self, ctx, *, slur=""):
@@ -429,24 +385,6 @@ class Slur(commands.Cog):
             button_view.interaction_check = cb_is_mod
 
             alert = await channel.send(embed=slurembed, view=button_view)
-
-            try:
-                with open("files/Alerts/alerts.pkl", "rb") as previous_alerts:
-                    previous_data = pickle.load(previous_alerts)
-
-            except EOFError:
-                previous_data = {}
-
-            if alert.edited_at is None:
-                payload = ["Slur Alert", alert.created_at.timestamp()]
-
-            else:
-                payload = ["Slur Alert", alert.edited_at.timestamp()]
-
-            previous_data.update({str(payload[1]): payload})
-
-            with open("files/Alerts/alerts.pkl", "wb") as previous_alerts:
-                pickle.dump(previous_data, previous_alerts, protocol=pickle.HIGHEST_PROTOCOL)
 
             await asyncio.sleep(10800)  # 3 hours
             updated_message = await alert.channel.fetch_message(alert.id)
