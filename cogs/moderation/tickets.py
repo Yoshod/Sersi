@@ -247,7 +247,7 @@ class CloseReason(nextcord.ui.Modal):
                 close_embed.set_footer(text=interaction.user.display_name, icon_url=interaction.user.display_avatar.url)
                 output_channel = interaction.guild.get_channel(self.config.channels.admin_ticket_logs)
                 await output_channel.send(embed=close_embed)
-                await ticketutils.ticket_close(self.config, interaction, user, "admin_ticket")
+                await ticketutils.ticket_close(self.config, interaction, complainer.id, "admin_ticket")
                 await interaction.channel.delete(reason="Ticket closed")
 
             case "senior-ticket":
@@ -265,7 +265,7 @@ class CloseReason(nextcord.ui.Modal):
                 close_embed.set_footer(text=interaction.user.display_name, icon_url=interaction.user.display_avatar.url)
                 output_channel = interaction.guild.get_channel(self.config.channels.senior_ticket_logs)
                 await output_channel.send(embed=close_embed)
-                await ticketutils.ticket_close(self.config, interaction, user, "senior_ticket")
+                await ticketutils.ticket_close(self.config, interaction, complainer.id, "senior_ticket")
                 await interaction.channel.delete(reason="Ticket closed")
 
             case "mod-ticket":
@@ -284,7 +284,7 @@ class CloseReason(nextcord.ui.Modal):
                 close_embed.set_footer(text=interaction.user.display_name, icon_url=interaction.user.display_avatar.url)
                 output_channel = interaction.guild.get_channel(self.config.channels.mod_ticket_logs)
                 await output_channel.send(embed=close_embed)
-                await ticketutils.ticket_close(self.config, interaction, user, "mod_ticket")
+                await ticketutils.ticket_close(self.config, interaction, complainer.id, "mod_ticket")
                 await interaction.channel.delete(reason="Ticket closed")
 
             case "verification-ticket":
@@ -301,7 +301,7 @@ class CloseReason(nextcord.ui.Modal):
                 close_embed.set_footer(text=interaction.user.display_name, icon_url=interaction.user.display_avatar.url)
                 output_channel = interaction.guild.get_channel(self.config.channels.verification_ticket_logs)
                 await output_channel.send(embed=close_embed)
-                await ticketutils.ticket_close(self.config, interaction, user, "verification_ticket")
+                await ticketutils.ticket_close(self.config, interaction, complainer.id, "verification_ticket")
                 await interaction.channel.delete(reason="Ticket closed")
 
 
