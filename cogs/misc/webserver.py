@@ -20,8 +20,6 @@ class WebServer(commands.Cog):
         self.bot    = bot
         self.config = config
 
-        self.web_server.start()
-
         @routes.get("/")
         def uptimerobot(request):
             return web.Response(text="Pong!", status=200)
@@ -90,20 +88,13 @@ class WebServer(commands.Cog):
 
         app.add_routes(routes)
 
-    @tasks.loop()
-    async def web_server(self):
+    @commands.Cog.listener()
+    async def on_ready(self):
         runner = web.AppRunner(app)
         await runner.setup()
-        site = web.TCPSite(runner, port=self.config.bot.port)
-        try:
-            await site.start()
-        except OSError:  # TODO: tends to be port in use, check whether this is the cas
-            await asyncio.sleep(5)
-            return
 
-    @web_server.before_loop
-    async def web_server_before_loop(self):
-        await self.bot.wait_until_ready()
+        site = web.TCPSite(runner, port=self.config.bot.port)
+        await site.start()
 
 
 def setup(bot, **kwargs):

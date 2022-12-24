@@ -7,3 +7,5 @@ xmltodict
 requests
 pycryptodome
 aiohttp
+pyyaml
+unidecode

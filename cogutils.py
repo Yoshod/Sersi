@@ -4,7 +4,7 @@ from nextcord.ext import commands
 from configutils import Configuration
 
 
-async def load_all_cogs(bot, *, config: Configuration, data_folder: str):
+def load_all_cogs(bot, *, config: Configuration, data_folder: str):
     for root, dirs, files in os.walk(f"./cogs"):
         for filename in files:
             if filename.endswith('.py'):
