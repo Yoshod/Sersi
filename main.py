@@ -106,17 +106,9 @@ async def on_message_edit(before, after):
 
 @bot.event
 async def on_ready():
-
-    await load_all_cogs(bot, config=config, data_folder=f"{root_folder}/persistent_data")
-
-    print(f"System Version:\n{sys.version}")
-
-    print(f"Nextcord Version:\n{nextcord.__version__}")
-
-    bot.command_prefix = config.bot.prefix
     await bot.change_presence(activity=nextcord.Game(config.bot.status))
-
     await bot.sync_all_application_commands()
+
     print(f"We have logged in as {bot.user}")
 
 
@@ -132,5 +124,12 @@ async def on_message(message):
 
     await bot.process_commands(message)
 
+
+print(f"System Version:\n{sys.version}")
+print(f"Nextcord Version:\n{nextcord.__version__}")
+
+bot.command_prefix = config.bot.prefix
+
+load_all_cogs(bot, config=config, data_folder=f"{root_folder}/persistent_data")
 
 bot.run(discordTokens.getToken())
