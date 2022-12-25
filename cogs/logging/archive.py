@@ -8,13 +8,17 @@ from baseutils import SersiEmbed
 
 
 class Archive(commands.Cog):
-
     def __init__(self, bot, config: Configuration):
         self.bot = bot
         self.config = config
 
     @commands.command()
-    async def archive(self, ctx, logged_channel: nextcord.TextChannel, output_channel: nextcord.TextChannel):
+    async def archive(
+        self,
+        ctx,
+        logged_channel: nextcord.TextChannel,
+        output_channel: nextcord.TextChannel,
+    ):
         """Archive a channel."""
 
         if not await permcheck(ctx, is_dark_mod):
@@ -22,7 +26,9 @@ class Archive(commands.Cog):
 
         transcript = await export(logged_channel, military_time=True)
         if transcript is None:
-            await output_channel.send(f"{self.config.emotes.fail} Failed to Generate Transcript!")
+            await output_channel.send(
+                f"{self.config.emotes.fail} Failed to Generate Transcript!"
+            )
 
         else:
             transcript_file = nextcord.File(
@@ -32,7 +38,8 @@ class Archive(commands.Cog):
 
             log_embed = SersiEmbed(
                 title=f"Channel {logged_channel.name} archived",
-                description=f"The channel {logged_channel.name} has been archived.")
+                description=f"The channel {logged_channel.name} has been archived.",
+            )
 
             await output_channel.send(embed=log_embed, file=transcript_file)
 

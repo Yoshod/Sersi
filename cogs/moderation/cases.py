@@ -9,7 +9,6 @@ from permutils import permcheck, is_mod
 
 
 class Cases(commands.Cog):
-
     def __init__(self, bot, config: Configuration):
         self.bot = bot
         self.config = config
@@ -19,22 +18,18 @@ class Cases(commands.Cog):
         self.case_history = {}
         self.case_details = {}
 
-    @commands.command(aliases=['c', 'usercases', 'modcases'])
-    async def cases(self, ctx, search_term):
+    @commands.command(aliases=["c", "usercases", "modcases"])
+    async def cases(self, ctx: nextcord.Context, search_term):
         if not await permcheck(ctx, is_mod):
             return
 
-        try:
-            converter = commands.MemberConverter()
-            member = await converter.convert(ctx, search_term)
-            search_by_member = True
-        except commands.errors.MemberNotFound:
-            search_by_member = False
+        member = await ctx.guild.get_member(search_term)
 
-        if search_by_member is True:
+        if member:
             cases_embed = SersiEmbed(
                 title=(f"{member.name}'s Cases"),
-                colour=nextcord.Color.from_rgb(237, 91, 6))
+                colour=nextcord.Color.from_rgb(237, 91, 6),
+            )
             cases_embed.set_thumbnail(url=member.display_avatar.url)
 
             view = PageView(
@@ -43,12 +38,13 @@ class Cases(commands.Cog):
                 fetch_function=get_member_cases,
                 author=ctx.author,
                 entry_form="**__Case `{entry[0]}`__**: {entry[1]} <t:{entry[2]}>",
-                member_id=member.id)
+                member_id=member.id,
+            )
             await view.send_embed(ctx.channel)
             with open(self.case_history_file, "rb") as file:
                 self.case_history = pickle.load(file)
 
-        elif search_by_member is not True:
+        elif not member:
 
             with open(self.case_details_file, "rb") as file:
                 self.case_details = pickle.load(file)
@@ -60,7 +56,9 @@ class Cases(commands.Cog):
 
                 user = ctx.guild.get_member(self.case_details[search_term][2])
                 moderator = ctx.guild.get_member(self.case_details[search_term][3])
-                reform_channel = ctx.guild.get_channel(self.case_details[search_term][4])
+                reform_channel = ctx.guild.get_channel(
+                    self.case_details[search_term][4]
+                )
 
                 case_embed = SersiEmbed(
                     title=f"__**Reformation Case {search_term}**__",
@@ -70,8 +68,9 @@ class Cases(commands.Cog):
                         "Reformation Case Number:": self.case_details[search_term][1],
                         "Reformation Channel:": f"{reform_channel.mention} ({reform_channel.id})",
                         "Reason:": self.case_details[search_term][5],
-                        "Timestamp:": f"<t:{self.case_details[search_term][5]}:R>"
-                    })
+                        "Timestamp:": f"<t:{self.case_details[search_term][5]}:R>",
+                    },
+                )
                 case_embed.set_thumbnail(url=user.display_avatar.url)
 
                 await ctx.send(embed=case_embed)
@@ -79,8 +78,12 @@ class Cases(commands.Cog):
             elif self.case_details[search_term][0] == "Probation":
 
                 user = ctx.guild.get_member(self.case_details[search_term][1])
-                initial_moderator = ctx.guild.get_member(self.case_details[search_term][2])
-                approval_moderator = ctx.guild.get_member(self.case_details[search_term][3])
+                initial_moderator = ctx.guild.get_member(
+                    self.case_details[search_term][2]
+                )
+                approval_moderator = ctx.guild.get_member(
+                    self.case_details[search_term][3]
+                )
 
                 case_embed = SersiEmbed(
                     title=f"__**Probation Case {search_term}**__",
@@ -89,8 +92,8 @@ class Cases(commands.Cog):
                         "Initial Moderator:": f"{initial_moderator.mention} ({initial_moderator.id})",
                         "Approving Moderator:": f"{approval_moderator.mention} ({approval_moderator.id})",
                         "Reason:": self.case_details[search_term][4],
-                        "Timestamp:": f"<t:{self.case_details[search_term][5]}:R>"
-                    }
+                        "Timestamp:": f"<t:{self.case_details[search_term][5]}:R>",
+                    },
                 )
 
                 case_embed.set_thumbnail(url=user.display_avatar.url)
@@ -107,8 +110,8 @@ class Cases(commands.Cog):
                         "User:": f"{user.mention} ({user.id})",
                         "Moderator:": f"{moderator.mention} ({moderator.id})",
                         "Reason:": self.case_details[search_term][3],
-                        "Timestamp:": f"<t:{self.case_details[search_term][4]}:R>"
-                    }
+                        "Timestamp:": f"<t:{self.case_details[search_term][4]}:R>",
+                    },
                 )
 
                 case_embed.set_thumbnail(url=user.display_avatar.url)
@@ -126,8 +129,8 @@ class Cases(commands.Cog):
                         "Moderator:": f"{moderator.mention} ({moderator.id})",
                         "Slur Used:": self.case_details[search_term][1],
                         "Report URL:": self.case_details[search_term][2],
-                        "Timestamp:": f"<t:{self.case_details[search_term][5]}:R>"
-                    }
+                        "Timestamp:": f"<t:{self.case_details[search_term][5]}:R>",
+                    },
                 )
 
                 case_embed.set_thumbnail(url=user.display_avatar.url)
@@ -144,8 +147,8 @@ class Cases(commands.Cog):
                         "User:": f"{user.mention} ({user.id})",
                         "Moderator:": f"{moderator.mention} ({moderator.id})",
                         "Report URL:": self.case_details[search_term][2],
-                        "Timestamp:": f"<t:{self.case_details[search_term][4]}:R>"
-                    }
+                        "Timestamp:": f"<t:{self.case_details[search_term][4]}:R>",
+                    },
                 )
 
                 case_embed.set_thumbnail(url=user.display_avatar.url)

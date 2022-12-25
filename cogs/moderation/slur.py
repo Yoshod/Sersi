@@ -10,12 +10,22 @@ from baseutils import DualCustodyView, PageView, sanitize_mention, SersiEmbed
 from datetime import datetime
 from configutils import Configuration
 from permutils import permcheck, is_mod, is_full_mod, cb_is_mod
-from slurdetector import load_slurdetector, load_slurs, load_goodwords, get_slurs, get_slurs_leet, get_goodwords, clear_string, rm_slur, rm_goodword, detect_slur
+from slurdetector import (
+    load_slurdetector,
+    load_slurs,
+    load_goodwords,
+    get_slurs,
+    get_slurs_leet,
+    get_goodwords,
+    clear_string,
+    rm_slur,
+    rm_goodword,
+    detect_slur,
+)
 from caseutils import case_history, slur_case
 
 
 class Slur(commands.Cog):
-
     def __init__(self, bot: nextcord.Client, config: Configuration):
         self.bot = bot
         self.config = config
@@ -25,7 +35,9 @@ class Slur(commands.Cog):
 
     async def cb_action_taken(self, interaction: nextcord.Interaction):
         new_embed = interaction.message.embeds[0]
-        new_embed.add_field(name="Action Taken By", value=interaction.user.mention, inline=False)
+        new_embed.add_field(
+            name="Action Taken By", value=interaction.user.mention, inline=False
+        )
         new_embed.colour = nextcord.Colour.brand_green()
         await interaction.message.edit(embed=new_embed, view=None)
 
@@ -36,8 +48,9 @@ class Slur(commands.Cog):
             description="Action has been taken by a moderator in response to a report.",
             fields={
                 "Report:": interaction.message.jump_url,
-                "Moderator:": f"{interaction.user.mention} ({interaction.user.id})"
-            })
+                "Moderator:": f"{interaction.user.mention} ({interaction.user.id})",
+            },
+        )
         await channel.send(embed=embedLogVar)
 
         case_data = []
@@ -48,21 +61,38 @@ class Slur(commands.Cog):
         member = interaction.guild.get_member(int(sanitize_mention(case_data[0])))
 
         unique_id = case_history(self.config, member.id, "Slur Usage")
-        slur_case(self.config, unique_id, case_data[1], interaction.message.jump_url, member.id, interaction.user.id)
+        slur_case(
+            self.config,
+            unique_id,
+            case_data[1],
+            interaction.message.jump_url,
+            member.id,
+            interaction.user.id,
+        )
 
         with open("files/Alerts/alerts.pkl", "rb") as previous_alerts:
             previous_data = pickle.load(previous_alerts)
 
-        payload = ["Slur Alert", previous_data[str(interaction.message.created_at.timestamp())][1], datetime.now().timestamp()]
+        payload = [
+            "Slur Alert",
+            previous_data[str(interaction.message.created_at.timestamp())][1],
+            datetime.now().timestamp(),
+        ]
 
         previous_data.update({str(interaction.message.created_at.timestamp()): payload})
 
         with open("files/Alerts/alerts.pkl", "wb") as previous_alerts:
-            pickle.dump(previous_data, previous_alerts, protocol=pickle.HIGHEST_PROTOCOL)
+            pickle.dump(
+                previous_data, previous_alerts, protocol=pickle.HIGHEST_PROTOCOL
+            )
 
     async def cb_acceptable_use(self, interaction):
         new_embed = interaction.message.embeds[0]
-        new_embed.add_field(name="Usage Deemed Acceptable By", value=interaction.user.mention, inline=False)
+        new_embed.add_field(
+            name="Usage Deemed Acceptable By",
+            value=interaction.user.mention,
+            inline=False,
+        )
         new_embed.colour = nextcord.Colour.light_grey()
         await interaction.message.edit(embed=new_embed, view=None)
 
@@ -73,23 +103,34 @@ class Slur(commands.Cog):
             description="Usage of a slur has been deemed acceptable by a moderator in response to a report.",
             fields={
                 "Report:": interaction.message.jump_url,
-                "Moderator:": f"{interaction.user.mention} ({interaction.user.id})"
-            })
+                "Moderator:": f"{interaction.user.mention} ({interaction.user.id})",
+            },
+        )
         await channel.send(embed=embedLogVar)
 
         with open("files/Alerts/alerts.pkl", "rb") as previous_alerts:
             previous_data = pickle.load(previous_alerts)
 
-        payload = ["Slur Alert", previous_data[str(interaction.message.created_at.timestamp())][1], datetime.now().timestamp()]
+        payload = [
+            "Slur Alert",
+            previous_data[str(interaction.message.created_at.timestamp())][1],
+            datetime.now().timestamp(),
+        ]
 
         previous_data.update({str(interaction.message.created_at.timestamp()): payload})
 
         with open("files/Alerts/alerts.pkl", "wb") as previous_alerts:
-            pickle.dump(previous_data, previous_alerts, protocol=pickle.HIGHEST_PROTOCOL)
+            pickle.dump(
+                previous_data, previous_alerts, protocol=pickle.HIGHEST_PROTOCOL
+            )
 
     async def cb_false_positive(self, interaction):
         new_embed = interaction.message.embeds[0]
-        new_embed.add_field(name="Deemed As False Positive By:", value=interaction.user.mention, inline=False)
+        new_embed.add_field(
+            name="Deemed As False Positive By:",
+            value=interaction.user.mention,
+            inline=False,
+        )
         new_embed.colour = nextcord.Colour.brand_red()
         await interaction.message.edit(embed=new_embed, view=None)
         channel = self.bot.get_channel(self.config.channels.false_positives)
@@ -100,7 +141,9 @@ class Slur(commands.Cog):
             if field.name in ["Context:", "Slurs Found:"]:
                 embedVar.add_field(name=field.name, value=field.value, inline=False)
 
-        embedVar.add_field(name="Report URL:", value=interaction.message.jump_url, inline=False)
+        embedVar.add_field(
+            name="Report URL:", value=interaction.message.jump_url, inline=False
+        )
         await channel.send(embed=embedVar)
 
         # Logging
@@ -110,19 +153,26 @@ class Slur(commands.Cog):
             description="Detected slur has been deemed a false positive by a moderator in response to a report.",
             fields={
                 "Report:": interaction.message.jump_url,
-                "Moderator:": f"{interaction.user.mention} ({interaction.user.id})"
-            })
+                "Moderator:": f"{interaction.user.mention} ({interaction.user.id})",
+            },
+        )
         await channel.send(embed=embedLogVar)
 
         with open("files/Alerts/alerts.pkl", "rb") as previous_alerts:
             previous_data = pickle.load(previous_alerts)
 
-        payload = ["Slur Alert", previous_data[str(interaction.message.created_at.timestamp())][1], datetime.now().timestamp()]
+        payload = [
+            "Slur Alert",
+            previous_data[str(interaction.message.created_at.timestamp())][1],
+            datetime.now().timestamp(),
+        ]
 
         previous_data.update({str(interaction.message.created_at.timestamp()): payload})
 
         with open("files/Alerts/alerts.pkl", "wb") as previous_alerts:
-            pickle.dump(previous_data, previous_alerts, protocol=pickle.HIGHEST_PROTOCOL)
+            pickle.dump(
+                previous_data, previous_alerts, protocol=pickle.HIGHEST_PROTOCOL
+            )
 
     @commands.command()
     async def export_alerts(self, ctx):
@@ -154,7 +204,9 @@ class Slur(commands.Cog):
                 existing_slur = s
 
         if existing_slur is not None:
-            await ctx.send(f"{self.sersifail} `{slur}` is in conflict with existing slur `{existing_slur}`; cannot be added.")
+            await ctx.send(
+                f"{self.sersifail} `{slur}` is in conflict with existing slur `{existing_slur}`; cannot be added."
+            )
             return
 
         if slur in get_slurs_leet():
@@ -165,7 +217,7 @@ class Slur(commands.Cog):
         with open(self.config.datafiles.slurfile, "a") as file:
             file.write(slur)
             file.write("\n")
-        load_slurs()    # reloads updated list into memory
+        load_slurs()  # reloads updated list into memory
 
         # logging
         channel = self.bot.get_channel(self.config.channels.logging)
@@ -174,8 +226,9 @@ class Slur(commands.Cog):
             description="A new slur has been added to the filter.",
             fields={
                 "Added By:": f"{ctx.message.author.mention} ({ctx.message.author.id})",
-                "Slur Added:": slur
-            })
+                "Slur Added:": slur,
+            },
+        )
         await channel.send(embed=embedVar)
 
         await ctx.send(f"{self.sersisuccess} Slur added. Detection will start now.")
@@ -201,15 +254,21 @@ class Slur(commands.Cog):
                 word_contains_slur = True
 
         if not word_contains_slur:
-            await ctx.send(f"{self.sersifail} `{word}` does not contain any slurs; cannot be added.")
+            await ctx.send(
+                f"{self.sersifail} `{word}` does not contain any slurs; cannot be added."
+            )
             return
 
         for existing_word in get_goodwords():
             if word in existing_word:
-                await ctx.send(f"{self.sersifail} `{word}` is substring to existing goodword `{existing_word}`; cannot be added.")
+                await ctx.send(
+                    f"{self.sersifail} `{word}` is substring to existing goodword `{existing_word}`; cannot be added."
+                )
                 return
             elif existing_word in word:
-                await ctx.send(f"{self.sersifail} existing goodword `{existing_word}` is substring to `{word}`; cannot be added.")
+                await ctx.send(
+                    f"{self.sersifail} existing goodword `{existing_word}` is substring to `{word}`; cannot be added."
+                )
                 return
 
         await ctx.send(f"Goodword to be added: {word}")
@@ -217,7 +276,7 @@ class Slur(commands.Cog):
         with open(self.config.datafiles.goodwordfile, "a") as file:
             file.write(word)
             file.write("\n")
-        load_goodwords()    # reloads updated list into memory
+        load_goodwords()  # reloads updated list into memory
 
         # logging
         channel = self.bot.get_channel(self.config.channels.logging)
@@ -226,8 +285,9 @@ class Slur(commands.Cog):
             description="A new goodword has been added to the filter.",
             fields={
                 "Added By:": f"{ctx.message.author.mention} ({ctx.message.author.id})",
-                "Goodword Added:": word
-            })
+                "Goodword Added:": word,
+            },
+        )
         await channel.send(embed=embedVar)
         await ctx.send(f"{self.sersisuccess} Goodword added. Detection will start now.")
 
@@ -250,10 +310,15 @@ class Slur(commands.Cog):
             fields={
                 "Removed By:": f"{moderator.mention} ({moderator.id})",
                 "Confirming Moderator:": f"{moderator.mention} ({moderator.id})",
-                "Slur Removed:": slur
-            })
+                "Slur Removed:": slur,
+            },
+        )
         await channel.send(embed=embed_var)
-        await interaction.message.edit(f"{self.sersisuccess} Slur {slur} is no longer in the list", embed=None, view=None)
+        await interaction.message.edit(
+            f"{self.sersisuccess} Slur {slur} is no longer in the list",
+            embed=None,
+            view=None,
+        )
 
     @commands.command(aliases=["rmsl", "rmslur", "removesl"])
     async def removeslur(self, ctx, slur):
@@ -267,14 +332,17 @@ class Slur(commands.Cog):
             fields={
                 "Slur:": slur,
                 "Moderator": ctx.author.mention,
-                "Moderator ID": ctx.author.id
-            })
+                "Moderator ID": ctx.author.id,
+            },
+        )
 
         channel = self.bot.get_channel(self.config.channels.alert)
         view = DualCustodyView(self.cb_rmslur_confirm, ctx.author, is_full_mod)
         await view.send_dialogue(channel, embed=dialog_embed)
 
-        await ctx.reply(f"Removal of `{slur}` from slur detection was sent for approval by another moderator")
+        await ctx.reply(
+            f"Removal of `{slur}` from slur detection was sent for approval by another moderator"
+        )
 
     @commands.command(aliases=["rmgw", "rmgoodword", "removegw"])
     async def removegoodword(self, ctx, word):
@@ -291,8 +359,9 @@ class Slur(commands.Cog):
             description="A goodword has been removed from the filter.",
             fields={
                 "Removed By:": f"{ctx.message.author.mention} ({ctx.message.author.id})",
-                "Goodword Removed:": word
-            })
+                "Goodword Removed:": word,
+            },
+        )
         await channel.send(embed=embedVar)
 
         await ctx.send(f"{self.sersisuccess} Goodword {word} is no longer in the list")
@@ -314,7 +383,8 @@ class Slur(commands.Cog):
             fetch_function=get_slurs,
             author=ctx.author,
             cols=2,
-            init_page=int(page))
+            init_page=int(page),
+        )
         await view.send_embed(ctx.channel)
 
     @commands.command(aliases=["lsgw", "lsgoodwords", "listgw"])
@@ -326,7 +396,9 @@ class Slur(commands.Cog):
         if not await permcheck(ctx, is_mod):
             return
 
-        embed = SersiEmbed(title="List of goodwords currently whitelisted from slur detection")
+        embed = SersiEmbed(
+            title="List of goodwords currently whitelisted from slur detection"
+        )
 
         view = PageView(
             config=self.config,
@@ -334,7 +406,8 @@ class Slur(commands.Cog):
             fetch_function=get_goodwords,
             author=ctx.author,
             cols=2,
-            init_page=int(page))
+            init_page=int(page),
+        )
         await view.send_embed(ctx.channel)
 
     # events
@@ -365,13 +438,18 @@ class Slur(commands.Cog):
                     "User:": message.author.mention,
                     "Context:": citation,
                     "Slurs Found:": ", ".join(set(detected_slurs)),
-                    "URL:": message.jump_url
-                })
+                    "URL:": message.jump_url,
+                },
+            )
 
             with open(self.config.datafiles.casehistory, "rb") as file:
-                case_history = pickle.load(file)  # --> dict of list; one dict entry per user ID
+                case_history = pickle.load(
+                    file
+                )  # --> dict of list; one dict entry per user ID
 
-            user_history = case_history.get(message.author.id, [])  # -> list of user offenses, empty list if none
+            user_history = case_history.get(
+                message.author.id, []
+            )  # -> list of user offenses, empty list if none
 
             slur_virgin = True  # noone was there to stop me naming a variable like this
             previous_offenses = []
@@ -388,15 +466,19 @@ class Slur(commands.Cog):
 
                         previous_slurs = slur_used.split(", ")
 
-                        if any(new_slur in previous_slurs for new_slur in detected_slurs):  # slur has been said before by user
+                        if any(
+                            new_slur in previous_slurs for new_slur in detected_slurs
+                        ):  # slur has been said before by user
                             report_url = case_details[uid][2]
                             previous_offenses.append(f"`{uid}` [Jump!]({report_url})")
 
-            if not slur_virgin and not previous_offenses:  # user has said slurs before, however not that particular one
+            if (
+                not slur_virgin and not previous_offenses
+            ):  # user has said slurs before, however not that particular one
                 slurembed.add_field(
                     name="Previous Slur Uses:",
                     value=f"{self.config.emotes.success} The user has a history of using slurs that were not detected in this message.",
-                    inline=False
+                    inline=False,
                 )
 
             elif previous_offenses:  # user has said that slur before
@@ -405,13 +487,21 @@ class Slur(commands.Cog):
                     slurembed.add_field(
                         name="Previous Slur Uses:",
                         value=f"{self.config.emotes.success} The user has a history of using a slur detected in this message:\n{prev_offenses}",
-                        inline=False
+                        inline=False,
                     )
                 else:
-                    slurembed.add_field(name="Previous Slur Uses:", value="`CASE LIST TOO LONG`", inline=False)
+                    slurembed.add_field(
+                        name="Previous Slur Uses:",
+                        value="`CASE LIST TOO LONG`",
+                        inline=False,
+                    )
 
             else:
-                slurembed.add_field(name="Previous Slur Uses:", value=f"{self.config.emotes.fail} The user is a first time offender.", inline=False)
+                slurembed.add_field(
+                    name="Previous Slur Uses:",
+                    value=f"{self.config.emotes.fail} The user is a first time offender.",
+                    inline=False,
+                )
 
             action_taken = Button(label="Action Taken")
             action_taken.callback = self.cb_action_taken
@@ -446,12 +536,18 @@ class Slur(commands.Cog):
             previous_data.update({str(payload[1]): payload})
 
             with open("files/Alerts/alerts.pkl", "wb") as previous_alerts:
-                pickle.dump(previous_data, previous_alerts, protocol=pickle.HIGHEST_PROTOCOL)
+                pickle.dump(
+                    previous_data, previous_alerts, protocol=pickle.HIGHEST_PROTOCOL
+                )
 
             await asyncio.sleep(10800)  # 3 hours
             updated_message = await alert.channel.fetch_message(alert.id)
-            if len(updated_message.embeds[0].fields) < 7:  # If there are less than 7 fields that means there is no field for response
-                await alert.reply(content=f"<@&{self.config.permission_roles.moderator}> This alert has not had a recorded response.")
+            if (
+                len(updated_message.embeds[0].fields) < 7
+            ):  # If there are less than 7 fields that means there is no field for response
+                await alert.reply(
+                    content=f"<@&{self.config.permission_roles.moderator}> This alert has not had a recorded response."
+                )
 
 
 def setup(bot, **kwargs):

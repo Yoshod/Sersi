@@ -18,7 +18,7 @@ class Punish(commands.Cog):
             roleobj = self.guild.get_role(vars(config.punishment_roles)[role])
 
             role_name = roleobj.name
-            role_id   = roleobj.id
+            role_id = roleobj.id
 
             self.keylist[role] = role_id
             Punish.choices[role] = role_name
@@ -47,13 +47,12 @@ class Punish(commands.Cog):
         self,
         interaction: nextcord.Interaction,
         member: nextcord.Member,
-        punishment: str = nextcord.SlashOption(
-            name="punishment_role",
-            choices=choices
-        )
+        punishment: str = nextcord.SlashOption(name="punishment_role", choices=choices),
     ):
         """This is a slash command in a cog"""
-        await interaction.response.send_message(f"We are punishing {member.name} with {punishment}\nKeylist says: {self.keylist[punishment]}.")
+        await interaction.response.send_message(
+            f"We are punishing {member.name} with {punishment}\nKeylist says: {self.keylist[punishment]}."
+        )
 
 
 def setup(bot, **kwargs):

@@ -7,7 +7,6 @@ from baseutils import SersiEmbed
 
 
 class Antitamper(commands.Cog):
-
     def __init__(self, bot: nextcord.Client, config: Configuration):
         self.bot = bot
         self.config = config
@@ -15,7 +14,9 @@ class Antitamper(commands.Cog):
     @commands.Cog.listener()
     async def on_message_delete(self, message: nextcord.Message):
         # fetch the last deleted message
-        async for entry in message.guild.audit_logs(action=nextcord.AuditLogAction.message_delete, limit=1):
+        async for entry in message.guild.audit_logs(
+            action=nextcord.AuditLogAction.message_delete, limit=1
+        ):
             log = entry
 
         # ignore if message was not from logging section
@@ -31,8 +32,8 @@ class Antitamper(commands.Cog):
             footer="Antitamper Alert",
             fields={
                 "Perpetrator:": f"{log.user} ({log.user.id})",
-                "Channel:": log.extra.channel.mention
-            }
+                "Channel:": log.extra.channel.mention,
+            },
         )
 
         channel = message.guild.get_channel(self.config.channels.tamper_logs)

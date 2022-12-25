@@ -16,31 +16,35 @@ class ToAppealRejection(nextcord.ui.Modal):
             max_length=1024,
             required=True,
             placeholder="Reason goes here.",
-            style=nextcord.TextInputStyle.paragraph)
+            style=nextcord.TextInputStyle.paragraph,
+        )
         self.add_item(self.reason)
 
     async def callback(self, interaction):
         user = interaction.client.get_user(self.userID)
         rejected_embed = nextcord.Embed(
             title="Your Timeout Appeal Was Rejected",
-            colour=nextcord.Colour.from_rgb(237, 91, 6))
+            colour=nextcord.Colour.from_rgb(237, 91, 6),
+        )
         rejected_embed.add_field(name="Reason:", value=self.reason.value, inline=False)
         await user.send(embed=rejected_embed)
 
         updated_form = interaction.message.embeds[0]
-        updated_form.add_field(name="Rejected by:", value=interaction.user.mention, inline=False)
+        updated_form.add_field(
+            name="Rejected by:", value=interaction.user.mention, inline=False
+        )
 
         await interaction.message.edit(embed=updated_form, view=None)
 
         log_embed = nextcord.Embed(
-            title="Timeout Appeal Denied",
-            colour=nextcord.Color.from_rgb(237, 91, 6))
+            title="Timeout Appeal Denied", colour=nextcord.Color.from_rgb(237, 91, 6)
+        )
         log_embed.add_field(name="User:", value=f"{user} ({user.name})", inline=False)
         log_embed.add_field(name="Reason:", value=self.reason.value, inline=False)
 
         guild = nextcord.Client.get_guild(self.config.guilds.main)
 
-        channel = guild.get_channel(self.config.channels.modlogs)
+        channel = guild.get_channel(self.config.channels.mod_logs)
         await channel.send(embed=log_embed)
 
 
@@ -55,15 +59,19 @@ class ToAppealAccept(nextcord.ui.Modal):
             max_length=1024,
             required=True,
             placeholder="Reason goes here.",
-            style=nextcord.TextInputStyle.paragraph)
+            style=nextcord.TextInputStyle.paragraph,
+        )
         self.add_item(self.reason)
 
     async def callback(self, interaction):
         user = interaction.client.get_user(self.userID)
         timeoutappeal_embed = nextcord.Embed(
             title="Your Timeout Appeal has been accepted",
-            colour=nextcord.Colour.from_rgb(237, 91, 6))
-        timeoutappeal_embed.add_field(name="Reason:", value=self.reason.value, inline=False)
+            colour=nextcord.Colour.from_rgb(237, 91, 6),
+        )
+        timeoutappeal_embed.add_field(
+            name="Reason:", value=self.reason.value, inline=False
+        )
         await user.send(embed=timeoutappeal_embed)
 
         updated_form = interaction.message.embeds[0]
@@ -72,14 +80,14 @@ class ToAppealAccept(nextcord.ui.Modal):
         await interaction.message.edit(embed=updated_form, view=None)
 
         log_embed = nextcord.Embed(
-            title="Timeout Appeal Approved",
-            colour=nextcord.Color.from_rgb(237, 91, 6))
+            title="Timeout Appeal Approved", colour=nextcord.Color.from_rgb(237, 91, 6)
+        )
         log_embed.add_field(name="User:", value=f"{user} ({user.name})", inline=False)
         log_embed.add_field(name="Reason:", value=self.reason.value, inline=False)
 
         guild = nextcord.Client.get_guild(self.config.guilds.main)
 
-        channel = guild.get_channel(self.config.channels.modlogs)
+        channel = guild.get_channel(self.config.channels.mod_logs)
         await channel.send(embed=log_embed)
 
 
@@ -93,7 +101,8 @@ class ToAppealForm(nextcord.ui.Modal):
             max_length=1024,
             required=True,
             placeholder="If no reason was given, please explain in your own best words.",
-            style=nextcord.TextInputStyle.paragraph)
+            style=nextcord.TextInputStyle.paragraph,
+        )
         self.add_item(self.reason)
 
         self.recourse = nextcord.ui.TextInput(
@@ -101,7 +110,8 @@ class ToAppealForm(nextcord.ui.Modal):
             max_length=1024,
             required=True,
             placeholder="This could be a reduction in timeout length, or total removal.",
-            style=nextcord.TextInputStyle.paragraph)
+            style=nextcord.TextInputStyle.paragraph,
+        )
         self.add_item(self.recourse)
 
         self.believe = nextcord.ui.TextInput(
@@ -109,7 +119,8 @@ class ToAppealForm(nextcord.ui.Modal):
             max_length=1024,
             required=True,
             placeholder="Please be civil.",
-            style=nextcord.TextInputStyle.paragraph)
+            style=nextcord.TextInputStyle.paragraph,
+        )
         self.add_item(self.believe)
 
     async def callback(self, interaction):
@@ -119,13 +130,28 @@ class ToAppealForm(nextcord.ui.Modal):
         appeal_embed = nextcord.Embed(
             title="Timeout Appeal Sent",
             description=f"User {interaction.user.name} ({interaction.user.id})",
-            color=nextcord.Color.from_rgb(237, 91, 6))
-        appeal_embed.add_field(name=self.reason.label,   value=self.reason.value,    inline=False)
-        appeal_embed.add_field(name=self.recourse.label, value=self.reason.value,    inline=False)
-        appeal_embed.add_field(name=self.believe.label, value=self.believe.value,   inline=False)
+            color=nextcord.Color.from_rgb(237, 91, 6),
+        )
+        appeal_embed.add_field(
+            name=self.reason.label, value=self.reason.value, inline=False
+        )
+        appeal_embed.add_field(
+            name=self.recourse.label, value=self.reason.value, inline=False
+        )
+        appeal_embed.add_field(
+            name=self.believe.label, value=self.believe.value, inline=False
+        )
 
-        accept_bttn = Button(custom_id=f"to-appeal-accept:{appellant_id}", label="Accept Appeal", style=nextcord.ButtonStyle.green)
-        reject_bttn = Button(custom_id=f"to-appeal-reject:{appellant_id}", label="Reject Appeal", style=nextcord.ButtonStyle.red)
+        accept_bttn = Button(
+            custom_id=f"to-appeal-accept:{appellant_id}",
+            label="Accept Appeal",
+            style=nextcord.ButtonStyle.green,
+        )
+        reject_bttn = Button(
+            custom_id=f"to-appeal-reject:{appellant_id}",
+            label="Reject Appeal",
+            style=nextcord.ButtonStyle.red,
+        )
 
         button_view = View(auto_defer=False)
         button_view.add_item(accept_bttn)
@@ -156,8 +182,13 @@ class ToAppeals(commands.Cog):
         test_embed = nextcord.Embed(
             title="Submit Appeal",
             description="If you have been timedout, press the button below to appeal the timeout.",
-            colour=nextcord.Color.from_rgb(237, 91, 6))
-        open_modal = Button(custom_id="to-appeal-open", label="Open Form", style=nextcord.ButtonStyle.blurple)
+            colour=nextcord.Color.from_rgb(237, 91, 6),
+        )
+        open_modal = Button(
+            custom_id="to-appeal-open",
+            label="Open Form",
+            style=nextcord.ButtonStyle.blurple,
+        )
 
         button_view = View(auto_defer=False)
         button_view.add_item(open_modal)
@@ -176,10 +207,14 @@ class ToAppeals(commands.Cog):
                 await interaction.response.send_modal(ToAppealForm(self.config))
             case ["to-appeal-accept", user_id]:
                 if await permcheck(interaction, is_dark_mod):
-                    await interaction.response.send_modal(ToAppealAccept(self.config, int(user_id)))
+                    await interaction.response.send_modal(
+                        ToAppealAccept(self.config, int(user_id))
+                    )
             case ["to-appael-reject", user_id]:
                 if await permcheck(interaction, is_dark_mod):
-                    await interaction.response.send_modal(ToAppealRejection(self.config, int(user_id)))
+                    await interaction.response.send_modal(
+                        ToAppealRejection(self.config, int(user_id))
+                    )
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -188,8 +223,13 @@ class ToAppeals(commands.Cog):
                 test_embed = nextcord.Embed(
                     title="Submit Appeal",
                     description="If you have been timedout, press the button below to appeal the timeout.",
-                    colour=nextcord.Color.from_rgb(237, 91, 6))
-                open_modal = Button(custom_id="to-appeal-open", label="Open Form", style=nextcord.ButtonStyle.blurple)
+                    colour=nextcord.Color.from_rgb(237, 91, 6),
+                )
+                open_modal = Button(
+                    custom_id="to-appeal-open",
+                    label="Open Form",
+                    style=nextcord.ButtonStyle.blurple,
+                )
 
                 button_view = View(auto_defer=False)
                 button_view.add_item(open_modal)

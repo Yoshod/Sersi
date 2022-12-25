@@ -11,11 +11,18 @@ config = configutils.Configuration.from_yaml_file("./persistent_data/config.yaml
 
 
 class SersiEmbed(nextcord.Embed):
-    def __init__(self, *, fields: dict[str, str] = None, footer: str = "\u200b", **kwargs):
+    def __init__(
+        self,
+        *,
+        fields: dict[str, str] = None,
+        footer: str = "\u200b",
+        footer_icon: str = None,
+        **kwargs,
+    ):
         super().__init__(**kwargs)
 
         # Configure Embed Footer
-        self.set_footer(text=footer)
+        self.set_footer(text=footer, icon_url=footer_icon)
         self.timestamp = datetime.now(pytz.UTC)
 
         # Configure Colour
@@ -29,13 +36,14 @@ class SersiEmbed(nextcord.Embed):
 
 
 def sanitize_mention(string: str) -> str:
-    return re.sub(r"[^0-9]*", "",  string)
+    return re.sub(r"[^0-9]*", "", string)
 
 
 async def ban(config: configutils.Configuration, member: nextcord.Member, kind, reason):
     goodbye_embed = nextcord.Embed(
         title=f"You have been banned from {member.guild.name}",
-        colour=nextcord.Color.from_rgb(237, 91, 6))
+        colour=nextcord.Color.from_rgb(237, 91, 6),
+    )
 
     if kind == "rf":
         goodbye_embed.description = f"You have been deemed to have failed reformation. As a result, you have been banned from {member.guild.name}\n\nIf you wish to appeal your ban, please join the ban appeal server:\n{config.invites.ban_appeal_server}"
@@ -56,7 +64,7 @@ def modmention_check(config: configutils.Configuration, message: str) -> bool:
         f"<@&{config.permission_roles.trial_moderator}>",
         f"<@&{config.permission_roles.moderator}>",
         f"<@&{config.permission_roles.senior_moderator}>",
-        f"<@&{config.permission_roles.dark_moderator}>"
+        f"<@&{config.permission_roles.dark_moderator}>",
     ]
 
     for modmention in modmentions:
@@ -76,9 +84,9 @@ def get_page(entry_list, page, per_page=10):
 
     page = index + 1
     if page == pages:
-        return entry_list[index * per_page:], pages, page
+        return entry_list[index * per_page :], pages, page
     else:
-        return entry_list[index * per_page: page * per_page], pages, page
+        return entry_list[index * per_page : page * per_page], pages, page
 
 
 class ConfirmView(View):
@@ -129,7 +137,18 @@ class DualCustodyView(View):
 
 
 class PageView(View):
-    def __init__(self, config: configutils.Configuration, base_embed, fetch_function, author, entry_form="**•**\u00A0{entry}", cols=1, per_col=10, init_page=1, **kwargs):
+    def __init__(
+        self,
+        config: configutils.Configuration,
+        base_embed,
+        fetch_function,
+        author,
+        entry_form="**•**\u00A0{entry}",
+        cols=1,
+        per_col=10,
+        init_page=1,
+        **kwargs,
+    ):
         super().__init__()
         btn_prev = Button(label="< prev")
         btn_prev.callback = self.cb_prev_page
@@ -155,13 +174,26 @@ class PageView(View):
 
     def make_embed(self, page):
         embed = self.embed_base.copy()
-        entries, pages, self.page = self.get_entries(self.config, page=page, per_page=self.columns * self.per_column, **self.kwargs)
+        entries, pages, self.page = self.get_entries(
+            self.config,
+            page=page,
+            per_page=self.columns * self.per_column,
+            **self.kwargs,
+        )
         cols = min(self.columns, 1 + (len(entries) - 1) // self.per_column)
         for col in range(1, cols + 1):
             if col == cols:
-                embed.add_field(name="\u200b", value=self.make_column(entries[(col - 1) * self.per_column:]))
+                embed.add_field(
+                    name="\u200b",
+                    value=self.make_column(entries[(col - 1) * self.per_column :]),
+                )
             else:
-                embed.add_field(name="\u200b", value=self.make_column(entries[(col - 1) * self.per_column: col * self.per_column]))
+                embed.add_field(
+                    name="\u200b",
+                    value=self.make_column(
+                        entries[(col - 1) * self.per_column : col * self.per_column]
+                    ),
+                )
         embed.set_footer(text=f"page {self.page}/{pages}")
         return embed
 

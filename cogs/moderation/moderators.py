@@ -20,21 +20,34 @@ class Moderators(commands.Cog):
                 member_id = int(field.value)
         member = interaction.guild.get_member(member_id)
 
-        ticket_support = interaction.guild.get_role(self.config.permission_roles.ticket_support)
+        ticket_support = interaction.guild.get_role(
+            self.config.permission_roles.ticket_support
+        )
         await member.add_roles(ticket_support)
-        await interaction.message.edit(f"{self.sersisuccess} {member.mention} was given the {ticket_support.name} role.", embed=None, view=None)
+        await interaction.message.edit(
+            f"{self.sersisuccess} {member.mention} was given the {ticket_support.name} role.",
+            embed=None,
+            view=None,
+        )
 
         # logging
         log_embed = nextcord.Embed(
             title=f"New {ticket_support.name} member added.",
-            colour=nextcord.Color.from_rgb(237, 91, 6))
-        log_embed.add_field(name="Responsible Staff Member:", value=interaction.user.mention, inline=False)
-        log_embed.add_field(name=f"New {ticket_support.name}:", value=member.mention, inline=False)
+            colour=nextcord.Color.from_rgb(237, 91, 6),
+        )
+        log_embed.add_field(
+            name="Responsible Staff Member:",
+            value=interaction.user.mention,
+            inline=False,
+        )
+        log_embed.add_field(
+            name=f"New {ticket_support.name}:", value=member.mention, inline=False
+        )
 
         channel = interaction.guild.get_channel(self.config.channels.logging)
         await channel.send(embed=log_embed)
 
-        channel = interaction.guild.get_channel(self.config.channels.modlogs)
+        channel = interaction.guild.get_channel(self.config.channels.mod_logs)
         await channel.send(embed=log_embed)
 
     @commands.command(aliases=["addticket"])
@@ -45,11 +58,14 @@ class Moderators(commands.Cog):
         dialog_embed = nextcord.Embed(
             title="Add Member as ticket Support",
             description="Following member will be assigned the ticket support role:",
-            color=nextcord.Color.from_rgb(237, 91, 6))
+            color=nextcord.Color.from_rgb(237, 91, 6),
+        )
         dialog_embed.add_field(name="User", value=member.mention)
         dialog_embed.add_field(name="User ID", value=member.id)
 
-        await ConfirmView(self.cb_addticket_proceed).send_as_reply(ctx, embed=dialog_embed)
+        await ConfirmView(self.cb_addticket_proceed).send_as_reply(
+            ctx, embed=dialog_embed
+        )
 
     async def cb_rmticket_proceed(self, interaction):
         member_id = 0
@@ -58,21 +74,34 @@ class Moderators(commands.Cog):
                 member_id = int(field.value)
         member = interaction.guild.get_member(member_id)
 
-        ticket_support = interaction.guild.get_role(self.config.permission_roles.ticket_support)
+        ticket_support = interaction.guild.get_role(
+            self.config.permission_roles.ticket_support
+        )
         await member.remove_roles(ticket_support)
-        await interaction.message.edit(f"{self.sersisuccess} {member.mention} was removed from the {ticket_support.name} role.", embed=None, view=None)
+        await interaction.message.edit(
+            f"{self.sersisuccess} {member.mention} was removed from the {ticket_support.name} role.",
+            embed=None,
+            view=None,
+        )
 
         # logging
         log_embed = nextcord.Embed(
             title=f"{ticket_support.name} member removed.",
-            colour=nextcord.Color.from_rgb(237, 91, 6))
-        log_embed.add_field(name="Responsible Staff Member:", value=interaction.user.mention, inline=False)
-        log_embed.add_field(name=f"Former {ticket_support.name}:", value=member.mention, inline=False)
+            colour=nextcord.Color.from_rgb(237, 91, 6),
+        )
+        log_embed.add_field(
+            name="Responsible Staff Member:",
+            value=interaction.user.mention,
+            inline=False,
+        )
+        log_embed.add_field(
+            name=f"Former {ticket_support.name}:", value=member.mention, inline=False
+        )
 
         channel = interaction.guild.get_channel(self.config.channels.logging)
         await channel.send(embed=log_embed)
 
-        channel = interaction.guild.get_channel(self.config.channels.modlogs)
+        channel = interaction.guild.get_channel(self.config.channels.mod_logs)
         await channel.send(embed=log_embed)
 
     @commands.command(aliases=["rmticket"])
@@ -83,11 +112,14 @@ class Moderators(commands.Cog):
         dialog_embed = nextcord.Embed(
             title="Add Member as ticket Support",
             description="Following member will be assigned the ticket support role:",
-            color=nextcord.Color.from_rgb(237, 91, 6))
+            color=nextcord.Color.from_rgb(237, 91, 6),
+        )
         dialog_embed.add_field(name="User", value=member.mention)
         dialog_embed.add_field(name="User ID", value=member.id)
 
-        await ConfirmView(self.cb_rmticket_proceed).send_as_reply(ctx, embed=dialog_embed)
+        await ConfirmView(self.cb_rmticket_proceed).send_as_reply(
+            ctx, embed=dialog_embed
+        )
 
     async def cb_addtrialmod_proceed(self, interaction):
         member_id = 0
@@ -96,21 +128,31 @@ class Moderators(commands.Cog):
                 member_id = int(field.value)
         member = interaction.guild.get_member(member_id)
 
-        trial_moderator = interaction.guild.get_role(self.config.permission_roles.trial_moderator)
-        await member.add_roles(trial_moderator, reason="Sersi addtrialmod command", atomic=True)
-        await interaction.message.edit(f"{self.sersisuccess} {member.mention} was given the {trial_moderator.name} role.", embed=None, view=None)
+        trial_moderator = interaction.guild.get_role(
+            self.config.permission_roles.trial_moderator
+        )
+        await member.add_roles(
+            trial_moderator, reason="Sersi addtrialmod command", atomic=True
+        )
+        await interaction.message.edit(
+            f"{self.sersisuccess} {member.mention} was given the {trial_moderator.name} role.",
+            embed=None,
+            view=None,
+        )
 
         # logging
-        log_embed = nextcord.Embed(
-            title="New Trial Moderator added."
+        log_embed = nextcord.Embed(title="New Trial Moderator added.")
+        log_embed.add_field(
+            name="Responsible Moderator:", value=interaction.user.mention, inline=False
         )
-        log_embed.add_field(name="Responsible Moderator:", value=interaction.user.mention, inline=False)
-        log_embed.add_field(name=f"New {trial_moderator.name}:", value=member.mention, inline=False)
+        log_embed.add_field(
+            name=f"New {trial_moderator.name}:", value=member.mention, inline=False
+        )
 
         channel = interaction.guild.get_channel(self.config.channels.logging)
         await channel.send(embed=log_embed)
 
-        channel = interaction.guild.get_channel(self.config.channels.modlogs)
+        channel = interaction.guild.get_channel(self.config.channels.mod_logs)
         await channel.send(embed=log_embed)
 
     @commands.command()
@@ -118,19 +160,26 @@ class Moderators(commands.Cog):
         if not await permcheck(ctx, is_senior_mod):
             return
 
-        is_blacklisted = await ctx.invoke(self.bot.get_command('checkblacklist'), member=member)
+        is_blacklisted = await ctx.invoke(
+            self.bot.get_command("checkblacklist"), member=member
+        )
         if is_blacklisted:
-            await ctx.send(f"Member {member} cannot be given Trial Mod! Reason: Is on blacklist")
+            await ctx.send(
+                f"Member {member} cannot be given Trial Mod! Reason: Is on blacklist"
+            )
             return
 
         dialog_embed = nextcord.Embed(
             title="Add new Trial Moderator",
             description="Following member will be assigned the Trial Moderator role:",
-            color=nextcord.Color.from_rgb(237, 91, 6))
+            color=nextcord.Color.from_rgb(237, 91, 6),
+        )
         dialog_embed.add_field(name="User", value=member.mention)
         dialog_embed.add_field(name="User ID", value=member.id)
 
-        await ConfirmView(self.cb_addtrialmod_proceed).send_as_reply(ctx, embed=dialog_embed)
+        await ConfirmView(self.cb_addtrialmod_proceed).send_as_reply(
+            ctx, embed=dialog_embed
+        )
 
     async def cb_makefullmod_proceed(self, interaction):
         member_id = 0
@@ -139,24 +188,36 @@ class Moderators(commands.Cog):
                 member_id = int(field.value)
         member = interaction.guild.get_member(member_id)
 
-        trial_moderator = interaction.guild.get_role(self.config.permission_roles.ticket_support)
-        moderator       = interaction.guild.get_role(self.config.permission_roles.moderator)
+        trial_moderator = interaction.guild.get_role(
+            self.config.permission_roles.ticket_support
+        )
+        moderator = interaction.guild.get_role(self.config.permission_roles.moderator)
 
-        await member.remove_roles(trial_moderator, reason="Sersi makefullmod command", atomic=True)
-        await member.add_roles(moderator, reason="Sersi makefullmod command", atomic=True)
-        await interaction.message.edit(f"{self.sersisuccess} {member.mention} was given the {moderator.name} role.\nRemember: You're not truly a mod until your first ban. ;)", embed=None, view=None)
+        await member.remove_roles(
+            trial_moderator, reason="Sersi makefullmod command", atomic=True
+        )
+        await member.add_roles(
+            moderator, reason="Sersi makefullmod command", atomic=True
+        )
+        await interaction.message.edit(
+            f"{self.sersisuccess} {member.mention} was given the {moderator.name} role.\nRemember: You're not truly a mod until your first ban. ;)",
+            embed=None,
+            view=None,
+        )
 
         # logging
         log_embed = nextcord.Embed(
             title="Trial Moderator matured into a full Moderator."
         )
-        log_embed.add_field(name="Responsible Moderator:", value=interaction.user.mention, inline=False)
+        log_embed.add_field(
+            name="Responsible Moderator:", value=interaction.user.mention, inline=False
+        )
         log_embed.add_field(name="New Moderator:", value=member.mention, inline=False)
 
         channel = interaction.guild.get_channel(self.config.channels.logging)
         await channel.send(embed=log_embed)
 
-        channel = interaction.guild.get_channel(self.config.channels.modlogs)
+        channel = interaction.guild.get_channel(self.config.channels.mod_logs)
         await channel.send(embed=log_embed)
 
     @commands.command()
@@ -164,7 +225,9 @@ class Moderators(commands.Cog):
         if not await permcheck(ctx, is_senior_mod):
             return
 
-        trial_moderator = ctx.guild.get_role(self.config.permission_roles.trial_moderator)
+        trial_moderator = ctx.guild.get_role(
+            self.config.permission_roles.trial_moderator
+        )
 
         if trial_moderator not in member.roles:
             await ctx.reply(f"{self.sersifail} Member is not a trial moderator.")
@@ -173,11 +236,14 @@ class Moderators(commands.Cog):
         dialog_embed = nextcord.Embed(
             title="Promote Trial Moderator to Moderator",
             description="Following Trial Moderator will be promoted to Moderator:",
-            color=nextcord.Color.from_rgb(237, 91, 6))
+            color=nextcord.Color.from_rgb(237, 91, 6),
+        )
         dialog_embed.add_field(name="User", value=member.mention)
         dialog_embed.add_field(name="User ID", value=member.id)
 
-        await ConfirmView(self.cb_makefullmod_proceed).send_as_reply(ctx, embed=dialog_embed)
+        await ConfirmView(self.cb_makefullmod_proceed).send_as_reply(
+            ctx, embed=dialog_embed
+        )
 
     async def cb_purgemod_confirm(self, interaction):
         member_id, mod_id, reason = 0, 0, ""
@@ -192,29 +258,45 @@ class Moderators(commands.Cog):
         moderator = interaction.guild.get_member(mod_id)
 
         for role in vars(self.config.permission_roles):
-            role_obj = interaction.guild.get_role(vars(self.config.permission_roles)[role])
+            role_obj = interaction.guild.get_role(
+                vars(self.config.permission_roles)[role]
+            )
             try:
                 await member.remove_roles(role_obj, reason=reason, atomic=True)
             except nextcord.errors.HTTPException:
                 continue
 
-        await interaction.message.edit(f"{self.sersisuccess} {member.mention} has been dishonourly discharged from the staff team. Good riddance!", embed=None, view=None)
+        await interaction.message.edit(
+            f"{self.sersisuccess} {member.mention} has been dishonourly discharged from the staff team. Good riddance!",
+            embed=None,
+            view=None,
+        )
         ctx = await self.bot.get_context(interaction.message)
-        await ctx.invoke(self.bot.get_command('blacklistuser'), member=member, reason=f"Moderator purged with reason: {reason}")
+        await ctx.invoke(
+            self.bot.get_command("blacklistuser"),
+            member=member,
+            reason=f"Moderator purged with reason: {reason}",
+        )
 
         # logging
         log_embed = nextcord.Embed(
             title="Member has been purged from staff and mod team and added to blacklist."
         )
-        log_embed.add_field(name="Responsible Moderator:", value=moderator.mention, inline=False)
-        log_embed.add_field(name="Confirming Moderator:", value=interaction.user.mention, inline=False)
-        log_embed.add_field(name="Purged Moderator:", value=member.mention, inline=False)
+        log_embed.add_field(
+            name="Responsible Moderator:", value=moderator.mention, inline=False
+        )
+        log_embed.add_field(
+            name="Confirming Moderator:", value=interaction.user.mention, inline=False
+        )
+        log_embed.add_field(
+            name="Purged Moderator:", value=member.mention, inline=False
+        )
         log_embed.add_field(name="Reason:", value=reason, inline=False)
 
         channel = interaction.guild.get_channel(self.config.channels.logging)
         await channel.send(embed=log_embed)
 
-        channel = interaction.guild.get_channel(self.config.channels.modlogs)
+        channel = interaction.guild.get_channel(self.config.channels.mod_logs)
         await channel.send(embed=log_embed)
 
     async def cb_purgemod_proceed(self, interaction):
@@ -226,23 +308,32 @@ class Moderators(commands.Cog):
                 reason = field.value
         member = interaction.guild.get_member(member_id)
 
-        await interaction.message.edit(f"{self.sersisuccess} Dihonourable discharge of {member.mention} is now awaiting confirmation!", embed=None, view=None)
+        await interaction.message.edit(
+            f"{self.sersisuccess} Dihonourable discharge of {member.mention} is now awaiting confirmation!",
+            embed=None,
+            view=None,
+        )
 
         dialog_embed = nextcord.Embed(
             title="Purge Moderator Confirmation",
             description="Following Moderator will be dishonorably discharged from the staff:",
-            color=nextcord.Color.from_rgb(237, 91, 6))
+            color=nextcord.Color.from_rgb(237, 91, 6),
+        )
         dialog_embed.add_field(name="User", value=member.mention)
         dialog_embed.add_field(name="User ID", value=member.id)
         dialog_embed.add_field(name="Reason", value=reason, inline=False)
-        dialog_embed.add_field(name="Responsible Moderator", value=interaction.user.mention)
+        dialog_embed.add_field(
+            name="Responsible Moderator", value=interaction.user.mention
+        )
         dialog_embed.add_field(name="Moderator ID", value=interaction.user.id)
 
         channel = interaction.guild.get_channel(self.config.channels.alert)
-        view = DualCustodyView(self.cb_purgemod_confirm, interaction.user, is_senior_mod)
+        view = DualCustodyView(
+            self.cb_purgemod_confirm, interaction.user, is_senior_mod
+        )
         await view.send_dialogue(channel, embed=dialog_embed)
 
-    @commands.command(aliases=['purgemod', 'purge_mod'])
+    @commands.command(aliases=["purgemod", "purge_mod"])
     async def removefrommod(self, ctx, member: nextcord.Member, *, reason=""):
         if not await permcheck(ctx, is_senior_mod):
             return
@@ -254,12 +345,15 @@ class Moderators(commands.Cog):
         dialog_embed = nextcord.Embed(
             title="Purge Moderator",
             description="Following Moderator will be dishonorably discharged from the staff:",
-            color=nextcord.Color.from_rgb(237, 91, 6))
+            color=nextcord.Color.from_rgb(237, 91, 6),
+        )
         dialog_embed.add_field(name="User", value=member.mention)
         dialog_embed.add_field(name="User ID", value=member.id)
         dialog_embed.add_field(name="Reason", value=reason, inline=False)
 
-        await ConfirmView(self.cb_purgemod_proceed).send_as_reply(ctx, embed=dialog_embed)
+        await ConfirmView(self.cb_purgemod_proceed).send_as_reply(
+            ctx, embed=dialog_embed
+        )
 
     async def cb_retire_proceed(self, interaction):
         member_id = 0
@@ -269,28 +363,38 @@ class Moderators(commands.Cog):
         member = interaction.guild.get_member(member_id)
 
         for role in vars(self.config.permission_roles):
-            role_obj = interaction.guild.get_role(vars(self.config.permission_roles)[role])
+            role_obj = interaction.guild.get_role(
+                vars(self.config.permission_roles)[role]
+            )
             try:
                 await member.remove_roles(role_obj)
             except nextcord.errors.HTTPException:
                 continue
 
-        honourable_member = interaction.guild.get_role(self.config.roles.honourable_member)
+        honourable_member = interaction.guild.get_role(
+            self.config.roles.honourable_member
+        )
         await member.add_roles(honourable_member)
 
-        await interaction.message.edit(f"{self.sersisuccess} {member.mention} has retired from the mod team. Thank you for your service!", embed=None, view=None)
+        await interaction.message.edit(
+            f"{self.sersisuccess} {member.mention} has retired from the mod team. Thank you for your service!",
+            embed=None,
+            view=None,
+        )
 
         # logging
-        log_embed = nextcord.Embed(
-            title="Moderator has (been) retired."
+        log_embed = nextcord.Embed(title="Moderator has (been) retired.")
+        log_embed.add_field(
+            name="Responsible Moderator:", value=interaction.user.mention, inline=False
         )
-        log_embed.add_field(name="Responsible Moderator:", value=interaction.user.mention, inline=False)
-        log_embed.add_field(name="Retired Moderator:", value=member.mention, inline=False)
+        log_embed.add_field(
+            name="Retired Moderator:", value=member.mention, inline=False
+        )
 
         channel = interaction.guild.get_channel(self.config.channels.logging)
         await channel.send(embed=log_embed)
 
-        channel = interaction.guild.get_channel(self.config.channels.modlogs)
+        channel = interaction.guild.get_channel(self.config.channels.mod_logs)
         await channel.send(embed=log_embed)
 
     @commands.command()
@@ -304,14 +408,16 @@ class Moderators(commands.Cog):
             dialog_embed = nextcord.Embed(
                 title="Retire from Adam Something Central staff",
                 description="Are you sure you want to retire?",
-                color=nextcord.Color.from_rgb(237, 91, 6))
+                color=nextcord.Color.from_rgb(237, 91, 6),
+            )
             dialog_embed.add_field(name="User", value=ctx.author.mention)
             dialog_embed.add_field(name="User ID", value=ctx.author.id)
         else:
             dialog_embed = nextcord.Embed(
                 title="Retire Moderator",
                 description="Following Moderator will be retired from the staff and given the Honoured Member role:",
-                color=nextcord.Color.from_rgb(237, 91, 6))
+                color=nextcord.Color.from_rgb(237, 91, 6),
+            )
             dialog_embed.add_field(name="User", value=member.mention)
             dialog_embed.add_field(name="User ID", value=member.id)
 

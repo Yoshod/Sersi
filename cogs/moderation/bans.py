@@ -20,23 +20,24 @@ class BanAppealRejection(nextcord.ui.Modal):
             max_length=1024,
             required=True,
             placeholder="Reason goes here.",
-            style=nextcord.TextInputStyle.paragraph)
+            style=nextcord.TextInputStyle.paragraph,
+        )
         self.add_item(self.reason)
 
     async def callback(self, interaction):
         user = interaction.client.get_user(self.userID)
 
         updated_form = interaction.message.embeds[0]
-        updated_form.add_field(name="Rejected by:", value=interaction.user.mention, inline=False)
+        updated_form.add_field(
+            name="Rejected by:", value=interaction.user.mention, inline=False
+        )
 
         await interaction.message.edit(embed=updated_form, view=None)
 
         log_embed = SersiEmbed(
             title="Ban Appeal Denied",
-            fields={
-                "User:": f"{user} ({user.name})",
-                "Reason:": self.reason.value
-            })
+            fields={"User:": f"{user} ({user.name})", "Reason:": self.reason.value},
+        )
 
         channel = interaction.client.get_channel(self.config.channels.modlogs)
 
@@ -46,14 +47,18 @@ class BanAppealRejection(nextcord.ui.Modal):
             title="Your Ban Appeal Was Rejected",
             fields={
                 "Reason:": self.reason.value,
-                "Wait Time:": "You may reapply in 28 days."
-            })
+                "Wait Time:": "You may reapply in 28 days.",
+            },
+        )
 
         try:
             await user.send(embed=rejected_embed)
         except nextcord.Forbidden:
             sersifail = self.config.emotes.fail
-            await interaction.response.send_message(f"{sersifail} Cannot message the user, likely left the appeals server or has closed DMs", ephemeral=True)
+            await interaction.response.send_message(
+                f"{sersifail} Cannot message the user, likely left the appeals server or has closed DMs",
+                ephemeral=True,
+            )
 
         guild = nextcord.Client.get_guild(963568193635496037)
         member = guild.get_member(user.id)
@@ -74,17 +79,23 @@ class BanAppealAccept(nextcord.ui.Modal):
             max_length=1024,
             required=True,
             placeholder="Reason goes here.",
-            style=nextcord.TextInputStyle.paragraph)
+            style=nextcord.TextInputStyle.paragraph,
+        )
         self.add_item(self.reason)
 
     async def callback(self, interaction):
         user = interaction.client.get_user(self.userID)
 
         try:
-            await interaction.guild.unban(user, reason=f"{interaction.user.name} gave reason {self.reason.value}")
+            await interaction.guild.unban(
+                user, reason=f"{interaction.user.name} gave reason {self.reason.value}"
+            )
         except nextcord.errors.NotFound:
             sersifail = self.config.emotes.fail
-            await interaction.response.send_message(f"{sersifail} Ban was not found! (This likely means the person wasn't banned in the first place)", ephemeral=True)
+            await interaction.response.send_message(
+                f"{sersifail} Ban was not found! (This likely means the person wasn't banned in the first place)",
+                ephemeral=True,
+            )
 
         updated_form = interaction.message.embeds[0]
         updated_form.add_field(name="Approved by:", value=interaction.user.mention)
@@ -93,10 +104,8 @@ class BanAppealAccept(nextcord.ui.Modal):
 
         log_embed = SersiEmbed(
             title="Ban Appeal Approved",
-            fields={
-                "User:": f"{user} ({user.name})",
-                "Reason:": self.reason.value
-            })
+            fields={"User:": f"{user} ({user.name})", "Reason:": self.reason.value},
+        )
 
         channel = interaction.client.get_channel(self.config.channels.modlogs)
 
@@ -106,14 +115,18 @@ class BanAppealAccept(nextcord.ui.Modal):
             title="You Have Been Unbanned",
             fields={
                 "Reason:": self.reason.value,
-                "Rejoin URL:": self.config.invites.adam_something_ban_reinvite
-            })
+                "Rejoin URL:": self.config.invites.adam_something_ban_reinvite,
+            },
+        )
 
         try:
             await user.send(embed=unban_embed)
         except nextcord.Forbidden:
             sersifail = self.config.emotes.fail
-            await interaction.response.send_message(f"{sersifail} Cannot message the user, likely left the appeals server or has closed DMs", ephemeral=True)
+            await interaction.response.send_message(
+                f"{sersifail} Cannot message the user, likely left the appeals server or has closed DMs",
+                ephemeral=True,
+            )
 
 
 class BanAppealForm(nextcord.ui.Modal):
@@ -125,7 +138,8 @@ class BanAppealForm(nextcord.ui.Modal):
             label="Date of Ban:",
             max_length=1024,
             required=True,
-            placeholder="Please enter the date you've been banned.")
+            placeholder="Please enter the date you've been banned.",
+        )
         self.add_item(self.date)
 
         self.reason = nextcord.ui.TextInput(
@@ -133,7 +147,8 @@ class BanAppealForm(nextcord.ui.Modal):
             max_length=1024,
             required=True,
             placeholder="If no reason was given, please explain in your own best words.",
-            style=nextcord.TextInputStyle.paragraph)
+            style=nextcord.TextInputStyle.paragraph,
+        )
         self.add_item(self.reason)
 
         self.believe = nextcord.ui.TextInput(
@@ -141,7 +156,8 @@ class BanAppealForm(nextcord.ui.Modal):
             max_length=1024,
             required=True,
             placeholder="Please use civil language.",
-            style=nextcord.TextInputStyle.paragraph)
+            style=nextcord.TextInputStyle.paragraph,
+        )
         self.add_item(self.believe)
 
         self.other = nextcord.ui.TextInput(
@@ -149,7 +165,8 @@ class BanAppealForm(nextcord.ui.Modal):
             max_length=1024,
             required=True,
             placeholder="This is a freetext field.",
-            style=nextcord.TextInputStyle.paragraph)
+            style=nextcord.TextInputStyle.paragraph,
+        )
         self.add_item(self.other)
 
     async def callback(self, interaction):
@@ -160,7 +177,9 @@ class BanAppealForm(nextcord.ui.Modal):
         try:
             _ = await guild.get_ban(interaction.user)
         except nextcord.errors.NotFound:
-            await interaction.response.send_message(f"{CONFIG.emotes.fail} You are not banned on Adam Something Central")
+            await interaction.response.send_message(
+                f"{CONFIG.emotes.fail} You are not banned on Adam Something Central"
+            )
             return
 
         appeal_embed = SersiEmbed(
@@ -170,11 +189,20 @@ class BanAppealForm(nextcord.ui.Modal):
                 self.date.label: self.date.value,
                 self.reason.label: self.reason.value,
                 self.believe.label: self.believe.value,
-                self.other.label: self.other.value
-            })
+                self.other.label: self.other.value,
+            },
+        )
 
-        accept_bttn = Button(custom_id=f"ban-appeal-accept:{appellant_id}", label="Accept Appeal", style=nextcord.ButtonStyle.green)
-        reject_bttn = Button(custom_id=f"ban-appeal-reject:{appellant_id}", label="Reject Appeal", style=nextcord.ButtonStyle.red)
+        accept_bttn = Button(
+            custom_id=f"ban-appeal-accept:{appellant_id}",
+            label="Accept Appeal",
+            style=nextcord.ButtonStyle.green,
+        )
+        reject_bttn = Button(
+            custom_id=f"ban-appeal-reject:{appellant_id}",
+            label="Reject Appeal",
+            style=nextcord.ButtonStyle.red,
+        )
 
         button_view = View(auto_defer=False)
         button_view.add_item(accept_bttn)
@@ -199,8 +227,13 @@ class BanAppeals(commands.Cog):
 
         test_embed = SersiEmbed(
             title="Submit Appeal",
-            description="Click Button below to submit your ban appeal.")
-        open_modal = Button(custom_id="ban-appeal-open", label="Open Form", style=nextcord.ButtonStyle.blurple)
+            description="Click Button below to submit your ban appeal.",
+        )
+        open_modal = Button(
+            custom_id="ban-appeal-open",
+            label="Open Form",
+            style=nextcord.ButtonStyle.blurple,
+        )
 
         button_view = View(auto_defer=False)
         button_view.add_item(open_modal)
@@ -219,10 +252,14 @@ class BanAppeals(commands.Cog):
                 await interaction.response.send_modal(BanAppealForm(self.config))
             case ["ban-appeal-accept", user_id]:
                 if await permcheck(interaction, is_dark_mod):
-                    await interaction.response.send_modal(BanAppealAccept(self.config, int(user_id)))
+                    await interaction.response.send_modal(
+                        BanAppealAccept(self.config, int(user_id))
+                    )
             case ["ban-appeal-reject", user_id]:
                 if await permcheck(interaction, is_dark_mod):
-                    await interaction.response.send_modal(BanAppealRejection(self.config, int(user_id)))
+                    await interaction.response.send_modal(
+                        BanAppealRejection(self.config, int(user_id))
+                    )
 
 
 def setup(bot, **kwargs):

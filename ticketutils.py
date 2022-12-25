@@ -10,7 +10,7 @@ import configutils
 
 
 @dataclass(kw_only=True)
-class TicketIterations():
+class TicketIterations:
     mod_tickets: int
     senior_tickets: int
     admin_tickets: int
@@ -27,7 +27,7 @@ def ticket_check(config: configutils.Configuration, id, ticket_type):
             "mod tickets": [],
             "senior tickets": [],
             "admin tickets": [],
-            "verification tickets": []
+            "verification tickets": [],
         }
 
     match ticket_type:
@@ -74,7 +74,9 @@ def ticket_check(config: configutils.Configuration, id, ticket_type):
 
 def ticket_prep(config: configutils.Configuration, interaction, user, ticket_type):
     overwrites = {
-        interaction.guild.default_role: nextcord.PermissionOverwrite(read_messages=False),
+        interaction.guild.default_role: nextcord.PermissionOverwrite(
+            read_messages=False
+        ),
         interaction.guild.me: nextcord.PermissionOverwrite(read_messages=True),
         user: nextcord.PermissionOverwrite(
             read_messages=True,
@@ -94,28 +96,47 @@ def ticket_prep(config: configutils.Configuration, interaction, user, ticket_typ
             mod_tickets=iters["mod_tickets"],
             senior_tickets=iters["senior_tickets"],
             admin_tickets=iters["admin_tickets"],
-            verification_tickets=iters["verification_tickets"])
+            verification_tickets=iters["verification_tickets"],
+        )
 
     match ticket_type:
         case "mod_ticket":
-            overwrites.update({interaction.guild.get_role(config.permission_roles.moderator): nextcord.PermissionOverwrite(read_messages=True)})
-            overwrites.update({interaction.guild.get_role(config.permission_roles.trial_moderator): nextcord.PermissionOverwrite(read_messages=True)})
+            overwrites.update(
+                {
+                    interaction.guild.get_role(
+                        config.permission_roles.moderator
+                    ): nextcord.PermissionOverwrite(read_messages=True)
+                }
+            )
+            overwrites.update(
+                {
+                    interaction.guild.get_role(
+                        config.permission_roles.trial_moderator
+                    ): nextcord.PermissionOverwrite(read_messages=True)
+                }
+            )
             ticket_counts.mod_tickets = int(ticket_counts.mod_tickets) + 1
 
             with open("files/Tickets/ticketiters.json", "w", encoding="utf-8") as f:
                 json.dump(asdict(ticket_counts), f, ensure_ascii=False, indent=4)
 
-            case_name = (f"mod-ticket-{str(ticket_counts.mod_tickets).zfill(4)}")
+            case_name = f"mod-ticket-{str(ticket_counts.mod_tickets).zfill(4)}"
 
             return overwrites, case_name
 
         case "senior_ticket":
-            overwrites.update({interaction.guild.get_role(config.permission_roles.senior_moderator): nextcord.PermissionOverwrite(read_messages=True)})
+            overwrites.update(
+                {
+                    interaction.guild.get_role(
+                        config.permission_roles.senior_moderator
+                    ): nextcord.PermissionOverwrite(read_messages=True)
+                }
+            )
             ticket_counts.senior_tickets = int(ticket_counts.senior_tickets) + 1
             with open("files/Tickets/ticketiters.json", "w", encoding="utf-8") as f:
                 json.dump(asdict(ticket_counts), f, ensure_ascii=False, indent=4)
 
-            case_name = (f"senior-ticket-{str(ticket_counts.senior_tickets).zfill(4)}")
+            case_name = f"senior-ticket-{str(ticket_counts.senior_tickets).zfill(4)}"
 
             return overwrites, case_name
 
@@ -124,22 +145,32 @@ def ticket_prep(config: configutils.Configuration, interaction, user, ticket_typ
             with open("files/Tickets/ticketiters.json", "w", encoding="utf-8") as f:
                 json.dump(asdict(ticket_counts), f, ensure_ascii=False, indent=4)
 
-            case_name = (f"admin-ticket-{str(ticket_counts.admin_tickets).zfill(4)}")
+            case_name = f"admin-ticket-{str(ticket_counts.admin_tickets).zfill(4)}"
 
             return overwrites, case_name
 
         case "verification_ticket":
-            ticket_counts.verification_tickets = int(ticket_counts.verification_tickets) + 1
+            ticket_counts.verification_tickets = (
+                int(ticket_counts.verification_tickets) + 1
+            )
             with open("files/Tickets/ticketiters.json", "w", encoding="utf-8") as f:
                 json.dump(asdict(ticket_counts), f, ensure_ascii=False, indent=4)
 
-            overwrites.update({interaction.guild.get_role(config.permission_roles.ticket_support): nextcord.PermissionOverwrite(read_messages=True)})
+            overwrites.update(
+                {
+                    interaction.guild.get_role(
+                        config.permission_roles.ticket_support
+                    ): nextcord.PermissionOverwrite(read_messages=True)
+                }
+            )
 
-            case_name = (f"verification-ticket-{str(ticket_counts.verification_tickets).zfill(4)}")
+            case_name = f"verification-ticket-{str(ticket_counts.verification_tickets).zfill(4)}"
             return overwrites, case_name
 
 
-async def ticket_close(config: configutils.Configuration, interaction, user, ticket_type):
+async def ticket_close(
+    config: configutils.Configuration, interaction, user, ticket_type
+):
     try:
         with open(config.datafiles.ticketers, "rb") as f:
             ticketers = pickle.load(f)
@@ -149,34 +180,42 @@ async def ticket_close(config: configutils.Configuration, interaction, user, tic
             "mod tickets": [],
             "senior tickets": [],
             "admin tickets": [],
-            "verification tickets": []
+            "verification tickets": [],
         }
     channel = interaction.channel
 
     match ticket_type:
         case "mod_ticket":
-            output_channel = interaction.guild.get_channel(config.channels.mod_ticket_logs)
+            output_channel = interaction.guild.get_channel(
+                config.channels.mod_ticket_logs
+            )
             if user.id in ticketers["mod tickets"]:
                 ticketers["mod tickets"].remove(user.id)
                 with open(config.datafiles.ticketers, "wb") as f:
                     pickle.dump(ticketers, f)
 
         case "senior_ticket":
-            output_channel = interaction.guild.get_channel(config.channels.senior_ticket_logs)
+            output_channel = interaction.guild.get_channel(
+                config.channels.senior_ticket_logs
+            )
             if user.id in ticketers["senior tickets"]:
                 ticketers["senior tickets"].remove(user.id)
                 with open(config.datafiles.ticketers, "wb") as f:
                     pickle.dump(ticketers, f)
 
         case "admin_ticket":
-            output_channel = interaction.guild.get_channel(config.channels.admin_ticket_logs)
+            output_channel = interaction.guild.get_channel(
+                config.channels.admin_ticket_logs
+            )
             if user.id in ticketers["admin tickets"]:
                 ticketers["admin tickets"].remove(user.id)
                 with open(config.datafiles.ticketers, "wb") as f:
                     pickle.dump(ticketers, f)
 
         case "verification_ticket":
-            output_channel = interaction.guild.get_channel(config.channels.verification_ticket_logs)
+            output_channel = interaction.guild.get_channel(
+                config.channels.verification_ticket_logs
+            )
             if user.id in ticketers["verification tickets"]:
                 ticketers["verification tickets"].remove(user.id)
                 with open(config.datafiles.ticketers, "wb") as f:
@@ -184,7 +223,9 @@ async def ticket_close(config: configutils.Configuration, interaction, user, tic
 
     transcript = await export(channel, military_time=True)
     if transcript is None:
-        await output_channel.send(f"{config.emotes.fail} Failed to Generate Transcript!")
+        await output_channel.send(
+            f"{config.emotes.fail} Failed to Generate Transcript!"
+        )
 
     else:
         transcript_file = nextcord.File(
@@ -195,7 +236,8 @@ async def ticket_close(config: configutils.Configuration, interaction, user, tic
         log_embed = nextcord.Embed(
             title=f"{channel.name} Transcript",
             description=f"{channel.name} has been archived.",
-            color=nextcord.Color.from_rgb(237, 91, 6))
+            color=nextcord.Color.from_rgb(237, 91, 6),
+        )
 
         await output_channel.send(embed=log_embed, file=transcript_file)
 
@@ -212,10 +254,20 @@ async def ticket_close(config: configutils.Configuration, interaction, user, tic
             pass
 
 
-async def escalation_change(config: configutils.Configuration, interaction: nextcord.Interaction, user: nextcord.User, current_ticket_type, requested_ticket_type, reason, client: nextcord.Client):
+async def escalation_change(
+    config: configutils.Configuration,
+    interaction: nextcord.Interaction,
+    user: nextcord.User,
+    current_ticket_type,
+    requested_ticket_type,
+    reason,
+    client: nextcord.Client,
+):
     overwrites = {
-        interaction.guild.default_role: nextcord.PermissionOverwrite(read_messages=False),
-        interaction.guild.me: nextcord.PermissionOverwrite(read_messages=True)
+        interaction.guild.default_role: nextcord.PermissionOverwrite(
+            read_messages=False
+        ),
+        interaction.guild.me: nextcord.PermissionOverwrite(read_messages=True),
     }
     ticket_types = [current_ticket_type, requested_ticket_type]
 
@@ -225,18 +277,25 @@ async def escalation_change(config: configutils.Configuration, interaction: next
             mod_tickets=iters["mod_tickets"],
             senior_tickets=iters["senior_tickets"],
             admin_tickets=iters["admin_tickets"],
-            verification_tickets=iters["verification_tickets"])
+            verification_tickets=iters["verification_tickets"],
+        )
 
         print(ticket_types)
 
     match ticket_types:
         case ["mod_ticket", "Senior Moderator Ticket"]:
-            overwrites.update({interaction.guild.get_role(config.permission_roles.senior_moderator): nextcord.PermissionOverwrite(read_messages=True)})
+            overwrites.update(
+                {
+                    interaction.guild.get_role(
+                        config.permission_roles.senior_moderator
+                    ): nextcord.PermissionOverwrite(read_messages=True)
+                }
+            )
 
             ticket_counts.senior_tickets = int(ticket_counts.senior_tickets) + 1
             with open("files/Tickets/ticketiters.json", "w", encoding="utf-8") as f:
                 json.dump(asdict(ticket_counts), f, ensure_ascii=False, indent=4)
-            case_name = (f"senior-ticket-{str(ticket_counts.senior_tickets).zfill(4)}")
+            case_name = f"senior-ticket-{str(ticket_counts.senior_tickets).zfill(4)}"
 
             try:
                 with open(config.datafiles.ticketers, "rb") as f:
@@ -246,13 +305,15 @@ async def escalation_change(config: configutils.Configuration, interaction: next
                     "mod tickets": [],
                     "senior tickets": [],
                     "admin tickets": [],
-                    "verification tickets": []
+                    "verification tickets": [],
                 }
 
             try:
                 initial_embed = interaction.message.embeds[0]
             except IndexError:
-                raise Exception("Could not find embed when attempting to escalate ticket! Index out of range!")
+                raise Exception(
+                    "Could not find embed when attempting to escalate ticket! Index out of range!"
+                )
 
             complainer_id = initial_embed.description[2:21]
             if str(complainer_id)[0] == "!":
@@ -272,32 +333,67 @@ async def escalation_change(config: configutils.Configuration, interaction: next
                 with open(config.datafiles.ticketers, "wb") as f:
                     pickle.dump(ticketers, f)
 
-            overwrites.update({complainer: nextcord.PermissionOverwrite(read_messages=True, create_public_threads=False, create_private_threads=False, external_stickers=True, embed_links=True, attach_files=True, use_external_emojis=True)})
+            overwrites.update(
+                {
+                    complainer: nextcord.PermissionOverwrite(
+                        read_messages=True,
+                        create_public_threads=False,
+                        create_private_threads=False,
+                        external_stickers=True,
+                        embed_links=True,
+                        attach_files=True,
+                        use_external_emojis=True,
+                    )
+                }
+            )
 
             await interaction.channel.edit(name=case_name, overwrites=overwrites)
 
             escalation_embed = SersiEmbed(
                 title="Ticket Escalation Level Changed",
                 description="This ticket has undergone a change in escalation level.",
-                footer=(interaction.user.name, interaction.user.display_avatar.url),
+                footer=interaction.user.name,
+                footer_icon=interaction.user.display_avatar.url,
                 fields={
                     "Previous Escalation Level:": "Moderator Ticket",
                     "Current Escalation Level:": "Senior Moderator Ticket",
-                    "Escalation Notes:": reason
-                }
+                    "Escalation Notes:": reason,
+                },
             )
 
-            escalation_embed.set_footer(text=interaction.user.display_name, icon_url=interaction.user.display_avatar.url)
+            escalation_embed.set_footer(
+                text=interaction.user.display_name,
+                icon_url=interaction.user.display_avatar.url,
+            )
             await interaction.channel.send(embed=escalation_embed)
 
-            close_bttn = Button(custom_id=f"senior-ticket-close:{user.id}", label="Close Ticket", style=nextcord.ButtonStyle.red)
+            close_bttn = Button(
+                custom_id=f"senior-ticket-close:{user.id}",
+                label="Close Ticket",
+                style=nextcord.ButtonStyle.red,
+            )
 
             select_options = [
-                nextcord.SelectOption(label="Moderator Ticket", description="Change escalation level to: Moderator"),
-                nextcord.SelectOption(label="Senior Moderator Ticket", description="Change escalation level to: Senior Moderator"),
-                nextcord.SelectOption(label="Administrator Ticket", description="Change escalation level to: Administrator")
+                nextcord.SelectOption(
+                    label="Moderator Ticket",
+                    description="Change escalation level to: Moderator",
+                ),
+                nextcord.SelectOption(
+                    label="Senior Moderator Ticket",
+                    description="Change escalation level to: Senior Moderator",
+                ),
+                nextcord.SelectOption(
+                    label="Administrator Ticket",
+                    description="Change escalation level to: Administrator",
+                ),
             ]
-            escalation_dropdown = Select(custom_id=f"senior-ticket-escalation:{user.id}", options=select_options, min_values=1, max_values=1, placeholder="Escalation Options")
+            escalation_dropdown = Select(
+                custom_id=f"senior-ticket-escalation:{user.id}",
+                options=select_options,
+                min_values=1,
+                max_values=1,
+                placeholder="Escalation Options",
+            )
 
             button_view = View(auto_defer=False)
             button_view.add_item(escalation_dropdown)
@@ -309,7 +405,7 @@ async def escalation_change(config: configutils.Configuration, interaction: next
             ticket_counts.admin_tickets = int(ticket_counts.admin_tickets) + 1
             with open("files/Tickets/ticketiters.json", "w", encoding="utf-8") as f:
                 json.dump(asdict(ticket_counts), f, ensure_ascii=False, indent=4)
-            case_name = (f"admin-ticket-{str(ticket_counts.admin_tickets).zfill(4)}")
+            case_name = f"admin-ticket-{str(ticket_counts.admin_tickets).zfill(4)}"
             print(1)
             try:
                 with open(config.datafiles.ticketers, "rb") as f:
@@ -319,13 +415,15 @@ async def escalation_change(config: configutils.Configuration, interaction: next
                     "mod tickets": [],
                     "senior tickets": [],
                     "admin tickets": [],
-                    "verification tickets": []
+                    "verification tickets": [],
                 }
 
             try:
                 initial_embed = interaction.message.embeds[0]
             except IndexError:
-                raise Exception("Could not find embed when attempting to escalate ticket! Index out of range!")
+                raise Exception(
+                    "Could not find embed when attempting to escalate ticket! Index out of range!"
+                )
 
             complainer_id = initial_embed.description[2:21]
             if str(complainer_id)[0] == "!":
@@ -345,32 +443,67 @@ async def escalation_change(config: configutils.Configuration, interaction: next
                 with open(config.datafiles.ticketers, "wb") as f:
                     pickle.dump(ticketers, f)
 
-            overwrites.update({complainer: nextcord.PermissionOverwrite(read_messages=True, create_public_threads=False, create_private_threads=False, external_stickers=True, embed_links=True, attach_files=True, use_external_emojis=True)})
+            overwrites.update(
+                {
+                    complainer: nextcord.PermissionOverwrite(
+                        read_messages=True,
+                        create_public_threads=False,
+                        create_private_threads=False,
+                        external_stickers=True,
+                        embed_links=True,
+                        attach_files=True,
+                        use_external_emojis=True,
+                    )
+                }
+            )
 
             await interaction.channel.edit(name=case_name, overwrites=overwrites)
 
             escalation_embed = SersiEmbed(
                 title="Ticket Escalation Level Changed",
                 description="This ticket has undergone a change in escalation level.",
-                footer=(interaction.user.name, interaction.user.display_avatar.url),
+                footer=interaction.user.name,
+                footer_icon=interaction.user.display_avatar.url,
                 fields={
                     "Previous Escalation Level:": "Moderator Ticket",
                     "Current Escalation Level:": "Administrator Ticket",
-                    "Escalation Notes:": reason
-                }
+                    "Escalation Notes:": reason,
+                },
             )
 
-            escalation_embed.set_footer(text=interaction.user.display_name, icon_url=interaction.user.display_avatar.url)
+            escalation_embed.set_footer(
+                text=interaction.user.display_name,
+                icon_url=interaction.user.display_avatar.url,
+            )
             await interaction.channel.send(embed=escalation_embed)
 
-            close_bttn = Button(custom_id=f"admin-ticket-close:{user.id}", label="Close Ticket", style=nextcord.ButtonStyle.red)
+            close_bttn = Button(
+                custom_id=f"admin-ticket-close:{user.id}",
+                label="Close Ticket",
+                style=nextcord.ButtonStyle.red,
+            )
 
             select_options = [
-                nextcord.SelectOption(label="Moderator Ticket", description="Change escalation level to: Moderator"),
-                nextcord.SelectOption(label="Senior Moderator Ticket", description="Change escalation level to: Senior Moderator"),
-                nextcord.SelectOption(label="Administrator Ticket", description="Change escalation level to: Administrator")
+                nextcord.SelectOption(
+                    label="Moderator Ticket",
+                    description="Change escalation level to: Moderator",
+                ),
+                nextcord.SelectOption(
+                    label="Senior Moderator Ticket",
+                    description="Change escalation level to: Senior Moderator",
+                ),
+                nextcord.SelectOption(
+                    label="Administrator Ticket",
+                    description="Change escalation level to: Administrator",
+                ),
             ]
-            escalation_dropdown = Select(custom_id=f"admin-ticket-escalation:{user.id}", options=select_options, min_values=1, max_values=1, placeholder="Escalation Options")
+            escalation_dropdown = Select(
+                custom_id=f"admin-ticket-escalation:{user.id}",
+                options=select_options,
+                min_values=1,
+                max_values=1,
+                placeholder="Escalation Options",
+            )
 
             button_view = View(auto_defer=False)
             button_view.add_item(escalation_dropdown)
@@ -379,13 +512,25 @@ async def escalation_change(config: configutils.Configuration, interaction: next
             await interaction.message.edit(view=button_view)
 
         case ["senior_ticket", "Moderator Ticket"]:
-            overwrites.update({interaction.guild.get_role(config.permission_roles.trial_moderator): nextcord.PermissionOverwrite(read_messages=True)})
-            overwrites.update({interaction.guild.get_role(config.permission_roles.moderator): nextcord.PermissionOverwrite(read_messages=True)})
+            overwrites.update(
+                {
+                    interaction.guild.get_role(
+                        config.permission_roles.trial_moderator
+                    ): nextcord.PermissionOverwrite(read_messages=True)
+                }
+            )
+            overwrites.update(
+                {
+                    interaction.guild.get_role(
+                        config.permission_roles.moderator
+                    ): nextcord.PermissionOverwrite(read_messages=True)
+                }
+            )
 
             ticket_counts.mod_tickets = int(ticket_counts.mod_tickets) + 1
             with open("files/Tickets/ticketiters.json", "w", encoding="utf-8") as f:
                 json.dump(asdict(ticket_counts), f, ensure_ascii=False, indent=4)
-            case_name = (f"mod-ticket-{str(ticket_counts.mod_tickets).zfill(4)}")
+            case_name = f"mod-ticket-{str(ticket_counts.mod_tickets).zfill(4)}"
 
             try:
                 with open(config.datafiles.ticketers, "rb") as f:
@@ -395,13 +540,15 @@ async def escalation_change(config: configutils.Configuration, interaction: next
                     "mod tickets": [],
                     "senior tickets": [],
                     "admin tickets": [],
-                    "verification tickets": []
+                    "verification tickets": [],
                 }
 
             try:
                 initial_embed = interaction.message.embeds[0]
             except IndexError:
-                raise Exception("Could not find embed when attempting to escalate ticket! Index out of range!")
+                raise Exception(
+                    "Could not find embed when attempting to escalate ticket! Index out of range!"
+                )
 
             complainer_id = initial_embed.description[2:21]
             if str(complainer_id)[0] == "!":
@@ -421,32 +568,67 @@ async def escalation_change(config: configutils.Configuration, interaction: next
                 with open(config.datafiles.ticketers, "wb") as f:
                     pickle.dump(ticketers, f)
 
-            overwrites.update({complainer: nextcord.PermissionOverwrite(read_messages=True, create_public_threads=False, create_private_threads=False, external_stickers=True, embed_links=True, attach_files=True, use_external_emojis=True)})
+            overwrites.update(
+                {
+                    complainer: nextcord.PermissionOverwrite(
+                        read_messages=True,
+                        create_public_threads=False,
+                        create_private_threads=False,
+                        external_stickers=True,
+                        embed_links=True,
+                        attach_files=True,
+                        use_external_emojis=True,
+                    )
+                }
+            )
 
             await interaction.channel.edit(name=case_name, overwrites=overwrites)
 
             escalation_embed = SersiEmbed(
                 title="Ticket Escalation Level Changed",
                 description="This ticket has undergone a change in escalation level.",
-                footer=(interaction.user.name, interaction.user.display_avatar.url),
+                footer=interaction.user.name,
+                footer_icon=interaction.user.display_avatar.url,
                 fields={
                     "Previous Escalation Level:": "Senior Moderator Ticket",
                     "Current Escalation Level:": "Moderator Ticket",
-                    "Escalation Notes:": reason
-                }
+                    "Escalation Notes:": reason,
+                },
             )
 
-            escalation_embed.set_footer(text=interaction.user.display_name, icon_url=interaction.user.display_avatar.url)
+            escalation_embed.set_footer(
+                text=interaction.user.display_name,
+                icon_url=interaction.user.display_avatar.url,
+            )
             await interaction.channel.send(embed=escalation_embed)
 
-            close_bttn = Button(custom_id=f"moderator-ticket-close:{user.id}", label="Close Ticket", style=nextcord.ButtonStyle.red)
+            close_bttn = Button(
+                custom_id=f"moderator-ticket-close:{user.id}",
+                label="Close Ticket",
+                style=nextcord.ButtonStyle.red,
+            )
 
             select_options = [
-                nextcord.SelectOption(label="Moderator Ticket", description="Change escalation level to: Moderator"),
-                nextcord.SelectOption(label="Senior Moderator Ticket", description="Change escalation level to: Senior Moderator"),
-                nextcord.SelectOption(label="Administrator Ticket", description="Change escalation level to: Administrator")
+                nextcord.SelectOption(
+                    label="Moderator Ticket",
+                    description="Change escalation level to: Moderator",
+                ),
+                nextcord.SelectOption(
+                    label="Senior Moderator Ticket",
+                    description="Change escalation level to: Senior Moderator",
+                ),
+                nextcord.SelectOption(
+                    label="Administrator Ticket",
+                    description="Change escalation level to: Administrator",
+                ),
             ]
-            escalation_dropdown = Select(custom_id=f"moderator-ticket-escalation:{user.id}", options=select_options, min_values=1, max_values=1, placeholder="Escalation Options")
+            escalation_dropdown = Select(
+                custom_id=f"moderator-ticket-escalation:{user.id}",
+                options=select_options,
+                min_values=1,
+                max_values=1,
+                placeholder="Escalation Options",
+            )
 
             button_view = View(auto_defer=False)
             button_view.add_item(escalation_dropdown)
@@ -458,7 +640,7 @@ async def escalation_change(config: configutils.Configuration, interaction: next
             ticket_counts.admin_tickets = int(ticket_counts.admin_tickets) + 1
             with open("files/Tickets/ticketiters.json", "w", encoding="utf-8") as f:
                 json.dump(asdict(ticket_counts), f, ensure_ascii=False, indent=4)
-            case_name = (f"admin-ticket-{str(ticket_counts.admin_tickets).zfill(4)}")
+            case_name = f"admin-ticket-{str(ticket_counts.admin_tickets).zfill(4)}"
 
             try:
                 with open(config.datafiles.ticketers, "rb") as f:
@@ -468,13 +650,15 @@ async def escalation_change(config: configutils.Configuration, interaction: next
                     "mod tickets": [],
                     "senior tickets": [],
                     "admin tickets": [],
-                    "verification tickets": []
+                    "verification tickets": [],
                 }
 
             try:
                 initial_embed = interaction.message.embeds[0]
             except IndexError:
-                raise Exception("Could not find embed when attempting to escalate ticket! Index out of range!")
+                raise Exception(
+                    "Could not find embed when attempting to escalate ticket! Index out of range!"
+                )
 
             complainer_id = initial_embed.description[2:21]
             if str(complainer_id)[0] == "!":
@@ -494,32 +678,67 @@ async def escalation_change(config: configutils.Configuration, interaction: next
                 with open(config.datafiles.ticketers, "wb") as f:
                     pickle.dump(ticketers, f)
 
-            overwrites.update({complainer: nextcord.PermissionOverwrite(read_messages=True, create_public_threads=False, create_private_threads=False, external_stickers=True, embed_links=True, attach_files=True, use_external_emojis=True)})
+            overwrites.update(
+                {
+                    complainer: nextcord.PermissionOverwrite(
+                        read_messages=True,
+                        create_public_threads=False,
+                        create_private_threads=False,
+                        external_stickers=True,
+                        embed_links=True,
+                        attach_files=True,
+                        use_external_emojis=True,
+                    )
+                }
+            )
 
             await interaction.channel.edit(name=case_name, overwrites=overwrites)
 
             escalation_embed = SersiEmbed(
                 title="Ticket Escalation Level Changed",
                 description="This ticket has undergone a change in escalation level.",
-                footer=(interaction.user.name, interaction.user.display_avatar.url),
+                footer=interaction.user.name,
+                footer_icon=interaction.user.display_avatar.url,
                 fields={
                     "Previous Escalation Level:": "Senior Moderator Ticket",
                     "Current Escalation Level:": "Administrator Ticket",
-                    "Escalation Notes:": reason
-                }
+                    "Escalation Notes:": reason,
+                },
             )
 
-            escalation_embed.set_footer(text=interaction.user.display_name, icon_url=interaction.user.display_avatar.url)
+            escalation_embed.set_footer(
+                text=interaction.user.display_name,
+                icon_url=interaction.user.display_avatar.url,
+            )
             await interaction.channel.send(embed=escalation_embed)
 
-            close_bttn = Button(custom_id=f"admin-ticket-close:{user.id}", label="Close Ticket", style=nextcord.ButtonStyle.red)
+            close_bttn = Button(
+                custom_id=f"admin-ticket-close:{user.id}",
+                label="Close Ticket",
+                style=nextcord.ButtonStyle.red,
+            )
 
             select_options = [
-                nextcord.SelectOption(label="Moderator Ticket", description="Change escalation level to: Moderator"),
-                nextcord.SelectOption(label="Senior Moderator Ticket", description="Change escalation level to: Senior Moderator"),
-                nextcord.SelectOption(label="Administrator Ticket", description="Change escalation level to: Administrator")
+                nextcord.SelectOption(
+                    label="Moderator Ticket",
+                    description="Change escalation level to: Moderator",
+                ),
+                nextcord.SelectOption(
+                    label="Senior Moderator Ticket",
+                    description="Change escalation level to: Senior Moderator",
+                ),
+                nextcord.SelectOption(
+                    label="Administrator Ticket",
+                    description="Change escalation level to: Administrator",
+                ),
             ]
-            escalation_dropdown = Select(custom_id=f"admin-ticket-escalation:{user.id}", options=select_options, min_values=1, max_values=1, placeholder="Escalation Options")
+            escalation_dropdown = Select(
+                custom_id=f"admin-ticket-escalation:{user.id}",
+                options=select_options,
+                min_values=1,
+                max_values=1,
+                placeholder="Escalation Options",
+            )
 
             button_view = View(auto_defer=False)
             button_view.add_item(escalation_dropdown)
@@ -528,13 +747,25 @@ async def escalation_change(config: configutils.Configuration, interaction: next
             await interaction.message.edit(view=button_view)
 
         case ["admin_ticket", "Moderator Ticket"]:
-            overwrites.update({interaction.guild.get_role(config.permission_roles.trial_moderator): nextcord.PermissionOverwrite(read_messages=True)})
-            overwrites.update({interaction.guild.get_role(config.permission_roles.moderator): nextcord.PermissionOverwrite(read_messages=True)})
+            overwrites.update(
+                {
+                    interaction.guild.get_role(
+                        config.permission_roles.trial_moderator
+                    ): nextcord.PermissionOverwrite(read_messages=True)
+                }
+            )
+            overwrites.update(
+                {
+                    interaction.guild.get_role(
+                        config.permission_roles.moderator
+                    ): nextcord.PermissionOverwrite(read_messages=True)
+                }
+            )
 
             ticket_counts.mod_tickets = int(ticket_counts.mod_tickets) + 1
             with open("files/Tickets/ticketiters.json", "w", encoding="utf-8") as f:
                 json.dump(asdict(ticket_counts), f, ensure_ascii=False, indent=4)
-            case_name = (f"mod-ticket-{str(ticket_counts.mod_tickets).zfill(4)}")
+            case_name = f"mod-ticket-{str(ticket_counts.mod_tickets).zfill(4)}"
 
             try:
                 with open(config.datafiles.ticketers, "rb") as f:
@@ -544,13 +775,15 @@ async def escalation_change(config: configutils.Configuration, interaction: next
                     "mod tickets": [],
                     "senior tickets": [],
                     "admin tickets": [],
-                    "verification tickets": []
+                    "verification tickets": [],
                 }
 
             try:
                 initial_embed = interaction.message.embeds[0]
             except IndexError:
-                raise Exception("Could not find embed when attempting to escalate ticket! Index out of range!")
+                raise Exception(
+                    "Could not find embed when attempting to escalate ticket! Index out of range!"
+                )
 
             complainer_id = initial_embed.description[2:21]
             if str(complainer_id)[0] == "!":
@@ -570,32 +803,67 @@ async def escalation_change(config: configutils.Configuration, interaction: next
                 with open(config.datafiles.ticketers, "wb") as f:
                     pickle.dump(ticketers, f)
 
-            overwrites.update({complainer: nextcord.PermissionOverwrite(read_messages=True, create_public_threads=False, create_private_threads=False, external_stickers=True, embed_links=True, attach_files=True, use_external_emojis=True)})
+            overwrites.update(
+                {
+                    complainer: nextcord.PermissionOverwrite(
+                        read_messages=True,
+                        create_public_threads=False,
+                        create_private_threads=False,
+                        external_stickers=True,
+                        embed_links=True,
+                        attach_files=True,
+                        use_external_emojis=True,
+                    )
+                }
+            )
 
             await interaction.channel.edit(name=case_name, overwrites=overwrites)
 
             escalation_embed = SersiEmbed(
                 title="Ticket Escalation Level Changed",
                 description="This ticket has undergone a change in escalation level.",
-                footer=(interaction.user.name, interaction.user.display_avatar.url),
+                footer=interaction.user.name,
+                footer_icon=interaction.user.display_avatar.url,
                 fields={
                     "Previous Escalation Level:": "Administrator Ticket",
                     "Current Escalation Level:": "Moderator Ticket",
-                    "Escalation Notes:": reason
-                }
+                    "Escalation Notes:": reason,
+                },
             )
 
-            escalation_embed.set_footer(text=interaction.user.display_name, icon_url=interaction.user.display_avatar.url)
+            escalation_embed.set_footer(
+                text=interaction.user.display_name,
+                icon_url=interaction.user.display_avatar.url,
+            )
             await interaction.channel.send(embed=escalation_embed)
 
-            close_bttn = Button(custom_id=f"moderator-ticket-close:{user.id}", label="Close Ticket", style=nextcord.ButtonStyle.red)
+            close_bttn = Button(
+                custom_id=f"moderator-ticket-close:{user.id}",
+                label="Close Ticket",
+                style=nextcord.ButtonStyle.red,
+            )
 
             select_options = [
-                nextcord.SelectOption(label="Moderator Ticket", description="Change escalation level to: Moderator"),
-                nextcord.SelectOption(label="Senior Moderator Ticket", description="Change escalation level to: Senior Moderator"),
-                nextcord.SelectOption(label="Administrator Ticket", description="Change escalation level to: Administrator")
+                nextcord.SelectOption(
+                    label="Moderator Ticket",
+                    description="Change escalation level to: Moderator",
+                ),
+                nextcord.SelectOption(
+                    label="Senior Moderator Ticket",
+                    description="Change escalation level to: Senior Moderator",
+                ),
+                nextcord.SelectOption(
+                    label="Administrator Ticket",
+                    description="Change escalation level to: Administrator",
+                ),
             ]
-            escalation_dropdown = Select(custom_id=f"moderator-ticket-escalation:{user.id}", options=select_options, min_values=1, max_values=1, placeholder="Escalation Options")
+            escalation_dropdown = Select(
+                custom_id=f"moderator-ticket-escalation:{user.id}",
+                options=select_options,
+                min_values=1,
+                max_values=1,
+                placeholder="Escalation Options",
+            )
 
             button_view = View(auto_defer=False)
             button_view.add_item(escalation_dropdown)
@@ -604,12 +872,18 @@ async def escalation_change(config: configutils.Configuration, interaction: next
             await interaction.message.edit(view=button_view)
 
         case ["admin_ticket", "Senior Moderator Ticket"]:
-            overwrites.update({interaction.guild.get_role(config.permission_roles.senior_moderator): nextcord.PermissionOverwrite(read_messages=True)})
+            overwrites.update(
+                {
+                    interaction.guild.get_role(
+                        config.permission_roles.senior_moderator
+                    ): nextcord.PermissionOverwrite(read_messages=True)
+                }
+            )
 
             ticket_counts.senior_tickets = int(ticket_counts.senior_tickets) + 1
             with open("files/Tickets/ticketiters.json", "w", encoding="utf-8") as f:
                 json.dump(asdict(ticket_counts), f, ensure_ascii=False, indent=4)
-            case_name = (f"senior-ticket-{str(ticket_counts.senior_tickets).zfill(4)}")
+            case_name = f"senior-ticket-{str(ticket_counts.senior_tickets).zfill(4)}"
 
             try:
                 with open(config.datafiles.ticketers, "rb") as f:
@@ -619,13 +893,15 @@ async def escalation_change(config: configutils.Configuration, interaction: next
                     "mod tickets": [],
                     "senior tickets": [],
                     "admin tickets": [],
-                    "verification tickets": []
+                    "verification tickets": [],
                 }
 
             try:
                 initial_embed = interaction.message.embeds[0]
             except IndexError:
-                raise Exception("Could not find embed when attempting to escalate ticket! Index out of range!")
+                raise Exception(
+                    "Could not find embed when attempting to escalate ticket! Index out of range!"
+                )
 
             complainer_id = initial_embed.description[2:21]
             if str(complainer_id)[0] == "!":
@@ -645,32 +921,67 @@ async def escalation_change(config: configutils.Configuration, interaction: next
                 with open(config.datafiles.ticketers, "wb") as f:
                     pickle.dump(ticketers, f)
 
-            overwrites.update({complainer: nextcord.PermissionOverwrite(read_messages=True, create_public_threads=False, create_private_threads=False, external_stickers=True, embed_links=True, attach_files=True, use_external_emojis=True)})
+            overwrites.update(
+                {
+                    complainer: nextcord.PermissionOverwrite(
+                        read_messages=True,
+                        create_public_threads=False,
+                        create_private_threads=False,
+                        external_stickers=True,
+                        embed_links=True,
+                        attach_files=True,
+                        use_external_emojis=True,
+                    )
+                }
+            )
 
             await interaction.channel.edit(name=case_name, overwrites=overwrites)
 
             escalation_embed = SersiEmbed(
                 title="Ticket Escalation Level Changed",
                 description="This ticket has undergone a change in escalation level.",
-                footer=(interaction.user.name, interaction.user.display_avatar.url),
+                footer=interaction.user.name,
+                footer_icon=interaction.user.display_avatar.url,
                 fields={
                     "Previous Escalation Level:": "Administrator Ticket",
                     "Current Escalation Level:": "Senior Moderator Ticket",
-                    "Escalation Notes:": reason
-                }
+                    "Escalation Notes:": reason,
+                },
             )
 
-            escalation_embed.set_footer(text=interaction.user.display_name, icon_url=interaction.user.display_avatar.url)
+            escalation_embed.set_footer(
+                text=interaction.user.display_name,
+                icon_url=interaction.user.display_avatar.url,
+            )
             await interaction.channel.send(embed=escalation_embed)
 
-            close_bttn = Button(custom_id=f"senior-ticket-close:{user.id}", label="Close Ticket", style=nextcord.ButtonStyle.red)
+            close_bttn = Button(
+                custom_id=f"senior-ticket-close:{user.id}",
+                label="Close Ticket",
+                style=nextcord.ButtonStyle.red,
+            )
 
             select_options = [
-                nextcord.SelectOption(label="Moderator Ticket", description="Change escalation level to: Moderator"),
-                nextcord.SelectOption(label="Senior Moderator Ticket", description="Change escalation level to: Senior Moderator"),
-                nextcord.SelectOption(label="Administrator Ticket", description="Change escalation level to: Administrator")
+                nextcord.SelectOption(
+                    label="Moderator Ticket",
+                    description="Change escalation level to: Moderator",
+                ),
+                nextcord.SelectOption(
+                    label="Senior Moderator Ticket",
+                    description="Change escalation level to: Senior Moderator",
+                ),
+                nextcord.SelectOption(
+                    label="Administrator Ticket",
+                    description="Change escalation level to: Administrator",
+                ),
             ]
-            escalation_dropdown = Select(custom_id=f"senior-ticket-escalation:{user.id}", options=select_options, min_values=1, max_values=1, placeholder="Escalation Options")
+            escalation_dropdown = Select(
+                custom_id=f"senior-ticket-escalation:{user.id}",
+                options=select_options,
+                min_values=1,
+                max_values=1,
+                placeholder="Escalation Options",
+            )
 
             button_view = View(auto_defer=False)
             button_view.add_item(escalation_dropdown)

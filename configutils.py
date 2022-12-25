@@ -4,17 +4,17 @@ from dataclass_wizard import YAMLWizard
 
 @dataclass
 class ConfigurationDatafiles(YAMLWizard):
-    author_list:    str
-    keyfile:        str
-    slurfile:       str
-    goodwordfile:   str
-    blacklist:      str
-    casedetails:    str
-    casehistory:    str
-    gifblacklist:   str
-    secret_dms:     str
-    secret_mutes:   str
-    reform_iter:    str
+    author_list: str
+    keyfile: str
+    slurfile: str
+    goodwordfile: str
+    blacklist: str
+    casedetails: str
+    casehistory: str
+    gifblacklist: str
+    secret_dms: str
+    secret_mutes: str
+    reform_iter: str
     reformation_cases: str
     watchlist: str
     ticketers: str
@@ -127,7 +127,7 @@ class ConfigurationPermissionRoles(YAMLWizard):
     trial_moderator: int
     moderator: int
     senior_moderator: int
-    dark_moderator: int    # AKA: super-duper mega administrators
+    dark_moderator: int  # AKA: super-duper mega administrators
 
 
 @dataclass
