@@ -19,7 +19,7 @@ class Cases(commands.Cog):
         self.case_details = {}
 
     @commands.command(aliases=["c", "usercases", "modcases"])
-    async def cases(self, ctx: nextcord.Context, search_term):
+    async def cases(self, ctx: nextcord.ext.commands.Context, search_term):
         if not await permcheck(ctx, is_mod):
             return
 
