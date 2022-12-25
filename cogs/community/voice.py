@@ -53,7 +53,7 @@ class Voice(commands.Cog):
         )
         embed.add_field(name="Members Moved:", value=memberlist, inline=False)
 
-        channel = interaction.guild.get_channel(self.config.logging.channel)
+        channel = interaction.guild.get_channel(self.config.channels.logging)
         await channel.send(embed=embed)
 
     @commands.command(aliases=["mvc", "movevc", "vcmove", "mm"])
