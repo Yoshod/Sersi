@@ -13,18 +13,18 @@ class Gif(commands.Cog):
         self.config = config
         self.filename = config.datafiles.gifblacklist
         try:
-            with open(self.filename, 'x'):  # creates file if not exists
+            with open(self.filename, "x"):  # creates file if not exists
                 pass
-        except FileExistsError:             # ignores error if it does
+        except FileExistsError:  # ignores error if it does
             pass
         self.list = self.loadlist()
         self.sersisuccess = config.emotes.success
 
     def loadlist(self):
         giflist = []
-        with open(self.filename, 'r') as file:
+        with open(self.filename, "r") as file:
             for line in file:
-                line = line.replace('\n', '')
+                line = line.replace("\n", "")
                 giflist.append(line)
         return giflist
 
@@ -47,11 +47,8 @@ class Gif(commands.Cog):
         # logging
         embed = SersiEmbed(
             title="GIF added to blacklist",
-            fields={
-                "Moderator:": ctx.author.mention,
-                "GIF URL:": url
-            },
-            footer="GIF Blacklist"
+            fields={"Moderator:": ctx.author.mention, "GIF URL:": url},
+            footer="GIF Blacklist",
         )
 
         channel = ctx.guild.get_channel(self.config.channels.logging)
@@ -78,11 +75,8 @@ class Gif(commands.Cog):
         # logging
         embed = SersiEmbed(
             title="GIF removed from blacklist",
-            fields={
-                "Moderator:": ctx.author.mention,
-                "GIF URL:": url
-            },
-            footer="GIF Blacklist"
+            fields={"Moderator:": ctx.author.mention, "GIF URL:": url},
+            footer="GIF Blacklist",
         )
 
         channel = ctx.guild.get_channel(self.config.channels.logging)
@@ -96,7 +90,8 @@ class Gif(commands.Cog):
 
         embed = SersiEmbed(
             title="List of GIFs currently being blacklisted",
-            description="\n".join(self.list))
+            description="\n".join(self.list),
+        )
         await ctx.send(embed=embed)
 
     @commands.Cog.listener()
@@ -110,8 +105,8 @@ class Gif(commands.Cog):
                 fields={
                     "Message Author:": message.author.mention,
                     "Channel:": message.channel.mention,
-                    "Message:": message.content
-                }
+                    "Message:": message.content,
+                },
             )
 
             channel = self.bot.get_channel(self.config.channels.logging)

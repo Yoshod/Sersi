@@ -1,5 +1,6 @@
 from Crypto.Cipher import AES
 import configutils
+
 config = configutils.Configuration.from_yaml_file("./persistent_data/config.yaml")
 
 
@@ -10,7 +11,7 @@ def encrypt_data(unencrypted_data):
     cipher = AES.new(key, AES.MODE_EAX)
     nonce = cipher.nonce
 
-    ciphertext, tag = cipher.encrypt_and_digest(unencrypted_data.encode('ascii'))
+    ciphertext, tag = cipher.encrypt_and_digest(unencrypted_data.encode("ascii"))
 
     return ciphertext, nonce, tag
 
@@ -24,6 +25,6 @@ def unencrypt_data(encrypted_data, nonce, tag):
 
     try:
         cipher.verify(tag)
-        return unencrypted_data.decode('ascii')
+        return unencrypted_data.decode("ascii")
     except ValueError:
         return False

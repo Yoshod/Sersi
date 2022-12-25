@@ -30,25 +30,36 @@ class Voice(commands.Cog):
         memberlist = ""
         for member in current.members:
             memberlist = memberlist + f"**{member.display_name}** ({member.id})\n"
-            await member.move_to(channel=target, reason=f"Mass move by {interaction.user} ({interaction.user.id})")
+            await member.move_to(
+                channel=target,
+                reason=f"Mass move by {interaction.user} ({interaction.user.id})",
+            )
 
-        await interaction.message.edit(f"All members in {current.mention} were moved to {target.mention} by {interaction.user.mention}", embed=None, view=None)
+        await interaction.message.edit(
+            f"All members in {current.mention} were moved to {target.mention} by {interaction.user.mention}",
+            embed=None,
+            view=None,
+        )
 
         # logging
         embed = nextcord.Embed(
             title="Members mass moved to other VC",
-            color=nextcord.Color.from_rgb(237, 91, 6)
+            color=nextcord.Color.from_rgb(237, 91, 6),
         )
         embed.add_field(name="Moderator:", value=interaction.user.mention, inline=False)
         embed.add_field(name="Original channel:", value=current.mention, inline=False)
-        embed.add_field(name="Members moved to channel:", value=target.mention, inline=False)
+        embed.add_field(
+            name="Members moved to channel:", value=target.mention, inline=False
+        )
         embed.add_field(name="Members Moved:", value=memberlist, inline=False)
 
         channel = interaction.guild.get_channel(self.config.logging.channel)
         await channel.send(embed=embed)
 
-    @commands.command(aliases=['mvc', 'movevc', 'vcmove', 'mm'])
-    async def massmove(self, ctx, current: nextcord.VoiceChannel, target: nextcord.VoiceChannel):
+    @commands.command(aliases=["mvc", "movevc", "vcmove", "mm"])
+    async def massmove(
+        self, ctx, current: nextcord.VoiceChannel, target: nextcord.VoiceChannel
+    ):
         """Mass move members from one VC to another.
 
         both VCs must be referenced to by mention or Channel ID
@@ -58,15 +69,22 @@ class Voice(commands.Cog):
 
         dialog_embed = nextcord.Embed(
             title="Move Members to different voice channel",
-            color=nextcord.Color.from_rgb(237, 91, 6))
-        dialog_embed.add_field(name='\u200b', value='All members in channel:', inline=False)
+            color=nextcord.Color.from_rgb(237, 91, 6),
+        )
+        dialog_embed.add_field(
+            name="\u200b", value="All members in channel:", inline=False
+        )
         dialog_embed.add_field(name="Source Channel", value=current.mention)
         dialog_embed.add_field(name="Source ID", value=current.id)
-        dialog_embed.add_field(name='\u200b', value='will be moved to channel:', inline=False)
+        dialog_embed.add_field(
+            name="\u200b", value="will be moved to channel:", inline=False
+        )
         dialog_embed.add_field(name="Destination Channel", value=target.mention)
         dialog_embed.add_field(name="Destination ID", value=target.id)
 
-        await ConfirmView(self.cb_massmove_proceed).send_as_reply(ctx, embed=dialog_embed)
+        await ConfirmView(self.cb_massmove_proceed).send_as_reply(
+            ctx, embed=dialog_embed
+        )
 
     """@commands.command(aliases=['f'])
     async def forcejoin(self, ctx, channel: nextcord.VoiceChannel):
@@ -103,41 +121,60 @@ class Voice(commands.Cog):
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
         def make_embed(message: str):
-            embed_obj = {
-                'color': 0xED5B06,
-                'description': message
-            }
+            embed_obj = {"color": 0xED5B06, "description": message}
             return embed_obj
 
-        if after.channel != before.channel:  # channel change. at least one message has to be sent
+        if (
+            after.channel != before.channel
+        ):  # channel change. at least one message has to be sent
 
             # specifications regardless of message content
             headers = {
-                'Authorization': f'Bot {discordTokens.getToken()}',
-                'Content-Type': 'application/json; charset=UTF-8'
+                "Authorization": f"Bot {discordTokens.getToken()}",
+                "Content-Type": "application/json; charset=UTF-8",
             }
 
             if after.channel is not None:
-                url = f"https://discord.com/api/v10/channels/{after.channel.id}/messages"
+                url = (
+                    f"https://discord.com/api/v10/channels/{after.channel.id}/messages"
+                )
                 if before.channel is not None:
                     json = {
-                        "embeds": [make_embed(f"Hello {member.mention}, welcome to {after.channel.mention}! Glad you came over from {before.channel.mention}")]
+                        "embeds": [
+                            make_embed(
+                                f"Hello {member.mention}, welcome to {after.channel.mention}! Glad you came over from {before.channel.mention}"
+                            )
+                        ]
                     }
                 else:
                     json = {
-                        "embeds": [make_embed(f"Hello {member.mention}, welcome to {after.channel.mention}!")]
+                        "embeds": [
+                            make_embed(
+                                f"Hello {member.mention}, welcome to {after.channel.mention}!"
+                            )
+                        ]
                     }
                 requests.post(url, headers=headers, json=json)
 
             if before.channel is not None:
-                url = f"https://discord.com/api/v10/channels/{before.channel.id}/messages"
+                url = (
+                    f"https://discord.com/api/v10/channels/{before.channel.id}/messages"
+                )
                 if after.channel is not None:
                     json = {
-                        "embeds": [make_embed(f"{member.mention} ran off to {after.channel.mention}, guess the grass was greener there!")]
+                        "embeds": [
+                            make_embed(
+                                f"{member.mention} ran off to {after.channel.mention}, guess the grass was greener there!"
+                            )
+                        ]
                     }
                 else:
                     json = {
-                        "embeds": [make_embed(f"{member.mention} has left the voice channel. Goodbye!")]
+                        "embeds": [
+                            make_embed(
+                                f"{member.mention} has left the voice channel. Goodbye!"
+                            )
+                        ]
                     }
                 requests.post(url, headers=headers, json=json)
 

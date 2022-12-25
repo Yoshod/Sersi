@@ -34,12 +34,15 @@ class Caps(commands.Cog):
         self.MIN_CHARS_FOR_DETECTION = value
         self.config.bot.minimum_caps_length = number
 
-        await ctx.send(f"{self.sersisuccess} Caps lock detection starts now at messages longer than **{value}**.")
+        await ctx.send(
+            f"{self.sersisuccess} Caps lock detection starts now at messages longer than **{value}**."
+        )
 
         embed = nextcord.Embed(
             title="Minimum Letters For Detection Changed",
             description="The minimum number of letters required for a message to have caps detection has been changed",
-            color=nextcord.Color.from_rgb(237, 91, 6))
+            color=nextcord.Color.from_rgb(237, 91, 6),
+        )
         embed.add_field(name="Moderator", value=ctx.author.mention)
         embed.add_field(name="Old Value", value=str(old_val))
         embed.add_field(name="New Value", value=str(value))
@@ -52,7 +55,9 @@ class Caps(commands.Cog):
         if not await permcheck(ctx, is_mod):
             return
 
-        await ctx.send(f"Current caps lock detection starts at messages longer than **{self.MIN_CHARS_FOR_DETECTION}**.")
+        await ctx.send(
+            f"Current caps lock detection starts at messages longer than **{self.MIN_CHARS_FOR_DETECTION}**."
+        )
 
     # events
     @commands.Cog.listener()
@@ -60,10 +65,10 @@ class Caps(commands.Cog):
         msg_string = message.content
 
         # remove emotes
-        new_msg_string = re.sub(r'(<a?)?:\w+:(\d{18}>)?', '', msg_string)
+        new_msg_string = re.sub(r"(<a?)?:\w+:(\d{18}>)?", "", msg_string)
 
         # remove nums and non-alpanumeric
-        new_msg_string = re.sub(r'[^a-zA-Z]', '', new_msg_string)
+        new_msg_string = re.sub(r"[^a-zA-Z]", "", new_msg_string)
 
         if len(new_msg_string) > self.MIN_CHARS_FOR_DETECTION:
             # msg_string = unidecode.unidecode(msg_string)
@@ -83,19 +88,34 @@ class Caps(commands.Cog):
                     content=msg_string.lower(),
                     username=message.author.display_name,
                     avatar_url=message.author.display_avatar.url,
-                    wait=True)
+                    wait=True,
+                )
 
                 channel = self.bot.get_channel(self.config.channels.logging)
                 logging_embed = nextcord.Embed(
                     title="Caps Lock Message replaced",
                     description="",
-                    color=nextcord.Color.from_rgb(237, 91, 6)
+                    color=nextcord.Color.from_rgb(237, 91, 6),
                 )
-                logging_embed.add_field(name="User:", value=message.author.mention, inline=False)
-                logging_embed.add_field(name="Channel:", value=message.channel.mention, inline=False)
-                logging_embed.add_field(name="Original Message:", value=msg_string, inline=False)
-                logging_embed.add_field(name="Replacement Message:", value=str(msg_string.lower()), inline=False)
-                logging_embed.add_field(name="Link to Replacement Message:", value=f"[Jump!]({replacement_message.jump_url})", inline=True)
+                logging_embed.add_field(
+                    name="User:", value=message.author.mention, inline=False
+                )
+                logging_embed.add_field(
+                    name="Channel:", value=message.channel.mention, inline=False
+                )
+                logging_embed.add_field(
+                    name="Original Message:", value=msg_string, inline=False
+                )
+                logging_embed.add_field(
+                    name="Replacement Message:",
+                    value=str(msg_string.lower()),
+                    inline=False,
+                )
+                logging_embed.add_field(
+                    name="Link to Replacement Message:",
+                    value=f"[Jump!]({replacement_message.jump_url})",
+                    inline=True,
+                )
                 await channel.send(embed=logging_embed)
 
 

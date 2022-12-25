@@ -16,9 +16,11 @@ async def suggest(self, ctx):
     suggest_embed = nextcord.Embed(
         title=f"New Suggestion by {ctx.author.mention}",
         description="A new suggestion has been submitted, please review this properly before deciding on whether to make available for the wider server to vote upon.",
-        colour=nextcord.Color.from_rgb(237, 91, 6)
+        colour=nextcord.Color.from_rgb(237, 91, 6),
     )
-    suggest_embed.add_field(name="Suggester", value=f"{ctx.author.mention} ({ctx.author.id})")
+    suggest_embed.add_field(
+        name="Suggester", value=f"{ctx.author.mention} ({ctx.author.id})"
+    )
     suggest_embed.add_field(name="Suggestion", value=ctx.message.content)
 
     yes = Button(label="Approve", style=nextcord.ButtonStyle.green)

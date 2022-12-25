@@ -2,13 +2,19 @@
 # Written by Hekkland
 
 
-from baseutils import isMod
+from permutils import is_mod
 
-offenceList = ["Intentional Bigotry", "Unintentional Bigotry", "Spam", "NSFW Content", "Channel Misuse"]
+offenceList = [
+    "Intentional Bigotry",
+    "Unintentional Bigotry",
+    "Spam",
+    "NSFW Content",
+    "Channel Misuse",
+]
 
 
 def getOffenceList(ctx):
-    if isMod(ctx.author.roles):
+    if is_mod(ctx.author):
         offenceOutput = "\n".join(offenceList)
         return f"__**Adam Something Central Offence List**__\n{offenceOutput}"
     else:

@@ -10,9 +10,7 @@ class Suggest(commands.Cog):
     @commands.command()
     async def suggest(self, ctx):
         sample_suggestion = nextcord.Embed(
-            title="",
-            description="",
-            colour=nextcord.Color.from_rgb(237, 91, 6)
+            title="", description="", colour=nextcord.Color.from_rgb(237, 91, 6)
         )
         ask_embed.set_thumbnail(self.bot.user.avatar.url)
         await ctx.send(embed=ask_embed)

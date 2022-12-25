@@ -11,19 +11,44 @@ class ModAppModal(Modal):
         super().__init__("Moderator Application")
         self.config = config
 
-        self.aboutq = nextcord.ui.TextInput(label="Tell Us About Yourself", min_length=2, max_length=1024, required=True, style=nextcord.TextInputStyle.paragraph)
+        self.aboutq = nextcord.ui.TextInput(
+            label="Tell Us About Yourself",
+            min_length=2,
+            max_length=1024,
+            required=True,
+            style=nextcord.TextInputStyle.paragraph,
+        )
         self.add_item(self.aboutq)
 
-        self.whymod = nextcord.ui.TextInput(label="Why Do You Want To Become A Moderator", min_length=2, max_length=1024, required=True, style=nextcord.TextInputStyle.paragraph)
+        self.whymod = nextcord.ui.TextInput(
+            label="Why Do You Want To Become A Moderator",
+            min_length=2,
+            max_length=1024,
+            required=True,
+            style=nextcord.TextInputStyle.paragraph,
+        )
         self.add_item(self.whymod)
 
-        self.priorexp = nextcord.ui.TextInput(label="Do You Have Prior Moderation Experience", min_length=2, max_length=1024, required=True, style=nextcord.TextInputStyle.paragraph)
+        self.priorexp = nextcord.ui.TextInput(
+            label="Do You Have Prior Moderation Experience",
+            min_length=2,
+            max_length=1024,
+            required=True,
+            style=nextcord.TextInputStyle.paragraph,
+        )
         self.add_item(self.priorexp)
 
-        self.age = nextcord.ui.TextInput(label="How Old Are You", min_length=1, max_length=2, required=True)
+        self.age = nextcord.ui.TextInput(
+            label="How Old Are You", min_length=1, max_length=2, required=True
+        )
         self.add_item(self.age)
 
-        self.vc = nextcord.ui.TextInput(label="Are You Able To Voice Chat", min_length=2, max_length=1024, required=True)
+        self.vc = nextcord.ui.TextInput(
+            label="Are You Able To Voice Chat",
+            min_length=2,
+            max_length=1024,
+            required=True,
+        )
         self.add_item(self.vc)
 
     async def callback(self, interaction):
@@ -38,12 +63,25 @@ class ModAppModal(Modal):
                 self.whymod.label: self.whymod.value,
                 self.priorexp.label: self.priorexp.value,
                 self.age.label: self.age.value,
-                self.vc.label: self.vc.value
-            })
+                self.vc.label: self.vc.value,
+            },
+        )
 
-        accept_bttn = Button(custom_id=f"mod-application-next-steps:{applicant_id}", label="Move To Next Steps", style=nextcord.ButtonStyle.green)
-        reject_bttn = Button(custom_id=f"mod-application-reject:{applicant_id}", label="Reject Application", style=nextcord.ButtonStyle.red)
-        review_bttn = Button(custom_id=f"mod-application-review:{applicant_id}", label="Under Review", style=nextcord.ButtonStyle.grey)
+        accept_bttn = Button(
+            custom_id=f"mod-application-next-steps:{applicant_id}",
+            label="Move To Next Steps",
+            style=nextcord.ButtonStyle.green,
+        )
+        reject_bttn = Button(
+            custom_id=f"mod-application-reject:{applicant_id}",
+            label="Reject Application",
+            style=nextcord.ButtonStyle.red,
+        )
+        review_bttn = Button(
+            custom_id=f"mod-application-review:{applicant_id}",
+            label="Under Review",
+            style=nextcord.ButtonStyle.grey,
+        )
 
         button_view = View(auto_defer=False)
         button_view.add_item(accept_bttn)
@@ -59,19 +97,44 @@ class CetAppModal(Modal):
         super().__init__("Community Engagement Application")
         self.config = config
 
-        self.aboutq = nextcord.ui.TextInput(label="Tell Us About Yourself", min_length=2, max_length=1024, required=True, style=nextcord.TextInputStyle.paragraph)
+        self.aboutq = nextcord.ui.TextInput(
+            label="Tell Us About Yourself",
+            min_length=2,
+            max_length=1024,
+            required=True,
+            style=nextcord.TextInputStyle.paragraph,
+        )
         self.add_item(self.aboutq)
 
-        self.whycet = nextcord.ui.TextInput(label="Why Do You Want To Join CET", min_length=2, max_length=1024, required=True, style=nextcord.TextInputStyle.paragraph)
+        self.whycet = nextcord.ui.TextInput(
+            label="Why Do You Want To Join CET",
+            min_length=2,
+            max_length=1024,
+            required=True,
+            style=nextcord.TextInputStyle.paragraph,
+        )
         self.add_item(self.whycet)
 
-        self.priorexp = nextcord.ui.TextInput(label="Do You Have Prior Management Experience", min_length=2, max_length=1024, required=True, style=nextcord.TextInputStyle.paragraph)
+        self.priorexp = nextcord.ui.TextInput(
+            label="Do You Have Prior Management Experience",
+            min_length=2,
+            max_length=1024,
+            required=True,
+            style=nextcord.TextInputStyle.paragraph,
+        )
         self.add_item(self.priorexp)
 
-        self.age = nextcord.ui.TextInput(label="How Old Are You", min_length=1, max_length=2, required=True)
+        self.age = nextcord.ui.TextInput(
+            label="How Old Are You", min_length=1, max_length=2, required=True
+        )
         self.add_item(self.age)
 
-        self.vc = nextcord.ui.TextInput(label="Are You Able To Voice Chat", min_length=2, max_length=1024, required=True)
+        self.vc = nextcord.ui.TextInput(
+            label="Are You Able To Voice Chat",
+            min_length=2,
+            max_length=1024,
+            required=True,
+        )
         self.add_item(self.vc)
 
     async def callback(self, interaction):
@@ -86,12 +149,25 @@ class CetAppModal(Modal):
                 self.whycet.label: self.whycet.value,
                 self.priorexp.label: self.priorexp.value,
                 self.age.label: self.age.value,
-                self.vc.label: self.vc.value
-            })
+                self.vc.label: self.vc.value,
+            },
+        )
 
-        accept_bttn = Button(custom_id=f"cet-application-next-steps:{applicant_id}", label="Move To Next Steps", style=nextcord.ButtonStyle.green)
-        reject_bttn = Button(custom_id=f"cet-application-reject:{applicant_id}", label="Reject Application", style=nextcord.ButtonStyle.red)
-        review_bttn = Button(custom_id=f"cet-application-review:{applicant_id}", label="Under Review", style=nextcord.ButtonStyle.grey)
+        accept_bttn = Button(
+            custom_id=f"cet-application-next-steps:{applicant_id}",
+            label="Move To Next Steps",
+            style=nextcord.ButtonStyle.green,
+        )
+        reject_bttn = Button(
+            custom_id=f"cet-application-reject:{applicant_id}",
+            label="Reject Application",
+            style=nextcord.ButtonStyle.red,
+        )
+        review_bttn = Button(
+            custom_id=f"cet-application-review:{applicant_id}",
+            label="Under Review",
+            style=nextcord.ButtonStyle.grey,
+        )
 
         button_view = View(auto_defer=False)
         button_view.add_item(accept_bttn)
@@ -124,8 +200,13 @@ class Applications(commands.Cog):
 
         test_embed = SersiEmbed(
             title="Moderator Application",
-            description="Press the button below to apply to become a moderator on Adam Something Central.")
-        open_modal = Button(custom_id="mod-application-start", label="Open Form", style=nextcord.ButtonStyle.blurple)
+            description="Press the button below to apply to become a moderator on Adam Something Central.",
+        )
+        open_modal = Button(
+            custom_id="mod-application-start",
+            label="Open Form",
+            style=nextcord.ButtonStyle.blurple,
+        )
         open_modal.callback = self.cb_open_mod_modal
 
         button_view = View(timeout=None)
@@ -147,8 +228,9 @@ class Applications(commands.Cog):
                 "Server Membership": "We want all of our staff to be members of the Adam Something Central community. This means if you have been here for less than two months we will not be able to consider you.",
                 "Moderation History": "Whilst having a moderation history on the server does not automatically prevent you from becoming a member of staff, expect to be challenged on your moderation history.",
                 "Age": "Whilst we do not explicitly require staff to be of a certain age, bar the fact they must be old enough to use discord, those under the age of 18 can expect a little more grilling in order to determine maturity.",
-                "Applying": "To apply all you have to do is press the 'Open Form' button above. This will show a short form inside of discord that you can fill in. The process is easy, and you will usually get a response within two days."
-            })
+                "Applying": "To apply all you have to do is press the 'Open Form' button above. This will show a short form inside of discord that you can fill in. The process is easy, and you will usually get a response within two days.",
+            },
+        )
 
         await ctx.send(embed=info_embed)
 
@@ -161,8 +243,13 @@ class Applications(commands.Cog):
 
         test_embed = SersiEmbed(
             title="Community Engagement Team Application",
-            description="Press the button below to apply to become a member of the Community Engagement Team on Adam Something Central.")
-        open_modal = Button(custom_id="cet-application-start", label="Open Form", style=nextcord.ButtonStyle.blurple)
+            description="Press the button below to apply to become a member of the Community Engagement Team on Adam Something Central.",
+        )
+        open_modal = Button(
+            custom_id="cet-application-start",
+            label="Open Form",
+            style=nextcord.ButtonStyle.blurple,
+        )
         open_modal.callback = self.cb_open_cet_modal
 
         button_view = View(timeout=None)
@@ -183,13 +270,16 @@ class Applications(commands.Cog):
                     user = interaction.guild.get_member(int(user_id))
 
                     updated_form = interaction.message.embeds[0]
-                    updated_form.add_field(name="Application Advanced by:", value=interaction.user.mention)
+                    updated_form.add_field(
+                        name="Application Advanced by:", value=interaction.user.mention
+                    )
                     await interaction.message.edit(embed=updated_form, view=None)
 
                     advance_embed = nextcord.Embed(
                         title="Your Moderator Application",
                         description="Your moderator application has been advanced to the next steps. Please create a Senior Moderator Ticket on Adam Something Central.",
-                        colour=nextcord.Color.from_rgb(237, 91, 6))
+                        colour=nextcord.Color.from_rgb(237, 91, 6),
+                    )
                     await user.send(embed=advance_embed)
 
             case ["mod-application-reject", user_id]:
@@ -197,13 +287,16 @@ class Applications(commands.Cog):
                     user = interaction.guild.get_member(int(user_id))
 
                     updated_form = interaction.message.embeds[0]
-                    updated_form.add_field(name="Application Rejected by:", value=interaction.user.mention)
+                    updated_form.add_field(
+                        name="Application Rejected by:", value=interaction.user.mention
+                    )
                     await interaction.message.edit(embed=updated_form, view=None)
 
                     rejection_embed = nextcord.Embed(
                         title="Your Moderator Application",
                         description="Your moderator application has been rejected. Thanks for applying, we encourage you to try again in the future.",
-                        colour=nextcord.Color.from_rgb(237, 91, 6))
+                        colour=nextcord.Color.from_rgb(237, 91, 6),
+                    )
                     await user.send(embed=rejection_embed)
 
             case ["mod-application-review", user_id]:
@@ -211,9 +304,19 @@ class Applications(commands.Cog):
                     user = interaction.guild.get_member(int(user_id))
 
                     updated_form = interaction.message.embeds[0]
-                    updated_form.add_field(name="Review notified by:", value=interaction.user.mention)
-                    accept_bttn = Button(custom_id=f"mod-application-next-steps:{user_id}", label="Move To Next Steps", style=nextcord.ButtonStyle.green)
-                    reject_bttn = Button(custom_id=f"mod-application-reject:{user_id}", label="Reject Application", style=nextcord.ButtonStyle.red)
+                    updated_form.add_field(
+                        name="Review notified by:", value=interaction.user.mention
+                    )
+                    accept_bttn = Button(
+                        custom_id=f"mod-application-next-steps:{user_id}",
+                        label="Move To Next Steps",
+                        style=nextcord.ButtonStyle.green,
+                    )
+                    reject_bttn = Button(
+                        custom_id=f"mod-application-reject:{user_id}",
+                        label="Reject Application",
+                        style=nextcord.ButtonStyle.red,
+                    )
                     button_view = View(auto_defer=False)
                     button_view.add_item(accept_bttn)
                     button_view.add_item(reject_bttn)
@@ -222,7 +325,8 @@ class Applications(commands.Cog):
                     review_embed = nextcord.Embed(
                         title="Your Moderator Application",
                         description="Your moderator application has been received and is now under consideration. You will receive more information in the coming days.",
-                        colour=nextcord.Color.from_rgb(237, 91, 6))
+                        colour=nextcord.Color.from_rgb(237, 91, 6),
+                    )
                     await user.send(embed=review_embed)
 
             case ["mod-application-start"]:
@@ -233,13 +337,16 @@ class Applications(commands.Cog):
                     user = interaction.guild.get_member(int(user_id))
 
                     updated_form = interaction.message.embeds[0]
-                    updated_form.add_field(name="Application Advanced by:", value=interaction.user.mention)
+                    updated_form.add_field(
+                        name="Application Advanced by:", value=interaction.user.mention
+                    )
                     await interaction.message.edit(embed=updated_form, view=None)
 
                     advance_embed = nextcord.Embed(
                         title="Your Community Engagement Application",
                         description="Your community engagement application has been advanced to the next steps. Please contact the Community Engagement Team Lead on Adam Something Central.",
-                        colour=nextcord.Color.from_rgb(237, 91, 6))
+                        colour=nextcord.Color.from_rgb(237, 91, 6),
+                    )
                     await user.send(embed=advance_embed)
 
             case ["cet-application-reject", user_id]:
@@ -247,13 +354,16 @@ class Applications(commands.Cog):
                     user = interaction.guild.get_member(int(user_id))
 
                     updated_form = interaction.message.embeds[0]
-                    updated_form.add_field(name="Application Rejected by:", value=interaction.user.mention)
+                    updated_form.add_field(
+                        name="Application Rejected by:", value=interaction.user.mention
+                    )
                     await interaction.message.edit(embed=updated_form, view=None)
 
                     rejection_embed = nextcord.Embed(
                         title="Your Community Engagement Application",
                         description="Your community engagement application has been rejected. Thanks for applying, we encourage you to try again in the future.",
-                        colour=nextcord.Color.from_rgb(237, 91, 6))
+                        colour=nextcord.Color.from_rgb(237, 91, 6),
+                    )
                     await user.send(embed=rejection_embed)
 
             case ["cet-application-review", user_id]:
@@ -261,9 +371,19 @@ class Applications(commands.Cog):
                     user = interaction.guild.get_member(int(user_id))
 
                     updated_form = interaction.message.embeds[0]
-                    updated_form.add_field(name="Review notified by:", value=interaction.user.mention)
-                    accept_bttn = Button(custom_id=f"cet-application-next-steps:{user_id}", label="Move To Next Steps", style=nextcord.ButtonStyle.green)
-                    reject_bttn = Button(custom_id=f"cet-application-reject:{user_id}", label="Reject Application", style=nextcord.ButtonStyle.red)
+                    updated_form.add_field(
+                        name="Review notified by:", value=interaction.user.mention
+                    )
+                    accept_bttn = Button(
+                        custom_id=f"cet-application-next-steps:{user_id}",
+                        label="Move To Next Steps",
+                        style=nextcord.ButtonStyle.green,
+                    )
+                    reject_bttn = Button(
+                        custom_id=f"cet-application-reject:{user_id}",
+                        label="Reject Application",
+                        style=nextcord.ButtonStyle.red,
+                    )
                     button_view = View(auto_defer=False)
                     button_view.add_item(accept_bttn)
                     button_view.add_item(reject_bttn)
@@ -272,7 +392,8 @@ class Applications(commands.Cog):
                     review_embed = nextcord.Embed(
                         title="Your Community Engagement Application",
                         description="Your community engagement application has been received and is now under consideration. You will receive more information in the coming days.",
-                        colour=nextcord.Color.from_rgb(237, 91, 6))
+                        colour=nextcord.Color.from_rgb(237, 91, 6),
+                    )
                     await user.send(embed=review_embed)
 
             case ["cet-application-start"]:

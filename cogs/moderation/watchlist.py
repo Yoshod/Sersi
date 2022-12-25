@@ -6,7 +6,6 @@ from permutils import permcheck, is_mod
 
 
 class Watchlist(commands.Cog):
-
     def __init__(self, bot, config: Configuration):
         self.sersisuccess = config.emotes.success
         self.sersifail = config.emotes.fail
@@ -15,20 +14,22 @@ class Watchlist(commands.Cog):
         self.config = config
         self.watchlist = {}
         try:
-            with open(self.filename, 'x'):  # creates CSV file if not exists
+            with open(self.filename, "x"):  # creates CSV file if not exists
                 pass
-        except FileExistsError:             # ignores error if it does
+        except FileExistsError:  # ignores error if it does
             pass
         self.loadwatchlist()
 
     def loadwatchlist(self):
         with open(self.filename, "r") as file:
             for line in file:
-                line = line.replace('\n', '')
+                line = line.replace("\n", "")
                 [user_id, reason] = line.split(";", maxsplit=1)
-                self.watchlist[int(user_id)] = reason           # if the key is not an int, the guild.get_member() won't work
+                self.watchlist[
+                    int(user_id)
+                ] = reason  # if the key is not an int, the guild.get_member() won't work
 
-    @commands.command(aliases=['wl', 'wluser', 'addwl', 'watchlist'])
+    @commands.command(aliases=["wl", "wluser", "addwl", "watchlist"])
     async def watchlistuser(self, ctx, member: nextcord.Member, *, reason):
         """Add user onto moderator watchlist."""
         if not await permcheck(ctx, is_mod):
@@ -45,19 +46,17 @@ class Watchlist(commands.Cog):
 
         # LOGGING
 
-        logging = nextcord.Embed(
-            title="User added to Watchlist"
-        )
+        logging = nextcord.Embed(title="User added to Watchlist")
         logging.add_field(name="Moderator:", value=ctx.author.mention, inline=False)
         logging.add_field(name="User Added:", value=member.mention, inline=False)
 
         channel = ctx.guild.get_channel(self.config.channels.logging)
         await channel.send(embed=logging)
 
-        channel = ctx.guild.get_channel(self.config.channels.modlogs)
+        channel = ctx.guild.get_channel(self.config.channels.mod_logs)
         await channel.send(embed=logging)
 
-    @commands.command(aliases=['lwl', 'wllist', 'listwl', 'wll', 'showwatchlist'])
+    @commands.command(aliases=["lwl", "wllist", "listwl", "wll", "showwatchlist"])
     async def listwatchlist(self, ctx):
         """List all members currently on the watchlist."""
         if not await permcheck(ctx, is_mod):
@@ -70,15 +69,18 @@ class Watchlist(commands.Cog):
             if member is None:
                 nicelist = nicelist + f"**{entry}**: {self.watchlist[entry]}\n"
             else:
-                nicelist = nicelist + f"**{member}** ({member.id}): {self.watchlist[entry]}\n"
+                nicelist = (
+                    nicelist + f"**{member}** ({member.id}): {self.watchlist[entry]}\n"
+                )
 
         listembed = nextcord.Embed(
-            title="Watchlisted Member List",
-            description=nicelist
+            title="Watchlisted Member List", description=nicelist
         )
         await ctx.send(embed=listembed)
 
-    @commands.command(aliases=['rmwl', 'removeuserfromwatchlist', 'wlrmuser', 'wlremoveuser'])
+    @commands.command(
+        aliases=["rmwl", "removeuserfromwatchlist", "wlrmuser", "wlremoveuser"]
+    )
     async def removefromwatchlist(self, ctx, member: nextcord.Member):
         """Remove user from moderator watchlist."""
         if not await permcheck(ctx, is_mod):
@@ -96,19 +98,17 @@ class Watchlist(commands.Cog):
 
         # LOGGING
 
-        logging = nextcord.Embed(
-            title="User Removed from Watchlist"
-        )
+        logging = nextcord.Embed(title="User Removed from Watchlist")
         logging.add_field(name="Moderator:", value=ctx.author.mention, inline=False)
         logging.add_field(name="User Removed:", value=member.mention, inline=False)
 
         channel = ctx.guild.get_channel(self.config.channels.logging)
         await channel.send(embed=logging)
 
-        channel = ctx.guild.get_channel(self.config.channels.modlogs)
+        channel = ctx.guild.get_channel(self.config.channels.mod_logs)
         await channel.send(embed=logging)
 
-    @commands.command(aliases=['checkwl', 'ckwl'])
+    @commands.command(aliases=["checkwl", "ckwl"])
     async def checkwatchlist(self, ctx, member: nextcord.Member):
         if not await permcheck(ctx, is_mod):
             return
@@ -117,7 +117,9 @@ class Watchlist(commands.Cog):
             await ctx.send(f"{self.sersifail} Member {member} found on watchlist!")
             return True
         else:
-            await ctx.send(f"{self.sersisuccess} Member {member} not found on watchlist!")
+            await ctx.send(
+                f"{self.sersisuccess} Member {member} not found on watchlist!"
+            )
             return False
 
 

@@ -5,7 +5,6 @@ import pytz
 
 
 class Roles(commands.Cog):
-
     def __init__(self, bot, config: Configuration):
         self.bot = bot
         self.config = config
@@ -23,7 +22,7 @@ class Roles(commands.Cog):
         if message.author.bot:  # ignores message if message is by bot
             return
 
-        if message.guild is None:   # ignores if message is a DM
+        if message.guild is None:  # ignores if message is a DM
             return
 
         newbie_role = message.guild.get_role(self.config.roles.newbie)

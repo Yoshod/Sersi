@@ -15,15 +15,19 @@ class FeedbackResponse(nextcord.ui.Modal):
             max_length=1024,
             required=True,
             placeholder="Response goes here.",
-            style=nextcord.TextInputStyle.paragraph)
+            style=nextcord.TextInputStyle.paragraph,
+        )
         self.add_item(self.response)
 
     async def callback(self, interaction):
         user = interaction.client.get_user(self.userID)
         response_embed = nextcord.Embed(
             title="Your Feedback Has Been Responded To",
-            colour=nextcord.Colour.from_rgb(237, 91, 6))
-        response_embed.add_field(name="Response:", value=self.response.value, inline=False)
+            colour=nextcord.Colour.from_rgb(237, 91, 6),
+        )
+        response_embed.add_field(
+            name="Response:", value=self.response.value, inline=False
+        )
         await user.send(embed=response_embed)
 
 
@@ -36,7 +40,8 @@ class AnonymousFeedbackForm(nextcord.ui.Modal):
             label="What is the matter you wish to raise:",
             max_length=1024,
             required=True,
-            placeholder="This can be anything, positive or negative.")
+            placeholder="This can be anything, positive or negative.",
+        )
         self.add_item(self.feedback)
 
         self.action = nextcord.ui.TextInput(
@@ -44,7 +49,8 @@ class AnonymousFeedbackForm(nextcord.ui.Modal):
             max_length=1024,
             required=True,
             placeholder="If you do not have any specific ideas, please respond N/A.",
-            style=nextcord.TextInputStyle.paragraph)
+            style=nextcord.TextInputStyle.paragraph,
+        )
         self.add_item(self.action)
 
     async def callback(self, interaction):
@@ -54,11 +60,20 @@ class AnonymousFeedbackForm(nextcord.ui.Modal):
         appeal_embed = nextcord.Embed(
             title="Internal Feedback Received",
             description="The user giving feedback wished to remain anonymous",
-            color=nextcord.Color.from_rgb(237, 91, 6))
-        appeal_embed.add_field(name=self.feedback.label,    value=self.feedback.value,      inline=False)
-        appeal_embed.add_field(name=self.action.label,      value=self.action.value,        inline=False)
+            color=nextcord.Color.from_rgb(237, 91, 6),
+        )
+        appeal_embed.add_field(
+            name=self.feedback.label, value=self.feedback.value, inline=False
+        )
+        appeal_embed.add_field(
+            name=self.action.label, value=self.action.value, inline=False
+        )
 
-        respond_bttn = Button(custom_id=f"internal-feedback-response:{feedback_id}", label="Give Response", style=nextcord.ButtonStyle.green)
+        respond_bttn = Button(
+            custom_id=f"internal-feedback-response:{feedback_id}",
+            label="Give Response",
+            style=nextcord.ButtonStyle.green,
+        )
 
         button_view = View(auto_defer=False)
         button_view.add_item(respond_bttn)
@@ -76,7 +91,8 @@ class FeedbackForm(nextcord.ui.Modal):
             label="What is the matter you wish to raise:",
             max_length=1024,
             required=True,
-            placeholder="This can be anything, positive or negative.")
+            placeholder="This can be anything, positive or negative.",
+        )
         self.add_item(self.feedback)
 
         self.action = nextcord.ui.TextInput(
@@ -84,7 +100,8 @@ class FeedbackForm(nextcord.ui.Modal):
             max_length=1024,
             required=True,
             placeholder="If you do not have any specific ideas, please respond N/A.",
-            style=nextcord.TextInputStyle.paragraph)
+            style=nextcord.TextInputStyle.paragraph,
+        )
         self.add_item(self.action)
 
     async def callback(self, interaction):
@@ -94,11 +111,20 @@ class FeedbackForm(nextcord.ui.Modal):
         appeal_embed = nextcord.Embed(
             title="Internal Feedback Received",
             description=f"The user giving feedback was {user.mention} ({user.id})",
-            color=nextcord.Color.from_rgb(237, 91, 6))
-        appeal_embed.add_field(name=self.feedback.label,    value=self.feedback.value,      inline=False)
-        appeal_embed.add_field(name=self.action.label,      value=self.action.value,        inline=False)
+            color=nextcord.Color.from_rgb(237, 91, 6),
+        )
+        appeal_embed.add_field(
+            name=self.feedback.label, value=self.feedback.value, inline=False
+        )
+        appeal_embed.add_field(
+            name=self.action.label, value=self.action.value, inline=False
+        )
 
-        respond_bttn = Button(custom_id=f"internal-feedback-response:{user.id}", label="Give Response", style=nextcord.ButtonStyle.green)
+        respond_bttn = Button(
+            custom_id=f"internal-feedback-response:{user.id}",
+            label="Give Response",
+            style=nextcord.ButtonStyle.green,
+        )
 
         button_view = View(auto_defer=False)
         button_view.add_item(respond_bttn)
@@ -122,9 +148,18 @@ class InternalFeedback(commands.Cog):
         feedback_embed = nextcord.Embed(
             title="Submit Feedback",
             description="Select one of the buttons below to submit your feedback.",
-            colour=nextcord.Color.from_rgb(237, 91, 6))
-        feedback = Button(custom_id="internal-feedback", label="Give Feedback", style=nextcord.ButtonStyle.blurple)
-        anon_feedback = Button(custom_id="internal-feedback-anon", label="Give Feedback Anonymously", style=nextcord.ButtonStyle.blurple)
+            colour=nextcord.Color.from_rgb(237, 91, 6),
+        )
+        feedback = Button(
+            custom_id="internal-feedback",
+            label="Give Feedback",
+            style=nextcord.ButtonStyle.blurple,
+        )
+        anon_feedback = Button(
+            custom_id="internal-feedback-anon",
+            label="Give Feedback Anonymously",
+            style=nextcord.ButtonStyle.blurple,
+        )
 
         button_view = View(auto_defer=False)
         button_view.add_item(feedback)
@@ -143,10 +178,14 @@ class InternalFeedback(commands.Cog):
             case ["internal-feedback"]:
                 await interaction.response.send_modal(FeedbackForm(self.config))
             case ["internal-feedback-anon"]:
-                await interaction.response.send_modal(AnonymousFeedbackForm(self.config))
+                await interaction.response.send_modal(
+                    AnonymousFeedbackForm(self.config)
+                )
             case ["internal-feedback-response", user_id]:
                 if await permcheck(interaction, is_dark_mod):
-                    await interaction.response.send_modal(FeedbackResponse(int(user_id)))
+                    await interaction.response.send_modal(
+                        FeedbackResponse(int(user_id))
+                    )
 
 
 def setup(bot, **kwargs):
