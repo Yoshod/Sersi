@@ -48,7 +48,7 @@ class WebServer(commands.Cog):
         @routes.post("/youtube")
         async def youtube_update(request: web.Request):
 
-            if not request.has_body:
+            if not request.can_read_body:
                 return web.Response(text="No body given", status=400)
 
             data = xmltodict.parse(await request.read())
@@ -102,6 +102,7 @@ class WebServer(commands.Cog):
 
         site = web.TCPSite(runner, port=self.config.bot.port)
         await site.start()
+        print(f"Started web server at {site.name}.")
 
 
 def setup(bot, **kwargs):
