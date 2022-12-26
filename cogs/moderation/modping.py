@@ -4,8 +4,9 @@ import pickle
 
 from nextcord.ext import commands
 from nextcord.ui import Button, View
-from datetime import datetime
+from datetime import datetime, timezone
 
+import logutils
 from baseutils import modmention_check, SersiEmbed
 from permutils import cb_is_mod
 from configutils import Configuration
@@ -38,7 +39,9 @@ class ModPing(commands.Cog):
         channel = self.bot.get_channel(self.config.channels.logging)
         await channel.send(embed=embedLogVar)
 
-        with open("files/Alerts/alerts.pkl", "rb") as previous_alerts:
+        await logutils.update_response(self.config, interaction.message, datetime.now(timezone.utc))
+
+        """with open("files/Alerts/alerts.pkl", "rb") as previous_alerts:
             previous_data = pickle.load(previous_alerts)
 
         payload = [
@@ -52,7 +55,7 @@ class ModPing(commands.Cog):
         with open("files/Alerts/alerts.pkl", "wb") as previous_alerts:
             pickle.dump(
                 previous_data, previous_alerts, protocol=pickle.HIGHEST_PROTOCOL
-            )
+            )"""
 
     async def cb_action_not_neccesary(self, interaction):
         new_embed = interaction.message.embeds[0]
@@ -75,7 +78,9 @@ class ModPing(commands.Cog):
         channel = self.bot.get_channel(self.config.channels.logging)
         await channel.send(embed=embedLogVar)
 
-        with open("files/Alerts/alerts.pkl", "rb") as previous_alerts:
+        await logutils.update_response(self.config, interaction.message, datetime.now(timezone.utc))
+
+        """with open("files/Alerts/alerts.pkl", "rb") as previous_alerts:
             previous_data = pickle.load(previous_alerts)
 
         payload = [
@@ -89,7 +94,7 @@ class ModPing(commands.Cog):
         with open("files/Alerts/alerts.pkl", "wb") as previous_alerts:
             pickle.dump(
                 previous_data, previous_alerts, protocol=pickle.HIGHEST_PROTOCOL
-            )
+            )"""
 
     async def cb_bad_faith_ping(self, interaction):
         new_embed = interaction.message.embeds[0]
@@ -128,7 +133,9 @@ class ModPing(commands.Cog):
             interaction.user.id,
         )
 
-        with open("files/Alerts/alerts.pkl", "rb") as previous_alerts:
+        await logutils.update_response(self.config, interaction.message, datetime.now(timezone.utc))
+
+        """with open("files/Alerts/alerts.pkl", "rb") as previous_alerts:
             previous_data = pickle.load(previous_alerts)
 
         payload = [
@@ -142,7 +149,7 @@ class ModPing(commands.Cog):
         with open("files/Alerts/alerts.pkl", "wb") as previous_alerts:
             pickle.dump(
                 previous_data, previous_alerts, protocol=pickle.HIGHEST_PROTOCOL
-            )
+            )"""
 
     # events
     @commands.Cog.listener()
@@ -206,7 +213,9 @@ class ModPing(commands.Cog):
 
             alert = await channel.send(embed=embedVar, view=button_view)
 
-            try:
+            await logutils.create_alert_log(self.config, alert, logutils.AlertType.Ping, alert.created_at)
+
+            """try:
                 with open("files/Alerts/alerts.pkl", "rb") as previous_alerts:
                     previous_data = pickle.load(previous_alerts)
 
@@ -224,7 +233,7 @@ class ModPing(commands.Cog):
             with open("files/Alerts/alerts.pkl", "wb") as previous_alerts:
                 pickle.dump(
                     previous_data, previous_alerts, protocol=pickle.HIGHEST_PROTOCOL
-                )
+                )"""
 
             await asyncio.sleep(10800)  # 3 hours
             updated_message = await alert.channel.fetch_message(alert.id)

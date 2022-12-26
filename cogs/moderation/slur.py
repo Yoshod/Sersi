@@ -6,8 +6,9 @@ import csv
 from nextcord.ext import commands
 from nextcord.ui import Button, View
 
+import logutils
 from baseutils import DualCustodyView, PageView, sanitize_mention, SersiEmbed
-from datetime import datetime
+from datetime import datetime, timezone
 from configutils import Configuration
 from permutils import permcheck, is_mod, is_full_mod, cb_is_mod
 from slurdetector import (
@@ -70,7 +71,9 @@ class Slur(commands.Cog):
             interaction.user.id,
         )
 
-        with open("files/Alerts/alerts.pkl", "rb") as previous_alerts:
+        await logutils.update_response(self.config, interaction.message, datetime.now(timezone.utc))
+
+        """with open("files/Alerts/alerts.pkl", "rb") as previous_alerts:
             previous_data = pickle.load(previous_alerts)
 
         payload = [
@@ -84,7 +87,7 @@ class Slur(commands.Cog):
         with open("files/Alerts/alerts.pkl", "wb") as previous_alerts:
             pickle.dump(
                 previous_data, previous_alerts, protocol=pickle.HIGHEST_PROTOCOL
-            )
+            )"""
 
     async def cb_acceptable_use(self, interaction):
         new_embed = interaction.message.embeds[0]
@@ -108,7 +111,9 @@ class Slur(commands.Cog):
         )
         await channel.send(embed=embedLogVar)
 
-        with open("files/Alerts/alerts.pkl", "rb") as previous_alerts:
+        await logutils.update_response(self.config, interaction.message, datetime.now(timezone.utc))
+
+        """with open("files/Alerts/alerts.pkl", "rb") as previous_alerts:
             previous_data = pickle.load(previous_alerts)
 
         payload = [
@@ -122,7 +127,7 @@ class Slur(commands.Cog):
         with open("files/Alerts/alerts.pkl", "wb") as previous_alerts:
             pickle.dump(
                 previous_data, previous_alerts, protocol=pickle.HIGHEST_PROTOCOL
-            )
+            )"""
 
     async def cb_false_positive(self, interaction):
         new_embed = interaction.message.embeds[0]
@@ -158,7 +163,9 @@ class Slur(commands.Cog):
         )
         await channel.send(embed=embedLogVar)
 
-        with open("files/Alerts/alerts.pkl", "rb") as previous_alerts:
+        await logutils.update_response(self.config, interaction.message, datetime.now(timezone.utc))
+
+        """with open("files/Alerts/alerts.pkl", "rb") as previous_alerts:
             previous_data = pickle.load(previous_alerts)
 
         payload = [
@@ -172,11 +179,11 @@ class Slur(commands.Cog):
         with open("files/Alerts/alerts.pkl", "wb") as previous_alerts:
             pickle.dump(
                 previous_data, previous_alerts, protocol=pickle.HIGHEST_PROTOCOL
-            )
+            )"""
 
-    @commands.command()
+    """@commands.command()
     async def export_alerts(self, ctx):
-        """Export all alerts into a CSV file."""
+        Export all alerts into a CSV file.
 
     with open("files/Alerts/alerts.pkl", "rb") as previous_alerts:
         previous_data = pickle.load(previous_alerts)
@@ -184,7 +191,7 @@ class Slur(commands.Cog):
     with open("files/export.csv", "w") as export_file:
         write = csv.writer(export_file)
         for key in previous_data:
-            write.writerow(previous_data[key])
+            write.writerow(previous_data[key])"""
 
     @commands.command(aliases=["addsl"])
     async def addslur(self, ctx, *, slur=""):
@@ -447,8 +454,8 @@ class Slur(commands.Cog):
                 message.author.id, []
             )  # -> list of user offenses, empty list if none
 
-            slur_virgin = True  # noone was there to stop me naming a variable like this
-            previous_offenses = []
+            slur_virgin: bool = True  # noone was there to stop me naming a variable like this
+            previous_offenses: list[str] = []
 
             for case in user_history:
                 if case[1] == "Slur Usage":
@@ -516,7 +523,9 @@ class Slur(commands.Cog):
 
             alert = await channel.send(embed=slurembed, view=button_view)
 
-            try:
+            await logutils.create_alert_log(self.config, alert, logutils.AlertType.Slur, alert.created_at)
+
+            """try:
                 with open("files/Alerts/alerts.pkl", "rb") as previous_alerts:
                     previous_data = pickle.load(previous_alerts)
 
@@ -534,7 +543,7 @@ class Slur(commands.Cog):
             with open("files/Alerts/alerts.pkl", "wb") as previous_alerts:
                 pickle.dump(
                     previous_data, previous_alerts, protocol=pickle.HIGHEST_PROTOCOL
-                )
+                )"""
 
             await asyncio.sleep(10800)  # 3 hours
             updated_message = await alert.channel.fetch_message(alert.id)
