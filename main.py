@@ -159,7 +159,8 @@ print(f"Nextcord Version:\n{nextcord.__version__}")
 
 bot.command_prefix = config.bot.prefix
 
-asyncio.run( load_all_cogs(bot, config=config, data_folder=f"{root_folder}/persistent_data"))
+asyncio.run(
+    load_all_cogs(bot, config=config, data_folder=f"{root_folder}/persistent_data")
+)
 
 bot.run(discordTokens.getToken())
-

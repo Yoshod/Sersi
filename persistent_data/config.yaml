@@ -16,6 +16,8 @@ datafiles:
     watchlist:          "files/WBList/watchlist.csv"
     ticketers:          "files/Tickets/ticketers.pkl"
     video_history:      "files/youtube/processed_videos.txt"
+    alert_logs:         "files/Alerts/alerts.pkl"
+    alert_csv:          "files/Alerts/alerts.csv"
 
 bot:
     prefix: "s!"
