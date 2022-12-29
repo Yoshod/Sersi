@@ -4,6 +4,8 @@ import pickle
 import nextcord
 from nextcord.ext import commands
 from configutils import Configuration
+from permutils import permcheck, is_senior_mod
+
 
 class Alert(commands.Cog):
     def __init__(self, bot: nextcord.Client, config: Configuration):
@@ -18,6 +20,9 @@ class Alert(commands.Cog):
 
     @commands.command(aliases=['re'])
     async def response_export(self, context):
+        if not await permcheck(context, is_senior_mod):
+            return
+
         with open(self.config.datafiles.alert_logs, "rb") as file:
             data: dict[dict] = pickle.load(file)
 
