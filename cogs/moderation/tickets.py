@@ -336,6 +336,7 @@ class CloseReason(nextcord.ui.Modal):
         elif str(complainer_id[len(complainer_id) - 1]) == ">":
             complainer_id = initial_embed.description[2:20]
 
+        print(complainer_id)
         complainer_id = int(complainer_id)
 
         try:
