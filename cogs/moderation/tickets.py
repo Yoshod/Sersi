@@ -351,10 +351,10 @@ class CloseReason(nextcord.ui.Modal):
                     title=f"Administrator Ticket {interaction.channel.name[-4:]} Closed",
                     description=f"The Administrator Ticket with ID number {interaction.channel.name[-4:]} has been closed.",
                     color=nextcord.Color.from_rgb(237, 91, 6))
-                close_embed.add_field("Ticket Opened By:", f"{complainer.mention} ({complainer.id})")
-                close_embed.add_field("Ticket Initial Remarks:", initial_embed.fields[0].value)
-                close_embed.add_field("Ticket Closed By:", f"{user.mention} ({user.id})")
-                close_embed.add_field("Ticket Close Notes:", self.notes.value)
+                close_embed.add_field(name="Ticket Opened By:", value=f"{complainer.mention} ({complainer.id})", inline=False)
+                close_embed.add_field(name="Ticket Initial Remarks:", value=initial_embed.fields[0].value, inline=False)
+                close_embed.add_field(name="Ticket Closed By:", value=f"{user.mention} ({user.id})", inline=False)
+                close_embed.add_field(name="Ticket Close Notes:", value=self.notes.value, inline=False)
 
                 close_embed.set_footer(
                     text=interaction.user.display_name,
