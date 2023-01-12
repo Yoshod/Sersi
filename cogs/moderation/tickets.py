@@ -329,7 +329,7 @@ class CloseReason(nextcord.ui.Modal):
                 "Could not find embed when attempting to log ticket closure! Index out of range!"
             )
 
-        complainer_id = initial_embed.description[2:21]
+        complainer_id = initial_embed.description[2:20]
         if str(complainer_id)[0] == "!":
             complainer_id = initial_embed.description[3:21]
 
