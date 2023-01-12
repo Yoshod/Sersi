@@ -330,7 +330,7 @@ class CloseReason(nextcord.ui.Modal):
             )
 
         complainer_id = initial_embed.description[2:20]
-        if str(complainer_id)[len(complainer_id)] == ">":
+        if str(complainer_id)[len(complainer_id) - 1] == ">":
             complainer_id = initial_embed.description[2:19]
 
         elif str(complainer_id[len(complainer_id) - 1]) == ">":
