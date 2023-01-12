@@ -336,7 +336,6 @@ class CloseReason(nextcord.ui.Modal):
         elif str(complainer_id[len(complainer_id) - 1]) == ">":
             complainer_id = initial_embed.description[2:20]
 
-        print(complainer_id)
         complainer_id = int(complainer_id)
 
         try:
@@ -348,18 +347,15 @@ class CloseReason(nextcord.ui.Modal):
             interaction.channel.name[:-5]
         ):  # Removes last four digits and dash leaving just the ticket type
             case "admin-ticket":
-                close_embed = SersiEmbed(
+                close_embed = nextcord.Embed(
                     title=f"Administrator Ticket {interaction.channel.name[-4:]} Closed",
                     description=f"The Administrator Ticket with ID number {interaction.channel.name[-4:]} has been closed.",
-                    footer=interaction.user.name,
-                    footer_icon=interaction.user.display_avatar.url,
-                    fields={
-                        "Ticket Opened By:": f"{complainer.mention} ({complainer.id})",
-                        "Ticket Initial Remarks:": initial_embed.fields[0].value,
-                        "Ticket Closed By:": f"{user.mention} ({user.id})",
-                        "Ticket Close Notes:": self.notes.value,
-                    },
-                )
+                    color=nextcord.Color.from_rgb(237, 91, 6))
+                close_embed.add_field("Ticket Opened By:", f"{complainer.mention} ({complainer.id})")
+                close_embed.add_field("Ticket Initial Remarks:", initial_embed.fields[0].value)
+                close_embed.add_field("Ticket Closed By:", f"{user.mention} ({user.id})")
+                close_embed.add_field("Ticket Close Notes:", self.notes.value)
+
                 close_embed.set_footer(
                     text=interaction.user.display_name,
                     icon_url=interaction.user.display_avatar.url,
