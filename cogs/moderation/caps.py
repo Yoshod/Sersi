@@ -70,7 +70,7 @@ class Caps(commands.Cog):
         # remove nums and non-alpanumeric
         new_msg_string = re.sub(r"[\W0-9]", "", new_msg_string)
 
-        if len(new_msg_string) > self.MIN_CHARS_FOR_DETECTION:
+        if len(new_msg_string) > int(self.MIN_CHARS_FOR_DETECTION):  # should be an int, somehow isn't
             # msg_string = unidecode.unidecode(msg_string)
 
             uppercase = sum(1 for char in new_msg_string if char.isupper())
