@@ -13,10 +13,10 @@ class AlertType(enum.Enum):
 
 
 async def create_alert_log(
-        config: Configuration,
-        message: nextcord.Message,
-        alert_type: AlertType,
-        timestamp: datetime.datetime,
+    config: Configuration,
+    message: nextcord.Message,
+    alert_type: AlertType,
+    timestamp: datetime.datetime,
 ):
     # ['message_url',"alert_type", "creation_time", "time_took_for_response"]
     try:
@@ -36,13 +36,13 @@ async def create_alert_log(
 
 
 async def update_response(
-        config: Configuration, message: nextcord.Message, reacted_time: datetime.datetime
+    config: Configuration, message: nextcord.Message, reacted_time: datetime.datetime
 ):
     with open(config.datafiles.alert_logs, "rb") as file:
         data: dict[str:dict] = pickle.load(file)
 
     time_took: datetime.timedelta = (
-            reacted_time - data[message.jump_url]["creation_time"]
+        reacted_time - data[message.jump_url]["creation_time"]
     )
     data[message.jump_url]["time_took_for_response"] = time_took.seconds / 60
 
