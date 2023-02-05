@@ -68,7 +68,7 @@ class Caps(commands.Cog):
         new_msg_string = re.sub(r"(<a?)?:\w+:(\d{18}>)?", "", msg_string)
 
         # remove nums and non-alpanumeric
-        new_msg_string = re.sub(r"[^a-zA-Z]", "", new_msg_string)
+        new_msg_string = re.sub(r"[\W0-9]", "", new_msg_string)
 
         if len(new_msg_string) > self.MIN_CHARS_FOR_DETECTION:
             # msg_string = unidecode.unidecode(msg_string)
