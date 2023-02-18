@@ -18,7 +18,7 @@ class Alert(commands.Cog):
             "time_took_for_response",
         ]
 
-    @commands.command(aliases=['re'])
+    @commands.command(aliases=["re"])
     async def response_export(self, context):
         if not await permcheck(context, is_senior_mod):
             return
