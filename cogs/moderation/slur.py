@@ -71,7 +71,9 @@ class Slur(commands.Cog):
             interaction.user.id,
         )
 
-        await logutils.update_response(self.config, interaction.message, datetime.now(timezone.utc))
+        await logutils.update_response(
+            self.config, interaction.message, datetime.now(timezone.utc)
+        )
 
         """with open("files/Alerts/alerts.pkl", "rb") as previous_alerts:
             previous_data = pickle.load(previous_alerts)
@@ -111,7 +113,9 @@ class Slur(commands.Cog):
         )
         await channel.send(embed=embedLogVar)
 
-        await logutils.update_response(self.config, interaction.message, datetime.now(timezone.utc))
+        await logutils.update_response(
+            self.config, interaction.message, datetime.now(timezone.utc)
+        )
 
         """with open("files/Alerts/alerts.pkl", "rb") as previous_alerts:
             previous_data = pickle.load(previous_alerts)
@@ -163,7 +167,9 @@ class Slur(commands.Cog):
         )
         await channel.send(embed=embedLogVar)
 
-        await logutils.update_response(self.config, interaction.message, datetime.now(timezone.utc))
+        await logutils.update_response(
+            self.config, interaction.message, datetime.now(timezone.utc)
+        )
 
         """with open("files/Alerts/alerts.pkl", "rb") as previous_alerts:
             previous_data = pickle.load(previous_alerts)
@@ -454,7 +460,9 @@ class Slur(commands.Cog):
                 message.author.id, []
             )  # -> list of user offenses, empty list if none
 
-            slur_virgin: bool = True  # noone was there to stop me naming a variable like this
+            slur_virgin: bool = (
+                True  # noone was there to stop me naming a variable like this
+            )
             previous_offenses: list[str] = []
 
             for case in user_history:
@@ -523,7 +531,9 @@ class Slur(commands.Cog):
 
             alert = await channel.send(embed=slurembed, view=button_view)
 
-            await logutils.create_alert_log(self.config, alert, logutils.AlertType.Slur, alert.created_at)
+            await logutils.create_alert_log(
+                self.config, alert, logutils.AlertType.Slur, alert.created_at
+            )
 
             """try:
                 with open("files/Alerts/alerts.pkl", "rb") as previous_alerts:

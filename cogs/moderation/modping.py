@@ -39,7 +39,9 @@ class ModPing(commands.Cog):
         channel = self.bot.get_channel(self.config.channels.logging)
         await channel.send(embed=embedLogVar)
 
-        await logutils.update_response(self.config, interaction.message, datetime.now(timezone.utc))
+        await logutils.update_response(
+            self.config, interaction.message, datetime.now(timezone.utc)
+        )
 
         """with open("files/Alerts/alerts.pkl", "rb") as previous_alerts:
             previous_data = pickle.load(previous_alerts)
@@ -78,7 +80,9 @@ class ModPing(commands.Cog):
         channel = self.bot.get_channel(self.config.channels.logging)
         await channel.send(embed=embedLogVar)
 
-        await logutils.update_response(self.config, interaction.message, datetime.now(timezone.utc))
+        await logutils.update_response(
+            self.config, interaction.message, datetime.now(timezone.utc)
+        )
 
         """with open("files/Alerts/alerts.pkl", "rb") as previous_alerts:
             previous_data = pickle.load(previous_alerts)
@@ -133,7 +137,9 @@ class ModPing(commands.Cog):
             interaction.user.id,
         )
 
-        await logutils.update_response(self.config, interaction.message, datetime.now(timezone.utc))
+        await logutils.update_response(
+            self.config, interaction.message, datetime.now(timezone.utc)
+        )
 
         """with open("files/Alerts/alerts.pkl", "rb") as previous_alerts:
             previous_data = pickle.load(previous_alerts)
@@ -213,7 +219,9 @@ class ModPing(commands.Cog):
 
             alert = await channel.send(embed=embedVar, view=button_view)
 
-            await logutils.create_alert_log(self.config, alert, logutils.AlertType.Ping, alert.created_at)
+            await logutils.create_alert_log(
+                self.config, alert, logutils.AlertType.Ping, alert.created_at
+            )
 
             """try:
                 with open("files/Alerts/alerts.pkl", "rb") as previous_alerts:

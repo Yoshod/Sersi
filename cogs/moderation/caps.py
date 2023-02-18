@@ -62,6 +62,10 @@ class Caps(commands.Cog):
     # events
     @commands.Cog.listener()
     async def on_message(self, message):
+
+        if message.author.bot:  # ignores message if message is by bot
+            return
+
         msg_string = message.content
 
         # remove emotes
