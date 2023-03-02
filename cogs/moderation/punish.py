@@ -13,9 +13,11 @@ class Punish(commands.Cog):
         self.config = config
 
         self.keylist = {}
-        self.guild = self.bot.get_guild(config.guilds.main)
+        self.guild = bot.get_guild(config.guilds.main)
         for role in vars(config.punishment_roles):
             roleobj = self.guild.get_role(vars(config.punishment_roles)[role])
+            if roleobj is None:
+                continue
 
             role_name = roleobj.name
             role_id = roleobj.id
