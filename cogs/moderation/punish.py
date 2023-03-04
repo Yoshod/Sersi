@@ -5,28 +5,25 @@ from configutils import Configuration
 
 
 class Punish(commands.Cog):
-
-    choices = {}
-
-    def __init__(self, bot, config: Configuration):
+    def __init__(self, bot: commands.Bot, config: Configuration):
         self.bot = bot
         self.config = config
+        self.choices = {}
 
-        self.keylist = {}
-        self.guild = bot.get_guild(config.guilds.main)
-        for role in vars(config.punishment_roles):
-            roleobj = self.guild.get_role(vars(config.punishment_roles)[role])
+        if bot.is_ready():
+            self.get_roles()
+
+    def get_roles(self):
+        guild = self.bot.get_guild(self.config.guilds.main)
+        for role in vars(self.config.punishment_roles):
+            roleobj = guild.get_role(vars(self.config.punishment_roles)[role])
             if roleobj is None:
                 continue
 
             role_name = roleobj.name
             role_id = roleobj.id
 
-            self.keylist[role] = role_id
-            Punish.choices[role] = role_name
-
-            print(Punish.choices)
-            print(self.keylist)
+            self.choices[role_name] = role_id
 
     @nextcord.slash_command(dm_permission=False)
     async def slash_command_cog(self, interaction: nextcord.Interaction):
@@ -49,13 +46,26 @@ class Punish(commands.Cog):
         self,
         interaction: nextcord.Interaction,
         member: nextcord.Member,
-        punishment: str = nextcord.SlashOption(name="punishment_role", choices=choices),
+        punishment: str = nextcord.SlashOption(name="punishment_role"),
     ):
         """This is a slash command in a cog"""
         await interaction.response.send_message(
-            f"We are punishing {member.name} with {punishment}\nKeylist says: {self.keylist[punishment]}."
+            f"We are punishing {member.name} with {punishment}\nKeylist says: {self.choices[punishment]}."
         )
 
+    @commands.Cog.listener()
+    async def on_ready(self):
+        self.get_roles()
+    
+    @punish.on_autocomplete("punishment")
+    async def punishment_roles(self, interaction: nextcord.Interaction, punishment: str):
+        if not punishment:
+            await interaction.response.send_autocomplete(self.choices.keys())
+            return
 
-def setup(bot, **kwargs):
+        punish_roles = [role for role in self.choices if role.lower().startswith(punishment.lower())]
+        await interaction.response.send_autocomplete(punish_roles)
+
+
+def setup(bot: commands.Bot, **kwargs):
     bot.add_cog(Punish(bot, kwargs["config"]))

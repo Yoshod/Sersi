@@ -37,6 +37,7 @@ async def load(ctx, extension):
                     "data_folder": f"{root_folder}/persistent_data",
                 },
             )
+            await bot.sync_all_application_commands()
             await ctx.reply(f"Cog {extension} loaded.")
         except commands.errors.ExtensionNotFound:
             await ctx.reply("Cog not found.")
@@ -57,6 +58,7 @@ async def unload(ctx, extension):
     if await permcheck(ctx, is_sersi_contrib):
         try:
             bot.unload_extension(f"cogs.{extension}")
+            await bot.sync_all_application_commands()
             await ctx.reply(f"Cog {extension} unloaded.")
         except commands.errors.ExtensionNotFound:
             await ctx.reply("Cog not found.")
@@ -84,6 +86,7 @@ async def reload(ctx, extension):
                     "data_folder": f"{root_folder}/persistent_data",
                 },
             )
+            await bot.sync_all_application_commands()
             await ctx.reply(f"Cog {extension} reloaded.")
         except commands.errors.ExtensionNotFound:
             await ctx.reply("Cog not found.")
