@@ -14,7 +14,7 @@ from webhookutils import send_webhook_message
 
 
 class Messages(commands.Cog):
-    def __init__(self, bot, config: Configuration):
+    def __init__(self, bot: commands.Bot, config: Configuration):
         self.bot = bot
         self.config = config
         self.recdms = False
@@ -41,7 +41,7 @@ class Messages(commands.Cog):
                     int(user_id)
                 ] = reason  # if the key is not an int, the guild.get_member() won't work
 
-    def can_send_anon_msg(self, user) -> bool:
+    def can_send_anon_msg(self, user: nextcord.User) -> bool:
 
         guild = self.bot.get_channel(self.config.channels.secret).guild
         guild_member = guild.get_member(user.id)
@@ -69,7 +69,7 @@ class Messages(commands.Cog):
         else:
             return True
 
-    async def cb_action_taken(self, interaction):
+    async def cb_action_taken(self, interaction: nextcord.Interaction):
         new_embed = interaction.message.embeds[0]
         new_embed.add_field(
             name="Action Taken By", value=interaction.user.mention, inline=False
@@ -94,7 +94,7 @@ class Messages(commands.Cog):
         )
         await channel.send(embed=embedLogVar)
 
-    async def cb_acceptable_use(self, interaction):
+    async def cb_acceptable_use(self, interaction: nextcord.Interaction):
         new_embed = interaction.message.embeds[0]
         new_embed.add_field(
             name="Usage Deemed Acceptable By",
@@ -121,7 +121,7 @@ class Messages(commands.Cog):
         )
         await channel.send(embed=embedLogVar)
 
-    async def cb_false_positive(self, interaction):
+    async def cb_false_positive(self, interaction: nextcord.Interaction):
         new_embed = interaction.message.embeds[0]
         new_embed.add_field(
             name="Deemed As False Positive By:",
@@ -162,7 +162,7 @@ class Messages(commands.Cog):
         )
         await channel.send(embed=embedLogVar)
 
-    async def cb_anonmute_proceed(self, interaction):
+    async def cb_anonmute_proceed(self, interaction: nextcord.Interaction):
         member_id, reason = 0, ""
         for field in interaction.message.embeds[0].fields:
             if field.name == "User ID":
@@ -205,7 +205,7 @@ class Messages(commands.Cog):
         await channel.send(embed=logging)
 
     @commands.command(aliases=["anonban", "anonmute"])
-    async def anonymousmute(self, ctx, member: nextcord.Member, *, reason):
+    async def anonymousmute(self, ctx: commands.Context, member: nextcord.Member, *, reason):
         if not await permcheck(ctx, is_mod):
             return
         elif member.id in self.banlist:
@@ -228,7 +228,7 @@ class Messages(commands.Cog):
         )
 
     @commands.command(aliases=["lam", "am", "listam", "lab", "ab", "listab"])
-    async def listanonymousmutes(self, ctx):
+    async def listanonymousmutes(self, ctx: commands.Context):
         """List all members currently muted in anonymous messages."""
         if not await permcheck(ctx, is_mod):
             return
@@ -251,7 +251,7 @@ class Messages(commands.Cog):
         )
         await ctx.send(embed=listembed)
 
-    async def cb_anonunmute_proceed(self, interaction):
+    async def cb_anonunmute_proceed(self, interaction: nextcord.Interaction):
         member_id = 0
         for field in interaction.message.embeds[0].fields:
             if field.name == "User ID":
@@ -288,7 +288,7 @@ class Messages(commands.Cog):
         await channel.send(embed=logging)
 
     @commands.command(aliases=["anonunmute", "unmuteanon", "umanon", "anonum"])
-    async def anonymousunmute(self, ctx, member: nextcord.Member):
+    async def anonymousunmute(self, ctx: commands.Context, member: nextcord.Member):
         """Remove user from anonymous messages mute."""
         if not await permcheck(ctx, is_mod):
             return
@@ -308,7 +308,7 @@ class Messages(commands.Cog):
         )
 
     @commands.command(aliases=["checkmuted", "checkmute"])
-    async def checkanonmutes(self, ctx, member: nextcord.Member):
+    async def checkanonmutes(self, ctx: commands.Context, member: nextcord.Member):
         if not await permcheck(ctx, is_mod):
             return
 
@@ -324,7 +324,7 @@ class Messages(commands.Cog):
             return False
 
     @commands.command()
-    async def dm(self, ctx, recipient: nextcord.Member, *, message):
+    async def dm(self, ctx: commands.Context, recipient: nextcord.Member, *, message):
         if not await permcheck(ctx, is_mod):
             return
 
@@ -416,7 +416,7 @@ class Messages(commands.Cog):
                 view=None,
             )
 
-    async def cb_da_proceed(self, interaction):
+    async def cb_da_proceed(self, interaction: nextcord.Interaction):
         for field in interaction.message.embeds[0].fields:
             if field.name == "Anonymous Message ID":
                 secret_id = field.value
@@ -444,7 +444,7 @@ class Messages(commands.Cog):
         )
 
     @commands.command(aliases=["da", "deanonymize"])
-    async def deanonymise(self, ctx, id_num, *, reason=""):
+    async def deanonymise(self, ctx: commands.Context, id_num, *, reason=""):
         if not await permcheck(ctx, is_mod):
             return
         elif reason == "":
@@ -476,7 +476,7 @@ class Messages(commands.Cog):
             await ConfirmView(self.cb_da_proceed).send_as_reply(ctx, embed=dialog_embed)
 
     @commands.Cog.listener()
-    async def on_message(self, message):
+    async def on_message(self, message: nextcord.Message):
 
         if message.guild is None and message.author != self.bot.user:
 
@@ -595,5 +595,5 @@ class Messages(commands.Cog):
                 )
 
 
-def setup(bot, **kwargs):
+def setup(bot: commands.Bot, **kwargs):
     bot.add_cog(Messages(bot, kwargs["config"]))

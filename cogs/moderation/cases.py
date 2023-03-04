@@ -9,7 +9,7 @@ from permutils import permcheck, is_mod
 
 
 class Cases(commands.Cog):
-    def __init__(self, bot, config: Configuration):
+    def __init__(self, bot: commands.Bot, config: Configuration):
         self.bot = bot
         self.config = config
         self.sersifail = config.emotes.fail
@@ -19,7 +19,7 @@ class Cases(commands.Cog):
         self.case_details = {}
 
     @commands.command(aliases=["c", "usercases", "modcases"])
-    async def cases(self, ctx: nextcord.ext.commands.Context, search_term):
+    async def cases(self, ctx: commands.Context, search_term):
         if not await permcheck(ctx, is_mod):
             return
 

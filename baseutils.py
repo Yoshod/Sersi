@@ -73,7 +73,7 @@ def modmention_check(config: configutils.Configuration, message: str) -> bool:
     return False
 
 
-def get_page(entry_list, page, per_page=10):
+def get_page(entry_list: list, page: int, per_page: int = 10):
     pages = 1 + (len(entry_list) - 1) // per_page
 
     index = page - 1
@@ -99,7 +99,7 @@ class ConfirmView(View):
         self.add_item(btn_proceed)
         self.add_item(btn_cancel)
 
-    async def cb_cancel(self, interaction):
+    async def cb_cancel(self, interaction: nextcord.Interaction):
         await interaction.message.edit("Action canceled!", embed=None, view=None)
 
     async def on_timeout(self):
@@ -107,7 +107,7 @@ class ConfirmView(View):
         if self.message.components != []:
             await self.message.edit("Action timed out!", embed=None, view=None)
 
-    async def interaction_check(self, interaction):
+    async def interaction_check(self, interaction: nextcord.Interaction):
         return interaction.user == interaction.message.reference.cached_message.author
 
     async def send_as_reply(self, ctx, content: str = None, embed=None):
@@ -126,7 +126,7 @@ class DualCustodyView(View):
     async def on_timeout(self):
         await self.message.edit(view=None)
 
-    async def interaction_check(self, interaction):
+    async def interaction_check(self, interaction: nextcord.Interaction):
         if interaction.user == self.author:
             return False
 

@@ -23,7 +23,7 @@ root_folder = os.path.dirname(os.path.realpath(__file__))
 
 
 @bot.command()
-async def load(ctx, extension):
+async def load(ctx: commands.Context, extension: str):
     """Loads Cog
 
     Loads cog.
@@ -50,7 +50,7 @@ async def load(ctx, extension):
 
 
 @bot.command()
-async def unload(ctx, extension):
+async def unload(ctx: commands.Context, extension: str):
     """Unload Cog
 
     Unloads cog.
@@ -71,7 +71,7 @@ async def unload(ctx, extension):
 
 
 @bot.command()
-async def reload(ctx, extension):
+async def reload(ctx: commands.Context, extension: str):
     """Reload Cog
 
     Reloads cog. If cog wasn't loaded, loads cog.
@@ -111,7 +111,7 @@ async def reload(ctx, extension):
 
 
 @bot.command()
-async def uptime(ctx):
+async def uptime(ctx: commands.Context):
     """Displays Sersi's uptime"""
     sersi_uptime = str(datetime.timedelta(seconds=int(round(time.time() - start_time))))
     embedVar = nextcord.Embed(
@@ -123,13 +123,13 @@ async def uptime(ctx):
 
 
 @bot.command()
-async def ping(ctx):
+async def ping(ctx: commands.Context):
     """test the response time of the bot"""
     await ctx.send(f"Pong! {round(bot.latency * 1000)}ms")
 
 
 @bot.event
-async def on_message_edit(before, after):
+async def on_message_edit(before: nextcord.Message, after: nextcord.Message):
     """treats edited messages like new messages when it comes to scanning"""
     bot.dispatch("message", after)
 
@@ -143,7 +143,7 @@ async def on_ready():
 
 
 @bot.event
-async def on_message(message):
+async def on_message(message: nextcord.Message):
 
     if message.author == bot.user:  # ignores message if message is this bot
         return
