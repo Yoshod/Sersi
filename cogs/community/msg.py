@@ -12,8 +12,6 @@ class Messages(commands.Cog):
         self.sersisuccess = config.emotes.success
         self.sersifail = config.emotes.fail
 
-
-
     @commands.command()
     async def dm(self, ctx: commands.Context, recipient: nextcord.Member, *, message):
         if not await permcheck(ctx, is_staff):
