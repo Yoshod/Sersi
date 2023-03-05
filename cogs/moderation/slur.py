@@ -313,7 +313,19 @@ class Slur(commands.Cog):
                 mod_id = int(field.value)
         moderator = interaction.guild.get_member(mod_id)
 
+        
+
+    @commands.command(aliases=["rmsl", "rmslur", "removesl"])
+    @DualCustodyView.query("Slur Removal",
+        "Following slur will be removed from slur detection:",
+        is_full_mod,
+        {2: "Slur"})
+    async def removeslur(self, ctx: commands.Context, slur: str, *,
+                        confirming_moderator: nextcord.Member = None):
         rm_slur(slur)
+
+        if confirming_moderator is None:
+            confirming_moderator = ctx.author
 
         # logging
         channel = self.bot.get_channel(self.config.channels.logging)
@@ -321,41 +333,12 @@ class Slur(commands.Cog):
             title="Slur Removed",
             description="A slur has been removed from the filter.",
             fields={
-                "Removed By:": f"{moderator.mention} ({moderator.id})",
-                "Confirming Moderator:": f"{moderator.mention} ({moderator.id})",
+                "Removed By:": f"{ctx.author.mention} ({ctx.author.id})",
+                "Confirming Moderator:": f"{confirming_moderator.mention} ({confirming_moderator.id})",
                 "Slur Removed:": slur,
             },
         )
         await channel.send(embed=embed_var)
-        await interaction.message.edit(
-            f"{self.sersisuccess} Slur {slur} is no longer in the list",
-            embed=None,
-            view=None,
-        )
-
-    @commands.command(aliases=["rmsl", "rmslur", "removesl"])
-    async def removeslur(self, ctx, slur):
-        """Remove a slur from the list of slurs."""
-        if not await permcheck(ctx, is_mod):
-            return
-
-        dialog_embed = SersiEmbed(
-            title="Remove Slur",
-            description="Following slur will be removed from slur detection:",
-            fields={
-                "Slur:": slur,
-                "Moderator": ctx.author.mention,
-                "Moderator ID": ctx.author.id,
-            },
-        )
-
-        channel = self.bot.get_channel(self.config.channels.alert)
-        view = DualCustodyView(self.cb_rmslur_confirm, ctx.author, is_full_mod)
-        await view.send_dialogue(channel, embed=dialog_embed)
-
-        await ctx.reply(
-            f"Removal of `{slur}` from slur detection was sent for approval by another moderator"
-        )
 
     @commands.command(aliases=["rmgw", "rmgoodword", "removegw"])
     async def removegoodword(self, ctx, word):
