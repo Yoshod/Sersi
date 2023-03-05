@@ -347,7 +347,7 @@ class Reformation(commands.Cog):
             reason = case_details[case_id][5]
 
             # await member.ban(reason=f"Reformation Failed: {reason}", delete_message_days=0)
-            await ban(self, member, "rf", reason=f"Reformation Failed: {reason}")
+            await ban(self.config, member, "rf", reason=f"Reformation Failed: {reason}")
 
             # transript
             with open(self.config.datafiles.reformation_cases, "rb") as file:
@@ -603,7 +603,7 @@ class Reformation(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_remove(self, member):
-        reformation_role = member.get_role(self.config.roles.re)
+        reformation_role = member.get_role(self.config.roles.reformation)
 
         if reformation_role is not None:
 

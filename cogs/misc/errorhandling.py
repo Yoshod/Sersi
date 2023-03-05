@@ -4,10 +4,11 @@ from configutils import Configuration
 
 
 class ErrorHandling(commands.Cog):
-    def __init__(self, bot, config: Configuration):
+    def __init__(self, bot: commands.Bot, config: Configuration):
         self.bot = bot
         self.config = config
-        self.error_guild = bot.get_guild(config.guilds.errors)
+        if bot.is_ready():
+            self.error_guild = bot.get_guild(config.guilds.errors)
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
@@ -71,6 +72,10 @@ class ErrorHandling(commands.Cog):
                 text="Sersi Support Server: https://discord.gg/TgrPmDwVwq"
             )
             await ctx.send(embed=error_receipt)
+
+    @commands.Cog.listener()
+    async def on_ready(self):
+        self.error_guild = self.bot.get_guild(self.config.guilds.errors)
 
 
 def setup(bot, **kwargs):

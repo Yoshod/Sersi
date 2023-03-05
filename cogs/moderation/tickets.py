@@ -274,7 +274,7 @@ class VerificationTicket(nextcord.ui.Modal):
         )
 
         category = nextcord.utils.get(
-            interaction.guild.categories, name="VERIFICATON SUPPORT"
+            interaction.guild.categories, name="VERIFICATION SUPPORT"
         )
         channel = await interaction.guild.create_text_channel(
             case_name, overwrites=overwrites, category=category
@@ -594,15 +594,18 @@ class TicketingSystem(commands.Cog):
                 await interaction.response.send_modal(ModeratorTicket(self.config))
             case ["verification-ticket"]:
                 await interaction.response.send_modal(VerificationTicket(self.config))
-
+                await interaction.edit_original_message(view=None)
+            case ["no-support"]:
+                await interaction.response.defer()
+                await interaction.edit_original_message(content="Please read the self help guide before opening a verification support ticket.", view=None)
             case ["support-ask"]:
                 support = Button(
                     custom_id="verification-ticket",
-                    label="✔️",
+                    label="Yes",
                     style=nextcord.ButtonStyle.green,
                 )
                 no_support = Button(
-                    custom_id="no-support", label="❌", style=nextcord.ButtonStyle.red
+                    custom_id="no-support", label="No", style=nextcord.ButtonStyle.red
                 )
 
                 button_view = View(auto_defer=False)

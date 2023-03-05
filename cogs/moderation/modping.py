@@ -173,6 +173,9 @@ class ModPing(commands.Cog):
             "Important stuff",
             "Administration Centre",
             "The Staff Zone",
+            "The Mod Zone",
+            "The CET Zone",
+            "Moderation Support",
         ]:  # ignores certain channels on ASC, given by Juniper
             return
 

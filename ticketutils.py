@@ -80,13 +80,14 @@ def ticket_prep(config: configutils.Configuration, interaction, user, ticket_typ
         interaction.guild.me: nextcord.PermissionOverwrite(read_messages=True),
         user: nextcord.PermissionOverwrite(
             read_messages=True,
+            send_messages=True,
             create_public_threads=False,
             create_private_threads=False,
-            external_stickers=False,
-            embed_links=False,
-            attach_files=False,
-            use_external_emojis=False,
-        ),
+            external_stickers=True,
+            embed_links=True,
+            attach_files=True,
+            use_external_emojis=True
+        )
     }
 
     with open("files/Tickets/ticketiters.json", "r", encoding="utf-8") as f:
@@ -240,12 +241,17 @@ async def ticket_close(
 
         await output_channel.send(embed=log_embed, file=transcript_file)
 
+        # DO NOT DELETE
+        # For some reason you cannot send a transcript twice so it has to be remade each time it is to be re-sent
         transcript_file = nextcord.File(
             io.BytesIO(transcript.encode()),
             filename=f"transcript-{channel.name}.html",
         )
 
-        await user.send(embed=log_embed, file=transcript_file)
+        try:
+            await user.send(embed=log_embed, file=transcript_file)
+        except nextcord.errors.Forbidden:
+            pass
 
 
 async def escalation_change(

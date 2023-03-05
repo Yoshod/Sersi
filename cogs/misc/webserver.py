@@ -95,7 +95,7 @@ class WebServer(commands.Cog):
 
         app.add_routes(routes)
 
-    @commands.Cog.listener
+    @commands.Cog.listener()
     async def on_ready(self):
         runner = web.AppRunner(app)
         await runner.setup()
