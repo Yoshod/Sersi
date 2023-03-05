@@ -205,7 +205,9 @@ class Messages(commands.Cog):
         await channel.send(embed=logging)
 
     @commands.command(aliases=["anonban", "anonmute"])
-    async def anonymousmute(self, ctx: commands.Context, member: nextcord.Member, *, reason):
+    async def anonymousmute(
+        self, ctx: commands.Context, member: nextcord.Member, *, reason
+    ):
         if not await permcheck(ctx, is_mod):
             return
         elif member.id in self.banlist:

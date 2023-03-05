@@ -1,14 +1,14 @@
-import nextcord
-import pickle
 import asyncio
-import csv
+import pickle
+from datetime import datetime, timezone
 
+import nextcord
 from nextcord.ext import commands
 from nextcord.ui import Button, View
 
 import logutils
 from baseutils import DualCustodyView, PageView, sanitize_mention, SersiEmbed
-from datetime import datetime, timezone
+from caseutils import case_history, slur_case
 from configutils import Configuration
 from permutils import permcheck, is_mod, is_full_mod, cb_is_mod
 from slurdetector import (
@@ -23,7 +23,6 @@ from slurdetector import (
     rm_goodword,
     detect_slur,
 )
-from caseutils import case_history, slur_case
 
 
 class Slur(commands.Cog):
@@ -428,7 +427,9 @@ class Slur(commands.Cog):
     async def on_message(self, message: nextcord.message.Message):
         detected_slurs = detect_slur(message.content)
 
-        if message.channel.category.name == "Administration Centre":  # ignores message if sent inside of the administration centre
+        if (
+            message.channel.category.name == "Administration Centre"
+        ):  # ignores message if sent inside of the administration centre
             return
 
         if message.author == self.bot.user:  # ignores message if message is by bot

@@ -66,61 +66,62 @@ class Caps(commands.Cog):
         if message.author.bot:  # ignores message if message is by bot
             return
 
-        msg_string = message.content
-
         # remove emotes
-        new_msg_string = re.sub(r"(<a?)?:\w+:(\d{18}>)?", "", msg_string)
+        msg_string = re.sub(r"(<a?)?:\w+:(\d{18}>)?", "", message.content)
 
         # remove nums and non-alpanumeric
-        new_msg_string = re.sub(r"[\W0-9]", "", new_msg_string)
+        new_msg_string = re.sub(r"[\W0-9]", "", msg_string)
 
-        if len(new_msg_string) > int(self.MIN_CHARS_FOR_DETECTION):  # should be an int, somehow isn't
-            # msg_string = unidecode.unidecode(msg_string)
+        if len(new_msg_string) < int(
+            self.MIN_CHARS_FOR_DETECTION
+        ):  # should be an int, somehow isn't
+            return
 
-            uppercase = sum(1 for char in new_msg_string if char.isupper())
+        # msg_string = unidecode.unidecode(msg_string)
 
-            percentage = uppercase / len(new_msg_string)
+        uppercase = sum(1 for char in new_msg_string if char.isupper())
 
-            if percentage > 0.7:
-                # await replace(self, message, message.author, msg_string)
-                await message.delete(delay=None)
-                # if message.mention_everyone:
-                #     return
+        percentage = uppercase / len(new_msg_string)
 
-                replacement_message = await send_webhook_message(
-                    channel=message.channel,
-                    content=msg_string.lower(),
-                    username=message.author.display_name,
-                    avatar_url=message.author.display_avatar.url,
-                    wait=True,
-                )
+        if percentage < 0.7:
+            return
 
-                channel = self.bot.get_channel(self.config.channels.logging)
-                logging_embed = nextcord.Embed(
-                    title="Caps Lock Message replaced",
-                    description="",
-                    color=nextcord.Color.from_rgb(237, 91, 6),
-                )
-                logging_embed.add_field(
-                    name="User:", value=message.author.mention, inline=False
-                )
-                logging_embed.add_field(
-                    name="Channel:", value=message.channel.mention, inline=False
-                )
-                logging_embed.add_field(
-                    name="Original Message:", value=msg_string, inline=False
-                )
-                logging_embed.add_field(
-                    name="Replacement Message:",
-                    value=str(msg_string.lower()),
-                    inline=False,
-                )
-                logging_embed.add_field(
-                    name="Link to Replacement Message:",
-                    value=f"[Jump!]({replacement_message.jump_url})",
-                    inline=True,
-                )
-                await channel.send(embed=logging_embed)
+        await message.delete(delay=None)
+
+        replacement_message = await send_webhook_message(
+            channel=message.channel,
+            content=msg_string.lower(),
+            username=message.author.display_name,
+            avatar_url=message.author.display_avatar.url,
+            wait=True,
+        )
+
+        channel = self.bot.get_channel(self.config.channels.logging)
+        logging_embed = nextcord.Embed(
+            title="Caps Lock Message replaced",
+            description="",
+            color=nextcord.Color.from_rgb(237, 91, 6),
+        )
+        logging_embed.add_field(
+            name="User:", value=message.author.mention, inline=False
+        )
+        logging_embed.add_field(
+            name="Channel:", value=message.channel.mention, inline=False
+        )
+        logging_embed.add_field(
+            name="Original Message:", value=msg_string, inline=False
+        )
+        logging_embed.add_field(
+            name="Replacement Message:",
+            value=str(msg_string.lower()),
+            inline=False,
+        )
+        logging_embed.add_field(
+            name="Link to Replacement Message:",
+            value=f"[Jump!]({replacement_message.jump_url})",
+            inline=True,
+        )
+        await channel.send(embed=logging_embed)
 
 
 def setup(bot, **kwargs):

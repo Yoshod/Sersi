@@ -24,7 +24,9 @@ async def load_all_cogs(bot: commands.Bot, *, config: Configuration, data_folder
     await bot.sync_all_application_commands()
 
 
-async def reload_all_cogs(bot: commands.Bot, *, config: Configuration, data_folder: str):
+async def reload_all_cogs(
+    bot: commands.Bot, *, config: Configuration, data_folder: str
+):
     for root, dirs, files in os.walk(f"./cogs"):
         for filename in files:
             if filename.endswith(".py"):

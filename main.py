@@ -16,8 +16,7 @@ from cogutils import load_all_cogs
 
 bot = commands.Bot(intents=nextcord.Intents.all())
 start_time = time.time()
-config = configutils.Configuration.from_yaml_file(
-    "./persistent_data/config.yaml")
+config = configutils.Configuration.from_yaml_file("./persistent_data/config.yaml")
 root_folder = os.path.dirname(os.path.realpath(__file__))
 
 
@@ -122,7 +121,7 @@ async def about(ctx: commands.Context):
             "Version": config.bot.version,
             "Authors:": "\n".join(config.bot.authors),
             "GitHub Repository:": config.bot.git_url,
-        }
+        },
     )
     await ctx.send(embed=embed)
 

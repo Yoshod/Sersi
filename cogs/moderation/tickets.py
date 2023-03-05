@@ -350,11 +350,26 @@ class CloseReason(nextcord.ui.Modal):
                 close_embed = nextcord.Embed(
                     title=f"Administrator Ticket {interaction.channel.name[-4:]} Closed",
                     description=f"The Administrator Ticket with ID number {interaction.channel.name[-4:]} has been closed.",
-                    color=nextcord.Color.from_rgb(237, 91, 6))
-                close_embed.add_field(name="Ticket Opened By:", value=f"{complainer.mention} ({complainer.id})", inline=False)
-                close_embed.add_field(name="Ticket Initial Remarks:", value=initial_embed.fields[0].value, inline=False)
-                close_embed.add_field(name="Ticket Closed By:", value=f"{user.mention} ({user.id})", inline=False)
-                close_embed.add_field(name="Ticket Close Notes:", value=self.notes.value, inline=False)
+                    color=nextcord.Color.from_rgb(237, 91, 6),
+                )
+                close_embed.add_field(
+                    name="Ticket Opened By:",
+                    value=f"{complainer.mention} ({complainer.id})",
+                    inline=False,
+                )
+                close_embed.add_field(
+                    name="Ticket Initial Remarks:",
+                    value=initial_embed.fields[0].value,
+                    inline=False,
+                )
+                close_embed.add_field(
+                    name="Ticket Closed By:",
+                    value=f"{user.mention} ({user.id})",
+                    inline=False,
+                )
+                close_embed.add_field(
+                    name="Ticket Close Notes:", value=self.notes.value, inline=False
+                )
 
                 close_embed.set_footer(
                     text=interaction.user.display_name,
@@ -597,7 +612,10 @@ class TicketingSystem(commands.Cog):
                 await interaction.edit_original_message(view=None)
             case ["no-support"]:
                 await interaction.response.defer()
-                await interaction.edit_original_message(content="Please read the self help guide before opening a verification support ticket.", view=None)
+                await interaction.edit_original_message(
+                    content="Please read the self help guide before opening a verification support ticket.",
+                    view=None,
+                )
             case ["support-ask"]:
                 support = Button(
                     custom_id="verification-ticket",
