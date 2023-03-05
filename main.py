@@ -10,12 +10,14 @@ import discordTokens
 from nextcord.ext import commands
 
 import configutils
+from baseutils import SersiEmbed
 from permutils import permcheck, is_sersi_contrib
 from cogutils import load_all_cogs
 
 bot = commands.Bot(intents=nextcord.Intents.all())
 start_time = time.time()
-config = configutils.Configuration.from_yaml_file("./persistent_data/config.yaml")
+config = configutils.Configuration.from_yaml_file(
+    "./persistent_data/config.yaml")
 root_folder = os.path.dirname(os.path.realpath(__file__))
 
 
@@ -111,15 +113,30 @@ async def reload(ctx: commands.Context, extension: str):
 
 
 @bot.command()
+async def about(ctx: commands.Context):
+    """Display basic information about the bot."""
+    embed = SersiEmbed(
+        title="About Sersi",
+        description="Sersi is the custom moderation help bot for Adam Something Central.",
+        fields={
+            "Version": config.bot.version,
+            "Authors:": "\n".join(config.bot.authors),
+            "GitHub Repository:": config.bot.git_url,
+        }
+    )
+    await ctx.send(embed=embed)
+
+
+@bot.command()
 async def uptime(ctx: commands.Context):
     """Displays Sersi's uptime"""
     sersi_uptime = str(datetime.timedelta(seconds=int(round(time.time() - start_time))))
-    embedVar = nextcord.Embed(
+    embed = nextcord.Embed(
         title="Sersi Uptime",
         description=f"Sersi has been online for:\n`{sersi_uptime}`",
         color=nextcord.Color.from_rgb(237, 91, 6),
     )
-    await ctx.send(embed=embedVar)
+    await ctx.send(embed=embed)
 
 
 @bot.command()
