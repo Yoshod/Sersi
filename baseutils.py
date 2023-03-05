@@ -15,8 +15,8 @@ class SersiEmbed(nextcord.Embed):
         self,
         *,
         fields: dict[str, str] = None,
-        footer: str = "\u200b",
-        footer_icon: str = None,
+        footer: str = nextcord.embeds.EmptyEmbed,
+        footer_icon: str = nextcord.embeds.EmptyEmbed,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -98,6 +98,7 @@ class ConfirmView(View):
         btn_cancel.callback = self.cb_cancel
         self.add_item(btn_proceed)
         self.add_item(btn_cancel)
+        self.message: nextcord.Message
 
     async def cb_cancel(self, interaction: nextcord.Interaction):
         await interaction.message.edit("Action canceled!", embed=None, view=None)
@@ -122,6 +123,7 @@ class DualCustodyView(View):
         self.add_item(btn_confirm)
         self.has_perms = has_perms
         self.author = author
+        self.message: nextcord.Message
 
     async def on_timeout(self):
         await self.message.edit(view=None)
@@ -165,6 +167,7 @@ class PageView(View):
         self.embed_base = base_embed
         self.entry_format = entry_form
         self.get_entries = fetch_function
+        self.message: nextcord.Message
 
     def make_column(self, entries):
         entry_list = []
@@ -197,19 +200,19 @@ class PageView(View):
         embed.set_footer(text=f"page {self.page}/{pages}")
         return embed
 
-    async def update_embed(self, page):
+    async def update_embed(self, page: int):
         await self.message.edit(embed=self.make_embed(page))
 
-    async def cb_next_page(self, interaction):
+    async def cb_next_page(self, interaction: nextcord.Interaction):
         await self.update_embed(self.page + 1)
 
-    async def cb_prev_page(self, interaction):
+    async def cb_prev_page(self, interaction: nextcord.Interaction):
         await self.update_embed(self.page - 1)
 
     async def on_timeout(self):
         await self.message.edit(view=None)
 
-    async def interaction_check(self, interaction):
+    async def interaction_check(self, interaction: nextcord.Interaction):
         return interaction.user == self.author
 
     async def send_embed(self, channel):
