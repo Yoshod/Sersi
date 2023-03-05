@@ -314,17 +314,14 @@ class Slur(commands.Cog):
 
         
 
-    @commands.command(aliases=["rmsl", "rmslur", "removesl"])
-    @DualCustodyView.query("Slur Removal",
-        "Following slur will be removed from slur detection:",
-        is_full_mod,
-        {2: "Slur"})
-    async def removeslur(self, ctx: commands.Context, slur: str, *,
-                        confirming_moderator: nextcord.Member = None):
+    @commands.command(name="removeslur", aliases=["rmsl", "rmslur", "removesl"])
+    @DualCustodyView.query(title="Slur Removal",
+        prompt="Following slur will be removed from slur detection:",
+        perms=is_full_mod,
+        embed_args={0: "Slur"})
+    async def remove_slur(self, ctx: commands.Context, slur: str, *,
+                           confirming_moderator: nextcord.Member):
         rm_slur(slur)
-
-        if confirming_moderator is None:
-            confirming_moderator = ctx.author
 
         # logging
         channel = self.bot.get_channel(self.config.channels.logging)
