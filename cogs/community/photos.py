@@ -10,7 +10,7 @@ class Photos(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        """photpraphy channel new post routing"""
+        """photography channel new post routing"""
 
         # ignore if message is not in photography channel
         if message.channel.id != self.config.channels.photography:

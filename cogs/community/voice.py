@@ -3,7 +3,7 @@ import requests
 
 from nextcord.ext import commands
 
-from baseutils import ConfirmView
+from baseutils import ConfirmView, SersiEmbed
 from configutils import Configuration
 from permutils import permcheck, is_mod
 import discordTokens
@@ -42,16 +42,17 @@ class Voice(commands.Cog):
         )
 
         # logging
-        embed = nextcord.Embed(
+        embed = SersiEmbed(
             title="Members mass moved to other VC",
             color=nextcord.Color.from_rgb(237, 91, 6),
+            fields={
+                "Moderator:": interaction.user.mention,
+                "Original channel:": current.mention,
+                "Members moved to channel:": target.mention,
+                "Members Moved:": memberlist,
+            },
+            footer="Voice Cog",
         )
-        embed.add_field(name="Moderator:", value=interaction.user.mention, inline=False)
-        embed.add_field(name="Original channel:", value=current.mention, inline=False)
-        embed.add_field(
-            name="Members moved to channel:", value=target.mention, inline=False
-        )
-        embed.add_field(name="Members Moved:", value=memberlist, inline=False)
 
         channel = interaction.guild.get_channel(self.config.channels.logging)
         await channel.send(embed=embed)
@@ -67,56 +68,22 @@ class Voice(commands.Cog):
         if not await permcheck(ctx, is_mod):
             return
 
-        dialog_embed = nextcord.Embed(
+        dialog_embed = SersiEmbed(
             title="Move Members to different voice channel",
             color=nextcord.Color.from_rgb(237, 91, 6),
+            fields={
+                "\u200b": "All members in channel:",
+                "Source Channel": current.mention,
+                "Source ID": current.id,
+                "Destination Channel": target.mention,
+                "Destination ID": target.id,
+            },
+            footer="Voice Cog",
         )
-        dialog_embed.add_field(
-            name="\u200b", value="All members in channel:", inline=False
-        )
-        dialog_embed.add_field(name="Source Channel", value=current.mention)
-        dialog_embed.add_field(name="Source ID", value=current.id)
-        dialog_embed.add_field(
-            name="\u200b", value="will be moved to channel:", inline=False
-        )
-        dialog_embed.add_field(name="Destination Channel", value=target.mention)
-        dialog_embed.add_field(name="Destination ID", value=target.id)
 
         await ConfirmView(self.cb_massmove_proceed).send_as_reply(
             ctx, embed=dialog_embed
         )
-
-    """@commands.command(aliases=['f'])
-    async def forcejoin(self, ctx, channel: nextcord.VoiceChannel):
-        if not await permcheck(ctx, is_mod):
-            return
-
-        self.unlocked_channels.append(channel)
-        await ctx.send(f"{ctx.author.voice}\n\n")
-        if ctx.author.voice is not None:    # currently in antother VC
-            await ctx.author.move_to(channel=channel, reason="Forcefully joined.")
-        else:
-            await ctx.send(f"{channel.mention} has been unlocked for you to join.")
-
-        async with ctx.channel.typing():
-            await asyncio.sleep(10)  # 10 seconds of time
-
-        if channel in self.unlocked_channels:
-            self.unlocked_channels.remove(channel)
-            await ctx.send(f"{ctx.author.mention} {channel.mention} is locked again now.")
-
-        # logging
-        log_embed = nextcord.Embed(
-            title="VC lock overridden",
-            description="A Moderator tried to connect to an already full VC and was automatically disconnected.")
-        log_embed.add_field(name="Moderator:", value=ctx.author.mention)
-        log_embed.add_field(name="Voice Channel:", value=channel.name)
-
-        channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'logging'))
-        await channel.send(embed=log_embed)
-
-        channel = ctx.guild.get_channel(get_config_int('CHANNELS', 'modlogs'))
-        await channel.send(embed=log_embed)"""
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
@@ -177,47 +144,6 @@ class Voice(commands.Cog):
                         ]
                     }
                 requests.post(url, headers=headers, json=json)
-
-        #   -----------------VOICE LOCK-----------------
-
-        """if after.channel is not None:
-            if after.channel.user_limit < len(after.channel.members):
-                if after.channel.user_limit == 0:   # no limit
-                    return
-
-                if after.channel in self.unlocked_channels:     # unlock used; relock channel
-                    await member.edit(mute=True)
-                    self.unlocked_channels.remove(after.channel)
-
-                    # logging
-                    log_embed = nextcord.Embed(
-                        title="VC lock circumvented",
-                        description="A Moderator joined a VC that was previously locked.")
-                    log_embed.add_field(name="Offending Moderator:", value=member.mention)
-                    log_embed.add_field(name="Voice Channel:", value=after.channel.name)
-
-                    channel = member.guild.get_channel(get_config_int('CHANNELS', 'logging'))
-                    await channel.send(embed=log_embed)
-
-                    channel = member.guild.get_channel(get_config_int('CHANNELS', 'modlogs'))
-                    await channel.send(embed=log_embed)
-
-                else:
-                    await member.move_to(None)
-                    await member.send(f"You have been automatically disconnected from {after.channel.name} because it was full. If you want to join the VC **__for moderation purposes only__** you can do that by running the `forcejoin` command.\nInappropiate use of the command will be punished.")
-
-                    # logging
-                    log_embed = nextcord.Embed(
-                        title="VC lock enforced",
-                        description="A Moderator tried to connect to an already full VC and was automatically disconnected.")
-                    log_embed.add_field(name="Offending Moderator:", value=member.mention)
-                    log_embed.add_field(name="Voice Channel:", value=after.channel.name)
-
-                    channel = member.guild.get_channel(get_config_int('CHANNELS', 'logging'))
-                    await channel.send(embed=log_embed)
-
-                    channel = member.guild.get_channel(get_config_int('CHANNELS', 'modlogs'))
-                    await channel.send(embed=log_embed)"""
 
 
 def setup(bot, **kwargs):

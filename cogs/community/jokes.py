@@ -30,14 +30,14 @@ class Jokes(commands.Cog):
             elif current_char in ["l", "r"]:
                 output_text += "w"
 
-            # if the current character is 'o' or 'O'and the previous one is 'N', 'n', 'M' or 'm'
+            # if the current character is 'o' or 'O' and the previous one is 'N', 'n', 'M' or 'm'
             elif current_char in ["O", "o"]:
                 if previous_char in ["N", "n", "M", "m"]:
                     output_text += "yo"
                 else:
                     output_text += current_char
 
-            # if the current character is 'a' or 'A'and the previous one is 'N', 'n', 'M' or 'm'
+            # if the current character is 'a' or 'A' and the previous one is 'N', 'n', 'M' or 'm'
             elif current_char in ["A", "a"]:
                 if previous_char in ["N", "n", "M", "m"]:
                     output_text += "ya"
@@ -74,7 +74,7 @@ class Jokes(commands.Cog):
         await ctx.send(embed=nevermod_embed)
 
     @commands.command()
-    async def uwu(self, ctx: commands.Context, *, message: str=""):
+    async def uwu(self, ctx: commands.Context, *, message: str = ""):
         """OwO *nuzzles the command*.
 
         Takes message and uwuifies it.
@@ -88,27 +88,6 @@ class Jokes(commands.Cog):
         await send_webhook_message(
             channel=ctx.channel,
             content=self.generate_uwu(message),
-            username=self.generate_uwu(ctx.author.display_name),
-            avatar_url=ctx.author.display_avatar.url,
-        )
-
-    @commands.command()
-    async def owo(self, ctx: commands.Context, *, message=""):
-        """OwO *nuzzles the command*.
-
-        Takes message and owoifies it.
-        """
-        if message == "":
-            await ctx.send(
-                f"{ctx.author.mention} OwO *notices you did not set a message* pwease pwovide a message~"
-            )
-            return
-
-        await ctx.message.delete(delay=None)
-
-        await send_webhook_message(
-            channel=ctx.channel,
-            content=f"OwO *notices your message* {self.generate_uwu(message)}~",
             username=self.generate_uwu(ctx.author.display_name),
             avatar_url=ctx.author.display_avatar.url,
         )
@@ -146,16 +125,6 @@ class Jokes(commands.Cog):
                 await message.channel.send(embed=embed)
                 return
 
-        if (
-            "question of life the universe and everything"
-            in message.content.lower().replace(",", "")
-            or "ultimate question" in message.content.lower()
-        ):
-            randomValue = random.randint(1, 3)
-            if randomValue == 1:
-                await message.channel.send("The answer is ||42||")
-                return
-
         if "literally 1984" in message.content.lower():
             randomValue = random.randint(1, 4)
             if randomValue == 1:
@@ -166,7 +135,7 @@ class Jokes(commands.Cog):
                 return
 
         if message.content.lower() == "nya":
-            randomValue = random.randint(1, 15)
+            randomValue = random.randint(1, 10)
             if randomValue == 1:
                 await message.channel.send(
                     f"Nya... nya? What are you, a fucking weeb {message.author.mention}?"
@@ -174,21 +143,13 @@ class Jokes(commands.Cog):
                 return
 
         if message.content.lower() == "meow":
-            randomValue = random.randint(1, 20)
+            randomValue = random.randint(1, 10)
             if randomValue == 1:
                 await message.channel.send(
                     f"Meow meow meow, we get it you have a prissy attitude {message.author.mention}, we already noticed."
                 )
                 return
-            
-        if message.content.lower() == "meow":
-            randomValue = random.randint(1, 20)
-            if randomValue == 1:
-                await message.channel.send(
-                    f"Meow meow meow, we get it you have a prissy attitude {message.author.mention}, we already noticed."
-                )
-                return
-            
+
         if (
             message.type == nextcord.MessageType.reply
             and "is this" in message.content.lower()
@@ -204,9 +165,9 @@ class Jokes(commands.Cog):
         if message.author.is_on_mobile():
             randomValue = random.randint(1, 100000)
             if randomValue == 1:
-                genders = ['man', 'woman', 'enby']
+                # let's have it simple _and_ gender neutral. okay?
                 await message.reply(
-                    f"Discord mobile was the greatest mistake in the history of {random.choice(genders)}kind"
+                    f"Discord mobile was the greatest mistake in the history of humankind"
                 )
             elif randomValue < 4:
                 await message.reply("Phone user detected, opinion rejected")

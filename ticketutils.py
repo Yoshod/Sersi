@@ -86,8 +86,8 @@ def ticket_prep(config: configutils.Configuration, interaction, user, ticket_typ
             external_stickers=True,
             embed_links=True,
             attach_files=True,
-            use_external_emojis=True
-        )
+            use_external_emojis=True,
+        ),
     }
 
     with open("files/Tickets/ticketiters.json", "r", encoding="utf-8") as f:

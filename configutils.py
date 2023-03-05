@@ -176,7 +176,6 @@ class Configuration(YAMLWizard):
     roles: ConfigurationRoles
     opt_in_roles: ConfigurationOptInRoles
     permission_roles: ConfigurationPermissionRoles
-    punishment_roles: ConfigurationPunishmentRoles
     emotes: ConfigurationEmotes
     invites: ConfigurationInvites
     guilds: ConfigurationGuilds
