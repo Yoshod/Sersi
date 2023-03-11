@@ -144,7 +144,7 @@ class Perspective(commands.Cog):
 
         # look for stuff here in the response
         problems: dict[str:float] = {}
-        if evaluation.toxic >= 0.8:
+        if evaluation.toxic >= 0.85:
             problems["toxicity"] = evaluation.toxic
         elif evaluation.flirt >= 0.95:
             problems["flirtation"] = evaluation.flirt

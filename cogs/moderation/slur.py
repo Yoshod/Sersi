@@ -331,7 +331,9 @@ class Slur(commands.Cog):
                 },
             )
             await channel.send(embed=embed_var)
-        await execute(self.bot, self.config, ctx)
+        embed = await execute(self.bot, self.config, ctx)
+        if embed is not None:
+            await ctx.reply(embed=embed)
 
     @commands.command(aliases=["rmgw", "rmgoodword", "removegw"])
     async def removegoodword(self, ctx, word):

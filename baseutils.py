@@ -118,8 +118,9 @@ class ConfirmView(View):
     @staticmethod
     def query(title: str, prompt: str, embed_args: dict = {}) -> callable:
         def wrapper(func: callable) -> callable:
-            async def confirm(cog: commands.Cog, ctx: commands.Context, *args, **kwargs):
-                embed_fields = {field: args[arg] for arg, field in embed_args.items()}
+            async def confirm(bot: commands.Bot, config: configutils.Configuration,
+                                ctx: commands.Context):
+                embed_fields = embed_args.copy()
                 dialog_embed = SersiEmbed(
                     title=title,
                     description=prompt,
@@ -128,7 +129,7 @@ class ConfirmView(View):
 
                 async def cb_proceed(interaction: nextcord.Interaction):
                     await interaction.message.edit(view=None)
-                    dialog_embed = await func(cog, ctx, *args, **kwargs)
+                    dialog_embed = await func(bot, config, ctx)
                     if dialog_embed is not None:
                         await interaction.message.edit(embed=dialog_embed)
 
@@ -166,14 +167,13 @@ class DualCustodyView(View):
     ) -> callable:
         def wrapper(func: callable) -> callable:
             async def dual_custody(bot: commands.Bot, config: configutils.Configuration,
-                                    ctx: commands.Context):
+                                    ctx: commands.Context) -> nextcord.Embed:
 
                 # if command used by admin, skip dual custody query
                 if is_dark_mod(ctx.author):
-                    await func(
+                    return await func(
                         bot, config, ctx, confirming_moderator=ctx.author
                     )
-                    return
 
                 embed_fields = embed_args.copy()
                 embed_fields.update({"Moderator": ctx.author.mention})
@@ -185,19 +185,24 @@ class DualCustodyView(View):
 
                 async def cb_confirm(interaction: nextcord.Interaction):
                     await interaction.message.edit(view=None)
-                    await func(
+                    new_embed = await func(
                         bot, config, ctx, confirming_moderator=interaction.user
                     )
-                    dialog_embed.add_field(
+                    if new_embed is None:
+                        new_embed = dialog_embed
+                    new_embed.add_field(
                         name="Confirmed by:", value=interaction.user.mention
                     )
-                    await interaction.message.edit(embed=dialog_embed)
+                    await interaction.message.edit(embed=new_embed)
 
                 channel = bot.get_channel(config.channels.alert)
                 view = DualCustodyView(cb_confirm, ctx.author, perms)
                 await view.send_dialogue(channel, embed=dialog_embed)
 
-                await ctx.reply(f"{title} pending review by another moderator")
+                return SersiEmbed(
+                    title=title,
+                    description="Pending review by another moderator",
+                )
 
             return dual_custody
 

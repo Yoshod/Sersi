@@ -1,7 +1,7 @@
 import nextcord
 from nextcord.ext import commands
 
-from baseutils import ConfirmView, DualCustodyView
+from baseutils import ConfirmView, DualCustodyView, SersiEmbed
 from configutils import Configuration
 from permutils import permcheck, is_mod, is_full_mod
 from caseutils import case_history, probation_case
@@ -14,91 +14,6 @@ class Probation(commands.Cog):
         self.sersisuccess = config.emotes.success
         self.sersifail = config.emotes.fail
 
-    async def cb_addprob_confirm(self, interaction):
-        member_id, mod_id, reason = 0, 0, ""
-        for field in interaction.message.embeds[0].fields:
-            if field.name == "User ID":
-                member_id = int(field.value)
-            elif field.name == "Moderator ID":
-                mod_id = int(field.value)
-            elif field.name == "Reason":
-                reason = field.value
-        member = interaction.guild.get_member(member_id)
-        moderator = interaction.guild.get_member(mod_id)
-
-        probation_role = interaction.guild.get_role(self.config.roles.probation)
-        await member.add_roles(probation_role, reason=reason, atomic=True)
-
-        confirmation_embed = nextcord.Embed(
-            title="Member in Probation",
-            description=f"{member.mention} has been put into probation, continued rule breaking may result in a ban",
-            colour=nextcord.Colour.brand_red(),
-        )
-        await interaction.message.edit(embed=confirmation_embed, view=None)
-
-        log_embed = nextcord.Embed(
-            title="Member put into Probation", color=nextcord.Color.from_rgb(237, 91, 6)
-        )
-        log_embed.add_field(
-            name="Resposible Moderator:", value=moderator.mention, inline=False
-        )
-        log_embed.add_field(
-            name="Confirming Moderator:", value=interaction.user.mention, inline=False
-        )
-        log_embed.add_field(name="Member:", value=member.mention, inline=False)
-        log_embed.add_field(name="Reason:", value=reason, inline=False)
-
-        log_channel = interaction.guild.get_channel(self.config.channels.logging)
-        await log_channel.send(embed=log_embed)
-
-        log_channel = interaction.guild.get_channel(self.config.channels.mod_logs)
-        await log_channel.send(embed=log_embed)
-
-        unique_id = case_history(self.config, member.id, "Probation")
-        probation_case(
-            self.config, unique_id, member.id, moderator.id, interaction.user.id, reason
-        )
-
-        dm_embed = nextcord.Embed(
-            title="Adam Something Central Probation",
-            description="Your behaviour on Adam Something Central has resulted in being put into probation by a moderator, continued rule breaking may result in a ban",
-            colour=nextcord.Colour.brand_red(),
-        )
-        dm_embed.add_field(
-            name="Reason specified by moderator:", value=reason, inline=False
-        )
-        await member.send(embed=dm_embed)
-
-    async def cb_addprob_proceed(self, interaction):
-        member_id, reason = 0, ""
-        for field in interaction.message.embeds[0].fields:
-            if field.name == "User ID":
-                member_id = int(field.value)
-            elif field.name == "Reason":
-                reason = field.value
-        member = interaction.guild.get_member(member_id)
-
-        dialog_embed = nextcord.Embed(
-            title="Add Member to probation",
-            description="Following member will be given probation:",
-            color=nextcord.Color.from_rgb(237, 91, 6),
-        )
-        dialog_embed.add_field(name="User", value=member.mention)
-        dialog_embed.add_field(name="User ID", value=member.id)
-        dialog_embed.add_field(name="Reason", value=reason, inline=False)
-        dialog_embed.add_field(name="Moderator", value=interaction.user.mention)
-        dialog_embed.add_field(name="Moderator ID", value=interaction.user.id)
-
-        channel = interaction.guild.get_channel(self.config.channels.alert)
-        view = DualCustodyView(self.cb_addprob_confirm, interaction.user, is_full_mod)
-        await view.send_dialogue(channel, embed=dialog_embed)
-
-        await interaction.message.edit(
-            f"Putting {member.mention} into probation was sent for approval by another moderator",
-            embed=None,
-            view=None,
-        )
-
     @commands.command(aliases=["addp", "addprob", "pn"])
     async def addprobation(
         self, ctx: commands.Context, member: nextcord.Member, *, reason="not specified"
@@ -110,103 +25,68 @@ class Probation(commands.Cog):
 
         if probation_role in member.roles:
             await ctx.reply(f"{self.sersifail} member is already in probation")
-        else:
-            dialog_embed = nextcord.Embed(
-                title="Add Member to probation",
-                description="Following member will be given probation:",
-                color=nextcord.Color.from_rgb(237, 91, 6),
+            return
+
+        @ConfirmView.query(title="Add Member to probation",
+            prompt="Following member will be given probation:",
+            embed_args={
+                "User": member.mention,
+                "Reason": reason,
+            })
+        @DualCustodyView.query(title="Add Member to probation",
+            prompt="Following member will be given probation:",
+            perms=is_full_mod,
+            embed_args={
+                "User": member.mention,
+                "Reason": reason,
+                "Moderator": ctx.author.mention,
+            })
+        async def execute(*args, confirming_moderator: nextcord.Member, **kwargs):
+            await member.add_roles(probation_role, reason=reason, atomic=True)
+
+            unique_id = case_history(self.config, member.id, "Probation")
+            probation_case(self.config, unique_id, member.id,
+                           ctx.author.id, confirming_moderator.id, reason)
+
+            log_embed = SersiEmbed(
+                title="Member put into Probation",
+                fields={
+                    "Resposible Moderator:": ctx.author.mention,
+                    "Confirming Moderator:": confirming_moderator.mention,
+                    "Member": member.mention,
+                    "Reason:": reason,
+                }
             )
-            dialog_embed.add_field(name="User", value=member.mention)
-            dialog_embed.add_field(name="User ID", value=member.id)
-            dialog_embed.add_field(name="Reason", value=reason, inline=False)
 
-            await ConfirmView(self.cb_addprob_proceed).send_as_reply(
-                ctx, embed=dialog_embed
+            log_channel = ctx.guild.get_channel(
+                self.config.channels.logging)
+            await log_channel.send(embed=log_embed)
+
+            log_channel = ctx.guild.get_channel(
+                self.config.channels.mod_logs)
+            await log_channel.send(embed=log_embed)
+
+            dm_embed = SersiEmbed(
+                title="Adam Something Central Probation",
+                description="Your behaviour on Adam Something Central has resulted in being put into probation by a moderator, continued rule breaking may result in a ban",
+                colour=nextcord.Colour.brand_red(),
+                fields={"Reason specified by moderator:": reason}
             )
+            await member.send(embed=dm_embed)
 
-    async def cb_rmprob_confirm(self, interaction):
-        member_id, mod_id, reason = 0, 0, ""
-        for field in interaction.message.embeds[0].fields:
-            if field.name == "User ID":
-                member_id = int(field.value)
-            elif field.name == "Moderator ID":
-                mod_id = int(field.value)
-            elif field.name == "Reason":
-                reason = field.value
-        member = interaction.guild.get_member(member_id)
-        moderator = interaction.guild.get_member(mod_id)
-
-        probation_role = interaction.guild.get_role(self.config.roles.probation)
-        await member.remove_roles(probation_role, reason=reason, atomic=True)
-
-        confirmation_embed = nextcord.Embed(
-            title="Member removed from Probation",
-            description=f"{member.mention} was succesfully removed from probation!",
-            colour=nextcord.Colour.brand_red(),
-        )
-        await interaction.message.edit(embed=confirmation_embed, view=None)
-
-        log_embed = nextcord.Embed(
-            title="Member removed from Probation",
-            color=nextcord.Color.from_rgb(237, 91, 6),
-        )
-        log_embed.add_field(
-            name="Resposible Moderator:", value=moderator.mention, inline=False
-        )
-        log_embed.add_field(
-            name="Confirming Moderator:", value=interaction.user.mention, inline=False
-        )
-        log_embed.add_field(name="Member:", value=member.mention, inline=False)
-        log_embed.add_field(name="Reason:", value=reason, inline=False)
-
-        log_channel = interaction.guild.get_channel(self.config.channels.logging)
-        await log_channel.send(embed=log_embed)
-
-        log_channel = interaction.guild.get_channel(self.config.channels.mod_logs)
-        await log_channel.send(embed=log_embed)
-
-        dm_embed = nextcord.Embed(
-            title="Adam Something Central Probation Over",
-            description="You were removed from probation on Adam Something Central",
-            colour=nextcord.Colour.brand_red(),
-        )
-        dm_embed.add_field(
-            name="Reason specified by moderator:", value=reason, inline=False
-        )
-        await member.send(embed=dm_embed)
-
-    async def cb_rmprob_proceed(self, interaction):
-        member_id, reason = 0, ""
-        for field in interaction.message.embeds[0].fields:
-            if field.name == "User ID":
-                member_id = int(field.value)
-            elif field.name == "Reason":
-                reason = field.value
-        member = interaction.guild.get_member(member_id)
-
-        dialog_embed = nextcord.Embed(
-            title="Remove Member from probation",
-            description="Following member will be removed from probation:",
-            color=nextcord.Color.from_rgb(237, 91, 6),
-        )
-        dialog_embed.add_field(name="User", value=member.mention)
-        dialog_embed.add_field(name="User ID", value=member.id)
-        dialog_embed.add_field(name="Reason", value=reason, inline=False)
-        dialog_embed.add_field(name="Moderator", value=interaction.user.mention)
-        dialog_embed.add_field(name="Moderator ID", value=interaction.user.id)
-
-        channel = interaction.guild.get_channel(self.config.channels.alert)
-        view = DualCustodyView(self.cb_rmprob_confirm, interaction.user, is_full_mod)
-        await view.send_dialogue(channel, embed=dialog_embed)
-
-        await interaction.message.edit(
-            f"Removing {member.mention} from probation was sent for approval by another moderator",
-            embed=None,
-            view=None,
-        )
+            return SersiEmbed(
+                title="Member in Probation",
+                description=f"{member.mention} has been put into probation, continued rule breaking may result in a ban",
+                fields={
+                    "User": member.mention,
+                    "Reason": reason,
+                    "Moderator": ctx.author.mention,
+                }
+            )
+        await execute(self.bot, self.config, ctx)
 
     @commands.command(aliases=["rmp", "rmprob"])
-    async def removeprobation(self, ctx, member: nextcord.Member, *, reason):
+    async def removeprobation(self, ctx: commands.Context, member: nextcord.Member, *, reason):
         if not await permcheck(ctx, is_mod):
             return
 
@@ -216,19 +96,61 @@ class Probation(commands.Cog):
             await ctx.reply(
                 "Error: cannot remove user from probation, member is currently not in probation"
             )
-        else:
-            dialog_embed = nextcord.Embed(
-                title="Add Member to probation",
-                description="Following member will be given probation:",
-                color=nextcord.Color.from_rgb(237, 91, 6),
-            )
-            dialog_embed.add_field(name="User", value=member.mention)
-            dialog_embed.add_field(name="User ID", value=member.id)
-            dialog_embed.add_field(name="Reason", value=reason, inline=False)
+            return
+        
+        @ConfirmView.query(title="Remove Member from probation",
+            prompt="Following member will be removed from probation:",
+            embed_args={
+                "User": member.mention,
+                "Reason": reason,
+            })
+        @DualCustodyView.query(title="Remove Member from probation",
+            prompt="Following member will be removed from probation:",
+            perms=is_full_mod,
+            embed_args={
+                "User": member.mention,
+                "Reason": reason,
+                "Moderator": ctx.author.mention,
+            })
+        async def execute(*args, confirming_moderator: nextcord.Member, **kwargs):
+            await member.remove_roles(probation_role, reason=reason, atomic=True)
 
-            await ConfirmView(self.cb_rmprob_proceed).send_as_reply(
-                ctx, embed=dialog_embed
+            log_embed = SersiEmbed(
+                title="Member removed from Probation",
+                fields={
+                    "Resposible Moderator:": ctx.author.mention,
+                    "Confirming Moderator:": confirming_moderator.mention,
+                    "Member": member.mention,
+                    "Reason:": reason,
+                }
             )
+
+            log_channel = ctx.guild.get_channel(
+                self.config.channels.logging)
+            await log_channel.send(embed=log_embed)
+
+            log_channel = ctx.guild.get_channel(
+                self.config.channels.mod_logs)
+            await log_channel.send(embed=log_embed)
+
+            dm_embed = SersiEmbed(
+                title="Adam Something Central Probation Over",
+                description="You were removed from probation on Adam Something Central",
+                colour=nextcord.Colour.brand_red(),
+                fields={"Reason specified by moderator:": reason}
+            )
+            await member.send(embed=dm_embed)
+
+            return SersiEmbed(
+                title="Member removed from Probation",
+                description=f"{member.mention} was succesfully removed from probation!",
+                fields={
+                    "User": member.mention,
+                    "Reason": reason,
+                    "Moderator": ctx.author.mention,
+                }
+            )
+        await execute(self.bot, self.config, ctx)
 
 
 def setup(bot, **kwargs):
