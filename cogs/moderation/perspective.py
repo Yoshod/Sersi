@@ -1,14 +1,24 @@
 import asyncio
+from dataclasses import dataclass
 from datetime import datetime, timezone
 
 import nextcord
+import requests
 from nextcord.ext import commands
 from nextcord.ui import Button, View
 
+import discordTokens
 import logutils
 from baseutils import SersiEmbed
 from configutils import Configuration
 from permutils import cb_is_mod
+
+
+@dataclass
+class PerspectiveEvaluation:
+    toxic: float
+    flirt: float
+    nsfw: float
 
 
 class Perspective(commands.Cog):
@@ -16,9 +26,29 @@ class Perspective(commands.Cog):
         self.bot = bot
         self.config = config
 
-    def ask_perspective(self, message: str):
-        # stuff here
-        return ...
+    def ask_perspective(self, message: str) -> PerspectiveEvaluation:
+
+        response = requests.post(
+            f"https://commentanalyzer.googleapis.com/v1alpha1/comments:analyze?key={discordTokens.getPerspectiveToken()}",
+            json={
+                "comment": {"text": message},
+                "languages": ["en"],
+                "requestedAttributes": {
+                    "TOXICITY": {},
+                    "FLIRTATION": {},
+                    "SEXUALLY_EXPLICIT": {},
+                },
+                "doNotStore": True,
+            },
+            headers={"Content-Type": "application/json; charset=UTF-8"},
+        )
+        # fmt: off
+        return PerspectiveEvaluation(
+            toxic=response.json()["attributeScores"]["TOXICITY"]["summaryScore"]["value"],
+            flirt=response.json()["attributeScores"]["FLIRTATION"]["summaryScore"]["value"],
+            nsfw=response.json()["attributeScores"]["SEXUALLY_EXPLICIT"]["summaryScore"]["value"],
+        )
+        # fmt: on
 
     async def cb_action_taken(self, interaction):
         # update alert embed
@@ -103,7 +133,7 @@ class Perspective(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.message.Message):
-        detected_slurs = self.ask_perspective(message.content)
+        evaluation: PerspectiveEvaluation = self.ask_perspective(message.content)
 
         # ignores message if sent inside the administration centre
         if message.channel.category.name == "Administration Centre":
@@ -113,56 +143,70 @@ class Perspective(commands.Cog):
             return
 
         # look for stuff here in the response
-        elif len(detected_slurs) > 0:
-            information_centre = self.bot.get_channel(self.config.channels.alert)
+        problems: dict[str:float] = {}
+        if evaluation.toxic >= 0.8:
+            problems["toxicity"] = evaluation.toxic
+        elif evaluation.flirt >= 0.95:
+            problems["flirtation"] = evaluation.flirt
+        elif evaluation.nsfw >= 0.8:
+            problems["nsfw"] = evaluation.nsfw
 
-            if len(message.content) < 1024:
-                citation: str = message.content
-            else:
-                citation: str = "`MESSAGE TOO LONG`"
+        # stop here if there are no problems at all
+        if not problems:
+            return
 
-            toxic_embed = SersiEmbed(
-                title="Toxicity Detected (AI)",
-                description="Perspective AI has deemed a message to contain toxicity. Moderation action is advised.",
-                footer="Sersi Toxicity Detection Alert powered by Perspective API",
-                fields={
-                    "Channel:": message.channel.mention,
-                    "User:": message.author.mention,
-                    "Message:": citation,
-                    "URL:": message.jump_url,
-                },
+        information_centre = self.bot.get_channel(self.config.channels.alert)
+
+        if len(message.content) < 1024:
+            citation: str = message.content
+        else:
+            citation: str = "`MESSAGE TOO LONG`"
+
+        toxic_embed = SersiEmbed(
+            title=f"AI dectected `{', '.join([value.upper() for value in problems])}` in Message!",
+            description="Perspective AI has deemed a message to be problematic. Moderation action is advised.",
+            footer="Sersi Problematic Message Detection Alert powered by Perspective API",
+            fields={
+                "Channel:": message.channel.mention,
+                "User:": message.author.mention,
+                "Message:": citation,
+                "URL:": message.jump_url,
+                "Confidence:": (
+                    f"`Toxicity: {evaluation.toxic *100:.2f}%`\n"
+                    f"`Flirtation: {evaluation.flirt *100:.2f}%`\n"
+                    f"`Sexually Explicit: {evaluation.nsfw *100:.2f}%`\n"
+                ),
+            },
+        )
+
+        action_taken = Button(label="Action Taken")
+        action_taken.callback = self.cb_action_taken
+
+        dismiss = Button(label="Dismiss")
+        dismiss.callback = self.cb_dismiss
+
+        not_toxic = Button(label="Not Toxic")
+        not_toxic.callback = self.cb_not_toxic
+
+        button_view = View(timeout=None)
+        button_view.add_item(action_taken)
+        button_view.add_item(dismiss)
+        button_view.add_item(not_toxic)
+        button_view.interaction_check = cb_is_mod
+
+        alert = await information_centre.send(embed=toxic_embed, view=button_view)
+
+        await logutils.create_alert_log(
+            self.config, alert, logutils.AlertType.Toxic, alert.created_at
+        )
+
+        await asyncio.sleep(10800)  # 3 hours
+        updated_message = await alert.channel.fetch_message(alert.id)
+        # If there are less than 6 fields that means there is no field for response
+        if len(updated_message.embeds[0].fields) < 6:
+            await alert.reply(
+                f"<@&{self.config.permission_roles.moderator}> This alert has not had a recorded response."
             )
-
-
-
-            action_taken = Button(label="Action Taken")
-            action_taken.callback = self.cb_action_taken
-
-            dismiss = Button(label="Dismiss")
-            dismiss.callback = self.cb_dismiss
-
-            not_toxic = Button(label="Not Toxic")
-            not_toxic.callback = self.cb_not_toxic
-
-            button_view = View(timeout=None)
-            button_view.add_item(action_taken)
-            button_view.add_item(dismiss)
-            button_view.add_item(not_toxic)
-            button_view.interaction_check = cb_is_mod
-
-            alert = await information_centre.send(embed=toxic_embed, view=button_view)
-
-            await logutils.create_alert_log(
-                self.config, alert, logutils.AlertType.Toxic, alert.created_at
-            )
-
-            await asyncio.sleep(10800)  # 3 hours
-            updated_message = await alert.channel.fetch_message(alert.id)
-            # If there are less than 6 fields that means there is no field for response
-            if len(updated_message.embeds[0].fields) < 6:
-                await alert.reply(
-                    f"<@&{self.config.permission_roles.moderator}> This alert has not had a recorded response."
-                )
 
 
 def setup(bot, **kwargs):
