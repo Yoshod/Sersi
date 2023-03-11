@@ -34,7 +34,7 @@ class Perspective(commands.Cog):
                 "comment": {"text": message},
                 "languages": ["en"],
                 "requestedAttributes": {
-                    "TOXICITY": {},
+                    "SEVERE_TOXICITY": {},
                     "FLIRTATION": {},
                     "SEXUALLY_EXPLICIT": {},
                 },
@@ -44,22 +44,11 @@ class Perspective(commands.Cog):
         )
         # fmt: off
         return PerspectiveEvaluation(
-            toxic=response.json()["attributeScores"]["TOXICITY"]["summaryScore"]["value"],
+            toxic=response.json()["attributeScores"]["SEVERE_TOXICITY"]["summaryScore"]["value"],
             flirt=response.json()["attributeScores"]["FLIRTATION"]["summaryScore"]["value"],
             nsfw=response.json()["attributeScores"]["SEXUALLY_EXPLICIT"]["summaryScore"]["value"],
         )
         # fmt: on
-
-    @commands.command(aliases=["inv"])
-    async def investigate(self, context, *, message:str):
-        evaluation: PerspectiveEvaluation = self.ask_perspective(message)
-
-        context.reply((
-            f"`Toxicity: {evaluation.toxic *100:.2f}%`\n"
-            f"`Flirtation: {evaluation.flirt *100:.2f}%`\n"
-            f"`Sexually Explicit: {evaluation.nsfw *100:.2f}%`\n"
-        ))
-
 
     async def cb_action_taken(self, interaction):
         # update alert embed
@@ -142,6 +131,12 @@ class Perspective(commands.Cog):
             self.config, interaction.message, datetime.now(timezone.utc)
         )
 
+
+    @commands.command()
+    async def investigate(self, ctx):
+        pass
+
+
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.message.Message):
         evaluation: PerspectiveEvaluation = self.ask_perspective(message.content)
@@ -155,7 +150,7 @@ class Perspective(commands.Cog):
 
         # look for stuff here in the response
         problems: list[str] = []
-        if evaluation.toxic >= 0.85:
+        if evaluation.toxic >= 0.8:
             problems.append("toxicity")
         elif evaluation.flirt >= 0.95:
             problems.append("flirtation")
