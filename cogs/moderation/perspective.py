@@ -135,8 +135,8 @@ class Perspective(commands.Cog):
     async def on_message(self, message: nextcord.message.Message):
         evaluation: PerspectiveEvaluation = self.ask_perspective(message.content)
 
-        # ignores message if sent inside the administration centre
-        if message.channel.category.name == "Administration Centre":
+        # ignores message if sent outside general chat.
+        if not message.channel.id == 856262304337100832:
             return
         # ignores message if message is by bot
         elif message.author == self.bot.user:
