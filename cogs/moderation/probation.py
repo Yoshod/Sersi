@@ -101,7 +101,7 @@ class Probation(commands.Cog):
 
     @commands.command(aliases=["addp", "addprob", "pn"])
     async def addprobation(
-        self, ctx, member: nextcord.Member, *, reason="not specified"
+        self, ctx: commands.Context, member: nextcord.Member, *, reason="not specified"
     ):
         if not await permcheck(ctx, is_mod):
             return

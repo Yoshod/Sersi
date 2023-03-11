@@ -91,7 +91,7 @@ def get_page(entry_list: list, page: int, per_page: int = 10):
 
 
 class ConfirmView(View):
-    def __init__(self, on_proceed, timeout: float = 60.0):
+    def __init__(self, on_proceed, timeout: float = 60.0, bypass_button: bool = False):
         super().__init__(timeout=timeout)
         btn_proceed = Button(label="Proceed", style=nextcord.ButtonStyle.green)
         btn_proceed.callback = on_proceed
@@ -112,8 +112,30 @@ class ConfirmView(View):
     async def interaction_check(self, interaction: nextcord.Interaction):
         return interaction.user == interaction.message.reference.cached_message.author
 
-    async def send_as_reply(self, ctx, content: str = None, embed=None):
+    async def send_as_reply(self, ctx: commands.Context, content: str = None, embed=None):
         self.message = await ctx.reply(content, embed=embed, view=self)
+
+    @staticmethod
+    def query(title: str, prompt: str, embed_args: dict = {}) -> callable:
+        def wrapper(func: callable) -> callable:
+            async def confirm(cog: commands.Cog, ctx: commands.Context, *args, **kwargs):
+                embed_fields = {field: args[arg] for arg, field in embed_args.items()}
+                dialog_embed = SersiEmbed(
+                    title=title,
+                    description=prompt,
+                    fields=embed_fields,
+                )
+
+                async def cb_proceed(interaction: nextcord.Interaction):
+                    await interaction.message.edit(view=None)
+                    dialog_embed = await func(cog, ctx, *args, **kwargs)
+                    if dialog_embed is not None:
+                        await interaction.message.edit(embed=dialog_embed)
+
+                view = ConfirmView(cb_proceed)
+                await view.send_as_reply(ctx, embed=dialog_embed)
+            return confirm
+        return wrapper
 
 
 class DualCustodyView(View):
@@ -141,17 +163,15 @@ class DualCustodyView(View):
     @staticmethod
     def query(title: str, prompt: str, perms: callable, embed_args: dict = {}) -> callable:
         def wrapper(func: callable) -> callable:
-            async def dual_custody(cog: commands.Cog, ctx: commands.Context, *args, **kwargs):
-                if not await permcheck(ctx, perms):
-                    return
-                bot: commands.Bot = cog.bot
+            async def dual_custody(bot: commands.Bot, config: configutils.Configuration,
+                                    ctx: commands.Context):
 
                 # if command used by admin, skip dual custody query
-                if "--bypass" in args and is_dark_mod(ctx.author):
-                    await func(cog, ctx, *args, **kwargs, confirming_moderator=ctx.author)
+                if is_dark_mod(ctx.author):
+                    await func(bot, config, ctx, confirming_moderator=ctx.author)
                     return
 
-                embed_fields = {field: args[arg] for arg, field in embed_args.items()}
+                embed_fields = embed_args.copy()
                 embed_fields.update({"Moderator": ctx.author.mention})
                 dialog_embed = SersiEmbed(
                     title=title,
@@ -161,7 +181,7 @@ class DualCustodyView(View):
 
                 async def cb_confirm(interaction: nextcord.Interaction):
                     await interaction.message.edit(view=None)
-                    await func(cog, ctx, *args, **kwargs, confirming_moderator=interaction.user)
+                    await func(bot, config, ctx, confirming_moderator=interaction.user)
                     dialog_embed.add_field(
                         name="Confirmed by:",
                         value=interaction.user.mention
