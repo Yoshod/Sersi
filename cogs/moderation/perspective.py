@@ -50,6 +50,17 @@ class Perspective(commands.Cog):
         )
         # fmt: on
 
+    @commands.command(aliases=["inv"])
+    async def investigate(self, context, *, message: str):
+        evaluation: PerspectiveEvaluation = self.ask_perspective(message)
+
+        await context.reply((
+            f"`Toxicity: {evaluation.toxic *100:.2f}%`\n"
+            f"`Flirtation: {evaluation.flirt *100:.2f}%`\n"
+            f"`Sexually Explicit: {evaluation.nsfw *100:.2f}%`\n"
+        ))
+
+
     async def cb_action_taken(self, interaction):
         # update alert embed
         initial_alert = interaction.message.embeds[0]
@@ -130,16 +141,6 @@ class Perspective(commands.Cog):
         await logutils.update_response(
             self.config, interaction.message, datetime.now(timezone.utc)
         )
-
-    @commands.command(aliases=["inv"])
-    async def investigate(self, context, *, message: str):
-        evaluation: PerspectiveEvaluation = self.ask_perspective(message)
-        context.reply((
-            f"`Toxicity: {evaluation.toxic *100:.2f}%`\n"
-            f"`Flirtation: {evaluation.flirt *100:.2f}%`\n"
-            f"`Sexually Explicit: {evaluation.nsfw *100:.2f}%`\n"
-        ))
-
 
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.message.Message):
