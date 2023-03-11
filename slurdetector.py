@@ -1,5 +1,5 @@
-from itertools import product  # needed for slur obscurity permutations
-import unidecode  # needed for cleaning accents and diacritic marks
+from itertools import product   # needed for slur obscurity permutations
+import unidecode                # needed for cleaning accents and diacritic marks
 
 from baseutils import get_page
 import configutils
@@ -31,7 +31,7 @@ def leet(word):
         options = substitutions.get(char, char)
         possibles.append(options)
 
-    return ["".join(permutations) for permutations in product(*possibles)]
+    return [''.join(permutations) for permutations in product(*possibles)]
 
 
 def get_slurs(config=None, page=None, per_page=10):
@@ -100,7 +100,7 @@ def load_slurs():
     slurs_list.clear()
     with open(config.datafiles.slurfile, "r") as file:
         for line in file:
-            line = line.replace("\n", "")
+            line = line.replace('\n', '')
             slurs_list.append(line)
             slurs.extend(leet(line))
 
@@ -109,19 +109,19 @@ def load_goodwords():
     goodword.clear()
     with open(config.datafiles.goodwordfile, "r") as file:
         for line in file:
-            line = line.replace("\n", "")
+            line = line.replace('\n', '')
             goodword.append(line)
 
 
 def clear_string(string):
     """clean up the message by eliminating special characters and making the entire message lowercase."""
-    special_characters = ["#", "%", "&", "[", "]", " ", "]", "_", "-", "<", ">", "'"]
+    special_characters = ['#', '%', '&', '[', ']', ' ', ']', '_', '-', '<', '>', '\'']
 
     string = string.lower()
     string = unidecode.unidecode(string)
 
     for char in special_characters:
-        string = string.replace(char, "")
+        string = string.replace(char, '')
 
     return string
 
@@ -132,7 +132,7 @@ def detect_slur(messageData):
 
     cleanedMessageData = clear_string(messageData)
     messageData = messageData.lower()
-    messageData = messageData.replace(" ", "")
+    messageData = messageData.replace(' ', '')
 
     slur_counter = 0  # more like based_counter, amirite?
     slur_list = []
