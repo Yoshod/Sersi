@@ -70,14 +70,13 @@ class Probation(commands.Cog):
                 title="Adam Something Central Probation",
                 description="Your behaviour on Adam Something Central has resulted in being put into probation by a moderator, continued rule breaking may result in a ban",
                 colour=nextcord.Colour.brand_red(),
-                fields={"Reason specified by moderator:", reason}
+                fields={"Reason specified by moderator:": reason}
             )
             await member.send(embed=dm_embed)
 
             return SersiEmbed(
                 title="Member in Probation",
                 description=f"{member.mention} has been put into probation, continued rule breaking may result in a ban",
-                colour=nextcord.Colour.brand_red(),
                 fields={
                     "User": member.mention,
                     "Reason": reason,
@@ -138,14 +137,13 @@ class Probation(commands.Cog):
                 title="Adam Something Central Probation Over",
                 description="You were removed from probation on Adam Something Central",
                 colour=nextcord.Colour.brand_red(),
-                fields={"Reason specified by moderator:", reason}
+                fields={"Reason specified by moderator:": reason}
             )
             await member.send(embed=dm_embed)
 
             return SersiEmbed(
                 title="Member removed from Probation",
                 description=f"{member.mention} was succesfully removed from probation!",
-                colour=nextcord.Colour.brand_red(),
                 fields={
                     "User": member.mention,
                     "Reason": reason,
