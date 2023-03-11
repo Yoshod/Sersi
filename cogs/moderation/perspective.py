@@ -63,8 +63,8 @@ class Perspective(commands.Cog):
 
         # Logging
         logging_embed = SersiEmbed(
-            title="Action Taken on Toxicity",
-            description="Perspective has found a message to be toxic, action taken by moderators.",
+            title="Action Taken on Perspective Alert Dismissed",
+            description="Perspective has found a message to be problematic, action taken by moderators.",
             fields={
                 "Report:": interaction.message.jump_url,
                 "Moderator:": f"{interaction.user.mention} ({interaction.user.id})",
@@ -90,8 +90,8 @@ class Perspective(commands.Cog):
 
         # Logging
         logging_embed = SersiEmbed(
-            title="Action Taken on Toxicity",
-            description="Perspective has found a message to be toxic, action taken by moderators.",
+            title="Perspective Alert Dismissed",
+            description="Perspective has found a message to be problematic, dismissed by moderators.",
             fields={
                 "Report:": interaction.message.jump_url,
                 "Moderator:": f"{interaction.user.mention} ({interaction.user.id})",
@@ -104,11 +104,11 @@ class Perspective(commands.Cog):
             self.config, interaction.message, datetime.now(timezone.utc)
         )
 
-    async def cb_not_toxic(self, interaction):
+    async def cb_not_problematic(self, interaction):
         # update alert embed
         initial_alert = interaction.message.embeds[0]
         initial_alert.add_field(
-            name="Action Taken By",
+            name="Not Problematic By",
             value=interaction.user.mention,
             inline=False,
         )
@@ -117,8 +117,8 @@ class Perspective(commands.Cog):
 
         # Logging
         logging_embed = SersiEmbed(
-            title="Action Taken on Toxicity",
-            description="Perspective has found a message to be toxic, action taken by moderators.",
+            title="Perspective Alert deemed Not Problematic",
+            description="Perspective has found a message to be problematic, overruled by moderators.",
             fields={
                 "Report:": interaction.message.jump_url,
                 "Moderator:": f"{interaction.user.mention} ({interaction.user.id})",
@@ -185,13 +185,13 @@ class Perspective(commands.Cog):
         dismiss = Button(label="Dismiss")
         dismiss.callback = self.cb_dismiss
 
-        not_toxic = Button(label="Not Toxic")
-        not_toxic.callback = self.cb_not_toxic
+        not_problematic = Button(label="Not Problematic")
+        not_problematic.callback = self.cb_not_problematic
 
         button_view = View(timeout=None)
         button_view.add_item(action_taken)
         button_view.add_item(dismiss)
-        button_view.add_item(not_toxic)
+        button_view.add_item(not_problematic)
         button_view.interaction_check = cb_is_mod
 
         alert = await information_centre.send(embed=toxic_embed, view=button_view)
