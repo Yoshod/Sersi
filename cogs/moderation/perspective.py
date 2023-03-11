@@ -143,13 +143,13 @@ class Perspective(commands.Cog):
             return
 
         # look for stuff here in the response
-        problems: dict[str:float] = {}
+        problems: list[str] = []
         if evaluation.toxic >= 0.85:
-            problems["toxicity"] = evaluation.toxic
+            problems.append("toxicity")
         elif evaluation.flirt >= 0.95:
-            problems["flirtation"] = evaluation.flirt
+            problems.append("flirtation")
         elif evaluation.nsfw >= 0.8:
-            problems["nsfw"] = evaluation.nsfw
+            problems.append("nsfw")
 
         # stop here if there are no problems at all
         if not problems:
