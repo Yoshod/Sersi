@@ -161,14 +161,18 @@ class DualCustodyView(View):
         self.message = await channel.send(content, embed=embed, view=self)
 
     @staticmethod
-    def query(title: str, prompt: str, perms: callable, embed_args: dict = {}) -> callable:
+    def query(
+        title: str, prompt: str, perms: callable, embed_args: dict = {}
+    ) -> callable:
         def wrapper(func: callable) -> callable:
             async def dual_custody(bot: commands.Bot, config: configutils.Configuration,
                                     ctx: commands.Context):
 
                 # if command used by admin, skip dual custody query
                 if is_dark_mod(ctx.author):
-                    await func(bot, config, ctx, confirming_moderator=ctx.author)
+                    await func(
+                        bot, config, ctx, confirming_moderator=ctx.author
+                    )
                     return
 
                 embed_fields = embed_args.copy()
@@ -181,10 +185,11 @@ class DualCustodyView(View):
 
                 async def cb_confirm(interaction: nextcord.Interaction):
                     await interaction.message.edit(view=None)
-                    await func(bot, config, ctx, confirming_moderator=interaction.user)
+                    await func(
+                        bot, config, ctx, confirming_moderator=interaction.user
+                    )
                     dialog_embed.add_field(
-                        name="Confirmed by:",
-                        value=interaction.user.mention
+                        name="Confirmed by:", value=interaction.user.mention
                     )
                     await interaction.message.edit(embed=dialog_embed)
 
@@ -193,7 +198,9 @@ class DualCustodyView(View):
                 await view.send_dialogue(channel, embed=dialog_embed)
 
                 await ctx.reply(f"{title} pending review by another moderator")
+
             return dual_custody
+
         return wrapper
 
 
