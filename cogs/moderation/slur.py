@@ -312,15 +312,16 @@ class Slur(commands.Cog):
                 mod_id = int(field.value)
         moderator = interaction.guild.get_member(mod_id)
 
-        
-
     @commands.command(name="removeslur", aliases=["rmsl", "rmslur", "removesl"])
-    @DualCustodyView.query(title="Slur Removal",
+    @DualCustodyView.query(
+        title="Slur Removal",
         prompt="Following slur will be removed from slur detection:",
         perms=is_full_mod,
-        embed_args={0: "Slur"})
-    async def remove_slur(self, ctx: commands.Context, slur: str, *,
-                           confirming_moderator: nextcord.Member):
+        embed_args={0: "Slur"},
+    )
+    async def remove_slur(
+        self, ctx: commands.Context, slur: str, *, confirming_moderator: nextcord.Member
+    ):
         rm_slur(slur)
 
         # logging

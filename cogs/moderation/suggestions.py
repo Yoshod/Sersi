@@ -10,7 +10,6 @@ class Suggestions(commands.Cog):
         self.bot = bot
         self.config = config
 
-
     @commands.command()
     async def suggest(self, ctx):
         suggest_embed = nextcord.Embed(

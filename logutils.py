@@ -10,6 +10,7 @@ from configutils import Configuration
 class AlertType(enum.Enum):
     Slur = "slur"
     Ping = "ping"
+    Toxic = "toxic"
 
 
 async def create_alert_log(

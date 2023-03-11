@@ -139,16 +139,22 @@ class DualCustodyView(View):
         self.message = await channel.send(content, embed=embed, view=self)
 
     @staticmethod
-    def query(title: str, prompt: str, perms: callable, embed_args: dict = {}) -> callable:
+    def query(
+        title: str, prompt: str, perms: callable, embed_args: dict = {}
+    ) -> callable:
         def wrapper(func: callable) -> callable:
-            async def dual_custody(cog: commands.Cog, ctx: commands.Context, *args, **kwargs):
+            async def dual_custody(
+                cog: commands.Cog, ctx: commands.Context, *args, **kwargs
+            ):
                 if not await permcheck(ctx, perms):
                     return
                 bot: commands.Bot = cog.bot
 
                 # if command used by admin, skip dual custody query
                 if "--bypass" in args and is_dark_mod(ctx.author):
-                    await func(cog, ctx, *args, **kwargs, confirming_moderator=ctx.author)
+                    await func(
+                        cog, ctx, *args, **kwargs, confirming_moderator=ctx.author
+                    )
                     return
 
                 embed_fields = {field: args[arg] for arg, field in embed_args.items()}
@@ -161,10 +167,11 @@ class DualCustodyView(View):
 
                 async def cb_confirm(interaction: nextcord.Interaction):
                     await interaction.message.edit(view=None)
-                    await func(cog, ctx, *args, **kwargs, confirming_moderator=interaction.user)
+                    await func(
+                        cog, ctx, *args, **kwargs, confirming_moderator=interaction.user
+                    )
                     dialog_embed.add_field(
-                        name="Confirmed by:",
-                        value=interaction.user.mention
+                        name="Confirmed by:", value=interaction.user.mention
                     )
                     await interaction.message.edit(embed=dialog_embed)
 
@@ -173,7 +180,9 @@ class DualCustodyView(View):
                 await view.send_dialogue(channel, embed=dialog_embed)
 
                 await ctx.reply(f"{title} pending review by another moderator")
+
             return dual_custody
+
         return wrapper
 
 
