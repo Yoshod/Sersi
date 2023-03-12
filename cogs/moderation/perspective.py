@@ -26,7 +26,7 @@ class Perspective(commands.Cog):
         self.bot = bot
         self.config = config
 
-    def ask_perspective(self, message: str) -> PerspectiveEvaluation:
+    async def ask_perspective(self, message: str) -> PerspectiveEvaluation:
 
         response = requests.post(
             f"https://commentanalyzer.googleapis.com/v1alpha1/comments:analyze?key={discordTokens.getPerspectiveToken()}",
@@ -57,11 +57,11 @@ class Perspective(commands.Cog):
                 fields=response.json()["error"],
                 colour=nextcord.Colour.brand_red(),
             )
-            error_channel.send(embed=error_embed)
+            await error_channel.send(embed=error_embed)
             
     @commands.command(aliases=["inv"])
     async def investigate(self, context, *, message: str):
-        evaluation: PerspectiveEvaluation = self.ask_perspective(message)
+        evaluation: PerspectiveEvaluation = await self.ask_perspective(message)
 
         await context.reply((
             f"`Toxicity: {evaluation.toxic *100:.2f}%`\n"
@@ -153,14 +153,16 @@ class Perspective(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.message.Message):
+        if len(message.content) < 10:
+            return
         # ignores message if sent outside general chat.
-        if not message.channel.id == 856262304337100832:
+        if not message.channel.id == 856262304337100832 and message.guild.id == 856262303795380224:
             return
         # ignores message if message is by bot
         elif message.author == self.bot.user:
             return
 
-        evaluation: PerspectiveEvaluation = self.ask_perspective(message.content)
+        evaluation: PerspectiveEvaluation = await self.ask_perspective(message.content)
         # exit if error has occured
         if evaluation is None:
             return
