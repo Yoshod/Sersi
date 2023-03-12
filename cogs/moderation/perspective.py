@@ -43,13 +43,14 @@ class Perspective(commands.Cog):
             headers={"Content-Type": "application/json; charset=UTF-8"},
         )
         if response.status_code == 200:
-            # fmt: off
+            def evaluation(attr):
+                return response.json()["attributeScores"][attr]["summaryScore"]["value"]
+
             return PerspectiveEvaluation(
-                toxic=response.json()["attributeScores"]["SEVERE_TOXICITY"]["summaryScore"]["value"],
-                flirt=response.json()["attributeScores"]["FLIRTATION"]["summaryScore"]["value"],
-                nsfw=response.json()["attributeScores"]["SEXUALLY_EXPLICIT"]["summaryScore"]["value"],
+                toxic=evaluation("SEVERE_TOXICITY"),
+                flirt=evaluation("FLIRTATION"),
+                nsfw=evaluation("SEXUALLY_EXPLICIT"),
             )
-            # fmt: on
         else:
             error_channel = self.bot.get_channel(self.config.channels.errors)
             error_embed = SersiEmbed(
