@@ -42,14 +42,23 @@ class Perspective(commands.Cog):
             },
             headers={"Content-Type": "application/json; charset=UTF-8"},
         )
-        # fmt: off
-        return PerspectiveEvaluation(
-            toxic=response.json()["attributeScores"]["SEVERE_TOXICITY"]["summaryScore"]["value"],
-            flirt=response.json()["attributeScores"]["FLIRTATION"]["summaryScore"]["value"],
-            nsfw=response.json()["attributeScores"]["SEXUALLY_EXPLICIT"]["summaryScore"]["value"],
-        )
-        # fmt: on
-
+        if response.status_code == 200:
+            # fmt: off
+            return PerspectiveEvaluation(
+                toxic=response.json()["attributeScores"]["SEVERE_TOXICITY"]["summaryScore"]["value"],
+                flirt=response.json()["attributeScores"]["FLIRTATION"]["summaryScore"]["value"],
+                nsfw=response.json()["attributeScores"]["SEXUALLY_EXPLICIT"]["summaryScore"]["value"],
+            )
+            # fmt: on
+        else:
+            error_channel = self.bot.get_channel(self.config.channels.errors)
+            error_embed = SersiEmbed(
+                title="Perspective Error",
+                fields=response.json()["error"],
+                colour=nextcord.Colour.brand_red(),
+            )
+            error_channel.send(embed=error_embed)
+            
     @commands.command(aliases=["inv"])
     async def investigate(self, context, *, message: str):
         evaluation: PerspectiveEvaluation = self.ask_perspective(message)
@@ -144,13 +153,16 @@ class Perspective(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.message.Message):
-        evaluation: PerspectiveEvaluation = self.ask_perspective(message.content)
-
         # ignores message if sent outside general chat.
         if not message.channel.id == 856262304337100832:
             return
         # ignores message if message is by bot
         elif message.author == self.bot.user:
+            return
+
+        evaluation: PerspectiveEvaluation = self.ask_perspective(message.content)
+        # exit if error has occured
+        if evaluation is None:
             return
 
         # look for stuff here in the response
