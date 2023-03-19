@@ -153,5 +153,5 @@ class Probation(commands.Cog):
         await execute(self.bot, self.config, ctx)
 
 
-def setup(bot, **kwargs):
+def setup(bot: commands.Bot, **kwargs):
     bot.add_cog(Probation(bot, kwargs["config"]))

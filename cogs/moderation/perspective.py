@@ -19,6 +19,17 @@ class PerspectiveEvaluation:
     toxic: float
     flirt: float
     nsfw: float
+    severe_toxic: float
+    identity_attack: float
+    insult: float
+    profanity: float
+    threat: float
+    incoherent: float
+    spam: float
+    unsubstantial: float
+    obscene: float
+    inflammatory: float
+    likely_to_reject: float
 
 
 class Perspective(commands.Cog):
@@ -26,30 +37,40 @@ class Perspective(commands.Cog):
         self.bot = bot
         self.config = config
 
-    async def ask_perspective(self, message: str) -> PerspectiveEvaluation:
-
+    async def ask_perspective(self, message: str, attributes: list[str] = ["TOXICITY"]
+        ) -> PerspectiveEvaluation:
+        
         response = requests.post(
             f"https://commentanalyzer.googleapis.com/v1alpha1/comments:analyze?key={discordTokens.getPerspectiveToken()}",
             json={
                 "comment": {"text": message},
                 "languages": ["en"],
-                "requestedAttributes": {
-                    "SEVERE_TOXICITY": {},
-                    "FLIRTATION": {},
-                    "SEXUALLY_EXPLICIT": {},
-                },
+                "requestedAttributes": {attr.upper(): {} for attr in attributes},
                 "doNotStore": True,
             },
             headers={"Content-Type": "application/json; charset=UTF-8"},
         )
         if response.status_code == 200:
             def evaluation(attr):
+                if attr not in response.json()["attributeScores"]:
+                    return -0.0
                 return response.json()["attributeScores"][attr]["summaryScore"]["value"]
 
             return PerspectiveEvaluation(
-                toxic=evaluation("SEVERE_TOXICITY"),
+                toxic=evaluation("TOXICITY"),
                 flirt=evaluation("FLIRTATION"),
                 nsfw=evaluation("SEXUALLY_EXPLICIT"),
+                severe_toxic=evaluation("SEVERE_TOXICITY"),
+                identity_attack=evaluation("IDENTITY_ATTACK"),
+                insult=evaluation("INSULT"),
+                profanity=evaluation("PROFANITY"),
+                threat=evaluation("THREAT"),
+                incoherent=evaluation("INCOHERENT"),
+                spam=evaluation("SPAM"),
+                unsubstantial=evaluation("UNSUBSTANTIAL"),
+                obscene=evaluation("OBSCENE"),
+                inflammatory=evaluation("INFLAMMATORY"),
+                likely_to_reject=evaluation("LIKELY_TO_REJECT"),
             )
         else:
             error_channel = self.bot.get_channel(self.config.channels.errors)
@@ -61,17 +82,45 @@ class Perspective(commands.Cog):
             await error_channel.send(embed=error_embed)
             
     @commands.command(aliases=["inv"])
-    async def investigate(self, context, *, message: str):
-        evaluation: PerspectiveEvaluation = await self.ask_perspective(message)
+    async def investigate(self, context: commands.Context, *, message: str):
+        """Investigate a message for toxicity."""
+        evaluation: PerspectiveEvaluation = await self.ask_perspective(message, [
+                "SEVERE_TOXICITY",
+                "FLIRTATION",
+                "SEXUALLY_EXPLICIT",
+                "TOXICITY",
+                "IDENTITY_ATTACK",
+                "INSULT",
+                "PROFANITY",
+                "THREAT",
+                "INCOHERENT",
+                "SPAM",
+                "UNSUBSTANTIAL",
+                "OBSCENE",
+                "INFLAMMATORY",
+                "LIKELY_TO_REJECT",
+            ])
 
         await context.reply((
             f"`Toxicity: {evaluation.toxic *100:.2f}%`\n"
             f"`Flirtation: {evaluation.flirt *100:.2f}%`\n"
             f"`Sexually Explicit: {evaluation.nsfw *100:.2f}%`\n"
+            f"`Severe Toxicity: {evaluation.severe_toxic *100:.2f}%`\n"
+            f"`Identity Attack: {evaluation.identity_attack *100:.2f}%`\n"
+            f"`Insult: {evaluation.insult *100:.2f}%`\n"
+            f"`Profanity: {evaluation.profanity *100:.2f}%`\n"
+            f"`Threat: {evaluation.threat *100:.2f}%`\n"
+            f"`Incoherent: {evaluation.incoherent *100:.2f}%`\n"
+            f"`Spam: {evaluation.spam *100:.2f}%`\n"
+            f"`Unsubstantial: {evaluation.unsubstantial *100:.2f}%`\n"
+            f"`Obscene: {evaluation.obscene *100:.2f}%`\n"
+            f"`Inflammatory: {evaluation.inflammatory *100:.2f}%`\n"
+            f"`Likely to Reject: {evaluation.likely_to_reject *100:.2f}%`\n"
         ))
 
 
-    async def cb_action_taken(self, interaction):
+    async def cb_action_taken(self, interaction: nextcord.Interaction):
+        """Callback for when the action taken button is pressed."""
         # update alert embed
         initial_alert = interaction.message.embeds[0]
         initial_alert.add_field(
@@ -98,7 +147,8 @@ class Perspective(commands.Cog):
             self.config, interaction.message, datetime.now(timezone.utc)
         )
 
-    async def cb_dismiss(self, interaction):
+    async def cb_dismiss(self, interaction: nextcord.Interaction):
+        """Callback for when the dismiss button is pressed."""
         # update alert embed
         initial_alert = interaction.message.embeds[0]
         initial_alert.add_field(
@@ -125,7 +175,8 @@ class Perspective(commands.Cog):
             self.config, interaction.message, datetime.now(timezone.utc)
         )
 
-    async def cb_not_problematic(self, interaction):
+    async def cb_not_problematic(self, interaction: nextcord.Interaction):
+        """Callback for when the not problematic button is pressed."""
         # update alert embed
         initial_alert = interaction.message.embeds[0]
         initial_alert.add_field(
@@ -163,18 +214,19 @@ class Perspective(commands.Cog):
         elif message.author == self.bot.user:
             return
 
-        evaluation: PerspectiveEvaluation = await self.ask_perspective(message.content)
+        evaluation: PerspectiveEvaluation = await self.ask_perspective(message.content,
+            ["TOXICITY", "FLIRTATION", "SEXUALLY_EXPLICIT"])
         # exit if error has occured
         if evaluation is None:
             return
 
         # look for stuff here in the response
         problems: list[str] = []
-        if evaluation.toxic >= 0.8:
+        if evaluation.toxic >= 0.9:
             problems.append("toxicity")
         elif evaluation.flirt >= 0.95:
             problems.append("flirtation")
-        elif evaluation.nsfw >= 0.8:
+        elif evaluation.nsfw >= 0.9:
             problems.append("nsfw")
 
         # stop here if there are no problems at all
@@ -235,5 +287,5 @@ class Perspective(commands.Cog):
             )
 
 
-def setup(bot, **kwargs):
+def setup(bot: commands.Bot, **kwargs):
     bot.add_cog(Perspective(bot, kwargs["config"]))
