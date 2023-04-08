@@ -71,7 +71,7 @@ class AdultAccessModal(Modal):
         button_view.add_item(reject_bttn)
         button_view.add_item(review_bttn)
 
-        channel = interaction.client.get_channel(self.config.channels.mod_applications)
+        channel = interaction.client.get_channel(self.config.channels.ageverification)
         await channel.send(embed=application_embed, view=button_view)
 
 
@@ -106,6 +106,18 @@ class AdultAccess(commands.Cog):
         button_view.add_item(open_modal)
 
         await ctx.send(embed=test_embed, view=button_view)
+
+
+    @commands.Cog.listener()
+    async def on_interaction(self, interaction):
+        try:
+            btn_id = interaction.data["custom_id"]
+        except KeyError:
+            return
+
+        match btn_id.split(":", 1):
+            case ["adult-channel-start"]:
+                await interaction.response.send_modal(AdultAccessModal(self.config))
 
 
 def setup(bot, **kwargs):

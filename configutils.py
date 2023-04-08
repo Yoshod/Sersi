@@ -48,6 +48,7 @@ class ConfigurationChannels(YAMLWizard):
     cet_applications: int
     internalfeedback: int
     timeoutappeals: int
+    ageverification: int
 
     # debugging channels
     errors: int
