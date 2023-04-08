@@ -83,6 +83,7 @@ opt_in_roles:
     shillposting:   0
     music:          0
     photography:    0
+    environment:    0
 
 permission_roles:
     staff:             978678150789754890
@@ -107,3 +108,11 @@ invites:
 guilds:
     main: 0
     errors: 977377117895536640
+
+punishment roles:
+    annoying:                 0
+    terrible_ideas:           0
+    politics_and_debate_mute: 0
+    probation:                0
+    ancap:                    0
+    problem_child:            0
