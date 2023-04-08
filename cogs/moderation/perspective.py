@@ -39,7 +39,7 @@ class Perspective(commands.Cog):
 
     async def ask_perspective(self, message: str, attributes: list[str] = ["TOXICITY"]
         ) -> PerspectiveEvaluation:
-        
+
         response = requests.post(
             f"https://commentanalyzer.googleapis.com/v1alpha1/comments:analyze?key={discordTokens.getPerspectiveToken()}",
             json={
@@ -99,7 +99,7 @@ class Perspective(commands.Cog):
                 "OBSCENE",
                 "INFLAMMATORY",
                 "LIKELY_TO_REJECT",
-            ])
+        ])
 
         await context.reply((
             f"`Toxicity: {evaluation.toxic *100:.2f}%`\n"
