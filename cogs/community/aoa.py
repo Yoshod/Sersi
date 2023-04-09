@@ -46,14 +46,14 @@ class AdultAccessModal(Modal):
         elif self.age.value == "69":
             await interaction.response.send_message(f"{self.config.emotes.fail} You're not 69.", ephemeral=True)
             return
-        elif self.age.value <18:
-            await interaction.response.send_message(f"{self.config.emotes.fail} You are not old enough to have access to the over 18's channels.")
+        elif int(self.age.value) <18:
+            await interaction.response.send_message(f"{self.config.emotes.fail} You are not old enough to have access to the over 18's channels.", ephemeral=True)
             young_embed = SersiEmbed(
                 title="Underage Over 18s Application",
                 description=f"User {interaction.user.name} ({interaction.user.id}) applied to access the Over 18s channels but entered an age of {self.age.value}."
             )
             channel = interaction.client.get_channel(self.config.channels.ageverification)
-            await channel.send(embed=young_embed, view=button_view)
+            await channel.send(embed=young_embed)
             return
         
         if self.ageproof.value.lower() in ["no", "na", "n/a", "non", "nee"]:
@@ -63,7 +63,7 @@ class AdultAccessModal(Modal):
                 description=f"User {interaction.user.name} ({interaction.user.id}) applied to access the Over 18s channels but entered {self.ageproof.value} when asked if they would prove their age."
             )
             channel = interaction.client.get_channel(self.config.channels.ageverification)
-            await channel.send(embed=refusal_embed, view=button_view)
+            await channel.send(embed=refusal_embed)
             return
 
         application_embed = SersiEmbed(
@@ -132,6 +132,61 @@ class AdultAccess(commands.Cog):
         button_view.add_item(open_modal)
 
         await ctx.send(embed=test_embed, view=button_view)
+    
+    @commands.command()
+    async def adult_verified(self, ctx, member: nextcord.Member):
+        if not await permcheck(ctx, is_senior_mod) or not await permcheck(ctx, is_cet):
+            return
+        
+        adult_access_role = member.guild.get_role(self.config.roles.adult_access)
+        adult_verified_role = member.guild.get_role(self.config.roles.adult_verified)
+        await member.add_roles([adult_access_role, adult_verified_role], reason=f"Application Approved, verified by {ctx.author.name}", atomic=True)
+
+        accept_embed = nextcord.Embed(
+            title="Over 18's Channel Application",
+            description="Your request to join the Over 18's Channel has been approved. Thanks for verifying!",
+            colour=nextcord.Color.from_rgb(237, 91, 6),
+        )
+        await member.send(embed=accept_embed)
+
+
+    @commands.command()
+    async def adult_bypass(self, ctx, member: nextcord.Member):
+        if not await permcheck(ctx, is_dark_mod):
+            return
+        
+        adult_access_role = member.guild.get_role(self.config.roles.adult_access)
+        await member.add_roles(adult_access_role, reason=f"Application Approved, verified by {ctx.author.name}", atomic=True)
+
+        accept_embed = nextcord.Embed(
+            title="Over 18's Channel Application",
+            description="Your request to join the Over 18's Channel has been approved.",
+            colour=nextcord.Color.from_rgb(237, 91, 6),
+        )
+        await member.send(embed=accept_embed)
+
+
+    @commands.command()
+    async def adult_revoke(self, ctx, member: nextcord.Member):
+        if not await permcheck(ctx, is_senior_mod) or not await permcheck(ctx, is_cet):
+            return
+        
+        adult_access_role = member.guild.get_role(self.config.roles.adult_access)
+        adult_verified_role = member.guild.get_role(self.config.roles.adult_verified)
+        try:
+            await member.remove_roles([adult_access_role, adult_verified_role], reason=f"Adult Access Revoked by {ctx.author.name}", atomic=True)
+        
+        except nextcord.HTTPException:
+            await ctx.send("Removing roles failed. Please request a Mega Administrator or Community Engagement Team member manually remove the roles.")
+
+        revoke_embed = nextcord.Embed(
+            title="Over 18's Channel Access Revoked",
+            description="Your access to the Over 18's Channels have been revoked.",
+            colour=nextcord.Color.from_rgb(237, 91, 6),
+        )
+        await member.send(embed=revoke_embed)
+
+
 
 
     @commands.Cog.listener()
@@ -202,6 +257,23 @@ class AdultAccess(commands.Cog):
                             colour=nextcord.Color.from_rgb(237, 91, 6),
                         )
                     await user.send(embed=deny_embed)
+            
+            case ["adult-application-verify", user_id]:
+                if await permcheck(interaction, is_senior_mod):
+                    user = interaction.guild.get_member(int(user_id))
+
+                    updated_form = interaction.message.embeds[0]
+                    updated_form.add_field(
+                        name="Verification Requested by:", value=interaction.user.mention
+                    )
+                    await interaction.message.edit(embed=updated_form, view=None)
+
+                    referred_embed = nextcord.Embed(
+                            title="Over 18's Channel Application",
+                            description="Your request to join the Over 18's Channel has been referred. You have been randomly selected to verify your age. Please create a Senior Moderator or Mega Administrator ticket. You will be required to submit an image which comprises of the following:\nPaper which has your discord name and discriminator written on it\nAdam Something Central written on it\nThe date in DDMMYYYY format\nA photo ID placed on the paper. **Blank out everything except the date of birth. We do not want or need to see anything other than the date of birth.** Ensure all four corners of the ID are visible.\n\n If you do not wish to submit photo ID then consider your application rejected.",
+                            colour=nextcord.Color.from_rgb(237, 91, 6),
+                        )
+                    await user.send(embed=referred_embed)
 
 
 def setup(bot, **kwargs):
