@@ -48,9 +48,22 @@ class AdultAccessModal(Modal):
             return
         elif self.age.value <18:
             await interaction.response.send_message(f"{self.config.emotes.fail} You are not old enough to have access to the over 18's channels.")
+            young_embed = SersiEmbed(
+                title="Underage Over 18s Application",
+                description=f"User {interaction.user.name} ({interaction.user.id}) applied to access the Over 18s channels but entered an age of {self.age.value}."
+            )
+            channel = interaction.client.get_channel(self.config.channels.ageverification)
+            await channel.send(embed=young_embed, view=button_view)
+            return
         
         if self.ageproof.value.lower() in ["no", "na", "n/a", "non", "nee"]:
             await interaction.response.send_message(f"{self.config.emotes.fail} As you are unwilling to verify your age your application has been automatically denied.", ephemeral=True)
+            refusal_embed = SersiEmbed(
+                title="Over 18s Application Refusal to Verify",
+                description=f"User {interaction.user.name} ({interaction.user.id}) applied to access the Over 18s channels but entered {self.ageproof.value} when asked if they would prove their age."
+            )
+            channel = interaction.client.get_channel(self.config.channels.ageverification)
+            await channel.send(embed=refusal_embed, view=button_view)
             return
 
         application_embed = SersiEmbed(
