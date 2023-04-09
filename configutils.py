@@ -97,6 +97,9 @@ class ConfigurationRoles(YAMLWizard):
     # former moderator role
     honourable_member: int
 
+    adult_access: int
+    adult_verified: int
+
 
 @dataclass
 class ConfigurationOptInRoles(YAMLWizard):

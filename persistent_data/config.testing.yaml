@@ -70,6 +70,8 @@ roles:
     civil_engineering_initiate: 878040658244403253
     newbie:                     938465528043954267
     honourable_member:          0
+    adult_access:               1094367708306477126
+    adult_verified:             1094367738107019324
 
 opt_in_roles:
     gaming:         0
