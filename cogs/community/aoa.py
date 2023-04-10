@@ -135,12 +135,12 @@ class AdultAccess(commands.Cog):
     
     @commands.command()
     async def adult_verified(self, ctx, member: nextcord.Member):
-        if not await permcheck(ctx, is_senior_mod) or not await permcheck(ctx, is_cet):
+        if not await permcheck(ctx, is_senior_mod) and not await permcheck(ctx, is_cet):
             return
         
         adult_access_role = member.guild.get_role(self.config.roles.adult_access)
         adult_verified_role = member.guild.get_role(self.config.roles.adult_verified)
-        await member.add_roles([adult_access_role, adult_verified_role], reason=f"Application Approved, verified by {ctx.author.name}", atomic=True)
+        await member.add_roles(adult_access_role, adult_verified_role, reason=f"Application Approved, verified by {ctx.author.name}", atomic=True)
 
         accept_embed = nextcord.Embed(
             title="Over 18's Channel Application",
@@ -168,13 +168,13 @@ class AdultAccess(commands.Cog):
 
     @commands.command()
     async def adult_revoke(self, ctx, member: nextcord.Member):
-        if not await permcheck(ctx, is_senior_mod) or not await permcheck(ctx, is_cet):
+        if not await permcheck(ctx, is_senior_mod) and not await permcheck(ctx, is_cet):
             return
         
         adult_access_role = member.guild.get_role(self.config.roles.adult_access)
         adult_verified_role = member.guild.get_role(self.config.roles.adult_verified)
         try:
-            await member.remove_roles([adult_access_role, adult_verified_role], reason=f"Adult Access Revoked by {ctx.author.name}", atomic=True)
+            await member.remove_roles(adult_access_role, adult_verified_role, reason=f"Adult Access Revoked by {ctx.author.name}", atomic=True)
         
         except nextcord.HTTPException:
             await ctx.send("Removing roles failed. Please request a Mega Administrator or Community Engagement Team member manually remove the roles.")
