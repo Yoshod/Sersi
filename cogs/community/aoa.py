@@ -44,7 +44,7 @@ class AdultAccessModal(Modal):
         # Input Verification
         if not self.age.value.isnumeric():
             await interaction.response.send_message(
-                f"{self.config.emotes.fail} The request form was not completed correctly. Please try again.",
+                f"{self.config.emotes.fail} Please make sure your age is an integer. Please try again.",
                 ephemeral=True,
             )
             return

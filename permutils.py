@@ -48,7 +48,7 @@ async def permcheck(hook, function):
             return True
         else:
             await hook.response.send_message(
-                "Sorry, you don't get to vote", ephemeral=True
+                f"{config.emotes.fail} Permission denied.", ephemeral=True
             )
 
             embed = nextcord.Embed(
