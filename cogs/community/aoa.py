@@ -3,6 +3,9 @@ import random
 import nextcord
 from nextcord.ext import commands
 from nextcord.ui import Button, View, Modal
+from configutils import Configuration
+from permutils import is_dark_mod, permcheck, is_senior_mod, is_cet, is_mod
+from baseutils import SersiEmbed
 
 from baseutils import SersiEmbed
 from configutils import Configuration
@@ -201,7 +204,7 @@ class AdultAccess(commands.Cog):
 
     @commands.command()
     async def adult_revoke(self, ctx, member: nextcord.Member):
-        if not await permcheck(ctx, is_senior_mod) and not await permcheck(ctx, is_cet):
+        if not await permcheck(ctx, is_mod) and not await permcheck(ctx, is_cet):
             return
 
         adult_access_role = member.guild.get_role(self.config.roles.adult_access)
