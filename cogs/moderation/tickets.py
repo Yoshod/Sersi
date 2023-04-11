@@ -338,7 +338,8 @@ class CloseReason(nextcord.ui.Modal):
             case "admin-ticket":
                 close_embed = nextcord.Embed(
                     title=f"Administrator Ticket {interaction.channel.name[-4:]} Closed",
-                    description=f"The Administrator Ticket with ID number {interaction.channel.name[-4:]} has been closed.",
+                    description=f"The Administrator Ticket with ID number {interaction.channel.name[-4:]} has been "
+                    f"closed.",
                     color=nextcord.Color.from_rgb(237, 91, 6),
                 )
                 close_embed.add_field(
@@ -376,7 +377,8 @@ class CloseReason(nextcord.ui.Modal):
             case "senior-ticket":
                 close_embed = SersiEmbed(
                     title=f"Senior Moderator Ticket {interaction.channel.name[-4:]} Closed",
-                    description=f"The Senior Moderator Ticket with ID number {interaction.channel.name[-4:]} has been closed.",
+                    description=f"The Senior Moderator Ticket with ID number {interaction.channel.name[-4:]} has been "
+                    f"closed.",
                     fields={
                         "Ticket Opened By:": f"{complainer.mention} ({complainer.id})",
                         "Ticket Initial Remarks:": initial_embed.fields[0].value,
@@ -424,7 +426,8 @@ class CloseReason(nextcord.ui.Modal):
             case "verification-ticket":
                 close_embed = SersiEmbed(
                     title=f"Verification Ticket {interaction.channel.name[-4:]} Closed",
-                    description=f"The Verification Ticket with ID number {interaction.channel.name[-4:]} has been closed.",
+                    description=f"The Verification Ticket with ID number {interaction.channel.name[-4:]} has been "
+                    f"closed.",
                     fields={
                         "Ticket Opened By:": f"{complainer.mention} ({complainer.id})",
                         "Ticket Initial Remarks:": initial_embed.fields[0].value,
@@ -496,13 +499,17 @@ class TicketingSystem(commands.Cog):
 
         ticket_embed = nextcord.Embed(
             title="Contact Server Staff",
-            description="Select one of the buttons below to contact server staff. Please select the staff group most appropriate for your query. The examples below are just that, examples. They are not strict rules or limitations on which ticket should be used for your specific circumstances.",
+            description="Select one of the buttons below to contact server staff. Please select the staff group most "
+            "appropriate for your query. The examples below are just that, examples. They are not strict "
+            "rules or limitations on which ticket should be used for your specific circumstances.",
             colour=nextcord.Color.from_rgb(237, 91, 6),
         )
 
         ticket_embed.add_field(
             name="Administrator",
-            value=f"<@&{self.config.permission_roles.dark_moderator}> is best contacted for:\n- Complaints about Senior Moderators or Community Engagement Team\n- Business queries for Adam Something\n- You want something deleted from server logs",
+            value=f"<@&{self.config.permission_roles.dark_moderator}> is best contacted for:\n- Complaints about "
+            f"Senior Moderators or Community Engagement Team\n- Business queries for Adam Something\n- You want "
+            f"something deleted from server logs",
         )
         admin = Button(
             custom_id="admin-ticket",
@@ -512,7 +519,8 @@ class TicketingSystem(commands.Cog):
 
         ticket_embed.add_field(
             name="Senior Moderator",
-            value=f"<@&{self.config.permission_roles.senior_moderator}> is best contacted for:\n- Complaints about Moderators\n- Questions regarding server rules\n- Appealing moderator action taken against you",
+            value=f"<@&{self.config.permission_roles.senior_moderator}> is best contacted for:\n- Complaints about "
+            f"Moderators\n- Questions regarding server rules\n- Appealing moderator action taken against you",
         )
         senior = Button(
             custom_id="senior-moderator-ticket",
@@ -522,7 +530,8 @@ class TicketingSystem(commands.Cog):
 
         ticket_embed.add_field(
             name="Moderator",
-            value=f"<@&{self.config.permission_roles.moderator}> is best contacted for:\n- Reporting user misconduct\n- Enquiries into moderator actions\n- Anonymous Chat Reports",
+            value=f"<@&{self.config.permission_roles.moderator}> is best contacted for:\n- Reporting user "
+            f"misconduct\n- Enquiries into moderator actions\n- Anonymous Chat Reports",
         )
         moderator = Button(
             custom_id="moderator-ticket",
@@ -546,22 +555,28 @@ class TicketingSystem(commands.Cog):
 
         support_embed = nextcord.Embed(
             title="Get Verification Support",
-            description="If you're having problems verifying then follow the next couple steps. If you still cannot verify then create a ticket pressing the button below.",
+            description="If you're having problems verifying then follow the next couple steps. If you still cannot "
+            "verify then create a ticket pressing the button below.",
             colour=nextcord.Color.from_rgb(237, 91, 6),
         )
         support_embed.add_field(
             name="VPNs",
-            value="If you are using a VPN, please ensure it is turned off. If you live in a country where you have to use a VPN in order to access the internet please proceed to create a support ticket.",
+            value="If you are using a VPN, please ensure it is turned off. If you live in a country where you have to "
+            "use a VPN in order to access the internet please proceed to create a support ticket.",
             inline=False,
         )
         support_embed.add_field(
             name="Account Age",
-            value="If the account you are attempting to use in order to verify is too new then you will be unable to verify with that account. Reddit accounts below a certain Karma threshold are also ineligible for verification purposes.",
+            value="If the account you are attempting to use in order to verify is too new then you will be unable to "
+            "verify with that account. Reddit accounts below a certain Karma threshold are also ineligible for "
+            "verification purposes.",
             inline=False,
         )
         support_embed.add_field(
             name="Incognito Mode",
-            value="If you have ever been logged into another discord account via browser, sometimes that account is still held in cache. Please try opening the AltDentifier link in an incognito/private window and try to verify through that.",
+            value="If you have ever been logged into another discord account via browser, sometimes that account is "
+            "still held in cache. Please try opening the AltDentifier link in an incognito/private window and "
+            "try to verify through that.",
         )
         support = Button(
             custom_id="support-ask",

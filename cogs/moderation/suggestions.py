@@ -14,7 +14,8 @@ class Suggestions(commands.Cog):
     async def suggest(self, ctx):
         suggest_embed = nextcord.Embed(
             title=f"New Suggestion by {ctx.author.mention}",
-            description="A new suggestion has been submitted, please review this properly before deciding on whether to make available for the wider server to vote upon.",
+            description="A new suggestion has been submitted, please review this properly before deciding on whether "
+            "to make available for the wider server to vote upon.",
             colour=nextcord.Color.from_rgb(237, 91, 6),
         )
         suggest_embed.add_field(

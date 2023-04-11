@@ -7,50 +7,51 @@ from permutils import is_mod
 from webhookutils import send_webhook_message
 
 
+def generate_uwu(input_text: str) -> str:
+    """Shamelessly stolen from https://www.geeksforgeeks.org/uwu-text-convertor-in-python/.
+    well, I modified it.
+    """
+
+    output_text = ""
+    previous_char = "\0"
+    # check the cases for every individual character
+    for current_char in input_text:
+
+        # change 'L' and 'R' to 'W'
+        if current_char in ["L", "R"]:
+            output_text += "W"
+
+        # change 'l' and 'r' to 'w'
+        elif current_char in ["l", "r"]:
+            output_text += "w"
+
+        # if the current character is 'o' or 'O' and the previous one is 'N', 'n', 'M' or 'm'
+        elif current_char in ["O", "o"]:
+            if previous_char in ["N", "n", "M", "m"]:
+                output_text += "yo"
+            else:
+                output_text += current_char
+
+        # if the current character is 'a' or 'A' and the previous one is 'N', 'n', 'M' or 'm'
+        elif current_char in ["A", "a"]:
+            if previous_char in ["N", "n", "M", "m"]:
+                output_text += "ya"
+            else:
+                output_text += current_char
+
+        # if no case match, write it as it is
+        else:
+            output_text += current_char
+
+        previous_char = current_char
+
+    return output_text
+
+
 class Jokes(commands.Cog):
     def __init__(self, bot: commands.Bot, config: Configuration):
         self.bot = bot
         self.config = config
-
-    def generate_uwu(self, input_text: str) -> str:
-        """Shamelessly stolen from https://www.geeksforgeeks.org/uwu-text-convertor-in-python/.
-        well, I modified it.
-        """
-
-        output_text = ""
-        previous_char = "\0"
-        # check the cases for every individual character
-        for current_char in input_text:
-
-            # change 'L' and 'R' to 'W'
-            if current_char in ["L", "R"]:
-                output_text += "W"
-
-            # change 'l' and 'r' to 'w'
-            elif current_char in ["l", "r"]:
-                output_text += "w"
-
-            # if the current character is 'o' or 'O' and the previous one is 'N', 'n', 'M' or 'm'
-            elif current_char in ["O", "o"]:
-                if previous_char in ["N", "n", "M", "m"]:
-                    output_text += "yo"
-                else:
-                    output_text += current_char
-
-            # if the current character is 'a' or 'A' and the previous one is 'N', 'n', 'M' or 'm'
-            elif current_char in ["A", "a"]:
-                if previous_char in ["N", "n", "M", "m"]:
-                    output_text += "ya"
-                else:
-                    output_text += current_char
-
-            # if no case match, write it as it is
-            else:
-                output_text += current_char
-
-            previous_char = current_char
-
-        return output_text
 
     @commands.command()
     async def nevermod(self, ctx: commands.Context, member: nextcord.Member):
@@ -87,8 +88,8 @@ class Jokes(commands.Cog):
 
         await send_webhook_message(
             channel=ctx.channel,
-            content=self.generate_uwu(message),
-            username=self.generate_uwu(ctx.author.display_name),
+            content=generate_uwu(message),
+            username=generate_uwu(ctx.author.display_name),
             avatar_url=ctx.author.display_avatar.url,
         )
 
@@ -119,7 +120,10 @@ class Jokes(commands.Cog):
             if randomValue == 10:
                 embed = nextcord.Embed(
                     title="Admin Furry Stash Rumour",
-                    description='The so called "Admin Furry Stash" channel does not exist. It has never existed, and never will exist, as there are no furry admins on this server. Please remain calm as our specialist anti-disinformation team arrives at your address in order to further educate you on this matter.',
+                    description='The so called "Admin Furry Stash" channel does not exist. It has never existed, '
+                    "and never will exist, as there are no furry admins on this server. Please remain "
+                    "calm as our specialist anti-disinformation team arrives at your address in order to "
+                    "further educate you on this matter.",
                     colour=nextcord.Colour.from_rgb(138, 43, 226),
                 )
                 await message.channel.send(embed=embed)

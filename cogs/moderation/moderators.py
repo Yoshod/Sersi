@@ -200,7 +200,8 @@ class Moderators(commands.Cog):
             moderator, reason="Sersi makefullmod command", atomic=True
         )
         await interaction.message.edit(
-            f"{self.sersisuccess} {member.mention} was given the {moderator.name} role.\nRemember: You're not truly a mod until your first ban. ;)",
+            f"{self.sersisuccess} {member.mention} was given the {moderator.name} role.\nRemember: You're not truly a "
+            "mod until your first ban. ;)",
             embed=None,
             view=None,
         )

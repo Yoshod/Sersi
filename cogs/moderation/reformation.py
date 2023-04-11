@@ -120,7 +120,10 @@ class Reformation(commands.Cog):
         # Giving a welcome to the person sent to reformation
         welcome_embed = nextcord.Embed(
             title="Welcome to Reformation",
-            description=f"Hello {member.mention}, you have been sent to reformation by {interaction.user.mention}. The reason given for this is `{reason}`. \n\nFor more information on reformation check out <#{self.config.channels.reformation_info}> or talk to a <@&{self.config.permission_roles.reformist}>.",
+            description=f"Hello {member.mention}, you have been sent to reformation by {interaction.user.mention}. "
+            f"The reason given for this is `{reason}`. \n\nFor more information on reformation "
+            f"check out <#{self.config.channels.reformation_info}> or talk to a <@&"
+            f"{self.config.permission_roles.reformist}>.",
             color=nextcord.Color.from_rgb(237, 91, 6),
         )
 
@@ -129,8 +132,8 @@ class Reformation(commands.Cog):
 
         embed = nextcord.Embed(
             title="User Has Been Sent to Reformation",
-            description=f"Moderator {interaction.user.mention} ({interaction.user.id}) has sent user {member.mention} ({member.id}) to reformation.\n\n"
-            + f"**__Reason:__**\n{reason}",
+            description=f"Moderator {interaction.user.mention} ({interaction.user.id}) has sent user {member.mention}"
+            f" ({member.id}) to reformation.\n\n" + f"**__Reason:__**\n{reason}",
             color=nextcord.Color.from_rgb(237, 91, 6),
         )
 
@@ -150,7 +153,8 @@ class Reformation(commands.Cog):
     async def reformationneeded(self, ctx, member: nextcord.Member, *, reason=""):
         """Send a user to reformation centre.
 
-        Sends a [member] to reformation centre for reform by giving said [member] the @Reformation role. Removes @Civil Engineering Initiate and all Opt-In-Roles.
+        Sends a [member] to reformation centre for reform by giving said [member] the @Reformation role.
+        Removes @Civil Engineering Initiate and all Opt-In-Roles.
         Permission Needed: Moderator, Trial Moderator.
         """
 
@@ -234,7 +238,8 @@ class Reformation(commands.Cog):
 
             log_embed = nextcord.Embed(
                 title=f"Successful Reformation: **{member.name}** ({member.id})",
-                description=f"Reformation Member {member.name} was deemed well enough to be considered reformed.\nThis has been approved by:\n• {yes_list}.",
+                description=f"Reformation Member {member.name} was deemed well enough to be considered "
+                f"reformed.\nThis has been approved by:\n• {yes_list}.",
                 color=nextcord.Color.from_rgb(237, 91, 6),
             )
             channel = interaction.guild.get_channel(self.config.channels.alert)
@@ -364,7 +369,8 @@ class Reformation(commands.Cog):
 
             embed = nextcord.Embed(
                 title="Reformation Failed",
-                description=f"Reformation Inmate {member.name} has been deemed unreformable by\n•{yes_list}\n\nInitial reason for Reformation was: `{reason}`. They have been banned automatically.",
+                description=f"Reformation Inmate {member.name} has been deemed unreformable by\n•{yes_list}\n"
+                f"\nInitial reason for Reformation was: `{reason}`. They have been banned automatically.",
                 color=nextcord.Color.from_rgb(0, 0, 0),
             )
 
@@ -477,7 +483,8 @@ class Reformation(commands.Cog):
         try:
             embedVar = nextcord.Embed(
                 title=f"Reformation Query: **{member.name}** ({member.id})",
-                description=f"Reformation Inmate {member.name} was deemed well enough to start a query about their release\nQuery started by {ctx.author.mention} ({ctx.author.id})\n\nYes Votes: 0",
+                description=f"Reformation Inmate {member.name} was deemed well enough to start a query about their "
+                f"release\nQuery started by {ctx.author.mention} ({ctx.author.id})\n\nYes Votes: 0",
                 color=nextcord.Color.from_rgb(237, 91, 6),
             )
             embedVar.set_footer(text=f"{member.id}")
@@ -528,7 +535,9 @@ class Reformation(commands.Cog):
         try:
             embedVar = nextcord.Embed(
                 title=f"Reformation Failed Query: **{member.name}** ({member.id})",
-                description=f"Reformation Inmate {member.name} seems to not be able to be reformed. Should the reformation process therefore be given up and the user be banned?\nQuery started by {ctx.author.mention} ({ctx.author.id})\n\nYes Votes: 0",
+                description=f"Reformation Inmate {member.name} seems to not be able to be reformed. Should the "
+                f"reformation process therefore be given up and the user be banned?\nQuery"
+                f" started by {ctx.author.mention} ({ctx.author.id})\n\nYes Votes: 0",
                 color=nextcord.Color.from_rgb(237, 91, 6),
             )
             embedVar.set_footer(text=f"{member.id}")
@@ -658,7 +667,8 @@ class Reformation(commands.Cog):
             channel = self.bot.get_channel(self.config.channels.alert)
             embed = nextcord.Embed(
                 title=f"User **{member}** ({member.id}) has left the server while in the reformation centre!",
-                description=f"User has left the server while having the <@&{self.config.roles.reformation}> role. They have been banned automatically.",
+                description=f"User has left the server while having the <@&{self.config.roles.reformation}> role. "
+                f"They have been banned automatically.",
                 colour=nextcord.Color.from_rgb(237, 91, 6),
             )
 

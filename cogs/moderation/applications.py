@@ -223,12 +223,21 @@ class Applications(commands.Cog):
 
         info_embed = SersiEmbed(
             title="Staff Application Information",
-            description="Staff applications are open all year round! If you wish to be a moderator, member of CET, or anything else on Adam Something Central, here are somethings to be aware of:",
+            description="Staff applications are open all year round! If you wish to be a moderator, member of CET, "
+            "or anything else on Adam Something Central, here are somethings to be aware of:",
             fields={
-                "Server Membership": "We want all of our staff to be members of the Adam Something Central community. This means if you have been here for less than two months we will not be able to consider you.",
-                "Moderation History": "Whilst having a moderation history on the server does not automatically prevent you from becoming a member of staff, expect to be challenged on your moderation history.",
-                "Age": "Whilst we do not explicitly require staff to be of a certain age, bar the fact they must be old enough to use discord, those under the age of 18 can expect a little more grilling in order to determine maturity.",
-                "Applying": "To apply all you have to do is press the 'Open Form' button above. This will show a short form inside of discord that you can fill in. The process is easy, and you will usually get a response within two days.",
+                "Server Membership": "We want all of our staff to be members of the Adam Something Central community. "
+                "This means if you have been here for less than two months we will not be able "
+                "to consider you.",
+                "Moderation History": "Whilst having a moderation history on the server does not automatically "
+                "prevent you from becoming a member of staff, expect to be challenged on your "
+                "moderation history.",
+                "Age": "Whilst we do not explicitly require staff to be of a certain age, bar the fact they must be "
+                "old enough to use discord, those under the age of 18 can expect a little more grilling in "
+                "order to determine maturity.",
+                "Applying": "To apply all you have to do is press the 'Open Form' button above. This will show a "
+                "short form inside of discord that you can fill in. The process is easy, and you will "
+                "usually get a response within two days.",
             },
         )
 
@@ -243,7 +252,8 @@ class Applications(commands.Cog):
 
         test_embed = SersiEmbed(
             title="Community Engagement Team Application",
-            description="Press the button below to apply to become a member of the Community Engagement Team on Adam Something Central.",
+            description="Press the button below to apply to become a member of the Community Engagement Team on Adam "
+            "Something Central.",
         )
         open_modal = Button(
             custom_id="cet-application-start",
@@ -277,7 +287,8 @@ class Applications(commands.Cog):
 
                     advance_embed = nextcord.Embed(
                         title="Your Moderator Application",
-                        description="Your moderator application has been advanced to the next steps. Please create a Senior Moderator Ticket on Adam Something Central.",
+                        description="Your moderator application has been advanced to the next steps. Please create a "
+                        "Senior Moderator Ticket on Adam Something Central.",
                         colour=nextcord.Color.from_rgb(237, 91, 6),
                     )
                     await user.send(embed=advance_embed)
@@ -294,7 +305,8 @@ class Applications(commands.Cog):
 
                     rejection_embed = nextcord.Embed(
                         title="Your Moderator Application",
-                        description="Your moderator application has been rejected. Thanks for applying, we encourage you to try again in the future.",
+                        description="Your moderator application has been rejected. Thanks for applying, we encourage "
+                        "you to try again in the future.",
                         colour=nextcord.Color.from_rgb(237, 91, 6),
                     )
                     await user.send(embed=rejection_embed)
@@ -324,7 +336,8 @@ class Applications(commands.Cog):
 
                     review_embed = nextcord.Embed(
                         title="Your Moderator Application",
-                        description="Your moderator application has been received and is now under consideration. You will receive more information in the coming days.",
+                        description="Your moderator application has been received and is now under consideration. You "
+                        "will receive more information in the coming days.",
                         colour=nextcord.Color.from_rgb(237, 91, 6),
                     )
                     await user.send(embed=review_embed)
@@ -344,7 +357,8 @@ class Applications(commands.Cog):
 
                     advance_embed = nextcord.Embed(
                         title="Your Community Engagement Application",
-                        description="Your community engagement application has been advanced to the next steps. Please contact the Community Engagement Team Lead on Adam Something Central.",
+                        description="Your community engagement application has been advanced to the next steps. "
+                        "Please contact the Community Engagement Team Lead on Adam Something Central.",
                         colour=nextcord.Color.from_rgb(237, 91, 6),
                     )
                     await user.send(embed=advance_embed)
@@ -361,7 +375,8 @@ class Applications(commands.Cog):
 
                     rejection_embed = nextcord.Embed(
                         title="Your Community Engagement Application",
-                        description="Your community engagement application has been rejected. Thanks for applying, we encourage you to try again in the future.",
+                        description="Your community engagement application has been rejected. Thanks for applying, "
+                        "we encourage you to try again in the future.",
                         colour=nextcord.Color.from_rgb(237, 91, 6),
                     )
                     await user.send(embed=rejection_embed)
@@ -391,7 +406,8 @@ class Applications(commands.Cog):
 
                     review_embed = nextcord.Embed(
                         title="Your Community Engagement Application",
-                        description="Your community engagement application has been received and is now under consideration. You will receive more information in the coming days.",
+                        description="Your community engagement application has been received and is now under "
+                        "consideration. You will receive more information in the coming days.",
                         colour=nextcord.Color.from_rgb(237, 91, 6),
                     )
                     await user.send(embed=review_embed)

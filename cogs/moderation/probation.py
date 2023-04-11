@@ -76,7 +76,8 @@ class Probation(commands.Cog):
 
             dm_embed = SersiEmbed(
                 title="Adam Something Central Probation",
-                description="Your behaviour on Adam Something Central has resulted in being put into probation by a moderator, continued rule breaking may result in a ban",
+                description="Your behaviour on Adam Something Central has resulted in being put into probation by a "
+                "moderator, continued rule breaking may result in a ban",
                 colour=nextcord.Colour.brand_red(),
                 fields={"Reason specified by moderator:": reason},
             )
@@ -133,7 +134,7 @@ class Probation(commands.Cog):
             log_embed = SersiEmbed(
                 title="Member removed from Probation",
                 fields={
-                    "Resposible Moderator:": ctx.author.mention,
+                    "Responsible Moderator:": ctx.author.mention,
                     "Confirming Moderator:": confirming_moderator.mention,
                     "Member": member.mention,
                     "Reason:": reason,
@@ -156,7 +157,7 @@ class Probation(commands.Cog):
 
             return SersiEmbed(
                 title="Member removed from Probation",
-                description=f"{member.mention} was succesfully removed from probation!",
+                description=f"{member.mention} was successfully removed from probation!",
                 fields={
                     "User": member.mention,
                     "Reason": reason,

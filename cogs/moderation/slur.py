@@ -475,7 +475,8 @@ class Slur(commands.Cog):
             ):  # user has said slurs before, however not that particular one
                 slurembed.add_field(
                     name="Previous Slur Uses:",
-                    value=f"{self.config.emotes.success} The user has a history of using slurs that were not detected in this message.",
+                    value=f"{self.config.emotes.success} The user has a history of using slurs that were not detected "
+                    f"in this message.",
                     inline=False,
                 )
 
@@ -484,7 +485,8 @@ class Slur(commands.Cog):
                 if len(prev_offenses) < 1024:
                     slurembed.add_field(
                         name="Previous Slur Uses:",
-                        value=f"{self.config.emotes.success} The user has a history of using a slur detected in this message:\n{prev_offenses}",
+                        value=f"{self.config.emotes.success} The user has a history of using a slur detected in this "
+                        f"message:\n{prev_offenses}",
                         inline=False,
                     )
                 else:

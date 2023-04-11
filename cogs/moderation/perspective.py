@@ -38,8 +38,10 @@ class Perspective(commands.Cog):
         self.config = config
 
     async def ask_perspective(
-        self, message: str, attributes: list[str] = ["TOXICITY"]
+        self, message: str, attributes: list[str] = None
     ) -> PerspectiveEvaluation:
+        if not attributes:
+            attributes = ["TOXICITY"]
 
         response = requests.post(
             f"https://commentanalyzer.googleapis.com/v1alpha1/comments:analyze?key={discordTokens.getPerspectiveToken()}",

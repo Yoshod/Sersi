@@ -50,7 +50,7 @@ class Cases(commands.Cog):
                 self.case_details = pickle.load(file)
 
             if search_term not in self.case_details:
-                ctx.send(f"{self.sersifail} Case {search_term} not found.")
+                await ctx.send(f"{self.sersifail} Case {search_term} not found.")
 
             elif self.case_details[search_term][0] == "Reformation":
 

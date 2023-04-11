@@ -216,7 +216,8 @@ class AdultAccess(commands.Cog):
 
         except nextcord.HTTPException:
             await ctx.send(
-                "Removing roles failed. Please request a Mega Administrator or Community Engagement Team member manually remove the roles."
+                "Removing roles failed. Please request a Mega Administrator or Community Engagement Team member "
+                "manually remove the roles."
             )
 
         revoke_embed = nextcord.Embed(
@@ -283,7 +284,15 @@ class AdultAccess(commands.Cog):
                     else:
                         verify_embed = nextcord.Embed(
                             title="Over 18's Channel Application",
-                            description="Your request to join the Over 18's Channel has been referred. You have been randomly selected to verify your age. Please create a Senior Moderator or Mega Administrator ticket. You will be required to submit an image which comprises of the following:\nPaper which has your discord name and discriminator written on it\nAdam Something Central written on it\nThe date in DD.MM.YYYY format\nA photo ID placed on the paper. **Blank out everything except the date of birth. We do not want or need to see anything other than the date of birth.** Ensure all four corners of the ID are visible.\n\n If you do not wish to submit photo ID then consider your application rejected.",
+                            description="Your request to join the Over 18's Channel has been referred. You have been "
+                            "randomly selected to verify your age. Please create a Senior Moderator or "
+                            "Mega Administrator ticket. You will be required to submit an image which "
+                            "comprises of the following:\nPaper which has your discord name and "
+                            "discriminator written on it\nAdam Something Central written on it\nThe date "
+                            "in DD.MM.YYYY format\nA photo ID placed on the paper. **Blank out everything "
+                            "except the date of birth. We do not want or need to see anything other than "
+                            "the date of birth.** Ensure all four corners of the ID are visible.\n\n If "
+                            "you do not wish to submit photo ID then consider your application rejected.",
                             colour=nextcord.Color.from_rgb(237, 91, 6),
                         )
                         await user.send(embed=verify_embed)
@@ -300,7 +309,8 @@ class AdultAccess(commands.Cog):
 
                     deny_embed = nextcord.Embed(
                         title="Over 18's Channel Application",
-                        description="Your request to join the Over 18's Channel has been denied. Want to know more? Create a Senior Moderator Ticket.",
+                        description="Your request to join the Over 18's Channel has been denied. Want to know more? "
+                        "Create a Senior Moderator Ticket.",
                         colour=nextcord.Color.from_rgb(237, 91, 6),
                     )
                     await user.send(embed=deny_embed)
@@ -318,7 +328,15 @@ class AdultAccess(commands.Cog):
 
                     referred_embed = nextcord.Embed(
                         title="Over 18's Channel Application",
-                        description="Your request to join the Over 18's Channel has been referred. You have been randomly selected to verify your age. Please create a Senior Moderator or Mega Administrator ticket. You will be required to submit an image which comprises of the following:\nPaper which has your discord name and discriminator written on it\nAdam Something Central written on it\nThe date in DD.MM.YYYY format\nA photo ID placed on the paper. **Blank out everything except the date of birth. We do not want or need to see anything other than the date of birth.** Ensure all four corners of the ID are visible.\n\n If you do not wish to submit photo ID then consider your application rejected.",
+                        description="Your request to join the Over 18's Channel has been referred. You have been "
+                        "randomly selected to verify your age. Please create a Senior Moderator or Mega "
+                        "Administrator ticket. You will be required to submit an image which comprises of "
+                        "the following:\nPaper which has your discord name and discriminator written on "
+                        "it\nAdam Something Central written on it\nThe date in DD.MM.YYYY format\nA photo "
+                        "ID placed on the paper. **Blank out everything except the date of birth. We do "
+                        "not want or need to see anything other than the date of birth.** Ensure all four "
+                        "corners of the ID are visible.\n\n If you do not wish to submit photo ID then "
+                        "consider your application rejected.",
                         colour=nextcord.Color.from_rgb(237, 91, 6),
                     )
                     await user.send(embed=referred_embed)

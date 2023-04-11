@@ -39,7 +39,7 @@ class BanAppealRejection(nextcord.ui.Modal):
             fields={"User:": f"{user} ({user.name})", "Reason:": self.reason.value},
         )
 
-        channel = interaction.client.get_channel(self.config.channels.modlogs)
+        channel = interaction.client.get_channel(self.config.channels.mod_logs)
 
         await channel.send(embed=log_embed)
 
@@ -107,7 +107,7 @@ class BanAppealAccept(nextcord.ui.Modal):
             fields={"User:": f"{user} ({user.name})", "Reason:": self.reason.value},
         )
 
-        channel = interaction.client.get_channel(self.config.channels.modlogs)
+        channel = interaction.client.get_channel(self.config.channels.mod_logs)
 
         await channel.send(embed=log_embed)
 
