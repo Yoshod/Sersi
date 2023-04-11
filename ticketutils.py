@@ -75,7 +75,7 @@ def ticket_check(config: configutils.Configuration, id, ticket_type):
 def ticket_prep(config: configutils.Configuration, interaction, user, ticket_type):
     overwrites = {
         interaction.guild.default_role: nextcord.PermissionOverwrite(
-            read_messages=False
+            read_messages=False, send_messages=True
         ),
         interaction.guild.me: nextcord.PermissionOverwrite(read_messages=True),
         user: nextcord.PermissionOverwrite(

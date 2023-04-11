@@ -37,8 +37,9 @@ class Perspective(commands.Cog):
         self.bot = bot
         self.config = config
 
-    async def ask_perspective(self, message: str, attributes: list[str] = ["TOXICITY"]
-        ) -> PerspectiveEvaluation:
+    async def ask_perspective(
+        self, message: str, attributes: list[str] = ["TOXICITY"]
+    ) -> PerspectiveEvaluation:
 
         response = requests.post(
             f"https://commentanalyzer.googleapis.com/v1alpha1/comments:analyze?key={discordTokens.getPerspectiveToken()}",
@@ -51,6 +52,7 @@ class Perspective(commands.Cog):
             headers={"Content-Type": "application/json; charset=UTF-8"},
         )
         if response.status_code == 200:
+
             def evaluation(attr):
                 if attr not in response.json()["attributeScores"]:
                     return -0.0
@@ -80,11 +82,13 @@ class Perspective(commands.Cog):
                 colour=nextcord.Colour.brand_red(),
             )
             await error_channel.send(embed=error_embed)
-            
+
     @commands.command(aliases=["inv"])
     async def investigate(self, context: commands.Context, *, message: str):
         """Investigate a message for toxicity."""
-        evaluation: PerspectiveEvaluation = await self.ask_perspective(message, [
+        evaluation: PerspectiveEvaluation = await self.ask_perspective(
+            message,
+            [
                 "SEVERE_TOXICITY",
                 "FLIRTATION",
                 "SEXUALLY_EXPLICIT",
@@ -99,25 +103,27 @@ class Perspective(commands.Cog):
                 "OBSCENE",
                 "INFLAMMATORY",
                 "LIKELY_TO_REJECT",
-        ])
+            ],
+        )
 
-        await context.reply((
-            f"`Toxicity: {evaluation.toxic *100:.2f}%`\n"
-            f"`Flirtation: {evaluation.flirt *100:.2f}%`\n"
-            f"`Sexually Explicit: {evaluation.nsfw *100:.2f}%`\n"
-            f"`Severe Toxicity: {evaluation.severe_toxic *100:.2f}%`\n"
-            f"`Identity Attack: {evaluation.identity_attack *100:.2f}%`\n"
-            f"`Insult: {evaluation.insult *100:.2f}%`\n"
-            f"`Profanity: {evaluation.profanity *100:.2f}%`\n"
-            f"`Threat: {evaluation.threat *100:.2f}%`\n"
-            f"`Incoherent: {evaluation.incoherent *100:.2f}%`\n"
-            f"`Spam: {evaluation.spam *100:.2f}%`\n"
-            f"`Unsubstantial: {evaluation.unsubstantial *100:.2f}%`\n"
-            f"`Obscene: {evaluation.obscene *100:.2f}%`\n"
-            f"`Inflammatory: {evaluation.inflammatory *100:.2f}%`\n"
-            f"`Likely to Reject: {evaluation.likely_to_reject *100:.2f}%`\n"
-        ))
-
+        await context.reply(
+            (
+                f"`Toxicity: {evaluation.toxic *100:.2f}%`\n"
+                f"`Flirtation: {evaluation.flirt *100:.2f}%`\n"
+                f"`Sexually Explicit: {evaluation.nsfw *100:.2f}%`\n"
+                f"`Severe Toxicity: {evaluation.severe_toxic *100:.2f}%`\n"
+                f"`Identity Attack: {evaluation.identity_attack *100:.2f}%`\n"
+                f"`Insult: {evaluation.insult *100:.2f}%`\n"
+                f"`Profanity: {evaluation.profanity *100:.2f}%`\n"
+                f"`Threat: {evaluation.threat *100:.2f}%`\n"
+                f"`Incoherent: {evaluation.incoherent *100:.2f}%`\n"
+                f"`Spam: {evaluation.spam *100:.2f}%`\n"
+                f"`Unsubstantial: {evaluation.unsubstantial *100:.2f}%`\n"
+                f"`Obscene: {evaluation.obscene *100:.2f}%`\n"
+                f"`Inflammatory: {evaluation.inflammatory *100:.2f}%`\n"
+                f"`Likely to Reject: {evaluation.likely_to_reject *100:.2f}%`\n"
+            )
+        )
 
     async def cb_action_taken(self, interaction: nextcord.Interaction):
         """Callback for when the action taken button is pressed."""
@@ -208,14 +214,18 @@ class Perspective(commands.Cog):
         if len(message.content) < 10:
             return
         # ignores message if sent outside general chat.
-        if not message.channel.id == 856262304337100832 and message.guild.id == 856262303795380224:
+        if (
+            not message.channel.id == 856262304337100832
+            and message.guild.id == 856262303795380224
+        ):
             return
         # ignores message if message is by bot
         elif message.author == self.bot.user:
             return
 
-        evaluation: PerspectiveEvaluation = await self.ask_perspective(message.content,
-            ["TOXICITY", "FLIRTATION", "SEXUALLY_EXPLICIT"])
+        evaluation: PerspectiveEvaluation = await self.ask_perspective(
+            message.content, ["TOXICITY", "FLIRTATION", "SEXUALLY_EXPLICIT"]
+        )
         # exit if error has occured
         if evaluation is None:
             return

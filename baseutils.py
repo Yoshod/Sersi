@@ -112,14 +112,19 @@ class ConfirmView(View):
     async def interaction_check(self, interaction: nextcord.Interaction):
         return interaction.user == interaction.message.reference.cached_message.author
 
-    async def send_as_reply(self, ctx: commands.Context, content: str = None, embed=None):
+    async def send_as_reply(
+        self, ctx: commands.Context, content: str = None, embed=None
+    ):
         self.message = await ctx.reply(content, embed=embed, view=self)
 
     @staticmethod
     def query(title: str, prompt: str, embed_args: dict = {}) -> callable:
         def wrapper(func: callable) -> callable:
-            async def confirm(bot: commands.Bot, config: configutils.Configuration,
-                                ctx: commands.Context):
+            async def confirm(
+                bot: commands.Bot,
+                config: configutils.Configuration,
+                ctx: commands.Context,
+            ):
                 embed_fields = embed_args.copy()
                 dialog_embed = SersiEmbed(
                     title=title,
@@ -135,7 +140,9 @@ class ConfirmView(View):
 
                 view = ConfirmView(cb_proceed)
                 await view.send_as_reply(ctx, embed=dialog_embed)
+
             return confirm
+
         return wrapper
 
 
@@ -166,14 +173,15 @@ class DualCustodyView(View):
         title: str, prompt: str, perms: callable, embed_args: dict = {}
     ) -> callable:
         def wrapper(func: callable) -> callable:
-            async def dual_custody(bot: commands.Bot, config: configutils.Configuration,
-                                    ctx: commands.Context) -> nextcord.Embed:
+            async def dual_custody(
+                bot: commands.Bot,
+                config: configutils.Configuration,
+                ctx: commands.Context,
+            ) -> nextcord.Embed:
 
                 # if command used by admin, skip dual custody query
                 if is_dark_mod(ctx.author):
-                    return await func(
-                        bot, config, ctx, confirming_moderator=ctx.author
-                    )
+                    return await func(bot, config, ctx, confirming_moderator=ctx.author)
 
                 embed_fields = embed_args.copy()
                 embed_fields.update({"Moderator": ctx.author.mention})

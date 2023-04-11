@@ -27,26 +27,36 @@ class Probation(commands.Cog):
             await ctx.reply(f"{self.sersifail} member is already in probation")
             return
 
-        @ConfirmView.query(title="Add Member to probation",
+        @ConfirmView.query(
+            title="Add Member to probation",
             prompt="Following member will be given probation:",
             embed_args={
                 "User": member.mention,
                 "Reason": reason,
-            })
-        @DualCustodyView.query(title="Add Member to probation",
+            },
+        )
+        @DualCustodyView.query(
+            title="Add Member to probation",
             prompt="Following member will be given probation:",
             perms=is_full_mod,
             embed_args={
                 "User": member.mention,
                 "Reason": reason,
                 "Moderator": ctx.author.mention,
-            })
+            },
+        )
         async def execute(*args, confirming_moderator: nextcord.Member, **kwargs):
             await member.add_roles(probation_role, reason=reason, atomic=True)
 
             unique_id = case_history(self.config, member.id, "Probation")
-            probation_case(self.config, unique_id, member.id,
-                           ctx.author.id, confirming_moderator.id, reason)
+            probation_case(
+                self.config,
+                unique_id,
+                member.id,
+                ctx.author.id,
+                confirming_moderator.id,
+                reason,
+            )
 
             log_embed = SersiEmbed(
                 title="Member put into Probation",
@@ -55,22 +65,20 @@ class Probation(commands.Cog):
                     "Confirming Moderator:": confirming_moderator.mention,
                     "Member": member.mention,
                     "Reason:": reason,
-                }
+                },
             )
 
-            log_channel = ctx.guild.get_channel(
-                self.config.channels.logging)
+            log_channel = ctx.guild.get_channel(self.config.channels.logging)
             await log_channel.send(embed=log_embed)
 
-            log_channel = ctx.guild.get_channel(
-                self.config.channels.mod_logs)
+            log_channel = ctx.guild.get_channel(self.config.channels.mod_logs)
             await log_channel.send(embed=log_embed)
 
             dm_embed = SersiEmbed(
                 title="Adam Something Central Probation",
                 description="Your behaviour on Adam Something Central has resulted in being put into probation by a moderator, continued rule breaking may result in a ban",
                 colour=nextcord.Colour.brand_red(),
-                fields={"Reason specified by moderator:": reason}
+                fields={"Reason specified by moderator:": reason},
             )
             await member.send(embed=dm_embed)
 
@@ -81,12 +89,15 @@ class Probation(commands.Cog):
                     "User": member.mention,
                     "Reason": reason,
                     "Moderator": ctx.author.mention,
-                }
+                },
             )
+
         await execute(self.bot, self.config, ctx)
 
     @commands.command(aliases=["rmp", "rmprob"])
-    async def removeprobation(self, ctx: commands.Context, member: nextcord.Member, *, reason):
+    async def removeprobation(
+        self, ctx: commands.Context, member: nextcord.Member, *, reason
+    ):
         if not await permcheck(ctx, is_mod):
             return
 
@@ -97,21 +108,25 @@ class Probation(commands.Cog):
                 "Error: cannot remove user from probation, member is currently not in probation"
             )
             return
-        
-        @ConfirmView.query(title="Remove Member from probation",
+
+        @ConfirmView.query(
+            title="Remove Member from probation",
             prompt="Following member will be removed from probation:",
             embed_args={
                 "User": member.mention,
                 "Reason": reason,
-            })
-        @DualCustodyView.query(title="Remove Member from probation",
+            },
+        )
+        @DualCustodyView.query(
+            title="Remove Member from probation",
             prompt="Following member will be removed from probation:",
             perms=is_full_mod,
             embed_args={
                 "User": member.mention,
                 "Reason": reason,
                 "Moderator": ctx.author.mention,
-            })
+            },
+        )
         async def execute(*args, confirming_moderator: nextcord.Member, **kwargs):
             await member.remove_roles(probation_role, reason=reason, atomic=True)
 
@@ -122,22 +137,20 @@ class Probation(commands.Cog):
                     "Confirming Moderator:": confirming_moderator.mention,
                     "Member": member.mention,
                     "Reason:": reason,
-                }
+                },
             )
 
-            log_channel = ctx.guild.get_channel(
-                self.config.channels.logging)
+            log_channel = ctx.guild.get_channel(self.config.channels.logging)
             await log_channel.send(embed=log_embed)
 
-            log_channel = ctx.guild.get_channel(
-                self.config.channels.mod_logs)
+            log_channel = ctx.guild.get_channel(self.config.channels.mod_logs)
             await log_channel.send(embed=log_embed)
 
             dm_embed = SersiEmbed(
                 title="Adam Something Central Probation Over",
                 description="You were removed from probation on Adam Something Central",
                 colour=nextcord.Colour.brand_red(),
-                fields={"Reason specified by moderator:": reason}
+                fields={"Reason specified by moderator:": reason},
             )
             await member.send(embed=dm_embed)
 
@@ -148,8 +161,9 @@ class Probation(commands.Cog):
                     "User": member.mention,
                     "Reason": reason,
                     "Moderator": ctx.author.mention,
-                }
+                },
             )
+
         await execute(self.bot, self.config, ctx)
 
 

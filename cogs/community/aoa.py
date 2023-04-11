@@ -1,12 +1,12 @@
-import nextcord
 import random
+
+import nextcord
 from nextcord.ext import commands
 from nextcord.ui import Button, View, Modal
-from configutils import Configuration
-from permutils import is_dark_mod, permcheck, is_senior_mod, is_cet
-from baseutils import SersiEmbed
 
+from baseutils import SersiEmbed
 from configutils import Configuration
+from permutils import is_dark_mod, permcheck, is_senior_mod, is_cet, is_slt
 
 
 class AdultAccessModal(Modal):
@@ -38,34 +38,59 @@ class AdultAccessModal(Modal):
 
     async def callback(self, interaction):
         """Run whenever the 'submit' button is pressed."""
-        applicant_id = interaction.user.id
+        applicant_id: int = interaction.user.id
 
+        # Age Checking
+        # Input Verification
         if not self.age.value.isnumeric():
-            await interaction.response.send_message(f"{self.config.emotes.fail} The request form was not completed correctly. Please try again.", ephemeral=True)
+            await interaction.response.send_message(
+                f"{self.config.emotes.fail} The request form was not completed correctly. Please try again.",
+                ephemeral=True,
+            )
             return
-        elif self.age.value == "69":
-            await interaction.response.send_message(f"{self.config.emotes.fail} You're not 69.", ephemeral=True)
+
+        # Parsing Age to Integer
+        age_submitted: int = int(self.age.value)
+
+        # Filtering Age
+        if age_submitted == 69:
+            await interaction.response.send_message(
+                f"{self.config.emotes.fail} You're not 69.", ephemeral=True
+            )
             return
-        elif int(self.age.value) <18:
-            await interaction.response.send_message(f"{self.config.emotes.fail} You are not old enough to have access to the over 18's channels.", ephemeral=True)
+
+        if age_submitted < 18:
+            await interaction.response.send_message(
+                f"{self.config.emotes.fail} You are not old enough to have access to the over 18's channels.",
+                ephemeral=True,
+            )
             young_embed = SersiEmbed(
                 title="Underage Over 18s Application",
-                description=f"User {interaction.user.name} ({interaction.user.id}) applied to access the Over 18s channels but entered an age of {self.age.value}."
+                description=f"User {interaction.user.name} ({interaction.user.id}) applied to access the Over 18s channels but entered an age of {self.age.value}.",
             )
-            channel = interaction.client.get_channel(self.config.channels.ageverification)
+            channel = interaction.client.get_channel(
+                self.config.channels.ageverification
+            )
             await channel.send(embed=young_embed)
             return
-        
+
+        # Filtering those that do not want to verify
         if self.ageproof.value.lower() in ["no", "na", "n/a", "non", "nee"]:
-            await interaction.response.send_message(f"{self.config.emotes.fail} As you are unwilling to verify your age your application has been automatically denied.", ephemeral=True)
+            await interaction.response.send_message(
+                f"{self.config.emotes.fail} As you are unwilling to verify your age your application has been automatically denied.",
+                ephemeral=True,
+            )
             refusal_embed = SersiEmbed(
                 title="Over 18s Application Refusal to Verify",
-                description=f"User {interaction.user.name} ({interaction.user.id}) applied to access the Over 18s channels but entered {self.ageproof.value} when asked if they would prove their age."
+                description=f"User {interaction.user.name} ({interaction.user.id}) applied to access the Over 18s channels but entered {self.ageproof.value} when asked if they would prove their age.",
             )
-            channel = interaction.client.get_channel(self.config.channels.ageverification)
+            channel = interaction.client.get_channel(
+                self.config.channels.ageverification
+            )
             await channel.send(embed=refusal_embed)
             return
 
+        # Setting up Application Embed
         application_embed = SersiEmbed(
             title="Over 18s Channel Application",
             description=f"User {interaction.user.name} ({interaction.user.id})",
@@ -76,30 +101,29 @@ class AdultAccessModal(Modal):
             },
         )
 
-        accept_bttn = Button(
+        accept_button = Button(
             custom_id=f"adult-application-approve:{applicant_id}",
             label="Approve",
             style=nextcord.ButtonStyle.green,
         )
-        reject_bttn = Button(
+        reject_button = Button(
             custom_id=f"adult-application-reject:{applicant_id}",
             label="Reject",
             style=nextcord.ButtonStyle.red,
         )
-        review_bttn = Button(
+        review_button = Button(
             custom_id=f"adult-application-verify:{applicant_id}",
             label="Require Proof",
             style=nextcord.ButtonStyle.grey,
         )
 
         button_view = View(auto_defer=False)
-        button_view.add_item(accept_bttn)
-        button_view.add_item(reject_bttn)
-        button_view.add_item(review_bttn)
+        button_view.add_item(accept_button)
+        button_view.add_item(reject_button)
+        button_view.add_item(review_button)
 
         channel = interaction.client.get_channel(self.config.channels.ageverification)
         await channel.send(embed=application_embed, view=button_view)
-
 
 
 class AdultAccess(commands.Cog):
@@ -112,6 +136,7 @@ class AdultAccess(commands.Cog):
 
     @commands.command()
     async def adult_access(self, ctx):
+        """Single use Command for the 'Create Application' Embed"""
         if not await permcheck(ctx, is_dark_mod):
             return
 
@@ -132,15 +157,21 @@ class AdultAccess(commands.Cog):
         button_view.add_item(open_modal)
 
         await ctx.send(embed=test_embed, view=button_view)
-    
+
     @commands.command()
     async def adult_verified(self, ctx, member: nextcord.Member):
+        """Marks a Member as having had their age verified"""
         if not await permcheck(ctx, is_senior_mod) and not await permcheck(ctx, is_cet):
             return
-        
+
         adult_access_role = member.guild.get_role(self.config.roles.adult_access)
         adult_verified_role = member.guild.get_role(self.config.roles.adult_verified)
-        await member.add_roles(adult_access_role, adult_verified_role, reason=f"Application Approved, verified by {ctx.author.name}", atomic=True)
+        await member.add_roles(
+            adult_access_role,
+            adult_verified_role,
+            reason=f"Application Approved, verified by {ctx.author.name}",
+            atomic=True,
+        )
 
         accept_embed = nextcord.Embed(
             title="Over 18's Channel Application",
@@ -149,14 +180,17 @@ class AdultAccess(commands.Cog):
         )
         await member.send(embed=accept_embed)
 
-
     @commands.command()
     async def adult_bypass(self, ctx, member: nextcord.Member):
         if not await permcheck(ctx, is_dark_mod):
             return
-        
+
         adult_access_role = member.guild.get_role(self.config.roles.adult_access)
-        await member.add_roles(adult_access_role, reason=f"Application Approved, verified by {ctx.author.name}", atomic=True)
+        await member.add_roles(
+            adult_access_role,
+            reason=f"Application Approved, verified by {ctx.author.name}",
+            atomic=True,
+        )
 
         accept_embed = nextcord.Embed(
             title="Over 18's Channel Application",
@@ -165,19 +199,25 @@ class AdultAccess(commands.Cog):
         )
         await member.send(embed=accept_embed)
 
-
     @commands.command()
     async def adult_revoke(self, ctx, member: nextcord.Member):
         if not await permcheck(ctx, is_senior_mod) and not await permcheck(ctx, is_cet):
             return
-        
+
         adult_access_role = member.guild.get_role(self.config.roles.adult_access)
         adult_verified_role = member.guild.get_role(self.config.roles.adult_verified)
         try:
-            await member.remove_roles(adult_access_role, adult_verified_role, reason=f"Adult Access Revoked by {ctx.author.name}", atomic=True)
-        
+            await member.remove_roles(
+                adult_access_role,
+                adult_verified_role,
+                reason=f"Adult Access Revoked by {ctx.author.name}",
+                atomic=True,
+            )
+
         except nextcord.HTTPException:
-            await ctx.send("Removing roles failed. Please request a Mega Administrator or Community Engagement Team member manually remove the roles.")
+            await ctx.send(
+                "Removing roles failed. Please request a Mega Administrator or Community Engagement Team member manually remove the roles."
+            )
 
         revoke_embed = nextcord.Embed(
             title="Over 18's Channel Access Revoked",
@@ -185,9 +225,6 @@ class AdultAccess(commands.Cog):
             colour=nextcord.Color.from_rgb(237, 91, 6),
         )
         await member.send(embed=revoke_embed)
-
-
-
 
     @commands.Cog.listener()
     async def on_interaction(self, interaction: nextcord.Interaction):
@@ -201,7 +238,7 @@ class AdultAccess(commands.Cog):
                 await interaction.response.send_modal(AdultAccessModal(self.config))
 
             case ["adult-application-approve", user_id]:
-                if await permcheck(interaction, is_senior_mod):
+                if await permcheck(interaction, is_slt):
                     user = interaction.guild.get_member(int(user_id))
 
                     updated_form = interaction.message.embeds[0]
@@ -209,40 +246,50 @@ class AdultAccess(commands.Cog):
                         name="Application Approved by:", value=interaction.user.mention
                     )
 
-                    random_number = random.randint(1,100)
-                    if random_number >0 and random_number <13:
+                    random_number = random.randint(1, 100)
+                    if 0 < random_number < 13:
                         updated_form.add_field(
-                        name="Verification Required:", value=f"{self.config.emotes.success} Yes"
+                            name="Verification Required:",
+                            value=f"{self.config.emotes.success} Yes",
                         )
                         verification_required = True
                     else:
                         updated_form.add_field(
-                            name="Verification Required:", value=f"{self.config.emotes.fail} No"
+                            name="Verification Required:",
+                            value=f"{self.config.emotes.fail} No",
                         )
                         verification_required = False
-                    
+
                     await interaction.message.edit(embed=updated_form, view=None)
 
+                    # if not random check
                     if not verification_required:
-                        adult_role = interaction.guild.get_role(self.config.roles.adult_access)
-                        await user.add_roles(adult_role, reason="Application Approved No Verification Required", atomic=True)
+                        adult_role = interaction.guild.get_role(
+                            self.config.roles.adult_access
+                        )
+                        await user.add_roles(
+                            adult_role,
+                            reason="Application Approved No Verification Required",
+                            atomic=True,
+                        )
                         accept_embed = nextcord.Embed(
                             title="Over 18's Channel Application",
                             description="Your request to join the Over 18's Channel has been approved.",
                             colour=nextcord.Color.from_rgb(237, 91, 6),
                         )
                         await user.send(embed=accept_embed)
-                    
+
+                    # if random check
                     else:
                         verify_embed = nextcord.Embed(
                             title="Over 18's Channel Application",
-                            description="Your request to join the Over 18's Channel has been referred. You have been randomly selected to verify your age. Please create a Senior Moderator or Mega Administrator ticket. You will be required to submit an image which comprises of the following:\nPaper which has your discord name and discriminator written on it\nAdam Something Central written on it\nThe date in DDMMYYYY format\nA photo ID placed on the paper. **Blank out everything except the date of birth. We do not want or need to see anything other than the date of birth.** Ensure all four corners of the ID are visible.\n\n If you do not wish to submit photo ID then consider your application rejected.",
+                            description="Your request to join the Over 18's Channel has been referred. You have been randomly selected to verify your age. Please create a Senior Moderator or Mega Administrator ticket. You will be required to submit an image which comprises of the following:\nPaper which has your discord name and discriminator written on it\nAdam Something Central written on it\nThe date in DD.MM.YYYY format\nA photo ID placed on the paper. **Blank out everything except the date of birth. We do not want or need to see anything other than the date of birth.** Ensure all four corners of the ID are visible.\n\n If you do not wish to submit photo ID then consider your application rejected.",
                             colour=nextcord.Color.from_rgb(237, 91, 6),
                         )
                         await user.send(embed=verify_embed)
-            
+
             case ["adult-application-reject", user_id]:
-                if await permcheck(interaction, is_senior_mod):
+                if await permcheck(interaction, is_slt):
                     user = interaction.guild.get_member(int(user_id))
 
                     updated_form = interaction.message.embeds[0]
@@ -252,27 +299,28 @@ class AdultAccess(commands.Cog):
                     await interaction.message.edit(embed=updated_form, view=None)
 
                     deny_embed = nextcord.Embed(
-                            title="Over 18's Channel Application",
-                            description="Your request to join the Over 18's Channel has been denied. Want to know more? Create a Senior Moderator Ticket.",
-                            colour=nextcord.Color.from_rgb(237, 91, 6),
-                        )
+                        title="Over 18's Channel Application",
+                        description="Your request to join the Over 18's Channel has been denied. Want to know more? Create a Senior Moderator Ticket.",
+                        colour=nextcord.Color.from_rgb(237, 91, 6),
+                    )
                     await user.send(embed=deny_embed)
-            
+
             case ["adult-application-verify", user_id]:
-                if await permcheck(interaction, is_senior_mod):
+                if await permcheck(interaction, is_slt):
                     user = interaction.guild.get_member(int(user_id))
 
                     updated_form = interaction.message.embeds[0]
                     updated_form.add_field(
-                        name="Verification Requested by:", value=interaction.user.mention
+                        name="Verification Requested by:",
+                        value=interaction.user.mention,
                     )
                     await interaction.message.edit(embed=updated_form, view=None)
 
                     referred_embed = nextcord.Embed(
-                            title="Over 18's Channel Application",
-                            description="Your request to join the Over 18's Channel has been referred. You have been randomly selected to verify your age. Please create a Senior Moderator or Mega Administrator ticket. You will be required to submit an image which comprises of the following:\nPaper which has your discord name and discriminator written on it\nAdam Something Central written on it\nThe date in DDMMYYYY format\nA photo ID placed on the paper. **Blank out everything except the date of birth. We do not want or need to see anything other than the date of birth.** Ensure all four corners of the ID are visible.\n\n If you do not wish to submit photo ID then consider your application rejected.",
-                            colour=nextcord.Color.from_rgb(237, 91, 6),
-                        )
+                        title="Over 18's Channel Application",
+                        description="Your request to join the Over 18's Channel has been referred. You have been randomly selected to verify your age. Please create a Senior Moderator or Mega Administrator ticket. You will be required to submit an image which comprises of the following:\nPaper which has your discord name and discriminator written on it\nAdam Something Central written on it\nThe date in DD.MM.YYYY format\nA photo ID placed on the paper. **Blank out everything except the date of birth. We do not want or need to see anything other than the date of birth.** Ensure all four corners of the ID are visible.\n\n If you do not wish to submit photo ID then consider your application rejected.",
+                        colour=nextcord.Color.from_rgb(237, 91, 6),
+                    )
                     await user.send(embed=referred_embed)
 
 

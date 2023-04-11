@@ -307,15 +307,17 @@ class Slur(commands.Cog):
     async def remove_slur(self, ctx: commands.Context, slur: str):
         if not await permcheck(ctx, is_full_mod):
             return
-        
+
         if slur not in get_slurs():
             await ctx.send(f"{self.sersifail} {slur} is not on the slur list.")
             return
 
-        @DualCustodyView.query(title="Slur Removal",
+        @DualCustodyView.query(
+            title="Slur Removal",
             prompt="Following slur will be removed from slur detection:",
             perms=is_full_mod,
-            embed_args={"Slur": slur})
+            embed_args={"Slur": slur},
+        )
         async def execute(*args, confirming_moderator: nextcord.Member, **kwargs):
             rm_slur(slur)
 
@@ -331,6 +333,7 @@ class Slur(commands.Cog):
                 },
             )
             await channel.send(embed=embed_var)
+
         embed = await execute(self.bot, self.config, ctx)
         if embed is not None:
             await ctx.reply(embed=embed)

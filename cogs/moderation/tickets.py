@@ -329,7 +329,7 @@ class CloseReason(nextcord.ui.Modal):
             raise Exception(
                 "Could not find embed when attempting to log ticket closure! Index out of range!"
             )
-        
+
         complainer = await self.client.fetch_user(self.complainer_id)
 
         match (
