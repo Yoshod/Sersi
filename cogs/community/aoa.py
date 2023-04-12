@@ -1,15 +1,15 @@
 import random
+from datetime import datetime
 
 import nextcord
+import pytz
 from nextcord.ext import commands
 from nextcord.ui import Button, View, Modal
-from configutils import Configuration
-from permutils import is_dark_mod, permcheck, is_senior_mod, is_cet, is_mod
-from baseutils import SersiEmbed
 
 from baseutils import SersiEmbed
 from configutils import Configuration
 from permutils import is_dark_mod, permcheck, is_senior_mod, is_cet, is_slt
+from permutils import is_mod
 
 
 class AdultAccessModal(Modal):
@@ -69,7 +69,8 @@ class AdultAccessModal(Modal):
             )
             young_embed = SersiEmbed(
                 title="Underage Over 18s Application",
-                description=f"User {interaction.user.name} ({interaction.user.id}) applied to access the Over 18s channels but entered an age of {self.age.value}.",
+                description=f"User {interaction.user.name} ({interaction.user.id}) applied to access the Over 18s "
+                            f"channels but entered an age of {self.age.value}.",
             )
             channel = interaction.client.get_channel(
                 self.config.channels.ageverification
@@ -80,12 +81,14 @@ class AdultAccessModal(Modal):
         # Filtering those that do not want to verify
         if self.ageproof.value.lower() in ["no", "na", "n/a", "non", "nee"]:
             await interaction.response.send_message(
-                f"{self.config.emotes.fail} As you are unwilling to verify your age your application has been automatically denied.",
+                f"{self.config.emotes.fail} As you are unwilling to verify your age your application has been "
+                f"automatically denied.",
                 ephemeral=True,
             )
             refusal_embed = SersiEmbed(
                 title="Over 18s Application Refusal to Verify",
-                description=f"User {interaction.user.name} ({interaction.user.id}) applied to access the Over 18s channels but entered {self.ageproof.value} when asked if they would prove their age.",
+                description=f"User {interaction.user.name} ({interaction.user.id}) applied to access the Over 18s "
+                            f"channels but entered {self.ageproof.value} when asked if they would prove their age.",
             )
             channel = interaction.client.get_channel(
                 self.config.channels.ageverification
@@ -176,6 +179,18 @@ class AdultAccess(commands.Cog):
             atomic=True,
         )
 
+        logging_embed = SersiEmbed(
+            title="Over 18 Verified",
+            description=f"Member {member.mention}({member.id}) has successfully verified they're above the age of 18.\n",
+            fields={
+                "Verified By:": f"{ctx.author.mention} ({ctx.author.id})"
+            }
+
+        )
+        logging_embed.timestamp = datetime.now(pytz.UTC)
+        logging_channel = ctx.guild.get_channel(self.config.channels.logging)
+        await logging_channel.send(embed=logging_embed)
+
         accept_embed = nextcord.Embed(
             title="Over 18's Channel Application",
             description="Your request to join the Over 18's Channel has been approved. Thanks for verifying!",
@@ -194,6 +209,16 @@ class AdultAccess(commands.Cog):
             reason=f"Application Approved, verified by {ctx.author.name}",
             atomic=True,
         )
+
+        logging_embed = SersiEmbed(
+            title="Over 18 Access Bypassed",
+            description=f"Member {member.mention}({member.id}) was bypassed from verifying their age by "
+                        f"{ctx.author.mention}"
+
+        )
+        logging_embed.timestamp = datetime.now(pytz.UTC)
+        logging_channel = ctx.guild.get_channel(self.config.channels.logging)
+        await logging_channel.send(embed=logging_embed)
 
         accept_embed = nextcord.Embed(
             title="Over 18's Channel Application",
@@ -216,12 +241,21 @@ class AdultAccess(commands.Cog):
                 reason=f"Adult Access Revoked by {ctx.author.name}",
                 atomic=True,
             )
-
         except nextcord.HTTPException:
             await ctx.send(
                 "Removing roles failed. Please request a Mega Administrator or Community Engagement Team member "
                 "manually remove the roles."
             )
+
+        logging_embed = SersiEmbed(
+            title="Over 18 Access Revoked",
+            description=f"Member {member.mention}({member.id}) has had their access to the over 18 channels revoked by "
+            f"{ctx.author.mention}"
+
+        )
+        logging_embed.timestamp = datetime.now(pytz.UTC)
+        logging_channel = ctx.guild.get_channel(self.config.channels.logging)
+        await logging_channel.send(embed=logging_embed)
 
         revoke_embed = nextcord.Embed(
             title="Over 18's Channel Access Revoked",
@@ -229,6 +263,7 @@ class AdultAccess(commands.Cog):
             colour=nextcord.Color.from_rgb(237, 91, 6),
         )
         await member.send(embed=revoke_embed)
+        await ctx.reply(f"{self.config.emotes.success} {member} no longer has access to any 18+ channels.")
 
     @commands.Cog.listener()
     async def on_interaction(self, interaction: nextcord.Interaction):
@@ -276,6 +311,17 @@ class AdultAccess(commands.Cog):
                             reason="Application Approved No Verification Required",
                             atomic=True,
                         )
+
+                        logging_embed = SersiEmbed(
+                            title="Over 18 Access Given",
+                            description=f"Member {user.mention} ({user.id}) was was given 18+ access by "
+                                        f"{interaction.user.mention} ({interaction.user.id})"
+
+                        )
+                        logging_embed.timestamp = datetime.now(pytz.UTC)
+                        logging_channel = interaction.guild.get_channel(self.config.channels.logging)
+                        await logging_channel.send(embed=logging_embed)
+
                         accept_embed = nextcord.Embed(
                             title="Over 18's Channel Application",
                             description="Your request to join the Over 18's Channel has been approved.",
