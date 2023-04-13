@@ -615,10 +615,8 @@ class Reformation(commands.Cog):
         reformation_role = member.get_role(self.config.roles.reformation)
 
         if reformation_role is not None:
-
             async for ban_entry in member.guild.bans():
                 if member.id == ban_entry.user.id:
-
                     ban_embed = nextcord.Embed(
                         title=f"Reformation inmate **{member}** ({member.id}) banned!",
                         colour=nextcord.Color.from_rgb(237, 91, 6),

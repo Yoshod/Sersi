@@ -64,7 +64,6 @@ class Watchlist(commands.Cog):
 
         nicelist = ""
         for entry in self.watchlist:
-
             member = ctx.guild.get_member(entry)
             if member is None:
                 nicelist = nicelist + f"**{entry}**: {self.watchlist[entry]}\n"

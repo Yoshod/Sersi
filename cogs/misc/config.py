@@ -45,7 +45,6 @@ class Config(commands.Cog):
             value = sanitize_mention(value)
 
         if setting in config[section]:
-
             prev_value = config[section][setting]
             self.set_config(section, setting, value)
 

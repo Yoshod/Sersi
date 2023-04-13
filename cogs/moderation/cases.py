@@ -45,7 +45,6 @@ class Cases(commands.Cog):
                 self.case_history = pickle.load(file)
 
         elif not member:
-
             with open(self.case_details_file, "rb") as file:
                 self.case_details = pickle.load(file)
 
@@ -53,7 +52,6 @@ class Cases(commands.Cog):
                 await ctx.send(f"{self.sersifail} Case {search_term} not found.")
 
             elif self.case_details[search_term][0] == "Reformation":
-
                 user = ctx.guild.get_member(self.case_details[search_term][2])
                 moderator = ctx.guild.get_member(self.case_details[search_term][3])
                 reform_channel = ctx.guild.get_channel(
@@ -76,7 +74,6 @@ class Cases(commands.Cog):
                 await ctx.send(embed=case_embed)
 
             elif self.case_details[search_term][0] == "Probation":
-
                 user = ctx.guild.get_member(self.case_details[search_term][1])
                 initial_moderator = ctx.guild.get_member(
                     self.case_details[search_term][2]
@@ -100,7 +97,6 @@ class Cases(commands.Cog):
                 await ctx.send(embed=case_embed)
 
             elif self.case_details[search_term][0] == "Anonymous Message Mute":
-
                 user = ctx.guild.get_member(self.case_details[search_term][1])
                 moderator = ctx.guild.get_member(self.case_details[search_term][2])
 
@@ -118,7 +114,6 @@ class Cases(commands.Cog):
                 await ctx.send(embed=case_embed)
 
             elif self.case_details[search_term][0] == "Slur Usage":
-
                 user = ctx.guild.get_member(self.case_details[search_term][3])
                 moderator = ctx.guild.get_member(self.case_details[search_term][4])
 
@@ -137,7 +132,6 @@ class Cases(commands.Cog):
                 await ctx.send(embed=case_embed)
 
             elif self.case_details[search_term][0] == "Bad Faith Ping":
-
                 user = ctx.guild.get_member(self.case_details[search_term][1])
                 moderator = ctx.guild.get_member(self.case_details[search_term][3])
 

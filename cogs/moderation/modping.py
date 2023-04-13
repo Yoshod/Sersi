@@ -160,7 +160,6 @@ class ModPing(commands.Cog):
     # events
     @commands.Cog.listener()
     async def on_message(self, message):
-
         if message.guild is not None:
             adam_something = message.guild.get_member(809891646606409779)
         else:
@@ -262,7 +261,6 @@ class ModPing(commands.Cog):
             and adam_something.mentioned_in(message)
             and not message.mention_everyone
         ):  # adam something ping
-
             # notification for mods
             channel = self.bot.get_channel(self.config.channels.alert)
             embedVar = SersiEmbed(

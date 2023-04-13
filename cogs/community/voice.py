@@ -94,7 +94,6 @@ class Voice(commands.Cog):
         if (
             after.channel != before.channel
         ):  # channel change. at least one message has to be sent
-
             # specifications regardless of message content
             headers = {
                 "Authorization": f"Bot {discordTokens.getToken()}",

@@ -23,7 +23,6 @@ class WebServer(commands.Cog):
 
         @routes.get("/youtube")
         async def youtube_verification(request: web.Request):
-
             if "hub.challenge" not in request.query:
                 return web.Response(
                     text="403 You are not meant to be here.", status=403
@@ -47,7 +46,6 @@ class WebServer(commands.Cog):
 
         @routes.post("/youtube")
         async def youtube_update(request: web.Request):
-
             if not request.can_read_body:
                 return web.Response(text="No body given", status=400)
 

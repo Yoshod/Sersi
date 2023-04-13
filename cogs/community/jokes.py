@@ -16,7 +16,6 @@ def generate_uwu(input_text: str) -> str:
     previous_char = "\0"
     # check the cases for every individual character
     for current_char in input_text:
-
         # change 'L' and 'R' to 'W'
         if current_char in ["L", "R"]:
             output_text += "W"
@@ -108,7 +107,6 @@ class Jokes(commands.Cog):
     # events
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.Message):
-
         if message.author.bot:  # ignores message if message is by bot
             return
 
@@ -171,7 +169,7 @@ class Jokes(commands.Cog):
             if randomValue == 1:
                 # let's have it simple _and_ gender neutral. okay?
                 await message.reply(
-                    f"Discord mobile was the greatest mistake in the history of humankind"
+                    "Discord mobile was the greatest mistake in the history of humankind"
                 )
             elif randomValue < 4:
                 await message.reply("Phone user detected, opinion rejected")

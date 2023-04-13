@@ -28,7 +28,6 @@ class Roles(commands.Cog):
         newbie_role = message.guild.get_role(self.config.roles.newbie)
 
         if newbie_role in message.author.roles:
-
             now = datetime.datetime.now()
             aware_now = now.replace(tzinfo=pytz.UTC)
             time_passed = aware_now - message.author.joined_at

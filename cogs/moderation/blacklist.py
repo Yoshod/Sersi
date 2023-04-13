@@ -101,7 +101,6 @@ class Blacklist(commands.Cog):
 
         nicelist = ""
         for entry in self.blacklist:
-
             member = ctx.guild.get_member(entry)
             if member is None:
                 nicelist = nicelist + f"**{entry}**: {self.blacklist[entry]}\n"
