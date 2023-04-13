@@ -172,26 +172,40 @@ class AdultAccess(commands.Cog):
 
         await ctx.send(f"{self.config.emotes.fail} Please use the new adult verification slash command!")
 
-    @commands.command()
-    async def adult_bypass(self, ctx, member: nextcord.Member):
-        if not await permcheck(ctx, is_dark_mod):
+    @nextcord.slash_command(dm_permission=False, guild_ids=[977377117895536640, 856262303795380224])
+    async def adult_bypass(
+        self,
+        interaction: nextcord.Interaction,
+        user: nextcord.Member,
+        reason: str = nextcord.SlashOption(
+            name="reason",
+            description="Reason for bypassing user",
+            min_length=12,
+            max_length=1240
+        )
+    ):
+        if not await permcheck(interaction, is_dark_mod):
             return
 
-        adult_access_role = member.guild.get_role(self.config.roles.adult_access)
-        await member.add_roles(
+        await interaction.response.defer(ephemeral=True)
+        adult_access_role = user.guild.get_role(self.config.roles.adult_access)
+        await user.add_roles(
             adult_access_role,
-            reason=f"Application Approved, verified by {ctx.author.name}",
+            reason=f"Application Approved, verified by {interaction.user.name}",
             atomic=True,
         )
 
         logging_embed = SersiEmbed(
             title="Over 18 Access Bypassed",
-            description=f"Member {member.mention}({member.id}) was bypassed from verifying their age by "
-                        f"{ctx.author.mention}"
-
+            description=f"Member {user.mention}({user.id}) was bypassed from verifying their age by "
+                        f"{interaction.user.mention}",
+            fields={
+                "Reason:": reason
+                }
         )
+
         logging_embed.timestamp = datetime.now(pytz.UTC)
-        logging_channel = ctx.guild.get_channel(self.config.channels.logging)
+        logging_channel = interaction.guild.get_channel(self.config.channels.logging)
         await logging_channel.send(embed=logging_embed)
 
         accept_embed = nextcord.Embed(
@@ -199,7 +213,9 @@ class AdultAccess(commands.Cog):
             description="Your request to join the Over 18's Channel has been approved.",
             colour=nextcord.Color.from_rgb(237, 91, 6),
         )
-        await member.send(embed=accept_embed)
+        await user.send(embed=accept_embed)
+
+        await interaction.followup.send(f"{self.config.emotes.success} User has received access to the Over 18s channels.")
 
     @commands.command()
     async def adult_revoke(self, ctx, member: nextcord.Member):
@@ -239,7 +255,7 @@ class AdultAccess(commands.Cog):
         await member.send(embed=revoke_embed)
         await ctx.reply(f"{self.config.emotes.success} {member} no longer has access to any 18+ channels.")
     
-    @nextcord.slash_command(dm_permission=True, guild_ids=[977377117895536640, 856262303795380224])
+    @nextcord.slash_command(dm_permission=False, guild_ids=[977377117895536640, 856262303795380224])
     async def adult_verify(
         self,
         interaction: nextcord.Interaction,
