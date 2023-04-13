@@ -1,5 +1,5 @@
 import random
-from datetime import datetime
+from datetime import datetime, date
 
 import nextcord
 import pytz
@@ -264,6 +264,42 @@ class AdultAccess(commands.Cog):
         )
         await member.send(embed=revoke_embed)
         await ctx.reply(f"{self.config.emotes.success} {member} no longer has access to any 18+ channels.")
+    
+    @nextcord.slash_command(dm_permission=False)
+    async def adult_verify(
+        self,
+        interaction: nextcord.Interaction,
+        user: nextcord.Member(
+            name="user",
+        ),
+        dd: int(
+            name="dd"
+        ),
+        mm: int(
+            name="mm"
+        ),
+        yyyy: int(
+            name="yyyy"
+        )
+    ):
+
+        dob = str(dd) + str(mm) + str(yyyy)
+
+        try:
+            birthdate = datetime.strptime(dob, '%d%m%Y').date()
+        except ValueError:
+            interaction.response.send_message(f"{self.config.emotes.fail} Date of Birth not valid. Please try again or contact CET or a Mega Administrator", ephemeral=True)
+        
+        today = date.today()
+
+        age = today.year - birthdate.year - ((today.month, today.day) < (birthdate.month, birthdate.day))
+
+        if age >= 18:
+            interaction.response.send_message(f"{self.config.emotes.success} User is {str(age)} and is allowed access.", ephemeral=True)
+        
+        else:
+            interaction.response.send_message(f"{self.config.emotes.fail} User is {str(age)} and is not allowed access.", ephemeral=True)
+
 
     @commands.Cog.listener()
     async def on_interaction(self, interaction: nextcord.Interaction):
