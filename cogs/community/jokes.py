@@ -1,14 +1,22 @@
 import nextcord
 import random
+import pytz
 from nextcord.ext import commands
+from datetime import datetime
 
 from configutils import Configuration
 from permutils import is_mod
 from webhookutils import send_webhook_message
+from baseutils import SersiEmbed
 
 
 def generate_uwu(input_text: str) -> str:
-    """Shamelessly stolen from https://www.geeksforgeeks.org/uwu-text-convertor-in-python/.
+    """Will convert input text into uwuified text.
+
+    Replaces specific characters with their uwu equivalents, and inserts "yo" or "ya" after "o" or "a" if the previous
+    character is "n", "m", "N", or "M". Returns the uwuified text.
+
+    Shamelessly stolen from https://www.geeksforgeeks.org/uwu-text-convertor-in-python/.
     well, I modified it.
     """
 
@@ -49,29 +57,52 @@ def generate_uwu(input_text: str) -> str:
 
 class Jokes(commands.Cog):
     def __init__(self, bot: commands.Bot, config: Configuration):
+        """Cog that provides fun commands and events.
+
+        Args:
+            bot (commands.Bot): The bot instance.
+            config (Configuration): The bot configuration object.
+
+        """
+
         self.bot = bot
         self.config = config
 
-    @commands.command()
-    async def nevermod(self, ctx: commands.Context, member: nextcord.Member):
-        if not is_mod(ctx.author):  # don't replace, it is funny
-            await ctx.send(
-                "You're not a mod, you should not run this, right? ;)\n\nAnyways let's nevermod **you** instead as a "
-                "twist."
+    @nextcord.slash_command(
+        dm_permission=False, guild_ids=[977377117895536640, 856262303795380224]
+    )
+    async def nevermod(
+        self, interaction: nextcord.Interaction, member: nextcord.Member
+    ):
+        if not is_mod(interaction.user):
+            self_nevermod = True
+
+        await interaction.response.defer(ephemeral=False)
+
+        nevermod_role = interaction.guild.get_role(self.config.roles.never_mod)
+
+        if self_nevermod:
+            await interaction.user.add_roles(
+                nevermod_role, reason="nevermod command", atomic=True
             )
-            member = ctx.author
+            nevermod_embed = SersiEmbed(
+                title="Self Nevermodded!",
+                description=f"Member {interaction.user.mention}({interaction.user.id}) thought they were being funny by running the nevermod command! Now they themselves have been nevermodded for their sins.",
+            )
 
-        nevermod_role = ctx.guild.get_role(self.config.roles.never_mod)
+        else:
+            await member.add_roles(
+                nevermod_role, reason="nevermod command", atomic=True
+            )
+            nevermod_embed = SersiEmbed(
+                title="Never Getting Mod",
+                description=f"Oh no! {member.mention} asked for mod in a public channel instead of applying through our "
+                f"application form! Now you’re never going to get mod… In fact, we even gave you a nice shiny "
+                f"new role just to make sure you know that you {nevermod_role.mention}.",
+            )
 
-        await member.add_roles(nevermod_role, reason="nevermod command", atomic=True)
-        nevermod_embed = nextcord.Embed(
-            title="Never Getting Mod",
-            description=f"Oh no! {member.mention} asked for mod in a public channel instead of applying through our "
-            f"application form! Now you’re never going to get mod… In fact, we even gave you a nice shiny "
-            f"new role just to make sure you know that you {nevermod_role.mention}.",
-            colour=nextcord.Color.from_rgb(237, 91, 6),
-        )
-        await ctx.send(embed=nevermod_embed)
+        nevermod_embed.timestamp = datetime.now(pytz.UTC)
+        await interaction.followup.send(embed=nevermod_embed)
 
     @commands.command()
     async def uwu(self, ctx: commands.Context, *, message: str = ""):
