@@ -128,7 +128,7 @@ class Perspective(commands.Cog):
         )
 
     async def cb_action_taken(self, interaction: nextcord.Interaction):
-        """Callback for when the action taken button is pressed."""
+        """Is a Callback for when the action taken button is pressed."""
         # update alert embed
         initial_alert = interaction.message.embeds[0]
         initial_alert.add_field(
@@ -156,7 +156,7 @@ class Perspective(commands.Cog):
         )
 
     async def cb_dismiss(self, interaction: nextcord.Interaction):
-        """Callback for when the dismiss button is pressed."""
+        """Is a Callback for when the dismiss button is pressed."""
         # update alert embed
         initial_alert = interaction.message.embeds[0]
         initial_alert.add_field(
@@ -184,7 +184,7 @@ class Perspective(commands.Cog):
         )
 
     async def cb_not_problematic(self, interaction: nextcord.Interaction):
-        """Callback for when the not problematic button is pressed."""
+        """Is a Callback for when the not problematic button is pressed."""
         # update alert embed
         initial_alert = interaction.message.embeds[0]
         initial_alert.add_field(

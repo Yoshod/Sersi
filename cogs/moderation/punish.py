@@ -27,7 +27,7 @@ class Punish(commands.Cog):
 
     @nextcord.slash_command(dm_permission=False)
     async def slash_command_cog(self, interaction: nextcord.Interaction):
-        """This is a slash command in a cog"""
+        """Slash command in a cog."""
         await interaction.response.send_message("Hello I am a slash command in a cog!")
 
     @nextcord.slash_command(dm_permission=False)
@@ -48,7 +48,7 @@ class Punish(commands.Cog):
         member: nextcord.Member,
         punishment: str = nextcord.SlashOption(name="punishment_role"),
     ):
-        """This is a slash command in a cog"""
+        """Slash command in a cog."""
         await interaction.response.send_message(
             f"We are punishing {member.name} with {punishment}\nKeylist says: {self.choices[punishment]}."
         )

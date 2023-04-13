@@ -1,6 +1,5 @@
 import nextcord
 import asyncio
-import pickle
 
 from nextcord.ext import commands
 from nextcord.ui import Button, View
