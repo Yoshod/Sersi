@@ -170,7 +170,7 @@ class AdultAccess(commands.Cog):
         if not await permcheck(ctx, is_senior_mod) and not await permcheck(ctx, is_cet):
             return
 
-        ctx.send(f"{self.config.emotes.fail} Please use the new adult verification slash command!")
+        await ctx.send(f"{self.config.emotes.fail} Please use the new adult verification slash command!")
 
     @commands.command()
     async def adult_bypass(self, ctx, member: nextcord.Member):
