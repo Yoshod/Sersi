@@ -164,16 +164,6 @@ class AdultAccess(commands.Cog):
 
         await ctx.send(embed=test_embed, view=button_view)
 
-    @commands.command()
-    async def adult_verified(self, ctx):
-        """Mark a Member as having had their age verified."""
-        if not await permcheck(ctx, is_senior_mod) and not await permcheck(ctx, is_cet):
-            return
-
-        await ctx.send(
-            f"{self.config.emotes.fail} Please use the new adult verification slash command!"
-        )
-
     @nextcord.slash_command(
         dm_permission=False, guild_ids=[977377117895536640, 856262303795380224]
     )
@@ -221,10 +211,26 @@ class AdultAccess(commands.Cog):
             f"{self.config.emotes.success} User has received access to the Over 18s channels."
         )
 
-    @commands.command()
-    async def adult_revoke(self, ctx, member: nextcord.Member):
-        if not await permcheck(ctx, is_mod) and not await permcheck(ctx, is_cet):
+    @nextcord.slash_command(
+        dm_permission=False, guild_ids=[977377117895536640, 856262303795380224]
+    )
+    async def adult_revoke(
+        self,
+        interaction: nextcord.Interaction,
+        member: nextcord.Member,
+        reason: str = nextcord.SlashOption(
+            name="reason",
+            description="Reason for revoking user access",
+            min_length=12,
+            max_length=1240,
+        ),
+    ):
+        if not await permcheck(interaction, is_mod) and not await permcheck(
+            interaction, is_cet
+        ):
             return
+
+        await interaction.response.defer(ephemeral=True)
 
         adult_access_role = member.guild.get_role(self.config.roles.adult_access)
         adult_verified_role = member.guild.get_role(self.config.roles.adult_verified)
@@ -232,22 +238,24 @@ class AdultAccess(commands.Cog):
             await member.remove_roles(
                 adult_access_role,
                 adult_verified_role,
-                reason=f"Adult Access Revoked by {ctx.author.name}",
+                reason=f"Adult Access Revoked by {interaction.user.name}",
                 atomic=True,
             )
         except nextcord.HTTPException:
-            await ctx.send(
-                "Removing roles failed. Please request a Mega Administrator or Community Engagement Team member "
+            await interaction.followup.send(
+                f"{self.config.emotes.fail} Removing roles failed. Please request a Mega Administrator or Community Engagement Team member "
                 "manually remove the roles."
             )
+            return
 
         logging_embed = SersiEmbed(
             title="Over 18 Access Revoked",
             description=f"Member {member.mention}({member.id}) has had their access to the over 18 channels revoked by "
-            f"{ctx.author.mention}",
+            f"{interaction.user.mention}",
+            fields={"Reason:": reason},
         )
         logging_embed.timestamp = datetime.now(pytz.UTC)
-        logging_channel = ctx.guild.get_channel(self.config.channels.logging)
+        logging_channel = interaction.guild.get_channel(self.config.channels.logging)
         await logging_channel.send(embed=logging_embed)
 
         revoke_embed = nextcord.Embed(
@@ -256,8 +264,8 @@ class AdultAccess(commands.Cog):
             colour=nextcord.Color.from_rgb(237, 91, 6),
         )
         await member.send(embed=revoke_embed)
-        await ctx.reply(
-            f"{self.config.emotes.success} {member} no longer has access to any 18+ channels."
+        await interaction.followup.send(
+            f"{self.config.emotes.success} {member.mention} no longer has access to any 18+ channels."
         )
 
     @nextcord.slash_command(
