@@ -165,7 +165,9 @@ class AdultAccess(commands.Cog):
         await ctx.send(embed=test_embed, view=button_view)
 
     @nextcord.slash_command(
-        dm_permission=False, guild_ids=[977377117895536640, 856262303795380224]
+        dm_permission=False,
+        guild_ids=[977377117895536640, 856262303795380224],
+        description="Used to bypass verification to the adult only channels",
     )
     async def adult_bypass(
         self,
@@ -212,7 +214,9 @@ class AdultAccess(commands.Cog):
         )
 
     @nextcord.slash_command(
-        dm_permission=False, guild_ids=[977377117895536640, 856262303795380224]
+        dm_permission=False,
+        guild_ids=[977377117895536640, 856262303795380224],
+        description="Used to revoke a user's access to the adult channels",
     )
     async def adult_revoke(
         self,
@@ -269,7 +273,9 @@ class AdultAccess(commands.Cog):
         )
 
     @nextcord.slash_command(
-        dm_permission=False, guild_ids=[977377117895536640, 856262303795380224]
+        dm_permission=False,
+        guild_ids=[977377117895536640, 856262303795380224],
+        description="Used to verify a user as an adult",
     )
     async def adult_verify(
         self,
