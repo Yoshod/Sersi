@@ -311,6 +311,7 @@ class AdultAccess(commands.Cog):
                 f"{self.config.emotes.fail} Date of Birth not valid. Please try again or contact CET or a Mega Administrator",
                 ephemeral=True,
             )
+            return
 
         await interaction.response.defer(ephemeral=True)
 
