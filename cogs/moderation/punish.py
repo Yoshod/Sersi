@@ -15,7 +15,6 @@ class Punish(commands.Cog):
             self.get_roles()
 
     def get_roles(self):
-        print(self.config.punishment_roles)
         guild = self.bot.get_guild(self.config.guilds.main)
         for role in self.config.punishment_roles:
             roleobj = guild.get_role(self.config.punishment_roles[role])

@@ -21,7 +21,8 @@ async def load_all_cogs(bot: commands.Bot, *, config: Configuration, data_folder
                 except commands.errors.ExtensionFailed:
                     print(f"Could not load {nroot}.{filename[:-3]}.")
                     traceback.print_exc()
-    await bot.sync_all_application_commands()
+    if bot.is_ready():
+        await bot.sync_all_application_commands()
 
 
 async def reload_all_cogs(
@@ -44,4 +45,5 @@ async def reload_all_cogs(
                 except commands.errors.ExtensionFailed:
                     print(f"Could not load {nroot}.{filename[:-3]}.")
                     traceback.print_exc()
-    await bot.sync_all_application_commands()
+    if bot.is_ready():
+        await bot.sync_all_application_commands()
