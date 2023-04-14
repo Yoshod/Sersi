@@ -2,8 +2,10 @@ import nextcord
 from nextcord.ext import commands
 from nextcord.ui import Button, View, Modal
 from configutils import Configuration
-from permutils import is_dark_mod, permcheck, is_senior_mod, is_cet
+from permutils import is_dark_mod, permcheck, is_senior_mod, is_cet, is_mod
 from baseutils import SersiEmbed
+from datetime import datetime
+import pytz
 
 
 class ModAppModal(Modal):
@@ -88,8 +90,14 @@ class ModAppModal(Modal):
         button_view.add_item(reject_bttn)
         button_view.add_item(review_bttn)
 
-        channel = interaction.client.get_channel(self.config.channels.mod_applications)
+        guild = interaction.client.get_guild(self.config.guilds.main)
+
+        channel = guild.get_channel(self.config.channels.mod_applications)
         await channel.send(embed=application_embed, view=button_view)
+        await interaction.response.send_message(
+            f"{self.config.emotes.success} Your application has been received! Thanks for applying.",
+            ephemeral=True,
+        )
 
 
 class CetAppModal(Modal):
@@ -266,6 +274,55 @@ class Applications(commands.Cog):
         button_view.add_item(open_modal)
 
         await ctx.send(embed=test_embed, view=button_view)
+
+    @nextcord.slash_command(
+        dm_permission=False,
+        guild_ids=[977377117895536640, 856262303795380224],
+        description="Used to invite a user to apply to become a moderator",
+    )
+    async def moderator_invite(
+        self,
+        interaction: nextcord.Interaction,
+        user: nextcord.Member,
+    ):
+        if not await permcheck(interaction, is_mod):
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        test_embed = SersiEmbed(
+            title="Moderator Invite",
+            description="Hey there! You've received this DM because a Moderator on Adam Something Central thinks you'd be a great fit on our moderation team.\n\nIf this interests you then all you have to do is press the Open Form button below and submit an application. If you're not interested in the role then that's okay too. In that case you can simply ignore this DM and you won't receive another one.",
+        )
+        open_modal = Button(
+            custom_id="mod-application-start",
+            label="Open Form",
+            style=nextcord.ButtonStyle.blurple,
+        )
+        open_modal.callback = self.cb_open_mod_modal
+
+        button_view = View(timeout=None)
+        button_view.add_item(open_modal)
+
+        try:
+            await user.send(embed=test_embed, view=button_view)
+            await interaction.followup.send(
+                f"{self.config.emotes.success} The user has successfully been sent the invitation to apply."
+            )
+            logging_embed = SersiEmbed(
+                title="Moderator Invite Sent",
+                description=f"Moderator {interaction.user.mention} ({interaction.user.id}) has sent a Moderator Invite to {user.mention} ({user.id}).",
+                footer="Sersi Moderator Invite",
+            )
+            logging_embed.timestamp = datetime.now(pytz.UTC)
+            logging_channel = interaction.guild.get_channel(
+                self.config.channels.logging
+            )
+            await logging_channel.send(embed=logging_embed)
+        except (nextcord.HTTPException, nextcord.Forbidden):
+            await interaction.followup.send(
+                f"{self.config.emotes.fail} The message was not able to be sent. The user may have their DMs closed. Consider sending them a direct message."
+            )
 
     @commands.Cog.listener()
     async def on_interaction(self, interaction):
