@@ -69,8 +69,9 @@ class AdultAccessModal(Modal):
             )
             young_embed = SersiEmbed(
                 title="Underage Over 18s Application",
-                description=f"User {interaction.user.name} ({interaction.user.id}) applied to access the Over 18s "
+                description=f"User {interaction.user.mention} ({interaction.user.id}) applied to access the Over 18s "
                 f"channels but entered an age of {self.age.value}.",
+                footer="Sersi Adult Verification",
             )
             channel = interaction.client.get_channel(
                 self.config.channels.ageverification
@@ -87,8 +88,9 @@ class AdultAccessModal(Modal):
             )
             refusal_embed = SersiEmbed(
                 title="Over 18s Application Refusal to Verify",
-                description=f"User {interaction.user.name} ({interaction.user.id}) applied to access the Over 18s "
+                description=f"User {interaction.user.mention} ({interaction.user.id}) applied to access the Over 18s "
                 f"channels but entered {self.ageproof.value} when asked if they would prove their age.",
+                footer="Sersi Adult Verification",
             )
             channel = interaction.client.get_channel(
                 self.config.channels.ageverification
@@ -99,7 +101,7 @@ class AdultAccessModal(Modal):
         # Setting up Application Embed
         application_embed = SersiEmbed(
             title="Over 18s Channel Application",
-            description=f"User {interaction.user.name} ({interaction.user.id})",
+            description=f"User {interaction.user.mention} ({interaction.user.id})",
             fields={
                 self.whyjoin.label: self.whyjoin.value,
                 self.age.label: self.age.value,
@@ -193,9 +195,10 @@ class AdultAccess(commands.Cog):
 
         logging_embed = SersiEmbed(
             title="Over 18 Access Bypassed",
-            description=f"Member {user.mention}({user.id}) was bypassed from verifying their age by "
+            description=f"Member {user.mention} ({user.id}) was bypassed from verifying their age by "
             f"{interaction.user.mention}",
             fields={"Reason:": reason},
+            footer="Sersi Adult Verification",
         )
 
         logging_embed.timestamp = datetime.now(pytz.UTC)
@@ -247,16 +250,17 @@ class AdultAccess(commands.Cog):
             )
         except nextcord.HTTPException:
             await interaction.followup.send(
-                f"{self.config.emotes.fail} Removing roles failed. Please request a Mega Administrator or Community Engagement Team member "
-                "manually remove the roles."
+                f"{self.config.emotes.fail} Removing roles failed. Please request a Mega Administrator or "
+                f"Community Engagement Team member to manually remove the roles."
             )
             return
 
         logging_embed = SersiEmbed(
             title="Over 18 Access Revoked",
-            description=f"Member {member.mention}({member.id}) has had their access to the over 18 channels revoked by "
+            description=f"Member {member.mention} ({member.id}) has had their access to the over 18 channels revoked by "
             f"{interaction.user.mention}",
             fields={"Reason:": reason},
+            footer="Sersi Adult Verification",
         )
         logging_embed.timestamp = datetime.now(pytz.UTC)
         logging_channel = interaction.guild.get_channel(self.config.channels.logging)
@@ -308,10 +312,10 @@ class AdultAccess(commands.Cog):
         ):
             return
 
-        dob = str(dd) + str(mm) + str(yyyy)
+        date_of_birth: str = f"{dd}{mm}{yyyy}"
 
         try:
-            birthdate = datetime.strptime(dob, "%d%m%Y").date()
+            birthdate = datetime.strptime(date_of_birth, "%d%m%Y").date()
         except ValueError:
             await interaction.response.send_message(
                 f"{self.config.emotes.fail} Date of Birth not valid. Please try again or contact CET or a Mega Administrator",
@@ -341,7 +345,7 @@ class AdultAccess(commands.Cog):
 
             logging_embed = SersiEmbed(
                 title="Over 18 Verified",
-                description=f"Member {user.mention}({user.id}) has successfully verified they're above the age of 18.\n",
+                description=f"Member {user.mention} ({user.id}) has successfully verified they're above the age of 18.\n",
                 fields={
                     "Verified By:": f"{interaction.user.mention} ({interaction.user.id})"
                 },
@@ -360,12 +364,12 @@ class AdultAccess(commands.Cog):
             await user.send(embed=accept_embed)
 
             await interaction.followup.send(
-                f"{self.config.emotes.success} User {user.mention}({user.id}) is {str(age)} and is allowed access. The required roles have been successfully given to the user."
+                f"{self.config.emotes.success} User {user.mention} ({user.id}) is {age} and is allowed access. The required roles have been successfully given to the user."
             )
 
         else:
             await interaction.followup.send(
-                f"{self.config.emotes.fail} User {user.mention}({user.id}) is {str(age)} and is not allowed access."
+                f"{self.config.emotes.fail} User {user.mention} ({user.id}) is {age} and is not allowed access."
             )
 
     @commands.Cog.listener()
@@ -419,6 +423,7 @@ class AdultAccess(commands.Cog):
                             title="Over 18 Access Given",
                             description=f"Member {user.mention} ({user.id}) was was given 18+ access by "
                             f"{interaction.user.mention} ({interaction.user.id})",
+                            footer="Sersi Adult Verification",
                         )
                         logging_embed.timestamp = datetime.now(pytz.UTC)
                         logging_channel = interaction.guild.get_channel(
@@ -440,12 +445,15 @@ class AdultAccess(commands.Cog):
                             description="Your request to join the Over 18's Channel has been referred. You have been "
                             "randomly selected to verify your age. Please create a Senior Moderator or "
                             "Mega Administrator ticket. You will be required to submit an image which "
-                            "comprises of the following:\nPaper which has your discord name and "
-                            "discriminator written on it\nAdam Something Central written on it\nThe date "
-                            "in DD.MM.YYYY format\nA photo ID placed on the paper. **Blank out everything "
-                            "except the date of birth. We do not want or need to see anything other than "
-                            "the date of birth.** Ensure all four corners of the ID are visible.\n\n If "
-                            "you do not wish to submit photo ID then consider your application rejected.",
+                            "comprises of the following:\n"
+                            "Paper which has your discord name and discriminator written on it\n"
+                            "Adam Something Central written on it\n"
+                            "The date in DD.MM.YYYY format\n"
+                            "A photo ID placed on the paper. **Blank out everything except the date of birth. We do "
+                            "not want or need to see anything other than the date of birth.** Ensure all four corners "
+                            "of the ID are visible.\n"
+                            "\n"
+                            "If you do not wish to submit photo ID then consider your application rejected.",
                             colour=nextcord.Color.from_rgb(237, 91, 6),
                         )
                         await user.send(embed=verify_embed)
@@ -484,12 +492,15 @@ class AdultAccess(commands.Cog):
                         description="Your request to join the Over 18's Channel has been referred. You have been "
                         "randomly selected to verify your age. Please create a Senior Moderator or Mega "
                         "Administrator ticket. You will be required to submit an image which comprises of "
-                        "the following:\nPaper which has your discord name and discriminator written on "
-                        "it\nAdam Something Central written on it\nThe date in DD.MM.YYYY format\nA photo "
-                        "ID placed on the paper. **Blank out everything except the date of birth. We do "
+                        "the following:\n"
+                        "Paper which has your discord name and discriminator written on it\n"
+                        "Adam Something Central written on it\n"
+                        "The date in DD.MM.YYYY format\n"
+                        "A photo ID placed on the paper. **Blank out everything except the date of birth. We do "
                         "not want or need to see anything other than the date of birth.** Ensure all four "
-                        "corners of the ID are visible.\n\n If you do not wish to submit photo ID then "
-                        "consider your application rejected.",
+                        "corners of the ID are visible.\n"
+                        "\n"
+                        "If you do not wish to submit photo ID then consider your application rejected.",
                         colour=nextcord.Color.from_rgb(237, 91, 6),
                     )
                     await user.send(embed=referred_embed)
