@@ -137,16 +137,6 @@ class ConfigurationPermissionRoles(YAMLWizard):
 
 
 @dataclass
-class ConfigurationPunishmentRoles(YAMLWizard):
-    annoying: int
-    terrible_ideas: int
-    politics_and_debate_mute: int
-    probation: int
-    ancap: int
-    problem_child: int
-
-
-@dataclass
 class ConfigurationEmotes(YAMLWizard):
     # The emote, in "<:name:id>" format, used to declare success.
     success: str
@@ -180,6 +170,7 @@ class Configuration(YAMLWizard):
     roles: ConfigurationRoles
     opt_in_roles: ConfigurationOptInRoles
     permission_roles: ConfigurationPermissionRoles
+    punishment_roles: dict[str, int]
     emotes: ConfigurationEmotes
     invites: ConfigurationInvites
     guilds: ConfigurationGuilds

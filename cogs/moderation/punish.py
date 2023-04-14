@@ -2,21 +2,23 @@
 import nextcord
 from nextcord.ext import commands
 from configutils import Configuration
+from permutils import permcheck, is_staff
 
 
 class Punish(commands.Cog):
     def __init__(self, bot: commands.Bot, config: Configuration):
         self.bot = bot
         self.config = config
-        self.choices = {}
+        self.choices: dict[str, nextcord.Role] = {}
 
         if bot.is_ready():
             self.get_roles()
 
     def get_roles(self):
+        print(self.config.punishment_roles)
         guild = self.bot.get_guild(self.config.guilds.main)
-        for role in vars(self.config.punishment_roles):
-            roleobj = guild.get_role(vars(self.config.punishment_roles)[role])
+        for role in self.config.punishment_roles:
+            roleobj = guild.get_role(self.config.punishment_roles[role])
             if roleobj is None:
                 continue
 
@@ -25,22 +27,6 @@ class Punish(commands.Cog):
 
             self.choices[role_name] = role_id
 
-    @nextcord.slash_command(dm_permission=False)
-    async def slash_command_cog(self, interaction: nextcord.Interaction):
-        """Slash command in a cog."""
-        await interaction.response.send_message("Hello I am a slash command in a cog!")
-
-    @nextcord.slash_command(dm_permission=False)
-    async def choose_a_number(
-        self,
-        interaction: nextcord.Interaction,
-        number: int = nextcord.SlashOption(
-            name="picker",
-            choices={"one": 1, "two": 2, "three": 3},
-        ),
-    ):
-        await interaction.response.send_message(f"You chose {number}!")
-
     @nextcord.slash_command(name="punish_user", dm_permission=False)
     async def punish(
         self,
@@ -48,9 +34,23 @@ class Punish(commands.Cog):
         member: nextcord.Member,
         punishment: str = nextcord.SlashOption(name="punishment_role"),
     ):
-        """Slash command in a cog."""
+        """Adds a punishment role to the user."""
+
+        if not await permcheck(interaction, is_staff):
+            return
+        
+        if punishment not in self.choices:
+            await interaction.response.send_message(
+                "That is not a valid punishment role."
+            )
+            return
+        
+        role = member.guild.get_role(self.choices[punishment])
+
+        await member.add_roles(role)
+
         await interaction.response.send_message(
-            f"We are punishing {member.name} with {punishment}\nKeylist says: {self.choices[punishment]}."
+            f"Uh-oh, {member.mention} posted cringe and has been given the role {role.mention} as punishment."
         )
 
     @commands.Cog.listener()
