@@ -76,6 +76,8 @@ class Jokes(commands.Cog):
     ):
         if not is_mod(interaction.user):
             self_nevermod = True
+        else:
+            self_nevermod = False
 
         await interaction.response.defer(ephemeral=False)
 
@@ -87,7 +89,9 @@ class Jokes(commands.Cog):
             )
             nevermod_embed = SersiEmbed(
                 title="Self Nevermodded!",
-                description=f"Member {interaction.user.mention}({interaction.user.id}) thought they were being funny by running the nevermod command! Now they themselves have been nevermodded for their sins.",
+                description=f"Member {interaction.user.mention}({interaction.user.id}) thought they were being funny "
+                f"by running the nevermod command! Now they themselves have been nevermodded for their "
+                f"sins.",
             )
 
         else:
