@@ -12,17 +12,26 @@ class Messages(commands.Cog):
         self.sersisuccess = config.emotes.success
         self.sersifail = config.emotes.fail
 
-    @commands.command()
-    async def dm(self, ctx: commands.Context, recipient: nextcord.Member, *, message):
-        if not await permcheck(ctx, is_staff):
+    @nextcord.slash_command(
+        dm_permission=False,
+        guild_ids=[977377117895536640, 856262303795380224],
+        description="Sends a specified recipient a DM",
+    )
+    async def dm(
+        self,
+        interaction: nextcord.Interaction,
+        recipient: nextcord.Member,
+        message: str,
+    ):
+        if not await permcheck(interaction, is_staff):
             return
 
-        if message == "":
-            await ctx.send(f"{self.sersifail} no message provided.")
-            return
+        await interaction.response.defer(ephemeral=True)
 
         await recipient.send(message)
-        await ctx.send(f"{self.sersisuccess} Direkt Message sent to {recipient}!")
+        await interaction.followup.send(
+            f"{self.sersisuccess} Direct Message sent to {recipient}!"
+        )
 
         channel = self.bot.get_channel(self.config.channels.logging)
         logging = nextcord.Embed(
@@ -30,7 +39,7 @@ class Messages(commands.Cog):
             description="A DM has been sent.",
             color=nextcord.Color.from_rgb(237, 91, 6),
         )
-        logging.add_field(name="Sender:", value=ctx.author.mention, inline=False)
+        logging.add_field(name="Sender:", value=interaction.user.mention, inline=False)
         logging.add_field(name="Recipient:", value=recipient.mention, inline=False)
         logging.add_field(name="Message Content:", value=message, inline=False)
         await channel.send(embed=logging)
