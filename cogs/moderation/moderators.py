@@ -1,9 +1,12 @@
+import datetime
+
 import nextcord
+from nextcord import SlashOption
 from nextcord.ext import commands
 
-from baseutils import ConfirmView, DualCustodyView
+from baseutils import ConfirmView, DualCustodyView, SersiEmbed
 from configutils import Configuration
-from permutils import permcheck, is_staff, is_senior_mod
+from permutils import permcheck, is_staff, is_senior_mod, is_slt
 
 
 class Moderators(commands.Cog):
@@ -272,28 +275,18 @@ class Moderators(commands.Cog):
             embed=None,
             view=None,
         )
-        ctx = await self.bot.get_context(interaction.message)
-        await ctx.invoke(
-            self.bot.get_command("blacklistuser"),
-            member=member,
-            reason=f"Moderator purged with reason: {reason}",
-        )
 
         # logging
-        log_embed = nextcord.Embed(
-            title="Member has been purged from staff and mod team and added to blacklist."
+        log_embed: nextcord.Embed = SersiEmbed(
+            title="Member has been purged from staff and mod team and added to blacklist.",
+            fields={
+                "Responsible Moderator:": moderator.mention,
+                "Confirming Moderator:": interaction.user.mention,
+                "Purged Moderator:": member.mention,
+                "Reason:": reason,
+            },
+            footer="Moderator Purge",
         )
-        log_embed.add_field(
-            name="Responsible Moderator:", value=moderator.mention, inline=False
-        )
-        log_embed.add_field(
-            name="Confirming Moderator:", value=interaction.user.mention, inline=False
-        )
-        log_embed.add_field(
-            name="Purged Moderator:", value=member.mention, inline=False
-        )
-        log_embed.add_field(name="Reason:", value=reason, inline=False)
-
         channel = interaction.guild.get_channel(self.config.channels.logging)
         await channel.send(embed=log_embed)
 
@@ -356,40 +349,43 @@ class Moderators(commands.Cog):
             ctx, embed=dialog_embed
         )
 
-    async def cb_retire_proceed(self, interaction):
-        member_id = 0
+    async def cb_retire_proceed(self, interaction: nextcord.Interaction):
+        print("cb_retire_proceed")
+        member_id: int = 0
         for field in interaction.message.embeds[0].fields:
             if field.name == "User ID":
-                member_id = int(field.value)
+                member_id: int = int(field.value)
         member = interaction.guild.get_member(member_id)
 
+        print("remove any permission roles")
+        # remove any permission roles
         for role in vars(self.config.permission_roles):
-            role_obj = interaction.guild.get_role(
+            role_object: nextcord.Role = interaction.guild.get_role(
                 vars(self.config.permission_roles)[role]
             )
             try:
-                await member.remove_roles(role_obj)
+                await member.remove_roles(role_object)
             except nextcord.errors.HTTPException:
                 continue
 
-        honourable_member = interaction.guild.get_role(
+        honourable_member: nextcord.Role = interaction.guild.get_role(
             self.config.roles.honourable_member
         )
         await member.add_roles(honourable_member)
 
-        await interaction.message.edit(
+        await interaction.followup.edit(
             f"{self.sersisuccess} {member.mention} has retired from the mod team. Thank you for your service!",
             embed=None,
             view=None,
         )
 
         # logging
-        log_embed = nextcord.Embed(title="Moderator has (been) retired.")
-        log_embed.add_field(
-            name="Responsible Moderator:", value=interaction.user.mention, inline=False
-        )
-        log_embed.add_field(
-            name="Retired Moderator:", value=member.mention, inline=False
+        log_embed: nextcord.Embed = SersiEmbed(
+            title="Moderator has (been) retired.",
+            fields={
+                "Responsible Moderator:": interaction.user.mention,
+                "Retired Moderator:": member.mention,
+            },
         )
 
         channel = interaction.guild.get_channel(self.config.channels.logging)
@@ -398,31 +394,45 @@ class Moderators(commands.Cog):
         channel = interaction.guild.get_channel(self.config.channels.mod_logs)
         await channel.send(embed=log_embed)
 
-    @commands.command()
-    async def retire(self, ctx, member: nextcord.Member = None):
-        if member is None and await permcheck(ctx, is_staff):
-            member = ctx.author
-        elif not await permcheck(ctx, is_senior_mod):
-            return
+    @nextcord.slash_command(
+        dm_permission=False,
+        guild_ids=[977377117895536640, 856262303795380224],
+        description="Used to retire staff members from their post",
+    )
+    async def retire(
+        self,
+        interaction: nextcord.Interaction,
+        member: nextcord.Member = SlashOption(
+            required=False,
+            description="Who to retire; Specify yourself to retire yourself.",
+        ),
+    ):
+        if member == interaction.user:
+            if not await permcheck(interaction, is_staff):
+                return
+        else:
+            if not await permcheck(interaction, is_slt):
+                return
 
-        if member == ctx.author:
-            dialog_embed = nextcord.Embed(
+        await interaction.response.defer(ephemeral=True)
+
+        if member == interaction.user:
+            dialog_embed: nextcord.Embed = SersiEmbed(
                 title="Retire from Adam Something Central staff",
                 description="Are you sure you want to retire?",
-                color=nextcord.Color.from_rgb(237, 91, 6),
+                fields={"User": member.mention, "User ID": member.id},
             )
-            dialog_embed.add_field(name="User", value=ctx.author.mention)
-            dialog_embed.add_field(name="User ID", value=ctx.author.id)
+
         else:
-            dialog_embed = nextcord.Embed(
+            dialog_embed: nextcord.Embed = SersiEmbed(
                 title="Retire Moderator",
                 description="Following Moderator will be retired from the staff and given the Honoured Member role:",
-                color=nextcord.Color.from_rgb(237, 91, 6),
+                fields={"User": member.mention, "User ID": member.id},
             )
-            dialog_embed.add_field(name="User", value=member.mention)
-            dialog_embed.add_field(name="User ID", value=member.id)
 
-        await ConfirmView(self.cb_retire_proceed).send_as_reply(ctx, embed=dialog_embed)
+        await ConfirmView(
+            on_proceed=self.cb_retire_proceed, confirmer=interaction.user
+        ).send_as_followup_response(interaction, embed=dialog_embed)
 
 
 def setup(bot, **kwargs):

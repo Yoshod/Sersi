@@ -37,13 +37,13 @@ class Punish(commands.Cog):
 
         if not await permcheck(interaction, is_staff):
             return
-        
+
         if punishment not in self.choices:
             await interaction.response.send_message(
                 "That is not a valid punishment role."
             )
             return
-        
+
         role = member.guild.get_role(self.choices[punishment])
 
         await member.add_roles(role)

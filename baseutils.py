@@ -8,7 +8,7 @@ import pytz
 
 from permutils import permcheck, is_dark_mod
 
-config = configutils.Configuration.from_yaml_file("./persistent_data/config.yaml")
+# config = configutils.Configuration.from_yaml_file("./persistent_data/config.yaml")
 
 
 class SersiEmbed(nextcord.Embed):
@@ -40,16 +40,28 @@ def sanitize_mention(string: str) -> str:
     return re.sub(r"[^0-9]*", "", string)
 
 
-async def ban(config: configutils.Configuration, member: nextcord.Member, kind, reason):
+async def ban(
+    config: configutils.Configuration, member: nextcord.Member, kind: str, reason: str
+):
     goodbye_embed = nextcord.Embed(
         title=f"You have been banned from {member.guild.name}",
         colour=nextcord.Color.from_rgb(237, 91, 6),
     )
 
     if kind == "rf":
-        goodbye_embed.description = f"You have been deemed to have failed reformation. As a result, you have been banned from {member.guild.name}\n\nIf you wish to appeal your ban, please join the ban appeal server:\n{config.invites.ban_appeal_server}"
+        goodbye_embed.description = (
+            f"You have been deemed to have failed reformation. As a result, you have been banned from {member.guild.name}\n"
+            "\n"
+            "If you wish to appeal your ban, please join the ban appeal server:\n"
+            f"{config.invites.ban_appeal_server}"
+        )
     elif kind == "leave":
-        goodbye_embed.description = f"You have left {member.guild.name} whilst in Reformation, as a result you have been banned\n\nIf you wish to appeal your ban, please join the ban appeal server:\n{config.invites.ban_appeal_server}"
+        goodbye_embed.description = (
+            f"You have left {member.guild.name} whilst in Reformation, as a result you have been banned\n"
+            "\n"
+            "If you wish to appeal your ban, please join the ban appeal server:\n"
+            f"{config.invites.ban_appeal_server}"
+        )
 
     try:
         await member.send(embed=goodbye_embed)
@@ -61,7 +73,7 @@ async def ban(config: configutils.Configuration, member: nextcord.Member, kind, 
 
 
 def modmention_check(config: configutils.Configuration, message: str) -> bool:
-    modmentions = [
+    modmentions: list[str] = [
         f"<@&{config.permission_roles.trial_moderator}>",
         f"<@&{config.permission_roles.moderator}>",
         f"<@&{config.permission_roles.senior_moderator}>",
@@ -90,8 +102,14 @@ def get_page(entry_list: list, page: int, per_page: int = 10):
         return entry_list[index * per_page : page * per_page], pages, page
 
 
-class ConfirmView(View):
-    def __init__(self, on_proceed, timeout: float = 60.0, bypass_button: bool = False):
+class ConfirmView(nextcord.ui.View):
+    def __init__(
+        self,
+        on_proceed,
+        timeout: float = 60.0,
+        *,
+        confirmer: nextcord.Member = None,
+    ):
         super().__init__(timeout=timeout)
         btn_proceed = Button(label="Proceed", style=nextcord.ButtonStyle.green)
         btn_proceed.callback = on_proceed
@@ -99,7 +117,8 @@ class ConfirmView(View):
         btn_cancel.callback = self.cb_cancel
         self.add_item(btn_proceed)
         self.add_item(btn_cancel)
-        self.message: nextcord.Message
+        self.message: nextcord.Message = None
+        self.confirmer: nextcord.Member = confirmer
 
     async def cb_cancel(self, interaction: nextcord.Interaction):
         await interaction.message.edit("Action canceled!", embed=None, view=None)
@@ -110,12 +129,24 @@ class ConfirmView(View):
             await self.message.edit("Action timed out!", embed=None, view=None)
 
     async def interaction_check(self, interaction: nextcord.Interaction):
-        return interaction.user == interaction.message.reference.cached_message.author
+        print("interaction_check")
+        if interaction.message.reference:
+            return (
+                interaction.user == interaction.message.reference.cached_message.author
+            )
+        else:
+            return interaction.user == self.confirmer
 
     async def send_as_reply(
         self, ctx: commands.Context, content: str = None, embed=None
     ):
         self.message = await ctx.reply(content, embed=embed, view=self)
+
+    async def send_as_followup_response(
+        self, interaction: nextcord.Interaction, content: str = None, embed=None
+    ):
+        print("send_as_followup_response")
+        self.message = await interaction.followup.send(content, embed=embed, view=self)
 
     @staticmethod
     def query(title: str, prompt: str, embed_args: dict = {}) -> callable:
