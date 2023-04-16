@@ -397,12 +397,14 @@ class AdultAccess(commands.Cog):
                         updated_form.add_field(
                             name="Verification Required:",
                             value=f"{self.config.emotes.success} Yes",
+                            inline=False,
                         )
                         verification_required = True
                     else:
                         updated_form.add_field(
                             name="Verification Required:",
                             value=f"{self.config.emotes.fail} No",
+                            inline=False,
                         )
                         verification_required = False
 
