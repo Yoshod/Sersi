@@ -109,13 +109,13 @@ invites:
     ban_appeal_server:                  "https://discord.gg/dGpvCbrBRA"
 
 guilds:
-    main: 0
+    main: 977377117895536640
     errors: 977377117895536640
 
 punishment roles:
-    annoying:                 0
-    terrible_ideas:           0
-    politics_and_debate_mute: 0
-    probation:                0
-    ancap:                    0
-    problem_child:            0
+    annoying:                 1023985995898683463
+    terrible_ideas:           1023986985209167954
+    politics_and_debate_mute: 986009181733654528
+    probation:                984195306038124558
+    ancap:                    1023986097002385408
+    problem_child:            1023986949918314609

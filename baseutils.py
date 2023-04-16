@@ -129,7 +129,6 @@ class ConfirmView(nextcord.ui.View):
             await self.message.edit("Action timed out!", embed=None, view=None)
 
     async def interaction_check(self, interaction: nextcord.Interaction):
-        print("interaction_check")
         if interaction.message.reference:
             return (
                 interaction.user == interaction.message.reference.cached_message.author
@@ -145,7 +144,6 @@ class ConfirmView(nextcord.ui.View):
     async def send_as_followup_response(
         self, interaction: nextcord.Interaction, content: str = None, embed=None
     ):
-        print("send_as_followup_response")
         self.message = await interaction.followup.send(content, embed=embed, view=self)
 
     @staticmethod
