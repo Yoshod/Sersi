@@ -86,7 +86,10 @@ class Database(commands.Cog):
                 priority_final TEXT,
                 main_category TEXT,
                 sub_category TEXT,
-                related_tickets TEXT)"""
+                related_tickets TEXT
+                survey_sent BOOLEAN
+                survey_score INTEGER
+                survery_response TEXT)"""
         )
 
         conn.commit()
