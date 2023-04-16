@@ -1,5 +1,6 @@
 import nextcord
 import sqlite3
+import pickle
 from nextcord.ext import commands
 from configutils import Configuration
 from permutils import is_dark_mod, permcheck
@@ -165,6 +166,116 @@ class Database(commands.Cog):
 
         conn.commit()
 
+        conn.close()
+
+        await interaction.followup.send(f"{self.config.emotes.success} Complete")
+
+    @nextcord.slash_command(
+        dm_permission=False,
+        guild_ids=[977377117895536640, 856262303795380224],
+        description="Used to migrate case data",
+    )
+    async def case_migration(self, interaction: nextcord.Interaction):
+        if not await permcheck(interaction, is_dark_mod):
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        conn = sqlite3.connect(self.config.datafiles.sersi_db)
+        cursor = conn.cursor()
+
+        # Load the first pickle file containing the case data
+        with open(self.config.datafiles.casehistory, "rb") as f:
+            cases_dict = pickle.load(f)
+
+        # Load the second pickle file containing the case details
+        with open(self.config.datafiles.casedetails, "rb") as f:
+            details_dict = pickle.load(f)
+
+        for __, case_list in cases_dict.items():
+            for case in case_list:
+                case_id, case_type, timestamp = case
+                # Ignore Anonymous Message Mute cases
+                if case_type == "Anonymous Message Mute":
+                    continue
+                # Insert the case into the cases table
+                cursor.execute(
+                    "INSERT INTO cases VALUES (?, ?, ?)",
+                    (case_id, case_type, timestamp),
+                )
+                # Process the case details
+                if case_id in details_dict:
+                    details_list = details_dict[case_id]
+                    case_type = details_list[0]
+                    if case_type == "Bad Faith Ping":
+                        report_url, offender_id, moderator_id, timestamp = details_list[
+                            1:
+                        ]
+                        cursor.execute(
+                            "INSERT INTO bad_faith_ping_cases VALUES (?, ?, ?, ?, ?)",
+                            (case_id, offender_id, report_url, moderator_id, timestamp),
+                        )
+                    elif case_type == "Probation":
+                        (
+                            offender_id,
+                            primary_moderator_id,
+                            secondary_moderator_id,
+                            reason,
+                            timestamp,
+                        ) = details_list[1:]
+                        cursor.execute(
+                            "INSERT INTO probation_cases VALUES (?, ?, ?, ?, ?, ?)",
+                            (
+                                case_id,
+                                offender_id,
+                                primary_moderator_id,
+                                secondary_moderator_id,
+                                reason,
+                                timestamp,
+                            ),
+                        )
+                    elif case_type == "Reformation":
+                        (
+                            case_number,
+                            offender_id,
+                            moderator_id,
+                            channel_id,
+                            reason,
+                            timestamp,
+                        ) = details_list[1:]
+                        cursor.execute(
+                            "INSERT INTO reformation_cases VALUES (?, ?, ?, ?, ?, ?, ?)",
+                            (
+                                case_id,
+                                case_number,
+                                offender_id,
+                                moderator_id,
+                                channel_id,
+                                reason,
+                                timestamp,
+                            ),
+                        )
+                    elif case_type == "Slur Usage":
+                        (
+                            slur_used,
+                            report_url,
+                            offender_id,
+                            moderator_id,
+                            timestamp,
+                        ) = details_list[1:]
+                        cursor.execute(
+                            "INSERT INTO slur_cases VALUES (?, ?, ?, ?, ?, ?)",
+                            (
+                                case_id,
+                                slur_used,
+                                report_url,
+                                offender_id,
+                                moderator_id,
+                                timestamp,
+                            ),
+                        )
+
+        conn.commit()
         conn.close()
 
         await interaction.followup.send(f"{self.config.emotes.success} Complete")
