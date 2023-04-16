@@ -92,6 +92,17 @@ class Database(commands.Cog):
                 survery_response TEXT)"""
         )
 
+        cursor.execute(
+            """CREATE TABLE IF NOT EXISTS ticket_categories
+            (category TEXT PRIMARY KEY)"""
+        )
+
+        cursor.execute(
+            """CREATE TABLE IF NOT EXISTS ticket_subcategories
+            (category TEXT,
+            subcategory TEXT)"""
+        )
+
         conn.commit()
 
         conn.close()
