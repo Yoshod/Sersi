@@ -4,21 +4,24 @@ from dataclass_wizard import YAMLWizard
 
 @dataclass
 class ConfigurationDatafiles(YAMLWizard):
-    author_list:    str
-    keyfile:        str
-    slurfile:       str
-    goodwordfile:   str
-    blacklist:      str
-    casedetails:    str
-    casehistory:    str
-    gifblacklist:   str
-    secret_dms:     str
-    secret_mutes:   str
-    reform_iter:    str
+    author_list: str
+    keyfile: str
+    slurfile: str
+    goodwordfile: str
+    blacklist: str
+    casedetails: str
+    casehistory: str
+    gifblacklist: str
+    secret_dms: str
+    secret_mutes: str
+    reform_iter: str
     reformation_cases: str
     watchlist: str
     ticketers: str
     video_history: str
+    alert_logs: str
+    alert_csv: str
+    sersi_db: str
 
 
 @dataclass
@@ -34,7 +37,6 @@ class ConfigurationBot(YAMLWizard):
 
 @dataclass
 class ConfigurationChannels(YAMLWizard):
-
     # moderator sided channels
     alert: int  # Receives alerts regarding moderation pings and slurs.
     logging: int
@@ -46,6 +48,7 @@ class ConfigurationChannels(YAMLWizard):
     cet_applications: int
     internalfeedback: int
     timeoutappeals: int
+    ageverification: int
 
     # debugging channels
     errors: int
@@ -69,11 +72,11 @@ class ConfigurationChannels(YAMLWizard):
     mod_ticket_logs: int
     verification_ticket_logs: int
     deleted_messages: int
+    role_logs: int
 
 
 @dataclass
 class ConfigurationRoles(YAMLWizard):
-
     # reformation roles
     reformation: int
     reformed: int
@@ -92,6 +95,9 @@ class ConfigurationRoles(YAMLWizard):
 
     # former moderator role
     honourable_member: int
+
+    adult_access: int
+    adult_verified: int
 
 
 @dataclass
@@ -126,17 +132,7 @@ class ConfigurationPermissionRoles(YAMLWizard):
     trial_moderator: int
     moderator: int
     senior_moderator: int
-    dark_moderator: int    # AKA: super-duper mega administrators
-
-
-@dataclass
-class ConfigurationPunishmentRoles(YAMLWizard):
-    annoying: int
-    terrible_ideas: int
-    politics_and_debate_mute: int
-    probation: int
-    ancap: int
-    problem_child: int
+    dark_moderator: int  # AKA: super-duper mega administrators
 
 
 @dataclass
@@ -166,14 +162,13 @@ class ConfigurationGuilds(YAMLWizard):
 
 @dataclass(frozen=True)
 class Configuration(YAMLWizard):
-
     datafiles: ConfigurationDatafiles
     bot: ConfigurationBot
     channels: ConfigurationChannels
     roles: ConfigurationRoles
     opt_in_roles: ConfigurationOptInRoles
     permission_roles: ConfigurationPermissionRoles
-    punishment_roles: ConfigurationPunishmentRoles
+    punishment_roles: dict[str, int]
     emotes: ConfigurationEmotes
     invites: ConfigurationInvites
     guilds: ConfigurationGuilds

@@ -16,6 +16,9 @@ datafiles:
     watchlist:          "files/WBList/watchlist.csv"
     ticketers:          "files/Tickets/ticketers.pkl"
     video_history:      "files/youtube/processed_videos.txt"
+    alert_logs:         "files/Alerts/alerts.pkl"
+    alert_csv:          "files/Alerts/alerts.csv"
+    sersi_db:           "persistent_data/sersi.db"
 
 bot:
     prefix: "s!"
@@ -51,11 +54,13 @@ channels:
     mod_ticket_logs: 1021380970240294922
     verification_ticket_logs: 1021380970240294922
     deleted_messages: 0
-    mod applications: 0
+    mod applications: 977377171054166037
     cet applications: 0
     internalfeedback: 0
     timeoutappeals: 0
     video_discussion: 0
+    role_logs:                                 0
+    ageverification: 977377171054166037
 
 
 roles:
@@ -66,6 +71,8 @@ roles:
     civil_engineering_initiate: 878040658244403253
     newbie:                     938465528043954267
     honourable_member:          0
+    adult_access:               1094367708306477126
+    adult_verified:             1094367738107019324
 
 opt_in_roles:
     gaming:         0
@@ -79,6 +86,7 @@ opt_in_roles:
     shillposting:   0
     music:          0
     photography:    0
+    environment:    0
 
 permission_roles:
     staff:             978678150789754890
@@ -90,6 +98,7 @@ permission_roles:
     senior_moderator:  1021477021664153653
     dark_moderator:    978681533453971526
     cet: 0
+    cet_lead: 0
 
 emotes:
     success: "<:sersisuccess:979066662856822844>"
@@ -100,5 +109,13 @@ invites:
     ban_appeal_server:                  "https://discord.gg/dGpvCbrBRA"
 
 guilds:
-    main: 0
+    main: 977377117895536640
     errors: 977377117895536640
+
+punishment roles:
+    annoying:                 1023985995898683463
+    terrible_ideas:           1023986985209167954
+    politics_and_debate_mute: 986009181733654528
+    probation:                984195306038124558
+    ancap:                    1023986097002385408
+    problem_child:            1023986949918314609

@@ -16,13 +16,16 @@ datafiles:
     watchlist:          "files/WBList/watchlist.csv"
     ticketers:          "files/Tickets/ticketers.pkl"
     video_history:      "files/youtube/processed_videos.txt"
+    alert_logs:         "files/Alerts/alerts.pkl"
+    alert_csv:          "files/Alerts/alerts.csv"
+    sersi_db:           "persistent_data/sersi.db"
 
 bot:
     prefix: "s!"
     status: "Sword and shield"
     port:   8074 # 8074 for live, 8113 for unstable
     minimum caps length: 8
-    version: "4.0.1"
+    version: "4.1.0"
     git_url: "https://github.com/Yoshod/Sersi"
     authors:
         - "• Hekkland#0001 `261870562798731266`"
@@ -56,6 +59,8 @@ channels:
     internalfeedback:        1018936341687443476
     timeoutappeals:                            0
     video_discussion:        1006389347257417859
+    role_logs:                                 0
+    ageverification:       1094352347142045878
 
 
 roles:
@@ -66,6 +71,8 @@ roles:
     civil_engineering_initiate: 878040658244403253
     newbie:                     938465528043954267
     honourable_member:          933089148808597505
+    adult_access:               1080489347834449930
+    adult_verified:             1080489419179573369
 
 opt_in_roles:
     gaming:         960558372837523476
