@@ -14,9 +14,13 @@ from baseutils import SersiEmbed
 from permutils import permcheck, is_sersi_contrib
 from cogutils import load_all_cogs
 
-bot = commands.Bot(intents=nextcord.Intents.all())
 start_time = time.time()
 config = configutils.Configuration.from_yaml_file("./persistent_data/config.yaml")
+bot = commands.Bot(
+    command_prefix=config.bot.prefix,
+    activity=nextcord.Game(name=config.bot.status),
+    intents=nextcord.Intents.all(),
+)
 root_folder = os.path.dirname(os.path.realpath(__file__))
 
 
@@ -152,7 +156,6 @@ async def on_message_edit(before: nextcord.Message, after: nextcord.Message):
 
 @bot.listen
 async def on_ready():
-    await bot.change_presence(activity=nextcord.Game(config.bot.status))
     await bot.sync_all_application_commands()
 
     print(f"We have logged in as {bot.user}")
