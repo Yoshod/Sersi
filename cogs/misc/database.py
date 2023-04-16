@@ -16,53 +16,87 @@ class Database(commands.Cog):
         description="Used to create the Sersi Database",
     )
     async def database_create(self, interaction: nextcord.Interaction):
-        conn = sqlite3.connect(self.config.datafiles.sersi_db)
-        cursor = conn.cursor()
-
         if not await permcheck(interaction, is_dark_mod):
             return
 
+        await interaction.response.defer(ephemeral=True)
+
+        conn = sqlite3.connect(self.config.datafiles.sersi_db)
+        cursor = conn.cursor()
+
         cursor.execute(
             """CREATE TABLE IF NOT EXISTS cases
-                  (id INTEGER PRIMARY KEY,
+                  (id TEXT PRIMARY KEY,
                    type TEXT,
-                   offender INTEGER,
-                   moderator INTEGER)"""
+                   timestamp INTEGER)"""
         )
 
         cursor.execute(
-            """CREATE TABLE IF NOT EXISTS "slur cases"
-                  (id INTEGER PRIMARY KEY,
+            """CREATE TABLE IF NOT EXISTS slur_cases
+                  (id TEXT PRIMARY KEY,
                    slur_used TEXT,
+                   report_url TEXT,
                    offender INTEGER,
-                   report_url TEXT)"""
+                   moderator INTEGER,
+                   timestamp INTEGER)"""
         )
 
         cursor.execute(
-            """CREATE TABLE IF NOT EXISTS "bad faith ping cases"
-                  (id INTEGER PRIMARY KEY,
+            """CREATE TABLE IF NOT EXISTS "bad_faith_ping_cases"
+                  (id TEXT PRIMARY KEY,
+                   report_url TEXT,
                    offender INTEGER,
-                   report_url TEXT)"""
+                   moderator INTEGER,
+                   timestamp INTEGER)"""
         )
 
         cursor.execute(
-            """CREATE TABLE IF NOT EXISTS "probation cases"
-                  (id INTEGER PRIMARY KEY,
+            """CREATE TABLE IF NOT EXISTS probation_cases
+                  (id TEXT PRIMARY KEY,
                    offender INTEGER,
                    initial_moderator INTEGER,
                    approving_moderator INTEGER,
-                   reason TEXT)"""
+                   reason TEXT,
+                   timestamp INTEGER)"""
         )
 
         cursor.execute(
-            """CREATE TABLE IF NOT EXISTS "reformation cases"
-                  (id INTEGER PRIMARY KEY,
+            """CREATE TABLE IF NOT EXISTS reformation_cases
+                  (id TEXT PRIMARY KEY,
                    case_number INTEGER,
                    offender INTEGER,
                    moderator INTEGER,
                    cell_id INTEGER,
-                   reason TEXT)"""
+                   reason TEXT,
+                   timestamp INTEGER)"""
         )
+
+        cursor.execute(
+            """CREATE TABLE IF NOT EXISTS tickets
+                (ticket_id TEXT PRIMARY KEY,
+                ticket_escalation_initial TEXT,
+                ticket_escalation_final TEXT,
+                ticket_channel_id INTEGER,
+                ticket_creator_id INTEGER,
+                ticket_active BOOLEAN,
+                ticket_closer_id INTEGER,
+                timestamp_opened INTEGER,
+                timestamp_closed INTEGER,
+                priority_initial TEXT,
+                priority_final TEXT,
+                main_category TEXT,
+                sub_category TEXT,
+                related_tickets TEXT
+                survey_sent BOOLEAN
+                survey_score INTEGER
+                survery_response TEXT)"""
+        )
+
+        conn.commit()
+
+        conn.close()
+
+        await interaction.followup.send(f"{self.config.emotes.success} Complete")
 
 
 def setup(bot, **kwargs):
