@@ -109,6 +109,66 @@ class Database(commands.Cog):
 
         await interaction.followup.send(f"{self.config.emotes.success} Complete")
 
+    @nextcord.slash_command(
+        dm_permission=False,
+        guild_ids=[977377117895536640, 856262303795380224],
+        description="Used to populate the category tables",
+    )
+    async def database_categories(self, interaction: nextcord.Interaction):
+        if not await permcheck(interaction, is_dark_mod):
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        conn = sqlite3.connect(self.config.datafiles.sersi_db)
+        cursor = conn.cursor()
+
+        cursor.execute(
+            """INSERT INTO ticket_categories (category) VALUES ('technical'), ('policy'), ('report'), ('complaint'), ('appeal'), ('other');"""
+        )
+
+        cursor.execute(
+            """INSERT INTO ticket_subcategories (category, subcategory)
+                VALUES
+                ('Technical', 'Altdentifier Verification'),
+                ('Technical', 'Bot Not Working'),
+                ('Technical', 'User Permission Problem'),
+                ('Technical', 'Other Technical Issue'),
+                ('Policy', 'User Conduct Query'),
+                ('Policy', 'Moderation Policy Query'),
+                ('Policy', 'Terms of Service Query'),
+                ('Policy', 'Other Policy Query'),
+                ('Report', 'Message Report'),
+                ('Report', 'User Report'),
+                ('Report', 'Channel Report'),
+                ('Report', 'Forum Post Report'),
+                ('Report', 'Thread Report'),
+                ('Report', 'Voice Chat Report'),
+                ('Report', 'Other Report'),
+                ('Complaint', 'Verification Support Complaint'),
+                ('Complaint', 'Event Manager Complaint'),
+                ('Complaint', 'Community Engagement Team Complaint'),
+                ('Complaint', 'Community Engagement Team Lead Complaint'),
+                ('Complaint', 'Trial Moderator Complaint'),
+                ('Complaint', 'Moderator Complaint'),
+                ('Complaint', 'Senior Moderator Complaint'),
+                ('Complaint', 'Mega Administrator Complaint'),
+                ('Complaint', 'Other Complaint'),
+                ('Appeal', 'Ban Appeal'),
+                ('Appeal', 'Timeout Appeal'),
+                ('Appeal', 'Other Appeal'),
+                ('Other', 'Business Suggestion for Adam'),
+                ('Other', 'Adult Access Verification'),
+                ('Other', 'Adult Access Denial Query'),
+                ('Other', 'Other Issue');"""
+        )
+
+        conn.commit()
+
+        conn.close()
+
+        await interaction.followup.send(f"{self.config.emotes.success} Complete")
+
 
 def setup(bot, **kwargs):
     bot.add_cog(Database(bot, kwargs["config"]))
