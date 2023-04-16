@@ -21,6 +21,7 @@ class ConfigurationDatafiles(YAMLWizard):
     video_history: str
     alert_logs: str
     alert_csv: str
+    sersi_db: str
 
 
 @dataclass
@@ -36,7 +37,6 @@ class ConfigurationBot(YAMLWizard):
 
 @dataclass
 class ConfigurationChannels(YAMLWizard):
-
     # moderator sided channels
     alert: int  # Receives alerts regarding moderation pings and slurs.
     logging: int
@@ -77,7 +77,6 @@ class ConfigurationChannels(YAMLWizard):
 
 @dataclass
 class ConfigurationRoles(YAMLWizard):
-
     # reformation roles
     reformation: int
     reformed: int
@@ -163,7 +162,6 @@ class ConfigurationGuilds(YAMLWizard):
 
 @dataclass(frozen=True)
 class Configuration(YAMLWizard):
-
     datafiles: ConfigurationDatafiles
     bot: ConfigurationBot
     channels: ConfigurationChannels

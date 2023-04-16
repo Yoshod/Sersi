@@ -18,6 +18,7 @@ datafiles:
     video_history:      "files/youtube/processed_videos.txt"
     alert_logs:         "files/Alerts/alerts.pkl"
     alert_csv:          "files/Alerts/alerts.csv"
+    sersi_db:           "persistent_data/sersi.db"
 
 bot:
     prefix: "s!"
