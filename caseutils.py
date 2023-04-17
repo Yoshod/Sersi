@@ -1,5 +1,7 @@
 import sqlite3
 import nextcord
+import shortuuid
+import time
 
 from configutils import Configuration
 from baseutils import SersiEmbed
@@ -519,3 +521,179 @@ def fetch_all_cases(config: Configuration):
     cases = sorted(cases, key=lambda x: x[2], reverse=True)
     cases_list = [list(case) for case in cases]
     return cases_list
+
+
+def create_unique_id(config: Configuration):
+    conn = sqlite3.connect(config.datafiles.sersi_db)
+    cursor = conn.cursor()
+    uuid_unique = False
+    while not uuid_unique:
+        uuid = str(shortuuid.ShortUUID())
+        cursor.execute(
+            "SELECT * FROM cases WHERE id = ?",
+            uuid,
+        )
+        cases = cursor.fetchone()
+        if not cases:
+            uuid_unique = True
+
+    cursor.close()
+    return uuid
+
+
+def create_slur_case(
+    config: Configuration,
+    slur_used: str,
+    report_url: str,
+    offender: nextcord.Member,
+    moderator: nextcord.Member,
+):
+    uuid = create_unique_id(config)
+
+    timestamp = int(time.time())
+
+    conn = sqlite3.connect(config.datafiles.sersi_db)
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "INSERT INTO slur_cases (id, slur_used, report_url, offender, moderator, timestamp)",
+        (uuid, slur_used, report_url, offender.id, moderator.id, timestamp),
+    )
+    cursor.execute(
+        "INSERT INTO cases (id, type, timestamp)", (uuid, "Slur Usage", timestamp)
+    )
+
+    conn.commit()
+    conn.close()
+
+
+def create_probation_case(
+    config: Configuration,
+    offender: nextcord.Member,
+    initial_moderator: nextcord.Member,
+    approving_moderator: nextcord.Member,
+    reason: str,
+):
+    uuid = create_unique_id(config)
+
+    timestamp = int(time.time())
+
+    conn = sqlite3.connect(config.datafiles.sersi_db)
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "INSERT INTO probation_cases (id, offender, initial_moderator, approving_moderator, reason, timestamp)",
+        (
+            uuid,
+            offender.id,
+            initial_moderator.id,
+            approving_moderator.id,
+            reason,
+            timestamp,
+        ),
+    )
+    cursor.execute(
+        "INSERT INTO cases (id, type, timestamp)", (uuid, "Probation", timestamp)
+    )
+
+    conn.commit()
+    conn.close()
+
+
+def create_reformation_case(
+    config: Configuration,
+    case_number: int,
+    offender: nextcord.Member,
+    moderator: nextcord.Member,
+    reformation_cell: nextcord.TextChannel,
+    reason: str,
+):
+    uuid = create_unique_id(config)
+
+    timestamp = int(time.time())
+
+    conn = sqlite3.connect(config.datafiles.sersi_db)
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "INSERT INTO reformation_cases (id, case_number, offender, moderator, cell_id, reason, timestamp)",
+        (
+            uuid,
+            case_number,
+            offender.id,
+            moderator.id,
+            reformation_cell.id,
+            reason,
+            timestamp,
+        ),
+    )
+    cursor.execute(
+        "INSERT INTO cases (id, type, timestamp)", (uuid, "Reformation", timestamp)
+    )
+
+    conn.commit()
+    conn.close()
+
+
+def create_bad_faith_ping_case(
+    config: Configuration,
+    report_url: str,
+    offender: nextcord.Member,
+    moderator: nextcord.Member,
+):
+    uuid = create_unique_id(config)
+
+    timestamp = int(time.time())
+
+    conn = sqlite3.connect(config.datafiles.sersi_db)
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "INSERT INTO bad_faith_ping_cases (id, report_url, offender, moderator, timestamp)",
+        (uuid, report_url, offender.id, moderator.id, timestamp),
+    )
+    cursor.execute(
+        "INSERT INTO cases (id, type, timestamp)", (uuid, "Bad Faith Ping", timestamp)
+    )
+
+    conn.commit()
+    conn.close()
+
+
+def scrub_case(
+    config: Configuration, case_id: str, scrubber: nextcord.Member, reason: str
+):
+    timestamp = int(time.time())
+
+    conn = sqlite3.connect(config.datafiles.sersi_db)
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM cases WHERE id=?", (case_id,))
+
+    case = cursor.fetchone()
+
+    if case:
+        case_type = case[1]
+        offender_id = case[2]
+
+        cursor.execute(
+            "INSERT INTO scrubbed_cases (id, type, offender, scrubber, reason, timestamp)",
+            (case_id, case_type, offender_id, scrubber.id, reason, timestamp),
+        )
+
+        cursor.execute("DELETE FROM cases WHERE id=?", (case_id,))
+        cursor.execute("DELETE FROM probation_cases WHERE id=?", (case_id,))
+        cursor.execute("DELETE FROM slur_cases WHERE id=?", (case_id,))
+        cursor.execute("DELETE FROM reformation_cases WHERE id=?", (case_id,))
+
+        conn.commit()
+        conn.close()
+        return True
+
+    else:
+        conn.close()
+        return False
+
+
+def delete_case():
+    pass

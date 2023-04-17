@@ -104,6 +104,16 @@ class Database(commands.Cog):
             subcategory TEXT)"""
         )
 
+        cursor.execute(
+            """CREATE TABLE IF NOT EXISTS scrubbed_cases
+            (id TEXT PRIMARY KEY,
+            type TEXT,
+            offender INTEGER,
+            scrubber INTEGER,
+            reason TEXT,
+            timestamp INTEGER)"""
+        )
+
         conn.commit()
 
         conn.close()
