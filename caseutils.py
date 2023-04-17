@@ -574,11 +574,12 @@ def create_slur_case(
     cursor = conn.cursor()
 
     cursor.execute(
-        "INSERT INTO slur_cases (id, slur_used, report_url, offender, moderator, timestamp)",
+        "INSERT INTO slur_cases (id, slur_used, report_url, offender, moderator, timestamp) VALUES (?, ?, ?, ?, ?, ?)",
         (uuid, slur_used, report_url, offender.id, moderator.id, timestamp),
     )
     cursor.execute(
-        "INSERT INTO cases (id, type, timestamp)", (uuid, "Slur Usage", timestamp)
+        "INSERT INTO cases (id, type, timestamp) VALUES (?, ?, ?)",
+        (uuid, "Slur Usage", timestamp),
     )
 
     conn.commit()
@@ -600,7 +601,7 @@ def create_probation_case(
     cursor = conn.cursor()
 
     cursor.execute(
-        "INSERT INTO probation_cases (id, offender, initial_moderator, approving_moderator, reason, timestamp)",
+        "INSERT INTO probation_cases (id, offender, initial_moderator, approving_moderator, reason, timestamp) VALUES (?, ?, ?, ?, ?, ?)",
         (
             uuid,
             offender.id,
@@ -611,7 +612,8 @@ def create_probation_case(
         ),
     )
     cursor.execute(
-        "INSERT INTO cases (id, type, timestamp)", (uuid, "Probation", timestamp)
+        "INSERT INTO cases (id, type, timestamp) VALUES (?, ?, ?)",
+        (uuid, "Probation", timestamp),
     )
 
     conn.commit()
@@ -634,7 +636,7 @@ def create_reformation_case(
     cursor = conn.cursor()
 
     cursor.execute(
-        "INSERT INTO reformation_cases (id, case_number, offender, moderator, cell_id, reason, timestamp)",
+        "INSERT INTO reformation_cases (id, case_number, offender, moderator, cell_id, reason, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?)",
         (
             uuid,
             case_number,
@@ -646,7 +648,8 @@ def create_reformation_case(
         ),
     )
     cursor.execute(
-        "INSERT INTO cases (id, type, timestamp)", (uuid, "Reformation", timestamp)
+        "INSERT INTO cases (id, type, timestamp) VALUES (?, ?, ?)",
+        (uuid, "Reformation", timestamp),
     )
 
     conn.commit()
@@ -667,11 +670,12 @@ def create_bad_faith_ping_case(
     cursor = conn.cursor()
 
     cursor.execute(
-        "INSERT INTO bad_faith_ping_cases (id, report_url, offender, moderator, timestamp)",
+        "INSERT INTO bad_faith_ping_cases (id, report_url, offender, moderator, timestamp) VALUES (?, ?, ?, ?, ?)",
         (uuid, report_url, offender.id, moderator.id, timestamp),
     )
     cursor.execute(
-        "INSERT INTO cases (id, type, timestamp)", (uuid, "Bad Faith Ping", timestamp)
+        "INSERT INTO cases (id, type, timestamp) VALUES (?, ?, ?)",
+        (uuid, "Bad Faith Ping", timestamp),
     )
 
     conn.commit()
@@ -692,11 +696,69 @@ def scrub_case(
 
     if case:
         case_type = case[1]
-        offender_id = case[2]
+
+        match (case_type):
+            case "Slur Usage":
+                cursor.execute("SELECT * FROM slur_cases WHERE id=?", (case_id,))
+
+                try:
+                    row = cursor.fetchone()
+
+                except TypeError:
+                    cursor.close()
+                    return False
+
+                offender_id = row[3]
+
+            case "Reformation":
+                cursor.execute("SELECT * FROM reformation_cases WHERE id=?", (case_id,))
+
+                try:
+                    row = cursor.fetchone()
+
+                except TypeError:
+                    cursor.close()
+                    return False
+
+                offender_id = row[2]
+
+            case "Probation":
+                cursor.execute("SELECT * FROM probation_cases WHERE id=?", (case_id,))
+
+                try:
+                    row = cursor.fetchone()
+
+                except TypeError:
+                    return False
+
+                offender_id = row[1]
+
+            case "Bad Faith Ping":
+                cursor.execute(
+                    "SELECT * FROM bad_faith_ping_cases WHERE id=?", (case_id,)
+                )
+
+                try:
+                    row = cursor.fetchone()
+
+                except TypeError:
+                    cursor.close()
+                    return False
+
+                offender_id = row[2]
+
+        print(case_id, case_type, offender_id, scrubber.id, reason, timestamp)
 
         cursor.execute(
-            "INSERT INTO scrubbed_cases (id, type, offender, scrubber, reason, timestamp)",
-            (case_id, case_type, offender_id, scrubber.id, reason, timestamp),
+            "INSERT INTO scrubbed_cases (id, type, offender, scrubber, reason, timestamp) VALUES (?, ?, ?, ?, ?, ?)",
+            (
+                case_id,
+                case_type,
+                int(offender_id),
+                int(scrubber.id),
+                reason,
+                int(timestamp),
+            ),
         )
 
         cursor.execute("DELETE FROM cases WHERE id=?", (case_id,))

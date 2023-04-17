@@ -349,13 +349,27 @@ class Moderators(commands.Cog):
             ctx, embed=dialog_embed
         )
 
-    async def cb_retire_proceed(self, interaction: nextcord.Interaction):
-        print("cb_retire_proceed")
-        member_id: int = 0
-        for field in interaction.message.embeds[0].fields:
-            if field.name == "User ID":
-                member_id: int = int(field.value)
-        member = interaction.guild.get_member(member_id)
+    @nextcord.slash_command(
+        dm_permission=False,
+        guild_ids=[977377117895536640, 856262303795380224],
+        description="Used to retire staff members from their post",
+    )
+    async def retire(
+        self,
+        interaction: nextcord.Interaction,
+        member: nextcord.Member = SlashOption(
+            required=False,
+            description="Who to retire; Specify yourself to retire yourself.",
+        ),
+    ):
+        if member == interaction.user:
+            if not await permcheck(interaction, is_staff):
+                return
+        else:
+            if not await permcheck(interaction, is_slt):
+                return
+
+        await interaction.response.defer(ephemeral=True)
 
         print("remove any permission roles")
         # remove any permission roles
@@ -388,51 +402,15 @@ class Moderators(commands.Cog):
             },
         )
 
-        channel = interaction.guild.get_channel(self.config.channels.logging)
+        channel: nextcord.TextChannel = interaction.guild.get_channel(
+            self.config.channels.logging
+        )
         await channel.send(embed=log_embed)
 
-        channel = interaction.guild.get_channel(self.config.channels.mod_logs)
+        channel: nextcord.TextChannel = interaction.guild.get_channel(
+            self.config.channels.mod_logs
+        )
         await channel.send(embed=log_embed)
-
-    @nextcord.slash_command(
-        dm_permission=False,
-        guild_ids=[977377117895536640, 856262303795380224],
-        description="Used to retire staff members from their post",
-    )
-    async def retire(
-        self,
-        interaction: nextcord.Interaction,
-        member: nextcord.Member = SlashOption(
-            required=False,
-            description="Who to retire; Specify yourself to retire yourself.",
-        ),
-    ):
-        if member == interaction.user:
-            if not await permcheck(interaction, is_staff):
-                return
-        else:
-            if not await permcheck(interaction, is_slt):
-                return
-
-        await interaction.response.defer(ephemeral=True)
-
-        if member == interaction.user:
-            dialog_embed: nextcord.Embed = SersiEmbed(
-                title="Retire from Adam Something Central staff",
-                description="Are you sure you want to retire?",
-                fields={"User": member.mention, "User ID": member.id},
-            )
-
-        else:
-            dialog_embed: nextcord.Embed = SersiEmbed(
-                title="Retire Moderator",
-                description="Following Moderator will be retired from the staff and given the Honoured Member role:",
-                fields={"User": member.mention, "User ID": member.id},
-            )
-
-        await ConfirmView(
-            on_proceed=self.cb_retire_proceed, confirmer=interaction.user
-        ).send_as_followup_response(interaction, embed=dialog_embed)
 
 
 def setup(bot, **kwargs):

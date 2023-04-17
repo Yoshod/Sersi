@@ -185,12 +185,12 @@ class Cases(commands.Cog):
         )
 
         if outcome:
-            interaction.followup.send(
+            await interaction.followup.send(
                 f"{self.config.emotes.success} Case {case_id} successfully scrubbed."
             )
 
         else:
-            interaction.followup.send(
+            await interaction.followup.send(
                 f"{self.config.emotes.fail} Case {case_id} has not been scrubbed. Please contact Sèitheach."
             )
 
