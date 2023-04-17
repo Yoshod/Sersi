@@ -15,48 +15,19 @@ class Caps(commands.Cog):
         self.config = config
         self.MIN_CHARS_FOR_DETECTION = config.bot.minimum_caps_length
 
-    @commands.command()
-    async def setcapslength(self, ctx, number):
-        if not await permcheck(ctx, is_mod):
+    @nextcord.slash_command(
+        name="get_caps_length",
+        dm_permission=False,
+        guild_ids=[977377117895536640, 856262303795380224],
+        description="Shows the currently active caps length",
+    )
+    async def getcapslength(self, interaction: nextcord.Interaction):
+        if not await permcheck(interaction, is_mod):
             return
 
-        try:
-            value = int(number)
-        except ValueError:
-            await ctx.send(f"{self.sersifail} {number} is not an integer.")
-            return
-
-        if value < 0:
-            await ctx.send(f"{self.sersifail} {number} must be greater than **0**.")
-            return
-
-        old_val = self.MIN_CHARS_FOR_DETECTION
-        self.MIN_CHARS_FOR_DETECTION = value
-        self.config.bot.minimum_caps_length = number
-
-        await ctx.send(
-            f"{self.sersisuccess} Caps lock detection starts now at messages longer than **{value}**."
-        )
-
-        embed = nextcord.Embed(
-            title="Minimum Letters For Detection Changed",
-            description="The minimum number of letters required for a message to have caps detection has been changed",
-            color=nextcord.Color.from_rgb(237, 91, 6),
-        )
-        embed.add_field(name="Moderator", value=ctx.author.mention)
-        embed.add_field(name="Old Value", value=str(old_val))
-        embed.add_field(name="New Value", value=str(value))
-
-        channel = ctx.guild.get_channel(self.config.channels.logging)
-        await channel.send(embed=embed)
-
-    @commands.command()
-    async def getcapslength(self, ctx):
-        if not await permcheck(ctx, is_mod):
-            return
-
-        await ctx.send(
-            f"Current caps lock detection starts at messages longer than **{self.MIN_CHARS_FOR_DETECTION}**."
+        await interaction.send(
+            f"Current caps lock detection starts at messages longer than **{self.MIN_CHARS_FOR_DETECTION}**.",
+            ephemeral=True,
         )
 
     # events
