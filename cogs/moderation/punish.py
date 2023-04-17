@@ -9,22 +9,18 @@ class Punish(commands.Cog):
     def __init__(self, bot: commands.Bot, config: Configuration):
         self.bot = bot
         self.config = config
-        self.choices: dict[str, nextcord.Role] = {}
+        self.choices: dict[str, int] = {}
 
         if bot.is_ready():
             self.get_roles()
 
     def get_roles(self):
         guild = self.bot.get_guild(self.config.guilds.main)
-        for role in self.config.punishment_roles:
-            roleobj = guild.get_role(self.config.punishment_roles[role])
-            if roleobj is None:
-                continue
+        for role_id in self.config.punishment_roles:
+            role = guild.get_role(self.config.punishment_roles[role_id])
 
-            role_name = roleobj.name
-            role_id = roleobj.id
-
-            self.choices[role_name] = role_id
+            if role is not None:
+                self.choices[role.name] = role.id
 
     @nextcord.slash_command(name="punish_user", dm_permission=False)
     async def punish(
