@@ -1,7 +1,7 @@
 import nextcord
 from nextcord.ext import commands
 
-from baseutils import SersiEmbed
+from baseutils import SersiEmbed, PageView
 from caseutils import (
     get_case_by_id,
     fetch_cases_by_partial_id,
@@ -81,33 +81,37 @@ class Cases(commands.Cog):
             name="offender",
             description="The user whos cases you are looking for",
         ),
+        page: int = nextcord.SlashOption(
+            name="page",
+            description="The page you want to view",
+            min_value=1,
+            default=1,
+            required=False,
+        )
     ):
         if not await permcheck(interaction, is_mod):
             return
 
         await interaction.response.defer(ephemeral=False)
 
-        offender_cases = fetch_offender_cases(self.config, offender)
-
-        case_amount = len(offender_cases)
-
         cases_embed = SersiEmbed(title=f"{offender.name}'s Cases")
+        cases_embed.set_thumbnail(offender.display_avatar.url)
 
-        if case_amount < 11:
-            for case in range(0, case_amount):
-                cases_embed.add_field(
-                    name=offender_cases[case][0],
-                    value=f"{offender_cases[case][1]} <t:{offender_cases[case][2]}:R>",
-                    inline=False,
-                )
-            cases_embed.set_thumbnail(offender.display_avatar.url)
+        view = PageView(
+            config=self.config,
+            base_embed=cases_embed,
+            fetch_function=fetch_offender_cases,
+            author=interaction.user,
+            entry_form="{entry[1]} <t:{entry[2]}:R>",
+            field_title="{entries[0][0]}",
+            inline_fields=False,
+            cols=10,
+            per_col=1,
+            init_page=int(page),
+            offender=offender,
+        )
 
-            await interaction.followup.send(embed=cases_embed)
-
-        else:
-            await interaction.followup.send(
-                "This person has too many cases and Hekkland is a dumbshit and doesn't know how to do pages!!!"
-            )
+        await view.send_followup(interaction)
 
     @get_case.subcommand(description="Used to get a case by Moderator")
     async def by_moderator(
@@ -117,33 +121,37 @@ class Cases(commands.Cog):
             name="moderator",
             description="The user whos cases you are looking for",
         ),
+        page: int = nextcord.SlashOption(
+            name="page",
+            description="The page you want to view",
+            min_value=1,
+            default=1,
+            required=False,
+        )
     ):
         if not await permcheck(interaction, is_mod):
             return
 
         await interaction.response.defer(ephemeral=False)
 
-        moderator_cases = fetch_moderator_cases(self.config, moderator)
-
-        case_amount = len(moderator_cases)
-
         cases_embed = SersiEmbed(title=f"{moderator.name}'s Cases")
+        cases_embed.set_thumbnail(moderator.display_avatar.url)
+        
+        view = PageView(
+            config=self.config,
+            base_embed=cases_embed,
+            fetch_function=fetch_moderator_cases,
+            author=interaction.user,
+            entry_form="{entry[1]} <t:{entry[2]}:R>",
+            field_title="{entries[0][0]}",
+            inline_fields=False,
+            cols=10,
+            per_col=1,
+            init_page=int(page),
+            moderator=moderator,
+        )
 
-        if case_amount < 11:
-            for case in range(0, case_amount):
-                cases_embed.add_field(
-                    name=moderator_cases[case][0],
-                    value=f"{moderator_cases[case][1]} <t:{moderator_cases[case][2]}:R>",
-                    inline=False,
-                )
-            cases_embed.set_thumbnail(moderator.display_avatar.url)
-
-            await interaction.followup.send(embed=cases_embed)
-
-        else:
-            await interaction.followup.send(
-                "This person has too many cases and Hekkland is a dumbshit and doesn't know how to do pages!!!"
-            )
+        await view.send_followup(interaction)
 
     @get_case.subcommand(description="Used to scrub a Sersi Case")
     async def scrub(

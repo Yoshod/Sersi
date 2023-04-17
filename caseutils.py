@@ -4,8 +4,7 @@ import shortuuid
 import time
 
 from configutils import Configuration
-from baseutils import SersiEmbed
-
+from baseutils import SersiEmbed, get_page
 
 def create_case(config: Configuration, unique_id: str, case_type: str, timestamp: int):
     conn = sqlite3.connect(config.datafiles.sersi_db)
@@ -454,7 +453,7 @@ def create_bad_faith_ping_case_embed(
     return case_embed
 
 
-def fetch_offender_cases(config: Configuration, offender: nextcord.Member):
+def fetch_offender_cases(config: Configuration, page: int, per_page: int, offender: nextcord.Member):
     conn = sqlite3.connect(config.datafiles.sersi_db)
     cursor = conn.cursor()
 
@@ -467,7 +466,6 @@ def fetch_offender_cases(config: Configuration, offender: nextcord.Member):
         UNION
         SELECT id, '`Bad Faith Ping`' as type, timestamp FROM bad_faith_ping_cases WHERE offender=:offender
         ORDER BY timestamp DESC
-        LIMIT 10
     """, {"offender": str(offender.id)})
 
     cases = cursor.fetchall()
@@ -477,10 +475,10 @@ def fetch_offender_cases(config: Configuration, offender: nextcord.Member):
 
     else:
         cases_list = [list(case) for case in cases]
-        return cases_list
+        return get_page(cases_list, page, per_page)
 
 
-def fetch_moderator_cases(config: Configuration, moderator: nextcord.Member):
+def fetch_moderator_cases(config: Configuration, page: int, per_page: int, moderator: nextcord.Member):
     conn = sqlite3.connect(config.datafiles.sersi_db)
     cursor = conn.cursor()
 
@@ -493,7 +491,6 @@ def fetch_moderator_cases(config: Configuration, moderator: nextcord.Member):
         UNION
         SELECT id, '`Slur Usage`' as type, timestamp FROM slur_cases WHERE moderator=:moderator
         ORDER BY timestamp DESC
-        LIMIT 10
     """, {"moderator": str(moderator.id)})
 
     cases = cursor.fetchall()
@@ -505,7 +502,7 @@ def fetch_moderator_cases(config: Configuration, moderator: nextcord.Member):
 
     else:
         cases_list = [list(case) for case in cases]
-        return cases_list
+        return get_page(cases_list, page, per_page)
 
 
 def fetch_all_cases(config: Configuration):
@@ -772,3 +769,6 @@ def delete_case(config: Configuration, case_id: str):
     else:
         conn.close()
         return False
+
+def case_history():
+    pass

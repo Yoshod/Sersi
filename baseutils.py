@@ -254,6 +254,8 @@ class PageView(View):
         fetch_function,
         author,
         entry_form="**•**\u00A0{entry}",
+        field_title="{start} \u2014 {end}",
+        inline_fields=True,
         cols=1,
         per_col=10,
         init_page=1,
@@ -274,6 +276,8 @@ class PageView(View):
         self.per_column = per_col
         self.embed_base = base_embed
         self.entry_format = entry_form
+        self.column_title = field_title
+        self.inline_fields = inline_fields
         self.get_entries = fetch_function
         self.message: nextcord.Message
 
@@ -293,18 +297,18 @@ class PageView(View):
         )
         cols = min(self.columns, 1 + (len(entries) - 1) // self.per_column)
         for col in range(1, cols + 1):
-            if col == cols:
-                embed.add_field(
-                    name="\u200b",
-                    value=self.make_column(entries[(col - 1) * self.per_column :]),
-                )
-            else:
-                embed.add_field(
-                    name="\u200b",
-                    value=self.make_column(
-                        entries[(col - 1) * self.per_column : col * self.per_column]
-                    ),
-                )
+            col_start = (col - 1) * self.per_column
+            col_end = len(entries) if col == cols else col * self.per_column
+            col_entries = entries[col_start:col_end]
+            embed.add_field(
+                name=self.column_title.format(
+                    start=col_start + 1,
+                    end=col_end,
+                    entries=col_entries
+                ),
+                value=self.make_column(col_entries),
+                inline=self.inline_fields,
+            )
         embed.set_footer(text=f"page {self.page}/{pages}")
         return embed
 
@@ -325,3 +329,6 @@ class PageView(View):
 
     async def send_embed(self, channel):
         self.message = await channel.send(embed=self.make_embed(self.page), view=self)
+
+    async def send_followup(self, interaction):
+        self.message = await interaction.followup.send(embed=self.make_embed(self.page), view=self)
