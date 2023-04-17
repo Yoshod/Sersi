@@ -206,6 +206,24 @@ def get_case_by_id(
             }
 
 
+def fetch_cases_by_partial_id(config: Configuration, case_id: str):
+    conn = sqlite3.connect(config.datafiles.sersi_db)
+    cursor = conn.cursor()
+
+    if case_id == "":
+        cursor.execute("SELECT * FROM cases LIMIT 10 ORDER BY timestamp DESC")
+    else:
+        cursor.execute("SELECT * FROM cases WHERE id LIKE ? LIMIT 10 ", (f"{case_id}%",))
+
+    rows = cursor.fetchall()
+
+    conn.close()
+
+    id_list = [row[0] for row in rows]
+
+    return id_list
+
+
 def create_slur_case_embed(
     sersi_case: dict, interaction: nextcord.Interaction
 ) -> SersiEmbed:

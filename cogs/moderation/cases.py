@@ -4,6 +4,7 @@ from nextcord.ext import commands
 from baseutils import SersiEmbed
 from caseutils import (
     get_case_by_id,
+    fetch_cases_by_partial_id,
     create_slur_case_embed,
     create_reformation_case_embed,
     create_probation_case_embed,
@@ -71,6 +72,16 @@ class Cases(commands.Cog):
                 case_embed = create_bad_faith_ping_case_embed(sersi_case, interaction)
 
         await interaction.followup.send(embed=case_embed)
+
+    @get_case.on_autocomplete("case_id")
+    async def cases_by_id(
+        self, interaction: nextcord.Interaction, case: str
+    ):
+        if not is_mod(interaction.user):
+            await interaction.response.send_autocomplete([])
+        
+        cases = fetch_cases_by_partial_id(self.config, case)
+        await interaction.response.send_autocomplete(cases)
 
     @get_case.subcommand(description="Used to get a case by Offender")
     async def by_offender(
