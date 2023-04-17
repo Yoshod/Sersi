@@ -126,6 +126,7 @@ def get_case_by_id(
 
             return {
                 "ID": f"{row[0]}",
+                "Case Type": case_type,
                 "Slur Used": f"{row[1]}",
                 "Report URL": f"{row[2]}",
                 "Offender ID": row[3],
@@ -146,6 +147,7 @@ def get_case_by_id(
 
             return {
                 "ID": f"{row[0]}",
+                "Case Type": case_type,
                 "Case Number": row[1],
                 "Offender ID": row[2],
                 "Moderator ID": row[3],
@@ -167,6 +169,7 @@ def get_case_by_id(
 
             return {
                 "ID": f"{row[0]}",
+                "Case Type": case_type,
                 "Offender ID": row[1],
                 "Initial Moderator ID": row[2],
                 "Approving Moderator ID": row[3],
@@ -187,6 +190,7 @@ def get_case_by_id(
 
             return {
                 "ID": f"{row[0]}",
+                "Case Type": case_type,
                 "Report URL": f"{row[1]}",
                 "Offender ID": row[2],
                 "Moderator ID": row[3],
