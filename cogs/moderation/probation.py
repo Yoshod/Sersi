@@ -4,7 +4,6 @@ from nextcord.ext import commands
 from baseutils import ConfirmView, DualCustodyView, SersiEmbed
 from configutils import Configuration
 from permutils import permcheck, is_mod, is_full_mod
-from caseutils import case_history, probation_case
 
 
 class Probation(commands.Cog):
@@ -14,17 +13,26 @@ class Probation(commands.Cog):
         self.sersisuccess = config.emotes.success
         self.sersifail = config.emotes.fail
 
-    @commands.command(aliases=["addp", "addprob", "pn"])
-    async def addprobation(
-        self, ctx: commands.Context, member: nextcord.Member, *, reason="not specified"
+    @nextcord.slash_command(
+        dm_permission=False,
+        guild_ids=[977377117895536640, 856262303795380224],
+        description="Puts a member into probation",
+    )
+    async def add_to_probation(
+        self,
+        interaction: nextcord.Interaction,
+        member: nextcord.Member,
+        reason: str = nextcord.SlashOption(required=False),
     ):
-        if not await permcheck(ctx, is_mod):
+        if not await permcheck(interaction, is_mod):
             return
 
-        probation_role = ctx.guild.get_role(self.config.roles.probation)
+        probation_role = interaction.guild.get_role(self.config.roles.probation)
 
         if probation_role in member.roles:
-            await ctx.reply(f"{self.sersifail} member is already in probation")
+            await interaction.send(
+                f"{self.sersifail} member is already in probation", ephemeral=True
+            )
             return
 
         @ConfirmView.query(
@@ -42,36 +50,36 @@ class Probation(commands.Cog):
             embed_args={
                 "User": member.mention,
                 "Reason": reason,
-                "Moderator": ctx.author.mention,
+                "Moderator": interaction.user.mention,
             },
         )
         async def execute(*args, confirming_moderator: nextcord.Member, **kwargs):
             await member.add_roles(probation_role, reason=reason, atomic=True)
 
-            unique_id = case_history(self.config, member.id, "Probation")
+            """unique_id = case_history(self.config, member.id, "Probation")
             probation_case(
                 self.config,
                 unique_id,
                 member.id,
-                ctx.author.id,
+                interaction.user.id,
                 confirming_moderator.id,
                 reason,
-            )
+            )"""
 
             log_embed = SersiEmbed(
                 title="Member put into Probation",
                 fields={
-                    "Resposible Moderator:": ctx.author.mention,
+                    "Responsible Moderator:": interaction.user.mention,
                     "Confirming Moderator:": confirming_moderator.mention,
                     "Member": member.mention,
                     "Reason:": reason,
                 },
             )
 
-            log_channel = ctx.guild.get_channel(self.config.channels.logging)
+            log_channel = interaction.guild.get_channel(self.config.channels.logging)
             await log_channel.send(embed=log_embed)
 
-            log_channel = ctx.guild.get_channel(self.config.channels.mod_logs)
+            log_channel = interaction.guild.get_channel(self.config.channels.mod_logs)
             await log_channel.send(embed=log_embed)
 
             dm_embed = SersiEmbed(
@@ -89,23 +97,27 @@ class Probation(commands.Cog):
                 fields={
                     "User": member.mention,
                     "Reason": reason,
-                    "Moderator": ctx.author.mention,
+                    "Moderator": interaction.user.mention,
                 },
             )
 
-        await execute(self.bot, self.config, ctx)
+        await execute(self.bot, self.config, interaction)
 
-    @commands.command(aliases=["rmp", "rmprob"])
-    async def removeprobation(
-        self, ctx: commands.Context, member: nextcord.Member, *, reason
+    @nextcord.slash_command(
+        dm_permission=False,
+        guild_ids=[977377117895536640, 856262303795380224],
+        description="Removes a member from probation",
+    )
+    async def remove_from_probation(
+        self, interaction: nextcord.Interaction, member: nextcord.Member, reason:str = nextcord.SlashOption(required=False)
     ):
-        if not await permcheck(ctx, is_mod):
+        if not await permcheck(interaction, is_mod):
             return
 
-        probation_role = ctx.guild.get_role(self.config.roles.probation)
+        probation_role:nextcord.Role = interaction.guild.get_role(self.config.roles.probation)
 
         if probation_role not in member.roles:
-            await ctx.reply(
+            await interaction.reply(
                 "Error: cannot remove user from probation, member is currently not in probation"
             )
             return
