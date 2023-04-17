@@ -10,9 +10,10 @@ from caseutils import (
     create_bad_faith_ping_case_embed,
     fetch_offender_cases,
     fetch_moderator_cases,
+    scrub_case,
 )
 from configutils import Configuration
-from permutils import permcheck, is_mod
+from permutils import permcheck, is_mod, is_senior_mod
 
 
 class Cases(commands.Cog):
@@ -27,6 +28,16 @@ class Cases(commands.Cog):
     )
     async def get_case(self, interaction: nextcord.Interaction):
         pass
+
+    @get_case.subcommand(description="Used to display all cases")
+    async def all_cases(
+        self,
+        interaction: nextcord.Interaction,
+    ):
+        if not await permcheck(interaction, is_mod):
+            return
+
+        await interaction.response.defer(ephemeral=False)
 
     @get_case.subcommand(description="Used to get a case by its ID")
     async def by_id(
@@ -131,6 +142,45 @@ class Cases(commands.Cog):
         else:
             await interaction.followup.send(
                 "This person has too many cases and Hekkland is a dumbshit and doesn't know how to do pages!!!"
+            )
+
+    @get_case.subcommand(description="Used to scrub a Sersi Case")
+    async def scrub(
+        self,
+        interaction: nextcord.Interaction,
+        case_id: str = nextcord.SlashOption(
+            name="case_id",
+            description="Case ID",
+            min_length=22,
+            max_length=22,
+        ),
+        reason: str = nextcord.SlashOption(
+            name="reason",
+            description="The reason you are scrubbing the case",
+            min_length=8,
+            max_length=1024,
+        ),
+    ):
+        if not await permcheck(interaction, is_senior_mod):
+            return
+
+        await interaction.response.defer(ephemeral=False)
+
+        outcome = scrub_case(
+            self.config,
+            case_id,
+            interaction.user,
+            reason,
+        )
+
+        if outcome:
+            interaction.followup.send(
+                f"{self.config.emotes.success} Case {case_id} successfully scrubbed."
+            )
+
+        else:
+            interaction.followup.send(
+                f"{self.config.emotes.fail} Case {case_id} has not been scrubbed. Please contact Sèitheach."
             )
 
 
