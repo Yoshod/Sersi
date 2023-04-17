@@ -121,6 +121,7 @@ def get_case_by_id(
 
             try:
                 row = cursor.fetchone()
+                cursor.close()
 
             except TypeError:
                 cursor.close()
@@ -142,6 +143,7 @@ def get_case_by_id(
 
             try:
                 row = cursor.fetchone()
+                cursor.close()
 
             except TypeError:
                 cursor.close()
@@ -164,6 +166,7 @@ def get_case_by_id(
 
             try:
                 row = cursor.fetchone()
+                cursor.close()
 
             except TypeError:
                 cursor.close()
@@ -185,6 +188,7 @@ def get_case_by_id(
 
             try:
                 row = cursor.fetchone()
+                cursor.close()
 
             except TypeError:
                 cursor.close()
@@ -428,3 +432,40 @@ def create_bad_faith_ping_case_embed(
     case_embed.set_footer(text="Sersi Case Tracking")
 
     return case_embed
+
+
+def fetch_offender_cases(config: Configuration, offender: nextcord.Member):
+    conn = sqlite3.connect(config.datafiles.sersi_db)
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "SELECT id, '`Bad Faith Ping`' as type, timestamp FROM bad_faith_ping_cases WHERE offender=?",
+        (str(offender.id),),
+    )
+    cases = cursor.fetchall()
+
+    cursor.execute(
+        "SELECT id, '`Probation`' as type, timestamp FROM probation_cases WHERE offender=?",
+        (str(offender.id),),
+    )
+    cases += cursor.fetchall()
+
+    cursor.execute(
+        "SELECT id, '`Reformation`' as type, timestamp FROM reformation_cases WHERE offender=?",
+        (str(offender.id),),
+    )
+    cases += cursor.fetchall()
+
+    cursor.execute(
+        "SELECT id, '`Slur Usage`' as type, timestamp FROM slur_cases WHERE offender=?",
+        (str(offender.id),),
+    )
+    cases += cursor.fetchall()
+
+    if not cases:
+        return None
+
+    else:
+        cases = sorted(cases, key=lambda x: x[2], reverse=True)
+        cases_list = [list(case) for case in cases]
+        return cases_list
