@@ -695,5 +695,21 @@ def scrub_case(
         return False
 
 
-def delete_case():
-    pass
+def delete_case(config: Configuration, case_id: str):
+    conn = sqlite3.connect(config.datafiles.sersi_db)
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM scrubbed_cases WHERE id=?", (case_id,))
+
+    case = cursor.fetchone()
+
+    if case:
+        cursor.execute("DELETE FROM scrubbed_cases WHERE id=?", (case_id,))
+
+        conn.commit()
+        conn.close()
+        return True
+
+    else:
+        conn.close()
+        return False
