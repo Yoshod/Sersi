@@ -9,6 +9,7 @@ from caseutils import (
     create_probation_case_embed,
     create_bad_faith_ping_case_embed,
     fetch_offender_cases,
+    fetch_moderator_cases,
 )
 from configutils import Configuration
 from permutils import permcheck, is_mod
@@ -88,6 +89,42 @@ class Cases(commands.Cog):
                     inline=False,
                 )
             cases_embed.set_thumbnail(offender.display_avatar.url)
+
+            await interaction.followup.send(embed=cases_embed)
+
+        else:
+            await interaction.followup.send(
+                "This person has too many cases and Hekkland is a dumbshit and doesn't know how to do pages!!!"
+            )
+
+    @get_case.subcommand(description="Used to get a case by Moderator")
+    async def by_moderator(
+        self,
+        interaction: nextcord.Interaction,
+        moderator: nextcord.Member = nextcord.SlashOption(
+            name="moderator",
+            description="The user whos cases you are looking for",
+        ),
+    ):
+        if not await permcheck(interaction, is_mod):
+            return
+
+        await interaction.response.defer(ephemeral=False)
+
+        moderator_cases = fetch_moderator_cases(self.config, moderator)
+
+        case_amount = len(moderator_cases)
+
+        cases_embed = SersiEmbed(title=f"{moderator.name}'s Cases")
+
+        if case_amount < 11:
+            for case in range(0, case_amount):
+                cases_embed.add_field(
+                    name=moderator_cases[case][0],
+                    value=f"{moderator_cases[case][1]} <t:{moderator_cases[case][2]}:R>",
+                    inline=False,
+                )
+            cases_embed.set_thumbnail(moderator.display_avatar.url)
 
             await interaction.followup.send(embed=cases_embed)
 
