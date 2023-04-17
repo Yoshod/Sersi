@@ -458,35 +458,24 @@ def fetch_offender_cases(config: Configuration, offender: nextcord.Member):
     conn = sqlite3.connect(config.datafiles.sersi_db)
     cursor = conn.cursor()
 
-    cursor.execute(
-        "SELECT id, '`Bad Faith Ping`' as type, timestamp FROM bad_faith_ping_cases WHERE offender=?",
-        (str(offender.id),),
-    )
+    cursor.execute("""
+        SELECT id, '`Probation`' as type, timestamp FROM probation_cases WHERE offender=:offender
+        UNION
+        SELECT id, '`Reformation`' as type, timestamp FROM reformation_cases WHERE offender=:offender
+        UNION
+        SELECT id, '`Slur Usage`' as type, timestamp FROM slur_cases WHERE offender=:offender
+        UNION
+        SELECT id, '`Bad Faith Ping`' as type, timestamp FROM bad_faith_ping_cases WHERE offender=:offender
+        ORDER BY timestamp DESC
+        LIMIT 10
+    """, {"offender": str(offender.id)})
+
     cases = cursor.fetchall()
-
-    cursor.execute(
-        "SELECT id, '`Probation`' as type, timestamp FROM probation_cases WHERE offender=?",
-        (str(offender.id),),
-    )
-    cases += cursor.fetchall()
-
-    cursor.execute(
-        "SELECT id, '`Reformation`' as type, timestamp FROM reformation_cases WHERE offender=?",
-        (str(offender.id),),
-    )
-    cases += cursor.fetchall()
-
-    cursor.execute(
-        "SELECT id, '`Slur Usage`' as type, timestamp FROM slur_cases WHERE offender=?",
-        (str(offender.id),),
-    )
-    cases += cursor.fetchall()
 
     if not cases:
         return None
 
     else:
-        cases = sorted(cases, key=lambda x: x[2], reverse=True)
         cases_list = [list(case) for case in cases]
         return cases_list
 
@@ -495,36 +484,26 @@ def fetch_moderator_cases(config: Configuration, moderator: nextcord.Member):
     conn = sqlite3.connect(config.datafiles.sersi_db)
     cursor = conn.cursor()
 
-    cursor.execute(
-        "SELECT id, '`Bad Faith Ping`' as type, timestamp FROM bad_faith_ping_cases WHERE moderator=?",
-        (str(moderator.id),),
-    )
+    cursor.execute("""
+        SELECT id, '`Bad Faith Ping`' as type, timestamp FROM bad_faith_ping_cases WHERE moderator=:moderator
+        UNION
+        SELECT id, '`Probation`' as type, timestamp FROM probation_cases WHERE initial_moderator=:moderator OR approving_moderator=:moderator
+        UNION
+        SELECT id, '`Reformation`' as type, timestamp FROM reformation_cases WHERE moderator=:moderator
+        UNION
+        SELECT id, '`Slur Usage`' as type, timestamp FROM slur_cases WHERE moderator=:moderator
+        ORDER BY timestamp DESC
+        LIMIT 10
+    """, {"moderator": str(moderator.id)})
+
     cases = cursor.fetchall()
 
-    cursor.execute(
-        "SELECT id, '`Probation`' as type, timestamp FROM probation_cases WHERE initial_moderator=? OR approving_moderator=?",
-        (str(moderator.id), str(moderator.id)),
-    )
-    cases += cursor.fetchall()
-
-    cursor.execute(
-        "SELECT id, '`Reformation`' as type, timestamp FROM reformation_cases WHERE moderator=?",
-        (str(moderator.id),),
-    )
-    cases += cursor.fetchall()
-
-    cursor.execute(
-        "SELECT id, '`Slur Usage`' as type, timestamp FROM slur_cases WHERE moderator=?",
-        (str(moderator.id),),
-    )
-    cases += cursor.fetchall()
     cursor.close()
 
     if not cases:
         return None
 
     else:
-        cases = sorted(cases, key=lambda x: x[2], reverse=True)
         cases_list = [list(case) for case in cases]
         return cases_list
 
