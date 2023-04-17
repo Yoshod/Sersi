@@ -211,7 +211,7 @@ def fetch_cases_by_partial_id(config: Configuration, case_id: str):
     cursor = conn.cursor()
 
     if case_id == "":
-        cursor.execute("SELECT * FROM cases LIMIT 10 ORDER BY timestamp DESC")
+        cursor.execute("SELECT * FROM cases ORDER BY timestamp DESC LIMIT 10")
     else:
         cursor.execute("SELECT * FROM cases WHERE id LIKE ? LIMIT 10 ", (f"{case_id}%",))
 

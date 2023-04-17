@@ -73,16 +73,6 @@ class Cases(commands.Cog):
 
         await interaction.followup.send(embed=case_embed)
 
-    @get_case.on_autocomplete("case_id")
-    async def cases_by_id(
-        self, interaction: nextcord.Interaction, case: str
-    ):
-        if not is_mod(interaction.user):
-            await interaction.response.send_autocomplete([])
-        
-        cases = fetch_cases_by_partial_id(self.config, case)
-        await interaction.response.send_autocomplete(cases)
-
     @get_case.subcommand(description="Used to get a case by Offender")
     async def by_offender(
         self,
@@ -193,6 +183,17 @@ class Cases(commands.Cog):
             await interaction.followup.send(
                 f"{self.config.emotes.fail} Case {case_id} has not been scrubbed. Please contact Sèitheach."
             )
+    
+    @by_id.on_autocomplete("case_id")
+    @scrub.on_autocomplete("case_id")
+    async def cases_by_id(
+        self, interaction: nextcord.Interaction, case: str
+    ):
+        if not is_mod(interaction.user):
+            await interaction.response.send_autocomplete([])
+        
+        cases = fetch_cases_by_partial_id(self.config, case)
+        await interaction.response.send_autocomplete(cases)
 
 
 def setup(bot, **kwargs):
