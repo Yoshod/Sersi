@@ -1,8 +1,14 @@
 import nextcord
 from nextcord.ext import commands
 
-from baseutils import PageView, SersiEmbed
-from caseutils import get_case_by_id
+from baseutils import PageView
+from caseutils import (
+    get_case_by_id,
+    create_slur_case_embed,
+    create_reformation_case_embed,
+    create_probation_case_embed,
+    create_bad_faith_ping_case_embed,
+)
 from configutils import Configuration
 from permutils import permcheck, is_mod
 
@@ -17,7 +23,11 @@ class Cases(commands.Cog):
         guild_ids=[977377117895536640, 856262303795380224],
         description="Used to get a case",
     )
-    async def get_case(
+    async def get_case(self, interaction: nextcord.Interaction):
+        pass
+
+    @get_case.subcommand(description="Used to get a case by its ID")
+    async def by_id(
         self,
         interaction: nextcord.Interaction,
         case_id: str = nextcord.SlashOption(
@@ -36,58 +46,32 @@ class Cases(commands.Cog):
 
         match (sersi_case["Case Type"]):
             case "Slur Usage":
-                case_embed = SersiEmbed()
-                case_embed.add_field(
-                    name="Case:", value=f"`{sersi_case['ID']}`", inline=True
-                )
-                case_embed.add_field(name="Type:", value="`Slur Usage`", inline=True)
+                case_embed = create_slur_case_embed(sersi_case, interaction)
 
-                moderator = interaction.guild.get_member(sersi_case["Moderator ID"])
+            case "Reformation":
+                case_embed = create_reformation_case_embed(sersi_case, interaction)
 
-                if not moderator:
-                    case_embed.add_field(
-                        name="Moderator:",
-                        value=f"`{sersi_case['Moderator ID']}`",
-                        inline=True,
-                    )
+            case "Probation":
+                case_embed = create_probation_case_embed(sersi_case, interaction)
 
-                else:
-                    case_embed.add_field(
-                        name="Moderator:", value=f"{moderator.mention}", inline=True
-                    )
-
-                offender = interaction.guild.get_member(sersi_case["Offender ID"])
-
-                if not offender:
-                    case_embed.add_field(
-                        name="Offender:",
-                        value=f"`{sersi_case['Offender ID']}`",
-                        inline=True,
-                    )
-
-                else:
-                    case_embed.add_field(
-                        name="Offender:", value=f"{offender.mention}", inline=True
-                    )
-                    case_embed.set_thumbnail(url=offender.display_avatar.url)
-
-                case_embed.add_field(
-                    name="Slur Used:", value=sersi_case["Slur Used"], inline=False
-                )
-
-                case_embed.add_field(
-                    name="Report URL:", value=sersi_case["Report URL"], inline=False
-                )
-
-                case_embed.add_field(
-                    name="Timestamp:",
-                    value=(f"<t:{sersi_case['Timestamp']}:R>"),
-                    inline=True,
-                )
-
-                case_embed.set_footer(text="Sersi Case Tracking")
+            case "Bad Faith Ping":
+                case_embed = create_bad_faith_ping_case_embed(sersi_case, interaction)
 
         await interaction.followup.send(embed=case_embed)
+
+    @get_case.subcommand(description="Used to get a case by Offender")
+    async def by_offender(
+        self,
+        interaction: nextcord.Interaction,
+        offender: nextcord.Member = nextcord.SlashOption(
+            name="offender",
+            description="The user whos cases you are looking for",
+        ),
+    ):
+        if not await permcheck(interaction, is_mod):
+            return
+
+        await interaction.response.defer(ephemeral=False)
 
 
 def setup(bot, **kwargs):
