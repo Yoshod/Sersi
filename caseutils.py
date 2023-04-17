@@ -674,11 +674,69 @@ def scrub_case(
 
     if case:
         case_type = case[1]
-        offender_id = case[2]
+
+        match (case_type):
+            case "Slur Usage":
+                cursor.execute("SELECT * FROM slur_cases WHERE id=?", (case_id,))
+
+                try:
+                    row = cursor.fetchone()
+
+                except TypeError:
+                    cursor.close()
+                    return False
+
+                offender_id = row[3]
+
+            case "Reformation":
+                cursor.execute("SELECT * FROM reformation_cases WHERE id=?", (case_id,))
+
+                try:
+                    row = cursor.fetchone()
+
+                except TypeError:
+                    cursor.close()
+                    return False
+
+                offender_id = row[2]
+
+            case "Probation":
+                cursor.execute("SELECT * FROM probation_cases WHERE id=?", (case_id,))
+
+                try:
+                    row = cursor.fetchone()
+
+                except TypeError:
+                    return False
+
+                offender_id = row[1]
+
+            case "Bad Faith Ping":
+                cursor.execute(
+                    "SELECT * FROM bad_faith_ping_cases WHERE id=?", (case_id,)
+                )
+
+                try:
+                    row = cursor.fetchone()
+
+                except TypeError:
+                    cursor.close()
+                    return False
+
+                offender_id = row[2]
+
+        print(case_id, case_type, offender_id, scrubber.id, reason, timestamp)
 
         cursor.execute(
-            "INSERT INTO scrubbed_cases (id, type, offender, scrubber, reason, timestamp)",
-            (case_id, case_type, offender_id, scrubber.id, reason, timestamp),
+            "INSERT INTO scrubbed_cases (id, type, offender, scrubber, reason, timestamp) VALUES (?, ?, ?, ?, ?, ?)",
+            (
+                case_id,
+                case_type,
+                int(offender_id),
+                int(scrubber.id),
+                reason,
+                int(timestamp),
+            ),
         )
 
         cursor.execute("DELETE FROM cases WHERE id=?", (case_id,))
