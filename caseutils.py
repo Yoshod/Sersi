@@ -556,11 +556,12 @@ def create_slur_case(
     cursor = conn.cursor()
 
     cursor.execute(
-        "INSERT INTO slur_cases (id, slur_used, report_url, offender, moderator, timestamp)",
+        "INSERT INTO slur_cases (id, slur_used, report_url, offender, moderator, timestamp) VALUES (?, ?, ?, ?, ?, ?)",
         (uuid, slur_used, report_url, offender.id, moderator.id, timestamp),
     )
     cursor.execute(
-        "INSERT INTO cases (id, type, timestamp)", (uuid, "Slur Usage", timestamp)
+        "INSERT INTO cases (id, type, timestamp) VALUES (?, ?, ?)",
+        (uuid, "Slur Usage", timestamp),
     )
 
     conn.commit()
@@ -582,7 +583,7 @@ def create_probation_case(
     cursor = conn.cursor()
 
     cursor.execute(
-        "INSERT INTO probation_cases (id, offender, initial_moderator, approving_moderator, reason, timestamp)",
+        "INSERT INTO probation_cases (id, offender, initial_moderator, approving_moderator, reason, timestamp) VALUES (?, ?, ?, ?, ?, ?)",
         (
             uuid,
             offender.id,
@@ -593,7 +594,8 @@ def create_probation_case(
         ),
     )
     cursor.execute(
-        "INSERT INTO cases (id, type, timestamp)", (uuid, "Probation", timestamp)
+        "INSERT INTO cases (id, type, timestamp) VALUES (?, ?, ?)",
+        (uuid, "Probation", timestamp),
     )
 
     conn.commit()
@@ -616,7 +618,7 @@ def create_reformation_case(
     cursor = conn.cursor()
 
     cursor.execute(
-        "INSERT INTO reformation_cases (id, case_number, offender, moderator, cell_id, reason, timestamp)",
+        "INSERT INTO reformation_cases (id, case_number, offender, moderator, cell_id, reason, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?)",
         (
             uuid,
             case_number,
@@ -628,7 +630,8 @@ def create_reformation_case(
         ),
     )
     cursor.execute(
-        "INSERT INTO cases (id, type, timestamp)", (uuid, "Reformation", timestamp)
+        "INSERT INTO cases (id, type, timestamp) VALUES (?, ?, ?)",
+        (uuid, "Reformation", timestamp),
     )
 
     conn.commit()
@@ -649,11 +652,12 @@ def create_bad_faith_ping_case(
     cursor = conn.cursor()
 
     cursor.execute(
-        "INSERT INTO bad_faith_ping_cases (id, report_url, offender, moderator, timestamp)",
+        "INSERT INTO bad_faith_ping_cases (id, report_url, offender, moderator, timestamp) VALUES (?, ?, ?, ?, ?)",
         (uuid, report_url, offender.id, moderator.id, timestamp),
     )
     cursor.execute(
-        "INSERT INTO cases (id, type, timestamp)", (uuid, "Bad Faith Ping", timestamp)
+        "INSERT INTO cases (id, type, timestamp) VALUES (?, ?, ?)",
+        (uuid, "Bad Faith Ping", timestamp),
     )
 
     conn.commit()
