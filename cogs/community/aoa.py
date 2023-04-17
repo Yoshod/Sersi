@@ -8,7 +8,7 @@ from nextcord.ui import Button, View, Modal
 
 from baseutils import SersiEmbed
 from configutils import Configuration
-from permutils import is_dark_mod, permcheck, is_senior_mod, is_cet, is_slt
+from permutils import is_dark_mod, permcheck, is_senior_mod, is_cet, is_slt, is_staff
 from permutils import is_mod
 
 
@@ -232,15 +232,17 @@ class AdultAccess(commands.Cog):
             max_length=1240,
         ),
     ):
-        if not await permcheck(interaction, is_mod) and not await permcheck(
-            interaction, is_cet
-        ):
+        if not await permcheck(interaction, is_staff):
             return
 
         await interaction.response.defer(ephemeral=True)
 
-        adult_access_role = member.guild.get_role(self.config.roles.adult_access)
-        adult_verified_role = member.guild.get_role(self.config.roles.adult_verified)
+        adult_access_role: nextcord.Role = member.guild.get_role(
+            self.config.roles.adult_access
+        )
+        adult_verified_role: nextcord.Role = member.guild.get_role(
+            self.config.roles.adult_verified
+        )
         try:
             await member.remove_roles(
                 adult_access_role,
