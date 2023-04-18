@@ -87,7 +87,7 @@ class Cases(commands.Cog):
             min_value=1,
             default=1,
             required=False,
-        )
+        ),
     ):
         if not await permcheck(interaction, is_mod):
             return
@@ -127,7 +127,7 @@ class Cases(commands.Cog):
             min_value=1,
             default=1,
             required=False,
-        )
+        ),
     ):
         if not await permcheck(interaction, is_mod):
             return
@@ -136,7 +136,7 @@ class Cases(commands.Cog):
 
         cases_embed = SersiEmbed(title=f"{moderator.name}'s Cases")
         cases_embed.set_thumbnail(moderator.display_avatar.url)
-        
+
         view = PageView(
             config=self.config,
             base_embed=cases_embed,
@@ -191,15 +191,13 @@ class Cases(commands.Cog):
             await interaction.followup.send(
                 f"{self.config.emotes.fail} Case {case_id} has not been scrubbed. Please contact Sèitheach."
             )
-    
+
     @by_id.on_autocomplete("case_id")
     @scrub.on_autocomplete("case_id")
-    async def cases_by_id(
-        self, interaction: nextcord.Interaction, case: str
-    ):
+    async def cases_by_id(self, interaction: nextcord.Interaction, case: str):
         if not is_mod(interaction.user):
             await interaction.response.send_autocomplete([])
-        
+
         cases = fetch_cases_by_partial_id(self.config, case)
         await interaction.response.send_autocomplete(cases)
 
