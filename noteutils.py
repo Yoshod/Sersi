@@ -23,6 +23,9 @@ def create_note(
         (str(unique_id), noted.id, noter.id, note, timestamp),
     )
 
+    conn.commit()
+    conn.close()
+
 
 def get_note_by_id(
     config: Configuration,
