@@ -159,7 +159,7 @@ class ConfirmView(nextcord.ui.View):
             async def confirm(
                 bot: commands.Bot,
                 config: configutils.Configuration,
-                ctx: commands.Context,
+                interaction: nextcord.Interaction,
             ):
                 embed_fields = embed_args.copy()
                 dialog_embed = SersiEmbed(
@@ -170,12 +170,10 @@ class ConfirmView(nextcord.ui.View):
 
                 async def cb_proceed(interaction: nextcord.Interaction):
                     await interaction.message.edit(view=None)
-                    dialog_embed = await func(bot, config, ctx)
-                    if dialog_embed is not None:
-                        await interaction.message.edit(embed=dialog_embed)
+                    await func(bot, config, interaction)
 
                 view = ConfirmView(cb_proceed)
-                await view.send_as_reply(ctx, embed=dialog_embed)
+                await view.send_as_followup_response(embed=dialog_embed, view=View)
 
             return confirm
 
@@ -206,21 +204,27 @@ class DualCustodyView(View):
 
     @staticmethod
     def query(
-        title: str, prompt: str, perms: callable, embed_args: dict = {}
+        title: str,
+        prompt: str,
+        perms: callable,
+        embed_args: dict = {},
+        bypass: bool = False,
     ) -> callable:
         def wrapper(func: callable) -> callable:
             async def dual_custody(
                 bot: commands.Bot,
                 config: configutils.Configuration,
-                ctx: commands.Context,
+                interaction: nextcord.Interaction,
             ) -> nextcord.Embed:
 
                 # if command used by admin, skip dual custody query
-                if is_dark_mod(ctx.author):
-                    return await func(bot, config, ctx, confirming_moderator=ctx.author)
+                if bypass and is_dark_mod(interaction.user):
+                    return await func(
+                        bot, config, interaction, confirming_moderator=interaction.user
+                    )
 
                 embed_fields = embed_args.copy()
-                embed_fields.update({"Moderator": ctx.author.mention})
+                embed_fields.update({"Moderator": interaction.user.mention})
                 dialog_embed = SersiEmbed(
                     title=title,
                     description=prompt,
@@ -230,7 +234,7 @@ class DualCustodyView(View):
                 async def cb_confirm(interaction: nextcord.Interaction):
                     await interaction.message.edit(view=None)
                     new_embed = await func(
-                        bot, config, ctx, confirming_moderator=interaction.user
+                        bot, config, interaction, confirming_moderator=interaction.user
                     )
                     if new_embed is None:
                         new_embed = dialog_embed
@@ -240,13 +244,14 @@ class DualCustodyView(View):
                     await interaction.message.edit(embed=new_embed)
 
                 channel = bot.get_channel(config.channels.alert)
-                view = DualCustodyView(cb_confirm, ctx.author, perms)
+                view = DualCustodyView(cb_confirm, interaction.user, perms)
                 await view.send_dialogue(channel, embed=dialog_embed)
 
-                return SersiEmbed(
+                await interaction.followup.send(embed=SersiEmbed(
                     title=title,
                     description="Pending review by another moderator",
-                )
+                    ephemeral=True,
+                ))
 
             return dual_custody
 

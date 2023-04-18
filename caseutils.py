@@ -550,20 +550,16 @@ def create_unique_id(config: Configuration):
     cursor = conn.cursor()
     uuid_unique = False
     while not uuid_unique:
-        uuid = str(shortuuid.ShortUUID())
+        uuid = str(shortuuid.uuid())
         cursor.execute(
-            "SELECT * FROM cases WHERE id = ?",
-            uuid,
+            """SELECT id FROM cases WHERE id=:id
+            UNION
+            SELECT id FROM notes WHERE id=:id""",
+            {"id": uuid},
         )
         cases = cursor.fetchone()
         if not cases:
-            cursor.execute(
-                "SELECT * FROM notes WHERE id = ?",
-                uuid,
-            )
-            cases = cursor.fetchone()
-            if not cases:
-                uuid_unique = True
+            uuid_unique = True
 
     cursor.close()
     return uuid
