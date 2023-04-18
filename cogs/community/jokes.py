@@ -1,13 +1,12 @@
-import nextcord
 import random
-import pytz
-from nextcord.ext import commands
-from datetime import datetime
 
+import nextcord
+from nextcord.ext import commands
+
+from baseutils import SersiEmbed
 from configutils import Configuration
 from permutils import is_mod
 from webhookutils import send_webhook_message
-from baseutils import SersiEmbed
 
 
 def generate_uwu(input_text: str) -> str:
@@ -89,9 +88,10 @@ class Jokes(commands.Cog):
             )
             nevermod_embed = SersiEmbed(
                 title="Self Nevermodded!",
-                description=f"Member {interaction.user.mention}({interaction.user.id}) thought they were being funny "
-                f"by running the nevermod command! Now they themselves have been nevermodded for their "
-                f"sins.",
+                description=f"Member {interaction.user.mention} ({interaction.user.id}) thought they were being funny "
+                "by running the nevermod command! Now they themselves have been nevermodded for their "
+                "sins.",
+                footer="Nevermod",
             )
 
         else:
@@ -101,11 +101,10 @@ class Jokes(commands.Cog):
             nevermod_embed = SersiEmbed(
                 title="Never Getting Mod",
                 description=f"Oh no! {member.mention} asked for mod in a public channel instead of applying through our "
-                f"application form! Now you’re never going to get mod… In fact, we even gave you a nice shiny "
+                "application form! Now you’re never going to get mod… In fact, we even gave you a nice shiny "
                 f"new role just to make sure you know that you {nevermod_role.mention}.",
+                footer="Nevermod",
             )
-
-        nevermod_embed.timestamp = datetime.now(pytz.UTC)
         await interaction.followup.send(embed=nevermod_embed)
 
     @commands.command()
