@@ -109,12 +109,17 @@ class Probation(commands.Cog):
         description="Removes a member from probation",
     )
     async def remove_from_probation(
-        self, interaction: nextcord.Interaction, member: nextcord.Member, reason:str = nextcord.SlashOption(required=False)
+        self,
+        interaction: nextcord.Interaction,
+        member: nextcord.Member,
+        reason: str = nextcord.SlashOption(required=False),
     ):
         if not await permcheck(interaction, is_mod):
             return
 
-        probation_role:nextcord.Role = interaction.guild.get_role(self.config.roles.probation)
+        probation_role: nextcord.Role = interaction.guild.get_role(
+            self.config.roles.probation
+        )
 
         if probation_role not in member.roles:
             await interaction.reply(

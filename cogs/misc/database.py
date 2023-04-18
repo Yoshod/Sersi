@@ -114,6 +114,15 @@ class Database(commands.Cog):
             timestamp INTEGER)"""
         )
 
+        cursor.execute(
+            """CREATE TABLE IF NOT EXISTS notes
+            (id TEXT PRIMARY KEY,
+            noted INTEGER,
+            noter INTEGER,
+            note TEXT,
+            timestamp INTEGER)"""
+        )
+
         conn.commit()
 
         conn.close()

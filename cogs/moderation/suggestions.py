@@ -32,19 +32,18 @@ class Suggestions(commands.Cog):
             required=False,
         ),
     ):
-        try:
+        has_image: bool = False
+        if image_suggestion is not None:
             if "image" in image_suggestion.content_type:
                 has_image = True
-
-        except AttributeError:
-            has_image = False
 
         suggestion_id = shortuuid.uuid()
 
         suggest_embed = SersiEmbed(
             title=f"New Suggestion By {interaction.user.display_name}",
             description=(
-                "A new suggestion has been submitted for review. Please make due considerations before deciding to publish the suggestion or reject it."
+                "A new suggestion has been submitted for review. Please make due considerations before deciding to "
+                "publish the suggestion or reject it."
             ),
             fields={
                 "Suggester:": f"{interaction.user.mention} ({interaction.user.id})",

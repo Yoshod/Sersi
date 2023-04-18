@@ -12,6 +12,7 @@ from caseutils import (
     fetch_offender_cases,
     fetch_moderator_cases,
     scrub_case,
+    fetch_all_cases,
 )
 from configutils import Configuration
 from permutils import permcheck, is_mod, is_senior_mod
@@ -34,11 +35,36 @@ class Cases(commands.Cog):
     async def all_cases(
         self,
         interaction: nextcord.Interaction,
+        page: int = nextcord.SlashOption(
+            name="page",
+            description="The page you want to view",
+            min_value=1,
+            default=1,
+            required=False,
+        ),
     ):
         if not await permcheck(interaction, is_mod):
             return
 
         await interaction.response.defer(ephemeral=False)
+
+        cases_embed = SersiEmbed(title=f"{interaction.guild.name} Cases")
+        cases_embed.set_thumbnail(interaction.guild.icon.url)
+
+        view = PageView(
+            config=self.config,
+            base_embed=cases_embed,
+            fetch_function=fetch_all_cases,
+            author=interaction.user,
+            entry_form="{entry[1]} <t:{entry[2]}:R>",
+            field_title="{entries[0][0]}",
+            inline_fields=False,
+            cols=10,
+            per_col=1,
+            init_page=int(page),
+        )
+
+        await view.send_followup(interaction)
 
     @get_case.subcommand(description="Used to get a case by its ID")
     async def by_id(

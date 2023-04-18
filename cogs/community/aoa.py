@@ -9,7 +9,6 @@ from nextcord.ui import Button, View, Modal
 from baseutils import SersiEmbed
 from configutils import Configuration
 from permutils import is_dark_mod, permcheck, is_senior_mod, is_cet, is_slt, is_staff
-from permutils import is_mod
 
 
 class AdultAccessModal(Modal):
