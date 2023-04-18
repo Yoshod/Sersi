@@ -4,8 +4,7 @@ import shortuuid
 import time
 
 from configutils import Configuration
-from baseutils import SersiEmbed
-
+from baseutils import SersiEmbed, get_page
 
 def create_case(config: Configuration, unique_id: str, case_type: str, timestamp: int):
     conn = sqlite3.connect(config.datafiles.sersi_db)
@@ -204,6 +203,24 @@ def get_case_by_id(
                 "Moderator ID": row[3],
                 "Timestamp": row[4],
             }
+
+
+def fetch_cases_by_partial_id(config: Configuration, case_id: str):
+    conn = sqlite3.connect(config.datafiles.sersi_db)
+    cursor = conn.cursor()
+
+    if case_id == "":
+        cursor.execute("SELECT * FROM cases ORDER BY timestamp DESC LIMIT 10")
+    else:
+        cursor.execute("SELECT * FROM cases WHERE id LIKE ? LIMIT 10 ", (f"{case_id}%",))
+
+    rows = cursor.fetchall()
+
+    conn.close()
+
+    id_list = [row[0] for row in rows]
+
+    return id_list
 
 
 def create_slur_case_embed(
@@ -436,79 +453,56 @@ def create_bad_faith_ping_case_embed(
     return case_embed
 
 
-def fetch_offender_cases(config: Configuration, offender: nextcord.Member):
+def fetch_offender_cases(config: Configuration, page: int, per_page: int, offender: nextcord.Member):
     conn = sqlite3.connect(config.datafiles.sersi_db)
     cursor = conn.cursor()
 
-    cursor.execute(
-        "SELECT id, '`Bad Faith Ping`' as type, timestamp FROM bad_faith_ping_cases WHERE offender=?",
-        (str(offender.id),),
-    )
+    cursor.execute("""
+        SELECT id, '`Probation`' as type, timestamp FROM probation_cases WHERE offender=:offender
+        UNION
+        SELECT id, '`Reformation`' as type, timestamp FROM reformation_cases WHERE offender=:offender
+        UNION
+        SELECT id, '`Slur Usage`' as type, timestamp FROM slur_cases WHERE offender=:offender
+        UNION
+        SELECT id, '`Bad Faith Ping`' as type, timestamp FROM bad_faith_ping_cases WHERE offender=:offender
+        ORDER BY timestamp DESC
+    """, {"offender": str(offender.id)})
+
     cases = cursor.fetchall()
-
-    cursor.execute(
-        "SELECT id, '`Probation`' as type, timestamp FROM probation_cases WHERE offender=?",
-        (str(offender.id),),
-    )
-    cases += cursor.fetchall()
-
-    cursor.execute(
-        "SELECT id, '`Reformation`' as type, timestamp FROM reformation_cases WHERE offender=?",
-        (str(offender.id),),
-    )
-    cases += cursor.fetchall()
-
-    cursor.execute(
-        "SELECT id, '`Slur Usage`' as type, timestamp FROM slur_cases WHERE offender=?",
-        (str(offender.id),),
-    )
-    cases += cursor.fetchall()
 
     if not cases:
         return None
 
     else:
-        cases = sorted(cases, key=lambda x: x[2], reverse=True)
         cases_list = [list(case) for case in cases]
-        return cases_list
+        return get_page(cases_list, page, per_page)
 
 
-def fetch_moderator_cases(config: Configuration, moderator: nextcord.Member):
+def fetch_moderator_cases(config: Configuration, page: int, per_page: int, moderator: nextcord.Member):
     conn = sqlite3.connect(config.datafiles.sersi_db)
     cursor = conn.cursor()
 
-    cursor.execute(
-        "SELECT id, '`Bad Faith Ping`' as type, timestamp FROM bad_faith_ping_cases WHERE moderator=?",
-        (str(moderator.id),),
-    )
+    cursor.execute("""
+        SELECT id, '`Bad Faith Ping`' as type, timestamp FROM bad_faith_ping_cases WHERE moderator=:moderator
+        UNION
+        SELECT id, '`Probation`' as type, timestamp FROM probation_cases WHERE initial_moderator=:moderator OR approving_moderator=:moderator
+        UNION
+        SELECT id, '`Reformation`' as type, timestamp FROM reformation_cases WHERE moderator=:moderator
+        UNION
+        SELECT id, '`Slur Usage`' as type, timestamp FROM slur_cases WHERE moderator=:moderator
+        ORDER BY timestamp DESC
+    """, {"moderator": str(moderator.id)})
+
     cases = cursor.fetchall()
 
-    cursor.execute(
-        "SELECT id, '`Probation`' as type, timestamp FROM probation_cases WHERE initial_moderator=? OR approving_moderator=?",
-        (str(moderator.id), str(moderator.id)),
-    )
-    cases += cursor.fetchall()
-
-    cursor.execute(
-        "SELECT id, '`Reformation`' as type, timestamp FROM reformation_cases WHERE moderator=?",
-        (str(moderator.id),),
-    )
-    cases += cursor.fetchall()
-
-    cursor.execute(
-        "SELECT id, '`Slur Usage`' as type, timestamp FROM slur_cases WHERE moderator=?",
-        (str(moderator.id),),
-    )
-    cases += cursor.fetchall()
     cursor.close()
 
     if not cases:
         return None
 
     else:
-        cases = sorted(cases, key=lambda x: x[2], reverse=True)
         cases_list = [list(case) for case in cases]
-        return cases_list
+        return get_page(cases_list, page, per_page)
 
 
 def fetch_all_cases(config: Configuration):
@@ -556,11 +550,12 @@ def create_slur_case(
     cursor = conn.cursor()
 
     cursor.execute(
-        "INSERT INTO slur_cases (id, slur_used, report_url, offender, moderator, timestamp)",
+        "INSERT INTO slur_cases (id, slur_used, report_url, offender, moderator, timestamp) VALUES (?, ?, ?, ?, ?, ?)",
         (uuid, slur_used, report_url, offender.id, moderator.id, timestamp),
     )
     cursor.execute(
-        "INSERT INTO cases (id, type, timestamp)", (uuid, "Slur Usage", timestamp)
+        "INSERT INTO cases (id, type, timestamp) VALUES (?, ?, ?)",
+        (uuid, "Slur Usage", timestamp),
     )
 
     conn.commit()
@@ -582,7 +577,7 @@ def create_probation_case(
     cursor = conn.cursor()
 
     cursor.execute(
-        "INSERT INTO probation_cases (id, offender, initial_moderator, approving_moderator, reason, timestamp)",
+        "INSERT INTO probation_cases (id, offender, initial_moderator, approving_moderator, reason, timestamp) VALUES (?, ?, ?, ?, ?, ?)",
         (
             uuid,
             offender.id,
@@ -593,7 +588,8 @@ def create_probation_case(
         ),
     )
     cursor.execute(
-        "INSERT INTO cases (id, type, timestamp)", (uuid, "Probation", timestamp)
+        "INSERT INTO cases (id, type, timestamp) VALUES (?, ?, ?)",
+        (uuid, "Probation", timestamp),
     )
 
     conn.commit()
@@ -616,7 +612,7 @@ def create_reformation_case(
     cursor = conn.cursor()
 
     cursor.execute(
-        "INSERT INTO reformation_cases (id, case_number, offender, moderator, cell_id, reason, timestamp)",
+        "INSERT INTO reformation_cases (id, case_number, offender, moderator, cell_id, reason, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?)",
         (
             uuid,
             case_number,
@@ -628,7 +624,8 @@ def create_reformation_case(
         ),
     )
     cursor.execute(
-        "INSERT INTO cases (id, type, timestamp)", (uuid, "Reformation", timestamp)
+        "INSERT INTO cases (id, type, timestamp) VALUES (?, ?, ?)",
+        (uuid, "Reformation", timestamp),
     )
 
     conn.commit()
@@ -649,11 +646,12 @@ def create_bad_faith_ping_case(
     cursor = conn.cursor()
 
     cursor.execute(
-        "INSERT INTO bad_faith_ping_cases (id, report_url, offender, moderator, timestamp)",
+        "INSERT INTO bad_faith_ping_cases (id, report_url, offender, moderator, timestamp) VALUES (?, ?, ?, ?, ?)",
         (uuid, report_url, offender.id, moderator.id, timestamp),
     )
     cursor.execute(
-        "INSERT INTO cases (id, type, timestamp)", (uuid, "Bad Faith Ping", timestamp)
+        "INSERT INTO cases (id, type, timestamp) VALUES (?, ?, ?)",
+        (uuid, "Bad Faith Ping", timestamp),
     )
 
     conn.commit()
@@ -771,3 +769,6 @@ def delete_case(config: Configuration, case_id: str):
     else:
         conn.close()
         return False
+
+def case_history():
+    pass
