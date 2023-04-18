@@ -557,7 +557,13 @@ def create_unique_id(config: Configuration):
         )
         cases = cursor.fetchone()
         if not cases:
-            uuid_unique = True
+            cursor.execute(
+                "SELECT * FROM notes WHERE id = ?",
+                uuid,
+            )
+            cases = cursor.fetchone()
+            if not cases:
+                uuid_unique = True
 
     cursor.close()
     return uuid
