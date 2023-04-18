@@ -58,8 +58,6 @@ class Caps(commands.Cog):
                 cleaned_message += line
             msg_string = cleaned_message
 
-        print("msg_string", msg_string)
-
         # count uppercase chars
         uppercase = sum(1 for char in new_msg_string if char.isupper())
 
