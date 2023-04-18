@@ -2,8 +2,9 @@ import nextcord
 from nextcord.ext import commands
 import re
 
+from baseutils import SersiEmbed
 from configutils import Configuration
-from permutils import permcheck, is_mod
+from permutils import permcheck, is_mod, is_staff
 from webhookutils import send_webhook_message
 
 
@@ -35,6 +36,7 @@ class Caps(commands.Cog):
     async def on_message(self, message):
         if message.author.bot:  # ignores message if message is by bot
             return
+        need_replacement: bool = False
 
         # remove emotes
         msg_string = re.sub(r"(<a?)?:\w+:(\d{18}>)?", "", message.content)
@@ -42,18 +44,32 @@ class Caps(commands.Cog):
         # remove nums and non-alpanumeric
         new_msg_string = re.sub(r"[\W0-9]", "", msg_string)
 
-        if len(new_msg_string) < int(
-            self.MIN_CHARS_FOR_DETECTION
-        ):  # should be an int, somehow isn't
-            return
+        # remove markdown headers
+        if not is_staff(
+            message.author
+        ):  # if any staff member abuses this fucking purge them
+            cleaned_message: str = ""
+            for line in msg_string.splitlines():
+                if line.startswith(("# ", "## ", "### ")):
+                    need_replacement = True
 
-        # msg_string = unidecode.unidecode(msg_string)
+                    line = line.replace("# ", "")
+                    line = line.replace("## ", "")
+                    line = line.replace("### ", "")
+                cleaned_message += line
+            msg_string = cleaned_message
 
+        print("msg_string", msg_string)
+
+        # count uppercase chars
         uppercase = sum(1 for char in new_msg_string if char.isupper())
 
-        percentage = uppercase / len(new_msg_string)
+        if (uppercase / len(new_msg_string)) > 0.7 and len(new_msg_string) > int(
+            self.MIN_CHARS_FOR_DETECTION
+        ):
+            need_replacement = True
 
-        if percentage < 0.7:
+        if not need_replacement:
             return
 
         await message.delete(delay=None)
@@ -67,29 +83,18 @@ class Caps(commands.Cog):
         )
 
         channel = self.bot.get_channel(self.config.channels.logging)
-        logging_embed = nextcord.Embed(
+        logging_embed: nextcord.Embed = SersiEmbed(
             title="Caps Lock Message replaced",
             description="",
             color=nextcord.Color.from_rgb(237, 91, 6),
-        )
-        logging_embed.add_field(
-            name="User:", value=message.author.mention, inline=False
-        )
-        logging_embed.add_field(
-            name="Channel:", value=message.channel.mention, inline=False
-        )
-        logging_embed.add_field(
-            name="Original Message:", value=msg_string, inline=False
-        )
-        logging_embed.add_field(
-            name="Replacement Message:",
-            value=str(msg_string.lower()),
-            inline=False,
-        )
-        logging_embed.add_field(
-            name="Link to Replacement Message:",
-            value=f"[Jump!]({replacement_message.jump_url})",
-            inline=True,
+            fields={
+                "User:": message.author.mention,
+                "Channel:": message.channel.mention,
+                "Original Message:": message.content,
+                "Replacement Message:": msg_string.lower(),
+                "Link to Replacement Message:": f"[Jump!]({replacement_message.jump_url})",
+            },
+            footer="Sersi Caps Removal",
         )
         await channel.send(embed=logging_embed)
 
