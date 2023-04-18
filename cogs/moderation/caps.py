@@ -45,21 +45,18 @@ class Caps(commands.Cog):
         new_msg_string = re.sub(r"[\W0-9]", "", msg_string)
 
         # remove markdown headers
-        if not is_staff(
-            message.author
-        ):  # if any staff member abuses this fucking purge them
+        if not is_staff(message.author):
             cleaned_message: str = ""
             for line in msg_string.splitlines():
                 if line.startswith(("# ", "## ", "### ")):
                     need_replacement = True
 
-                    line = line.replace("# ", "")
-                    line = line.replace("## ", "")
                     line = line.replace("### ", "")
+                    line = line.replace("## ", "")
+                    line = line.replace("# ", "")
+
                 cleaned_message += line
             msg_string = cleaned_message
-
-        print("msg_string", msg_string)
 
         # count uppercase chars
         uppercase = sum(1 for char in new_msg_string if char.isupper())

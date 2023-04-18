@@ -11,6 +11,13 @@ from permutils import permcheck, is_dark_mod
 # config = configutils.Configuration.from_yaml_file("./persistent_data/config.yaml")
 
 
+def get_discord_timestamp(time: datetime, *, relative: bool = False) -> str:
+    if relative:
+        return f"<t:{int(time.timestamp())}:R>"
+    else:
+        return f"<t:{int(time.timestamp())}:f>"
+
+
 class SersiEmbed(nextcord.Embed):
     def __init__(
         self,
@@ -302,9 +309,7 @@ class PageView(View):
             col_entries = entries[col_start:col_end]
             embed.add_field(
                 name=self.column_title.format(
-                    start=col_start + 1,
-                    end=col_end,
-                    entries=col_entries
+                    start=col_start + 1, end=col_end, entries=col_entries
                 ),
                 value=self.make_column(col_entries),
                 inline=self.inline_fields,
@@ -331,4 +336,6 @@ class PageView(View):
         self.message = await channel.send(embed=self.make_embed(self.page), view=self)
 
     async def send_followup(self, interaction):
-        self.message = await interaction.followup.send(embed=self.make_embed(self.page), view=self)
+        self.message = await interaction.followup.send(
+            embed=self.make_embed(self.page), view=self
+        )

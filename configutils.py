@@ -73,6 +73,9 @@ class ConfigurationChannels(YAMLWizard):
     verification_ticket_logs: int
     deleted_messages: int
     role_logs: int
+    deleted_messages: int
+    deleted_images: int
+    edited_messages: int
 
 
 @dataclass
