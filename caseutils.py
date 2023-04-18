@@ -6,6 +6,7 @@ import time
 from configutils import Configuration
 from baseutils import SersiEmbed, get_page
 
+
 def create_case(config: Configuration, unique_id: str, case_type: str, timestamp: int):
     conn = sqlite3.connect(config.datafiles.sersi_db)
     cursor = conn.cursor()
@@ -212,7 +213,9 @@ def fetch_cases_by_partial_id(config: Configuration, case_id: str):
     if case_id == "":
         cursor.execute("SELECT * FROM cases ORDER BY timestamp DESC LIMIT 10")
     else:
-        cursor.execute("SELECT * FROM cases WHERE id LIKE ? LIMIT 10 ", (f"{case_id}%",))
+        cursor.execute(
+            "SELECT * FROM cases WHERE id LIKE ? LIMIT 10 ", (f"{case_id}%",)
+        )
 
     rows = cursor.fetchall()
 
@@ -453,11 +456,41 @@ def create_bad_faith_ping_case_embed(
     return case_embed
 
 
-def fetch_offender_cases(config: Configuration, page: int, per_page: int, offender: nextcord.Member):
+def fetch_all_cases(config: Configuration, page: int, per_page: int):
     conn = sqlite3.connect(config.datafiles.sersi_db)
     cursor = conn.cursor()
 
-    cursor.execute("""
+    cursor.execute(
+        """
+        SELECT id, '`Probation`' as type, timestamp FROM probation_cases
+        UNION
+        SELECT id, '`Reformation`' as type, timestamp FROM reformation_cases
+        UNION
+        SELECT id, '`Slur Usage`' as type, timestamp FROM slur_cases
+        UNION
+        SELECT id, '`Bad Faith Ping`' as type, timestamp FROM bad_faith_ping_cases
+        ORDER BY timestamp DESC
+    """,
+    )
+
+    cases = cursor.fetchall()
+
+    if not cases:
+        return None
+
+    else:
+        cases_list = [list(case) for case in cases]
+        return get_page(cases_list, page, per_page)
+
+
+def fetch_offender_cases(
+    config: Configuration, page: int, per_page: int, offender: nextcord.Member
+):
+    conn = sqlite3.connect(config.datafiles.sersi_db)
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
         SELECT id, '`Probation`' as type, timestamp FROM probation_cases WHERE offender=:offender
         UNION
         SELECT id, '`Reformation`' as type, timestamp FROM reformation_cases WHERE offender=:offender
@@ -466,7 +499,9 @@ def fetch_offender_cases(config: Configuration, page: int, per_page: int, offend
         UNION
         SELECT id, '`Bad Faith Ping`' as type, timestamp FROM bad_faith_ping_cases WHERE offender=:offender
         ORDER BY timestamp DESC
-    """, {"offender": str(offender.id)})
+    """,
+        {"offender": str(offender.id)},
+    )
 
     cases = cursor.fetchall()
 
@@ -478,11 +513,14 @@ def fetch_offender_cases(config: Configuration, page: int, per_page: int, offend
         return get_page(cases_list, page, per_page)
 
 
-def fetch_moderator_cases(config: Configuration, page: int, per_page: int, moderator: nextcord.Member):
+def fetch_moderator_cases(
+    config: Configuration, page: int, per_page: int, moderator: nextcord.Member
+):
     conn = sqlite3.connect(config.datafiles.sersi_db)
     cursor = conn.cursor()
 
-    cursor.execute("""
+    cursor.execute(
+        """
         SELECT id, '`Bad Faith Ping`' as type, timestamp FROM bad_faith_ping_cases WHERE moderator=:moderator
         UNION
         SELECT id, '`Probation`' as type, timestamp FROM probation_cases WHERE initial_moderator=:moderator OR approving_moderator=:moderator
@@ -491,7 +529,9 @@ def fetch_moderator_cases(config: Configuration, page: int, per_page: int, moder
         UNION
         SELECT id, '`Slur Usage`' as type, timestamp FROM slur_cases WHERE moderator=:moderator
         ORDER BY timestamp DESC
-    """, {"moderator": str(moderator.id)})
+    """,
+        {"moderator": str(moderator.id)},
+    )
 
     cases = cursor.fetchall()
 
@@ -503,18 +543,6 @@ def fetch_moderator_cases(config: Configuration, page: int, per_page: int, moder
     else:
         cases_list = [list(case) for case in cases]
         return get_page(cases_list, page, per_page)
-
-
-def fetch_all_cases(config: Configuration):
-    conn = sqlite3.connect(config.datafiles.sersi_db)
-    cursor = conn.cursor()
-
-    cursor.execute("SELECT * FROM cases")
-    cases = cursor.fetchall()
-    cursor.close()
-    cases = sorted(cases, key=lambda x: x[2], reverse=True)
-    cases_list = [list(case) for case in cases]
-    return cases_list
 
 
 def create_unique_id(config: Configuration):
@@ -769,6 +797,7 @@ def delete_case(config: Configuration, case_id: str):
     else:
         conn.close()
         return False
+
 
 def case_history():
     pass
