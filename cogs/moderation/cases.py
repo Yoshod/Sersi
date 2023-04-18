@@ -12,6 +12,7 @@ from caseutils import (
     fetch_offender_cases,
     fetch_moderator_cases,
     scrub_case,
+    fetch_all_cases,
 )
 from configutils import Configuration
 from permutils import permcheck, is_mod, is_senior_mod
@@ -53,7 +54,7 @@ class Cases(commands.Cog):
         view = PageView(
             config=self.config,
             base_embed=cases_embed,
-            fetch_function=fetch_offender_cases,
+            fetch_function=fetch_all_cases,
             author=interaction.user,
             entry_form="{entry[1]} <t:{entry[2]}:R>",
             field_title="{entries[0][0]}",
