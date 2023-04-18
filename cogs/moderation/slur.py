@@ -303,13 +303,32 @@ class Slur(commands.Cog):
         await channel.send(embed=embedVar)
         await ctx.send(f"{self.sersisuccess} Goodword added. Detection will start now.")
 
-    @commands.command(aliases=["rmsl", "rmslur", "removesl"])
-    async def remove_slur(self, ctx: commands.Context, slur: str):
-        if not await permcheck(ctx, is_full_mod):
+    @nextcord.slash_command(
+        dm_permission=False,
+        guild_ids=[977377117895536640, 856262303795380224],
+        description="Remove a slur from the list of slurs.",
+    )
+    async def remove_slur(
+        self,
+        interaction: nextcord.Interaction,
+        slur: str = nextcord.SlashOption(
+            description="The slur to remove from the list of slurs.",
+            required=True,
+        ),
+        bypass_reason: str = nextcord.SlashOption(
+            description="(Mega Administrator only!) Reason to bypass dual custody",
+            min_length=8,
+            max_length=1024,
+            required=False,
+        ),
+    ):  
+        if not await permcheck(interaction, is_full_mod):
             return
+        
+        await interaction.response.defer(ephemeral=False)
 
         if slur not in get_slurs():
-            await ctx.send(f"{self.sersifail} {slur} is not on the slur list.")
+            await interaction.followup.send(f"{self.sersifail} {slur} is not on the slur list.")
             return
 
         @DualCustodyView.query(
@@ -317,26 +336,42 @@ class Slur(commands.Cog):
             prompt="Following slur will be removed from slur detection:",
             perms=is_full_mod,
             embed_args={"Slur": slur},
+            bypass=True if bypass_reason else False,
         )
         async def execute(*args, confirming_moderator: nextcord.Member, **kwargs):
             rm_slur(slur)
 
-            # logging
+             # logging
+            embed_fields = {
+                "Slur Removed:": slur,
+                "Removed By:": f"{interaction.user.mention} ({interaction.user.id})"
+            }
+            if bypass_reason:
+                embed_fields["Dual Custody Bypass Reason"] = bypass_reason
+            else:
+                embed_fields["Confirming Moderator:"] = f"{confirming_moderator.mention} ({confirming_moderator.id})"
+            
             channel = self.bot.get_channel(self.config.channels.logging)
             embed_var = SersiEmbed(
                 title="Slur Removed",
                 description="A slur has been removed from the filter.",
-                fields={
-                    "Removed By:": f"{ctx.author.mention} ({ctx.author.id})",
-                    "Confirming Moderator:": f"{confirming_moderator.mention} ({confirming_moderator.id})",
-                    "Slur Removed:": slur,
-                },
+                fields=embed_fields,
             )
+            if bypass_reason:
+                await interaction.followup.send(embed=embed_var)
             await channel.send(embed=embed_var)
 
-        embed = await execute(self.bot, self.config, ctx)
-        if embed is not None:
-            await ctx.reply(embed=embed)
+        await execute(self.bot, self.config, interaction)
+
+    @remove_slur.on_autocomplete("slur")
+    async def list_slurs(self, interaction: nextcord.Interaction, input: str):
+        if not is_mod(interaction.user):
+            await interaction.response.send_autocomplete([])
+
+        slurs = [
+            slur for slur in get_slurs() if slur.lower().startswith(input.lower())
+        ]
+        await interaction.response.send_autocomplete(slurs)
 
     @commands.command(aliases=["rmgw", "rmgoodword", "removegw"])
     async def removegoodword(self, ctx, word):
