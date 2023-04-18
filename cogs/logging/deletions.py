@@ -23,10 +23,13 @@ class Deletions(commands.Cog):
             self.config.channels.deleted_images
         )
 
-        async for entry in message.guild.audit_logs(
+        message_has_images: bool = False
+
+        entries = await message.guild.audit_logs(
             action=nextcord.AuditLogAction.message_delete, limit=1
-        ):
-            log: nextcord.AuditLogEntry = entry
+        ).flatten()
+
+        log: nextcord.AuditLogEntry = entries[0]
 
         if log is None:
             return
@@ -76,6 +79,7 @@ class Deletions(commands.Cog):
                 inline=False,
             )
             if "image" in attachment.content_type and not logging_embed.image:
+                message_has_images = True
                 logging_embed.set_image(attachment.url)
             elif "image" in attachment.content_type:
                 further_images.append(
@@ -85,6 +89,8 @@ class Deletions(commands.Cog):
                 )
 
         await deleted_messages.send(embeds=[logging_embed, *further_images])
+        if message_has_images:
+            await deleted_images.send(embeds=[logging_embed, *further_images])
 
 
 def setup(bot, **kwargs):
