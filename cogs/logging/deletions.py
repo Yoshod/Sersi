@@ -23,7 +23,7 @@ class Deletions(commands.Cog):
             self.config.channels.deleted_images
         )
 
-        message_has_images:bool = False
+        message_has_images: bool = False
 
         entries = await message.guild.audit_logs(
             action=nextcord.AuditLogAction.message_delete, limit=1
