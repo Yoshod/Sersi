@@ -4,14 +4,6 @@ from nextcord.ext import commands
 
 from baseutils import SersiEmbed, PageView
 from noteutils import (
-    get_note_by_id,
-    fetch_notes_by_partial_id,
-    create_note_embed,
-    fetch_noted_notes,
-    fetch_noter_notes,
-    delete_note,
-    fetch_all_notes,
-    delete_all_notes,
     create_note,
 )
 from configutils import Configuration

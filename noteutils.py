@@ -21,8 +21,8 @@ def create_note(
     unique_id = create_unique_id(config)
 
     cursor.execute(
-        """INSERT INTO notes (id, noted, noter, note, timestamp) VALUES (?, ?, ?, ?, ?) VALUES """,
-        (unique_id, noted.id, noter.id, note, timestamp),
+        """INSERT INTO notes (id, noted, noter, note, timestamp) VALUES (?, ?, ?, ?, ?)""",
+        (str(unique_id), noted.id, noter.id, note, timestamp),
     )
 
     conn.commit()
