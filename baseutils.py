@@ -245,11 +245,13 @@ class DualCustodyView(View):
                 view = DualCustodyView(cb_confirm, interaction.user, perms)
                 await view.send_dialogue(channel, embed=dialog_embed)
 
-                await interaction.followup.send(embed=SersiEmbed(
-                    title=title,
-                    description="Pending review by another moderator",
-                    ephemeral=True,
-                ))
+                await interaction.followup.send(
+                    embed=SersiEmbed(
+                        title=title,
+                        description="Pending review by another moderator",
+                        ephemeral=True,
+                    )
+                )
 
             return dual_custody
 

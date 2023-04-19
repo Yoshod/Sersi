@@ -14,6 +14,8 @@ class Edits(commands.Cog):
     async def on_message_edit(self, before: nextcord.Message, after: nextcord.Message):
         if before.guild is None:
             return
+        elif before.content == "" or after.content == "":
+            return
 
         edited_messages: nextcord.TextChannel = before.guild.get_channel(
             self.config.channels.edited_messages
