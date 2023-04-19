@@ -157,9 +157,11 @@ class Jokes(commands.Cog):
             member = interaction.user
 
         based_levels = [
-            "is not based at all. In fact, they're so not based they're mega cringe",
+            "not based at all. In fact, they're so not based they're mega cringe",
+            "so cringe that my cringe compilation can't contain them",
             "not based",
             "maybe based and will require second ops centre to be opened",
+            "might be based but isn't worth the effort it would take to find out",
             "based",
             "mega based",
             "gigachad level of pure **based**",
