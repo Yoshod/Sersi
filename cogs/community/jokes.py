@@ -1,4 +1,6 @@
 import random
+import math
+from dataclasses import asdict
 
 import nextcord
 from nextcord.ext import commands
@@ -54,6 +56,34 @@ def generate_uwu(input_text: str) -> str:
     return output_text
 
 
+def calculate_basedness(config: Configuration, member: nextcord.Member):
+    if member.id == 809891646606409779:
+        1.0
+
+    bias = 0.0
+
+    for role in member.roles:
+        if role.id in [
+            858382469987958804,
+            935673319947141230,
+            config.roles.honourable_member
+        ]:
+            bias += 1.0
+        elif role.id in asdict(config.permission_roles).values():
+            bias += 0.5
+        elif role.id in config.punishment_roles.values():
+            bias -= 1.0
+        elif role.id == config.roles.reformation:
+            bias -= 10.0
+        elif role.id == config.roles.never_mod:
+            bias -= 1.0
+        elif role.id == config.roles.probation:
+            bias -= 2.0
+
+    print(bias)
+    return random.triangular(low=0.0, high=1.0, mode=1 / (1 + math.exp(-bias)))
+
+
 class Jokes(commands.Cog):
     def __init__(self, bot: commands.Bot, config: Configuration):
         """Cog that provides fun commands and events.
@@ -70,6 +100,10 @@ class Jokes(commands.Cog):
     @nextcord.slash_command(
         dm_permission=False, guild_ids=[977377117895536640, 856262303795380224]
     )
+    async def joke(self, interaction: nextcord.Interaction):
+        pass
+
+    @joke.subcommand(description="Makes absolutely 100% sure that the member will not become mod anytime in the future.")
     async def nevermod(
         self, interaction: nextcord.Interaction, member: nextcord.Member
     ):
@@ -106,6 +140,42 @@ class Jokes(commands.Cog):
                 footer="Nevermod",
             )
         await interaction.followup.send(embed=nevermod_embed)
+
+    @joke.subcommand(description="Determines how based the member is.")
+    async def basedcheck(
+        self,
+        interaction: nextcord.Interaction,
+        member: nextcord.Member = nextcord.SlashOption(
+            required=False,
+            description="The member to check if they are based."
+        ),
+    ):
+        await interaction.response.defer(ephemeral=False)
+
+        if member is None:
+            member = interaction.user
+
+        based_levels = [
+            "is not based at all. In fact, they're so not based they're mega cringe"
+            "not based",
+            "maybe based and will require second ops centre to be opened",
+            "based",
+            "mega based",
+            "gigachad level of pure **based**",
+        ]
+
+        basedness = calculate_basedness(self.config, member) * len(based_levels)
+        basedness = max(0, min(math.floor(basedness), len(based_levels)-1))
+
+        based_check_embed = SersiEmbed(
+            title="Based Check",
+            description=f"An Emergency task force at the base department convened \
+                in a rush to open a new ops centre in order to determine that \
+                {member.mention} is {based_levels[basedness]}.",
+            footer="Based Check",
+        )
+
+        await interaction.followup.send(embed=based_check_embed)
 
     @commands.command()
     async def uwu(self, ctx: commands.Context, *, message: str = ""):
@@ -164,7 +234,8 @@ class Jokes(commands.Cog):
         if "literally 1984" in message.content.lower():
             randomValue = random.randint(1, 4)
             if randomValue == 1:
-                years = [1419, 1483, 1618, 1812, 1848, 1894, 1942, 1948, 1968, 1989]
+                years = [1419, 1483, 1618, 1812, 1848,
+                         1894, 1942, 1948, 1968, 1989]
                 await message.channel.send(
                     f"Oh my god, so true. It literally is like George Orlando's {random.choice(years)}"
                 )
