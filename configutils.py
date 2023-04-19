@@ -77,6 +77,8 @@ class ConfigurationChannels(YAMLWizard):
     deleted_images: int
     edited_messages: int
     joinleave: int
+    channel_logs: int
+    guild_logs: int
 
 
 @dataclass

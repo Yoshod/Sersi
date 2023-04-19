@@ -64,6 +64,8 @@ channels:
     deleted_images: 1097961040819536054
     edited_messages: 1097961075498029138
     joinleave: 1097998750108098681
+    channel_logs: 1098204252444315663
+    guild_logs: 1098204215416979577
 
 
 roles:

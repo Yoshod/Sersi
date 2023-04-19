@@ -14,10 +14,10 @@ class MemberRoles(commands.Cog):
         channel: nextcord.TextChannel = before.guild.get_channel(
             self.config.channels.role_logs
         )
-        async for entry in after.guild.audit_logs(
+        entries: list[nextcord.AuditLogEntry] = await after.guild.audit_logs(
             action=nextcord.AuditLogAction.member_role_update, limit=1
-        ):
-            log: nextcord.AuditLogEntry = entry
+        ).flatten()
+        log: nextcord.AuditLogEntry = entries[0]
 
         if log.user.bot:  # role was assigned or removed by a bot
             return
@@ -65,6 +65,18 @@ class MemberRoles(commands.Cog):
         else:
             # the fuck?!
             raise Exception("Audit log entry is in illegal state")
+
+    @commands.Cog.listener()
+    async def on_guild_role_create(self, role: nextcord.Role):
+        ...
+
+    @commands.Cog.listener()
+    async def on_guild_role_delete(self, role: nextcord.Role):
+        ...
+
+    @commands.Cog.listener()
+    async def on_guild_role_update(self, before: nextcord.Role, after: nextcord.Role):
+        ...
 
 
 def setup(bot, **kwargs):
