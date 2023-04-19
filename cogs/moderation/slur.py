@@ -321,14 +321,16 @@ class Slur(commands.Cog):
             max_length=1024,
             required=False,
         ),
-    ):  
+    ):
         if not await permcheck(interaction, is_full_mod):
             return
-        
+
         await interaction.response.defer(ephemeral=False)
 
         if slur not in get_slurs():
-            await interaction.followup.send(f"{self.sersifail} {slur} is not on the slur list.")
+            await interaction.followup.send(
+                f"{self.sersifail} {slur} is not on the slur list."
+            )
             return
 
         @DualCustodyView.query(
@@ -341,16 +343,18 @@ class Slur(commands.Cog):
         async def execute(*args, confirming_moderator: nextcord.Member, **kwargs):
             rm_slur(slur)
 
-             # logging
+            # logging
             embed_fields = {
                 "Slur Removed:": slur,
-                "Removed By:": f"{interaction.user.mention} ({interaction.user.id})"
+                "Removed By:": f"{interaction.user.mention} ({interaction.user.id})",
             }
             if bypass_reason:
                 embed_fields["Dual Custody Bypass Reason"] = bypass_reason
             else:
-                embed_fields["Confirming Moderator:"] = f"{confirming_moderator.mention} ({confirming_moderator.id})"
-            
+                embed_fields[
+                    "Confirming Moderator:"
+                ] = f"{confirming_moderator.mention} ({confirming_moderator.id})"
+
             channel = self.bot.get_channel(self.config.channels.logging)
             embed_var = SersiEmbed(
                 title="Slur Removed",
@@ -368,9 +372,7 @@ class Slur(commands.Cog):
         if not is_mod(interaction.user):
             await interaction.response.send_autocomplete([])
 
-        slurs = [
-            slur for slur in get_slurs() if slur.lower().startswith(input.lower())
-        ]
+        slurs = [slur for slur in get_slurs() if slur.lower().startswith(input.lower())]
         await interaction.response.send_autocomplete(slurs)
 
     @commands.command(aliases=["rmgw", "rmgoodword", "removegw"])
