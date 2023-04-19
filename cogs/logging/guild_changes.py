@@ -37,6 +37,7 @@ class GuildChanges(commands.Cog):
                         "Removed Emote": f"Name: {emoji.name}\nManaged: {emoji.managed}\nAnimated: {emoji.animated}",
                         "User": f"{emoji.user.mention} ({emoji.user.id})",
                     },
+                    footer="Sersi Guild Changes",
                 )
                 .set_thumbnail(emoji.url)
                 .set_author(name=emoji.user, icon_url=emoji.user.display_avatar.url)
@@ -51,6 +52,7 @@ class GuildChanges(commands.Cog):
                         "Added Emote": f"Name: {emoji.name}\nManaged: {emoji.managed}\nAnimated: {emoji.animated}",
                         "User": f"{emoji.user.mention} ({emoji.user.id})",
                     },
+                    footer="Sersi Guild Changes",
                 )
                 .set_thumbnail(emoji.url)
                 .set_author(name=emoji.user, icon_url=emoji.user.display_avatar.url)
@@ -68,6 +70,7 @@ class GuildChanges(commands.Cog):
                         "After": f"Name: {after_emoji.name}\nManaged: {after_emoji.managed}\nAnimated: {after_emoji.animated}",
                         "User": f"{emoji.user.mention} ({emoji.user.id})",
                     },
+                    footer="Sersi Guild Changes",
                 )
                 .set_thumbnail(after_emoji.url)
                 .set_author(name=emoji.user, icon_url=emoji.user.display_avatar.url)
@@ -80,6 +83,31 @@ class GuildChanges(commands.Cog):
         after: list[nextcord.Emoji],
     ):
         ...
+
+    @commands.Cog.listener()
+    async def on_guild_update(self, before: nextcord.Guild, after: nextcord.Guild):
+        entries = await after.audit_logs(
+            action=nextcord.AuditLogAction.guild_update, limit=1
+        ).flatten()
+        log: nextcord.AuditLogEntry = entries[0]
+
+        after_values: str = ""
+        for attribute, value in log.after:
+            after_values = f"{after_values}\n{attribute}: {value}"
+
+        before_values: str = ""
+        for attribute, value in log.before:
+            before_values = f"{before_values}\n{attribute}: {value}"
+
+        await after.get_channel(self.config.channels.guild_logs).send(
+            embed=SersiEmbed(
+                description="Guild was changed",
+                fields={"Before": before_values, "After": after_values},
+                footer="Sersi Guild Changes",
+            )
+            .set_thumbnail(after.icon.url)
+            .set_author(name=log.user, icon_url=log.user.display_avatar.url)
+        )
 
 
 def setup(bot, **kwargs):
