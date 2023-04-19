@@ -14,10 +14,10 @@ class Antitamper(commands.Cog):
     @commands.Cog.listener()
     async def on_message_delete(self, message: nextcord.Message):
         # fetch the last deleted message
-        async for entry in message.guild.audit_logs(
-            action=nextcord.AuditLogAction.message_delete, limit=1
-        ):
-            log = entry
+        entries = await message.guild.audit_logs(
+            action=nextcord.AuditLogAction.guild_update, limit=1
+        ).flatten()
+        log: nextcord.AuditLogEntry = entries[0]
 
         # ignore if message was not from logging section
         if message.channel.category.id != self.config.channels.logging_category:
