@@ -114,8 +114,6 @@ class ConfirmView(nextcord.ui.View):
         self,
         on_proceed,
         timeout: float = 60.0,
-        *,
-        confirmer: nextcord.Member = None,
     ):
         super().__init__(timeout=timeout)
         btn_proceed = Button(label="Proceed", style=nextcord.ButtonStyle.green)
@@ -125,9 +123,10 @@ class ConfirmView(nextcord.ui.View):
         self.add_item(btn_proceed)
         self.add_item(btn_cancel)
         self.message: nextcord.Message = None
-        self.confirmer: nextcord.Member = confirmer
+        self.author: nextcord.Member = None
 
     async def cb_cancel(self, interaction: nextcord.Interaction):
+        print('confirm view cancel')
         await interaction.message.edit("Action canceled!", embed=None, view=None)
 
     async def on_timeout(self):
@@ -136,21 +135,19 @@ class ConfirmView(nextcord.ui.View):
             await self.message.edit("Action timed out!", embed=None, view=None)
 
     async def interaction_check(self, interaction: nextcord.Interaction):
-        if interaction.message.reference:
-            return (
-                interaction.user == interaction.message.reference.cached_message.author
-            )
-        else:
-            return interaction.user == self.confirmer
+        print('confirm view interaction check')
+        return interaction.user == self.author
 
     async def send_as_reply(
         self, ctx: commands.Context, content: str = None, embed=None
     ):
+        self.author = ctx.author
         self.message = await ctx.reply(content, embed=embed, view=self)
 
     async def send_as_followup_response(
         self, interaction: nextcord.Interaction, content: str = None, embed=None
     ):
+        self.author = interaction.user
         self.message = await interaction.followup.send(content, embed=embed, view=self)
 
     @staticmethod
@@ -169,11 +166,12 @@ class ConfirmView(nextcord.ui.View):
                 )
 
                 async def cb_proceed(interaction: nextcord.Interaction):
+                    print('confirm view proceed')
                     await interaction.message.edit(view=None)
                     await func(bot, config, interaction)
 
                 view = ConfirmView(cb_proceed)
-                await view.send_as_followup_response(embed=dialog_embed, view=View)
+                await view.send_as_followup_response(interaction, embed=dialog_embed)
 
             return confirm
 
