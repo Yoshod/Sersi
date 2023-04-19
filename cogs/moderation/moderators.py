@@ -276,9 +276,9 @@ class Moderators(commands.Cog):
     ):
         if not await permcheck(interaction, is_slt):
             return
-        
+
         await interaction.response.defer()
-        
+
         @ConfirmView.query(
             title="Discharge Staff Member",
             prompt=f"""Are you sure you want to proceed with dishonourable discharge of {member.mention}?
@@ -315,7 +315,7 @@ class Moderators(commands.Cog):
                 embed_fields["Bypass Reason:"] = bypass_reason
             else:
                 embed_fields["Confirming Member:"] = confirming_moderator.mention
-            
+
             log_embed = SersiEmbed(
                 title="Dishonourable Discharge of Staff Member",
                 description="Member has been purged from staff and mod team and added to blacklist.",

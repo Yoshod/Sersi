@@ -237,38 +237,34 @@ class Channels(commands.Cog):
                 )
 
             case nextcord.AuditLogAction.overwrite_update:
-                after_values: str = ""
-                for attribute, value in log.after:
-
-                    if attribute is "deny":
-                        permission: list[str] = decypher_permission(value)
-                        for perm in permission:
-                            after_values = (
-                                f"{after_values}{self.config.emotes.fail} `{perm}`\n"
-                            )
-
-                    if attribute is "allow":
-                        permission: list[str] = decypher_permission(value)
-                        for perm in permission:
-                            after_values = (
-                                f"{after_values}{self.config.emotes.success} `{perm}`\n"
-                            )
-
                 before_values: str = ""
-                for attribute, value in log.before:
-                    if attribute is "deny":
-                        permission: list[str] = decypher_permission(value)
-                        for perm in permission:
-                            before_values = (
-                                f"{before_values}{self.config.emotes.fail} `{perm}`\n"
-                            )
+                before_perms: nextcord.PermissionOverwrite = before.overwrites[
+                    log.extra
+                ]
+                after_values: str = ""
+                after_perms: nextcord.PermissionOverwrite = after.overwrites[log.extra]
 
-                    if attribute is "allow":
-                        permission: list[str] = decypher_permission(value)
-                        for perm in permission:
-                            before_values = (
-                                f"{before_values}{self.config.emotes.success} `{perm}`\n"
-                            )
+                for before_permission, before_value in before_perms:
+                    for after_permission, after_value in after_perms:
+                        if (
+                            before_permission == after_permission
+                            and before_value != after_value
+                        ):
+                            match before_value:
+                                case True:
+                                    before_values += f"{self.config.emotes.success}`{before_permission}`\n"
+                                case False:
+                                    before_values += f"{self.config.emotes.fail}`{before_permission}`\n"
+                                case None:
+                                    before_values += f"{self.config.emotes.inherit}`{before_permission}`\n"
+
+                            match after_value:
+                                case True:
+                                    after_values += f"{self.config.emotes.success}`{after_permission}`\n"
+                                case False:
+                                    after_values += f"{self.config.emotes.fail}`{after_permission}`\n"
+                                case None:
+                                    after_values += f"{self.config.emotes.inherit}`{after_permission}`\n"
 
                 await after.guild.get_channel(self.config.channels.channel_logs).send(
                     embed=SersiEmbed(
@@ -280,25 +276,21 @@ class Channels(commands.Cog):
                             "After": after_values,
                         },
                         footer="Sersi Channel Logs",
-                    )
+                    ).set_author(name=log.user, icon_url=log.user.display_avatar.url)
                 )
 
             case nextcord.AuditLogAction.overwrite_delete:
                 before_values: str = ""
                 for attribute, value in log.before:
-                    if attribute is "deny":
+                    if attribute == "deny":
                         permission: list[str] = decypher_permission(value)
-                        for perm in permission:
-                            before_values = (
-                                f"{before_values}{self.config.emotes.fail} `{perm}`\n"
-                            )
+                        for permission in permission:
+                            before_values = f"{before_values}{self.config.emotes.fail} `{permission}`\n"
 
-                    if attribute is "allow":
+                    if attribute == "allow":
                         permission: list[str] = decypher_permission(value)
-                        for perm in permission:
-                            before_values = (
-                                f"{before_values}{self.config.emotes.success} `{perm}`\n"
-                            )
+                        for permission in permission:
+                            before_values = f"{before_values}{self.config.emotes.success} `{permission}`\n"
 
                 await after.guild.get_channel(self.config.channels.channel_logs).send(
                     embed=SersiEmbed(

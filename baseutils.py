@@ -126,7 +126,7 @@ class ConfirmView(nextcord.ui.View):
         self.author: nextcord.Member = None
 
     async def cb_cancel(self, interaction: nextcord.Interaction):
-        print('confirm view cancel')
+        print("confirm view cancel")
         await interaction.message.edit("Action canceled!", embed=None, view=None)
 
     async def on_timeout(self):
@@ -135,7 +135,7 @@ class ConfirmView(nextcord.ui.View):
             await self.message.edit("Action timed out!", embed=None, view=None)
 
     async def interaction_check(self, interaction: nextcord.Interaction):
-        print('confirm view interaction check')
+        print("confirm view interaction check")
         return interaction.user == self.author
 
     async def send_as_reply(
@@ -166,7 +166,7 @@ class ConfirmView(nextcord.ui.View):
                 )
 
                 async def cb_proceed(interaction: nextcord.Interaction):
-                    print('confirm view proceed')
+                    print("confirm view proceed")
                     await interaction.message.edit(view=None)
                     await func(bot, config, interaction)
 

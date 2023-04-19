@@ -108,6 +108,7 @@ permission_roles:
 emotes:
     success: "<:sersisuccess:979066662856822844>"
     fail:    "<:sersifail:979070135799279698>"
+    inherit: "<:sersiinherit:1098338822166683668>"
 
 invites:
     adam_something_ban_reinvite:        "https://discord.gg/F6vMRTbuFk"

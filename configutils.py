@@ -149,6 +149,8 @@ class ConfigurationEmotes(YAMLWizard):
     # The emote, in "<:name:id>" format, used to declare failure.
     fail: str
 
+    inherit: str
+
 
 @dataclass
 class ConfigurationInvites(YAMLWizard):

@@ -66,7 +66,7 @@ def calculate_basedness(config: Configuration, member: nextcord.Member):
         if role.id in [
             858382469987958804,
             935673319947141230,
-            config.roles.honourable_member
+            config.roles.honourable_member,
         ]:
             bias += 1.0
         elif role.id in asdict(config.permission_roles).values():
@@ -103,7 +103,9 @@ class Jokes(commands.Cog):
     async def joke(self, interaction: nextcord.Interaction):
         pass
 
-    @joke.subcommand(description="Makes absolutely 100% sure that the member will not become mod anytime in the future.")
+    @joke.subcommand(
+        description="Makes absolutely 100% sure that the member will not become mod anytime in the future."
+    )
     async def nevermod(
         self, interaction: nextcord.Interaction, member: nextcord.Member
     ):
@@ -146,8 +148,7 @@ class Jokes(commands.Cog):
         self,
         interaction: nextcord.Interaction,
         member: nextcord.Member = nextcord.SlashOption(
-            required=False,
-            description="The member to check if they are based."
+            required=False, description="The member to check if they are based."
         ),
     ):
         await interaction.response.defer(ephemeral=False)
@@ -165,7 +166,7 @@ class Jokes(commands.Cog):
         ]
 
         basedness = calculate_basedness(self.config, member) * len(based_levels)
-        basedness = max(0, min(math.floor(basedness), len(based_levels)-1))
+        basedness = max(0, min(math.floor(basedness), len(based_levels) - 1))
 
         based_check_embed = SersiEmbed(
             title="Based Check",
@@ -234,8 +235,7 @@ class Jokes(commands.Cog):
         if "literally 1984" in message.content.lower():
             randomValue = random.randint(1, 4)
             if randomValue == 1:
-                years = [1419, 1483, 1618, 1812, 1848,
-                         1894, 1942, 1948, 1968, 1989]
+                years = [1419, 1483, 1618, 1812, 1848, 1894, 1942, 1948, 1968, 1989]
                 await message.channel.send(
                     f"Oh my god, so true. It literally is like George Orlando's {random.choice(years)}"
                 )
