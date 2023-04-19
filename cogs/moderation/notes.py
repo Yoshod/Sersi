@@ -3,7 +3,12 @@ import time
 from nextcord.ext import commands
 
 from baseutils import SersiEmbed, PageView
-from noteutils import create_note, get_note_by_id, fetch_notes_by_partial_id
+from noteutils import (
+    create_note,
+    get_note_by_id,
+    fetch_notes_by_partial_id,
+    create_note_embed,
+)
 from configutils import Configuration
 from permutils import permcheck, is_mod, is_senior_mod
 
@@ -62,47 +67,7 @@ class Notes(commands.Cog):
 
         sersi_note = get_note_by_id(self.config, note_id)
 
-        note_embed = SersiEmbed()
-        note_embed.add_field(
-            name="Note ID:", value=f"`{sersi_note['ID']}`", inline=True
-        )
-
-        moderator = interaction.guild.get_member(sersi_note["Noter ID"])
-
-        if not moderator:
-            note_embed.add_field(
-                name="Moderator:",
-                value=f"`{sersi_note['Noter ID']}`",
-                inline=True,
-            )
-
-        else:
-            note_embed.add_field(
-                name="Moderator:", value=f"{moderator.mention}", inline=True
-            )
-
-        noted = interaction.guild.get_member(sersi_note["Noted ID"])
-
-        if not noted:
-            note_embed.add_field(
-                name="User:",
-                value=f"`{sersi_note['Noted ID']}`",
-                inline=True,
-            )
-
-        else:
-            note_embed.add_field(name="User:", value=f"{noted.mention}", inline=True)
-            note_embed.set_thumbnail(url=noted.display_avatar.url)
-
-        note_embed.add_field(name="Note:", value=sersi_note["Note"], inline=False)
-
-        note_embed.add_field(
-            name="Timestamp:",
-            value=(f"<t:{sersi_note['Timestamp']}:R>"),
-            inline=True,
-        )
-
-        note_embed.set_footer(text="Sersi Notes")
+        note_embed = create_note_embed(sersi_note, interaction)
 
         await interaction.followup.send(embed=note_embed)
 

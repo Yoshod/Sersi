@@ -72,3 +72,49 @@ def fetch_notes_by_partial_id(config: Configuration, note_id: str):
     id_list = [row[0] for row in rows]
 
     return id_list
+
+
+def create_note_embed(
+    sersi_note: dict, interaction: nextcord.Interaction
+) -> SersiEmbed:
+    note_embed = SersiEmbed()
+    note_embed.add_field(name="Note ID:", value=f"`{sersi_note['ID']}`", inline=True)
+
+    moderator = interaction.guild.get_member(sersi_note["Noter ID"])
+
+    if not moderator:
+        note_embed.add_field(
+            name="Moderator:",
+            value=f"`{sersi_note['Noter ID']}`",
+            inline=True,
+        )
+
+    else:
+        note_embed.add_field(
+            name="Moderator:", value=f"{moderator.mention}", inline=True
+        )
+
+    noted = interaction.guild.get_member(sersi_note["Noted ID"])
+
+    if not noted:
+        note_embed.add_field(
+            name="User:",
+            value=f"`{sersi_note['Noted ID']}`",
+            inline=True,
+        )
+
+    else:
+        note_embed.add_field(name="User:", value=f"{noted.mention}", inline=True)
+        note_embed.set_thumbnail(url=noted.display_avatar.url)
+
+    note_embed.add_field(name="Note:", value=sersi_note["Note"], inline=False)
+
+    note_embed.add_field(
+        name="Timestamp:",
+        value=(f"<t:{sersi_note['Timestamp']}:R>"),
+        inline=True,
+    )
+
+    note_embed.set_footer(text="Sersi Notes")
+
+    return note_embed

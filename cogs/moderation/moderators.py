@@ -249,105 +249,87 @@ class Moderators(commands.Cog):
             ctx, embed=dialog_embed
         )
 
-    async def cb_purgemod_confirm(self, interaction):
-        member_id, mod_id, reason = 0, 0, ""
-        for field in interaction.message.embeds[0].fields:
-            if field.name == "User ID":
-                member_id = int(field.value)
-            elif field.name == "Reason":
-                reason = field.value
-            elif field.name == "Moderator ID":
-                mod_id = int(field.value)
-        member = interaction.guild.get_member(member_id)
-        moderator = interaction.guild.get_member(mod_id)
-
-        for role in vars(self.config.permission_roles):
-            role_obj = interaction.guild.get_role(
-                vars(self.config.permission_roles)[role]
-            )
-            try:
-                await member.remove_roles(role_obj, reason=reason, atomic=True)
-            except nextcord.errors.HTTPException:
-                continue
-
-        await interaction.message.edit(
-            f"{self.sersisuccess} {member.mention} has been dishonourly discharged from the staff team. Good riddance!",
-            embed=None,
-            view=None,
+    @nextcord.slash_command(
+        dm_permission=False,
+        guild_ids=[977377117895536640, 856262303795380224],
+        description="Remove user from server staff in bad standing.",
+    )
+    async def discharge(
+        self,
+        interaction: nextcord.Interaction,
+        member: nextcord.Member = SlashOption(
+            required=True,
+            description="Who to discharge, blacklist from server staff;",
+        ),
+        reason: str = SlashOption(
+            required=True,
+            description="Reason for discharging the user;",
+            min_length=8,
+            max_length=1024,
+        ),
+        bypass_reason: str = nextcord.SlashOption(
+            description="(Mega Administrator only!) Reason to bypass dual custody",
+            min_length=8,
+            max_length=1024,
+            required=False,
+        ),
+    ):
+        if not await permcheck(interaction, is_slt):
+            return
+        
+        await interaction.response.defer()
+        
+        @ConfirmView.query(
+            title="Discharge Staff Member",
+            prompt=f"""Are you sure you want to proceed with dishonourable discharge of {member.mention}?
+                All staff and permission roles will be removed from the member.
+                This action will result in the user being blacklisted from the server staff.""",
+            embed_args={"Reason": reason},
         )
+        @DualCustodyView.query(
+            title="Discharge Staff Member",
+            prompt="Following staff member will be dishonorably discharged from the staff:",
+            perms=is_slt,
+            embed_args={"Member": member, "Reason": reason},
+            bypass=True if bypass_reason else False,
+        )
+        async def execute(*args, confirming_moderator: nextcord.Member, **kwargs):
+            # remove staff/permission roles
+            for role in vars(self.config.permission_roles):
+                role_object: nextcord.Role = interaction.guild.get_role(
+                    vars(self.config.permission_roles)[role]
+                )
+                if role_object is None:
+                    continue
+                try:
+                    await member.remove_roles(role_object, reason=reason, atomic=True)
+                except nextcord.errors.HTTPException:
+                    continue
 
-        # logging
-        log_embed: nextcord.Embed = SersiEmbed(
-            title="Member has been purged from staff and mod team and added to blacklist.",
-            fields={
-                "Responsible Moderator:": moderator.mention,
-                "Confirming Moderator:": interaction.user.mention,
-                "Purged Moderator:": member.mention,
+            embed_fields = {
+                "Discharged Member:": member.mention,
                 "Reason:": reason,
-            },
-            footer="Moderator Purge",
-        )
-        channel = interaction.guild.get_channel(self.config.channels.logging)
-        await channel.send(embed=log_embed)
+                "Responsible Member:": interaction.user.mention,
+            }
+            if bypass_reason:
+                embed_fields["Bypass Reason:"] = bypass_reason
+            else:
+                embed_fields["Confirming Member:"] = confirming_moderator.mention
+            
+            log_embed = SersiEmbed(
+                title="Dishonourable Discharge of Staff Member",
+                description="Member has been purged from staff and mod team and added to blacklist.",
+                fields=embed_fields,
+                footer="Staff Discharge",
+            )
 
-        channel = interaction.guild.get_channel(self.config.channels.mod_logs)
-        await channel.send(embed=log_embed)
+            if bypass_reason:
+                await interaction.followup.send(embed=log_embed)
 
-    async def cb_purgemod_proceed(self, interaction):
-        member_id, reason = 0, ""
-        for field in interaction.message.embeds[0].fields:
-            if field.name == "User ID":
-                member_id = int(field.value)
-            elif field.name == "Reason":
-                reason = field.value
-        member = interaction.guild.get_member(member_id)
+            channel = interaction.guild.get_channel(self.config.channels.logging)
+            await channel.send(embed=log_embed)
 
-        await interaction.message.edit(
-            f"{self.sersisuccess} Dihonourable discharge of {member.mention} is now awaiting confirmation!",
-            embed=None,
-            view=None,
-        )
-
-        dialog_embed = nextcord.Embed(
-            title="Purge Moderator Confirmation",
-            description="Following Moderator will be dishonorably discharged from the staff:",
-            color=nextcord.Color.from_rgb(237, 91, 6),
-        )
-        dialog_embed.add_field(name="User", value=member.mention)
-        dialog_embed.add_field(name="User ID", value=member.id)
-        dialog_embed.add_field(name="Reason", value=reason, inline=False)
-        dialog_embed.add_field(
-            name="Responsible Moderator", value=interaction.user.mention
-        )
-        dialog_embed.add_field(name="Moderator ID", value=interaction.user.id)
-
-        channel = interaction.guild.get_channel(self.config.channels.alert)
-        view = DualCustodyView(
-            self.cb_purgemod_confirm, interaction.user, is_senior_mod
-        )
-        await view.send_dialogue(channel, embed=dialog_embed)
-
-    @commands.command(aliases=["purgemod", "purge_mod"])
-    async def removefrommod(self, ctx, member: nextcord.Member, *, reason=""):
-        if not await permcheck(ctx, is_senior_mod):
-            return
-
-        if reason == "":
-            await ctx.send(f"{ctx.author.mention} please provide a reason.")
-            return
-
-        dialog_embed = nextcord.Embed(
-            title="Purge Moderator",
-            description="Following Moderator will be dishonorably discharged from the staff:",
-            color=nextcord.Color.from_rgb(237, 91, 6),
-        )
-        dialog_embed.add_field(name="User", value=member.mention)
-        dialog_embed.add_field(name="User ID", value=member.id)
-        dialog_embed.add_field(name="Reason", value=reason, inline=False)
-
-        await ConfirmView(self.cb_purgemod_proceed).send_as_reply(
-            ctx, embed=dialog_embed
-        )
+        await execute(self.bot, self.config, interaction)
 
     @nextcord.slash_command(
         dm_permission=False,
