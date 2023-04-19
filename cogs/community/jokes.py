@@ -58,7 +58,7 @@ def generate_uwu(input_text: str) -> str:
 
 def calculate_basedness(config: Configuration, member: nextcord.Member):
     if member.id == 809891646606409779:
-        1.0
+        return 1.0
 
     bias = 0.0
 
@@ -70,7 +70,7 @@ def calculate_basedness(config: Configuration, member: nextcord.Member):
         ]:
             bias += 1.0
         elif role.id in asdict(config.permission_roles).values():
-            bias += 0.5
+            bias += 0.05
         elif role.id in config.punishment_roles.values():
             bias -= 1.0
         elif role.id == config.roles.reformation:
