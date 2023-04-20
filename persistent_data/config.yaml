@@ -53,14 +53,23 @@ channels:
     senior_ticket_logs:      1024017619466059926
     mod_ticket_logs:          902670845044998224
     verification_ticket_logs: 879842297842401300
-    deleted_messages:                          0
     mod applications:         963572589249314887
     cet applications:        1023684027946897459
     internalfeedback:        1018936341687443476
     timeoutappeals:                            0
     video_discussion:        1006389347257417859
-    role_logs:                                 0
-    ageverification:       1094352347142045878
+    role_logs:                895228708690984981
+    ageverification:         1094352347142045878
+    deleted_messages:         895228384718762095
+    deleted_images:           895228483897270302
+    edited_messages:          895228432827424818
+    joinleave:                895228628135186473
+    channel_logs:             895229050178654218
+    guild_logs:               950443082770427914
+    user_chanes:              895228774679998496
+    ban_unban:                895228834067144704
+    voice_logs:               903368043101556837
+    automod_logs:             903370888358023258
 
 
 roles:

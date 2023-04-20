@@ -252,19 +252,19 @@ class Channels(commands.Cog):
                         ):
                             match before_value:
                                 case True:
-                                    before_values += f"{self.config.emotes.success}`{before_permission}`\n"
+                                    before_values += f"{self.config.emotes.success} `{before_permission}`\n"
                                 case False:
-                                    before_values += f"{self.config.emotes.fail}`{before_permission}`\n"
+                                    before_values += f"{self.config.emotes.fail} `{before_permission}`\n"
                                 case None:
-                                    before_values += f"{self.config.emotes.inherit}`{before_permission}`\n"
+                                    before_values += f"{self.config.emotes.inherit} `{before_permission}`\n"
 
                             match after_value:
                                 case True:
-                                    after_values += f"{self.config.emotes.success}`{after_permission}`\n"
+                                    after_values += f"{self.config.emotes.success} `{after_permission}`\n"
                                 case False:
-                                    after_values += f"{self.config.emotes.fail}`{after_permission}`\n"
+                                    after_values += f"{self.config.emotes.fail} `{after_permission}`\n"
                                 case None:
-                                    after_values += f"{self.config.emotes.inherit}`{after_permission}`\n"
+                                    after_values += f"{self.config.emotes.inherit} `{after_permission}`\n"
 
                 await after.guild.get_channel(self.config.channels.channel_logs).send(
                     embed=SersiEmbed(
