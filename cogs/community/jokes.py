@@ -167,8 +167,15 @@ class Jokes(commands.Cog):
             "gigachad level of pure **based**",
         ]
 
-        basedness = calculate_basedness(self.config, member) * len(based_levels)
-        basedness = max(0, min(math.floor(basedness), len(based_levels) - 1))
+        basedness: int = max(
+            0,
+            min(
+                math.floor(
+                    calculate_basedness(self.config, member) * len(based_levels)
+                ),
+                len(based_levels) - 1,
+            ),
+        )
 
         based_check_embed = SersiEmbed(
             title="Based Check",
