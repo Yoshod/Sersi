@@ -73,12 +73,12 @@ def calculate_basedness(config: Configuration, member: nextcord.Member):
             bias += 0.05
         elif role.id in config.punishment_roles.values():
             bias -= 1.0
-        elif role.id == config.roles.reformation:
-            bias -= 10.0
         elif role.id == config.roles.never_mod:
             bias -= 1.0
         elif role.id == config.roles.probation:
             bias -= 2.0
+        elif role.id == config.roles.reformation:
+            return 0.0
 
     print(bias)
     return random.triangular(low=0.0, high=1.0, mode=1 / (1 + math.exp(-bias)))
@@ -160,8 +160,8 @@ class Jokes(commands.Cog):
             "not based at all. In fact, they're so not based they're mega cringe",
             "so cringe that my cringe compilation can't contain them",
             "not based",
-            "maybe based and will require second ops centre to be opened",
             "might be based but isn't worth the effort it would take to find out",
+            "maybe based and will require second ops centre to be opened",
             "based",
             "mega based",
             "gigachad level of pure **based**",
@@ -179,43 +179,47 @@ class Jokes(commands.Cog):
 
         based_check_embed = SersiEmbed(
             title="Based Check",
-            description=f"An Emergency task force at the base department convened \
-                in a rush to open a new ops centre in order to determine that \
-                {member.mention} is {based_levels[basedness]}.",
+            description="An Emergency task force at the base department convened "
+                "in a rush to open a new ops centre in order to determine that "
+                f"{member.mention} is {based_levels[basedness]}.",
             footer="Based Check",
         )
 
         await interaction.followup.send(embed=based_check_embed)
 
-    @commands.command()
-    async def uwu(self, ctx: commands.Context, *, message: str = ""):
-        """OwO *nuzzles the command*.
+    @joke.subcommand(description="UwUifies the message.")
+    async def uwu(
+        self,
+        interaction: nextcord.Interaction,
+        message: str = nextcord.SlashOption(
+            required=True, description="The message to uwuify."
+        ),
+    ):
+        await interaction.response.defer(ephemeral=True)
 
-        Takes message and uwuifies it.
-        """
-        if message == "":
-            await ctx.send(f"{ctx.author.mention} pwease pwovide a message to uwuify.")
-            return
-
-        await ctx.message.delete(delay=None)
+        await interaction.followup.send('OwO *nuzzles the command*', ephemeral=True)
 
         await send_webhook_message(
-            channel=ctx.channel,
+            channel=interaction.channel,
             content=generate_uwu(message),
-            username=generate_uwu(ctx.author.display_name),
-            avatar_url=ctx.author.display_avatar.url,
+            username=generate_uwu(interaction.user.display_name),
+            avatar_url=interaction.user.display_avatar.url,
         )
 
-    @commands.command(aliases=["coin", "coinflip"])
-    async def flip(self, ctx: commands.Context):
+    @joke.subcommand(description="Flips a coin.")
+    async def coinflip(self, interaction: nextcord.Interaction):
+        await interaction.response.defer(ephemeral=False)
+
         flip_result = random.randint(1, 2)
         if flip_result == 2:
-            await ctx.reply(
-                "https://tenor.com/view/heads-coinflip-flip-a-coin-coin-coins-gif-21479854"
+            await interaction.followup.send(
+                "https://tenor.com/view/heads-coinflip-flip-a-coin-coin-coins-gif-21479854",
+                ephemeral=False,
             )
         elif flip_result == 1:
-            await ctx.reply(
-                "https://tenor.com/view/coins-tails-coin-flip-a-coin-coinflip-gif-21479856"
+            await interaction.followup.send(
+                "https://tenor.com/view/coins-tails-coin-flip-a-coin-coinflip-gif-21479856",
+                ephemeral=False,
             )
 
     # events
