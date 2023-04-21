@@ -79,6 +79,10 @@ class ConfigurationChannels(YAMLWizard):
     joinleave: int
     channel_logs: int
     guild_logs: int
+    user_chanes: int
+    ban_unban: int
+    voice_logs: int
+    automod_logs: int
 
 
 @dataclass

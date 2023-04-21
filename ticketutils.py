@@ -1,5 +1,7 @@
 import json
 import pickle
+import re
+
 import nextcord
 import io
 from chat_exporter import export
@@ -315,11 +317,11 @@ async def escalation_change(
                     "Could not find embed when attempting to escalate ticket! Index out of range!"
                 )
 
-            complainer_id = initial_embed.description[2:21]
+            complainer_id: str = initial_embed.description[2:21]
             if str(complainer_id)[0] == "!":
-                complainer_id = initial_embed.description[3:21]
+                complainer_id: str = initial_embed.description[3:21]
 
-            complainer_id = int(complainer_id)
+            complainer_id: int = int(re.sub("[^0-9]", "", complainer_id))
 
             try:
                 complainer = client.get_user(complainer_id)
@@ -425,11 +427,11 @@ async def escalation_change(
                     "Could not find embed when attempting to escalate ticket! Index out of range!"
                 )
 
-            complainer_id = initial_embed.description[2:21]
+            complainer_id: str = initial_embed.description[2:21]
             if str(complainer_id)[0] == "!":
-                complainer_id = initial_embed.description[3:21]
+                complainer_id: str = initial_embed.description[3:21]
 
-            complainer_id = int(complainer_id)
+            complainer_id: int = int(re.sub("[^0-9]", "", complainer_id))
 
             try:
                 complainer = client.get_user(complainer_id)
@@ -550,11 +552,11 @@ async def escalation_change(
                     "Could not find embed when attempting to escalate ticket! Index out of range!"
                 )
 
-            complainer_id = initial_embed.description[2:21]
+            complainer_id: str = initial_embed.description[2:21]
             if str(complainer_id)[0] == "!":
-                complainer_id = initial_embed.description[3:21]
+                complainer_id: str = initial_embed.description[3:21]
 
-            complainer_id = int(complainer_id)
+            complainer_id: int = int(re.sub("[^0-9]", "", complainer_id))
 
             try:
                 complainer = client.get_user(complainer_id)
@@ -660,11 +662,11 @@ async def escalation_change(
                     "Could not find embed when attempting to escalate ticket! Index out of range!"
                 )
 
-            complainer_id = initial_embed.description[2:21]
+            complainer_id: str = initial_embed.description[2:21]
             if str(complainer_id)[0] == "!":
-                complainer_id = initial_embed.description[3:21]
+                complainer_id: str = initial_embed.description[3:21]
 
-            complainer_id = int(complainer_id)
+            complainer_id: int = int(re.sub("[^0-9]", "", complainer_id))
 
             try:
                 complainer = client.get_user(complainer_id)
@@ -785,11 +787,11 @@ async def escalation_change(
                     "Could not find embed when attempting to escalate ticket! Index out of range!"
                 )
 
-            complainer_id = initial_embed.description[2:21]
+            complainer_id: str = initial_embed.description[2:21]
             if str(complainer_id)[0] == "!":
-                complainer_id = initial_embed.description[3:21]
+                complainer_id: str = initial_embed.description[3:21]
 
-            complainer_id = int(complainer_id)
+            complainer_id: int = int(re.sub("[^0-9]", "", complainer_id))
 
             try:
                 complainer = client.get_user(complainer_id)
@@ -903,11 +905,11 @@ async def escalation_change(
                     "Could not find embed when attempting to escalate ticket! Index out of range!"
                 )
 
-            complainer_id = initial_embed.description[2:21]
+            complainer_id: str = initial_embed.description[2:21]
             if str(complainer_id)[0] == "!":
-                complainer_id = initial_embed.description[3:21]
+                complainer_id: str = initial_embed.description[3:21]
 
-            complainer_id = int(complainer_id)
+            complainer_id: int = int(re.sub("[^0-9]", "", complainer_id))
 
             try:
                 complainer = client.get_user(complainer_id)
