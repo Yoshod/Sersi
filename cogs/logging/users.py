@@ -1,7 +1,7 @@
 import nextcord
 from nextcord.ext import commands
 
-from baseutils import SersiEmbed
+from baseutils import SersiEmbed, get_discord_timestamp
 from configutils import Configuration
 
 
@@ -17,8 +17,33 @@ class UserLogging(commands.Cog):
             avatar
             username
             discriminator"""
-        ...
-        # can't access the guild from here, so...
+
+        if before.avatar != after.avatar:
+            await self.bot.get_channel(self.config.channels.user_chanes).send(
+                embed=SersiEmbed(
+                    description=f"{after.mention} ({after.id}) has changed their avatar",
+                    fields={"Before": before.avatar.url, "After": after.avatar.url},
+                    footer="Sersi Member Logging",
+                )
+                .set_thumbnail(url=before.avatar.url)
+                .set_image(url=after.avatar.url)
+            )
+        if before.name != after.name:
+            await self.bot.get_channel(self.config.channels.user_chanes).send(
+                embed=SersiEmbed(
+                    description=f"{after.mention} ({after.id}) has changed their username",
+                    fields={"Before": before.name, "After": after.name},
+                    footer="Sersi Member Logging",
+                )
+            )
+        if before.discriminator != after.discriminator:
+            await self.bot.get_channel(self.config.channels.user_chanes).send(
+                embed=SersiEmbed(
+                    description=f"{after.mention} ({after.id}) has changed their discriminator",
+                    fields={"Before": str(before), "After": str(after)},
+                    footer="Sersi Member Logging",
+                )
+            )
 
     @commands.Cog.listener()
     async def on_member_update(self, before: nextcord.Member, after: nextcord.Member):
@@ -27,10 +52,6 @@ class UserLogging(commands.Cog):
             nickname
             roles
             pending"""
-        await after.guild.get_channel(self.config.channels.user_chanes).send(
-            f"Member Update:\nBefore: {before}\nAfter: {after}"
-        )
-
         if before.nick != after.nick:
 
             log: nextcord.AuditLogEntry = (
@@ -48,6 +69,7 @@ class UserLogging(commands.Cog):
                             "After": after.nick,
                             "Changed By": f"{log.user.mention} ({log.user.id})",
                         },
+                        footer="Sersi Member Logging",
                     ).set_author(name=log.user, icon_url=log.user.display_avatar.url)
                 )
             else:
@@ -55,6 +77,7 @@ class UserLogging(commands.Cog):
                     embed=SersiEmbed(
                         description=f"{after.mention} has updated their nickname",
                         fields={"Before": before.nick, "After": after.nick},
+                        footer="Sersi Member Logging",
                     )
                 )
         if before.roles != after.roles:
@@ -107,8 +130,43 @@ class UserLogging(commands.Cog):
                 await after.guild.get_channel(self.config.channels.user_chanes).send(
                     embed=logging
                 )
-        if before.communication_disabled_until != after.communication_disabled_until:
-            ...
+
+        if (
+            before.communication_disabled_until != after.communication_disabled_until
+            and after.communication_disabled_until
+        ):
+            log: nextcord.AuditLogEntry = (
+                await after.guild.audit_logs(
+                    action=nextcord.AuditLogAction.member_role_update, limit=1
+                ).flatten()
+            )[0]
+
+            await after.guild.get_channel(self.config.channels.user_chanes).send(
+                embed=SersiEmbed(
+                    description=f"{after.mention} was muted",
+                    fields={
+                        "Communication Disabled Until": f"{get_discord_timestamp(after.communication_disabled_until)} "
+                        f"({get_discord_timestamp(after.communication_disabled_until, relative=True)})",
+                        "Changed By": f"{log.user.mention} ({log.user.id})",
+                        "Reason": log.reason,
+                    },
+                    footer="Sersi Member Logging",
+                ).set_author(name=log.user, icon_url=log.user.display_avatar.url)
+            )
+
+        if before.display_avatar != after.display_avatar:
+            await self.bot.get_channel(self.config.channels.user_chanes).send(
+                embed=SersiEmbed(
+                    description=f"{after.mention} ({after.id}) has changed their display avatar",
+                    fields={
+                        "Before": before.display_avatar.url,
+                        "After": after.display_avatar.url,
+                    },
+                    footer="Sersi Member Logging",
+                )
+                .set_thumbnail(url=before.display_avatar.url)
+                .set_image(url=after.display_avatar.url)
+            )
 
     @commands.Cog.listener()
     async def on_presence_update(self, before: nextcord.Member, after: nextcord.Member):

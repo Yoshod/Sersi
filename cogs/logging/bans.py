@@ -26,6 +26,7 @@ class BanUnban(commands.Cog):
                     "Reason": {log.reason},
                 },
                 footer="Sersi Ban/Unban Logging",
+                colour=nextcord.Colour.brand_red(),
             ).set_author(name=log.user, icon_url=log.user.display_avatar.url)
         )
 
@@ -50,6 +51,7 @@ class BanUnban(commands.Cog):
                     "Reason": {log.reason},
                 },
                 footer="Sersi Ban/Unban Logging",
+                colour=nextcord.Colour.brand_green(),
             ).set_author(name=log.user, icon_url=log.user.display_avatar.url)
         )
 
