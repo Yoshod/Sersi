@@ -236,9 +236,6 @@ class Cases(commands.Cog):
         ),
     ):
         if not await permcheck(interaction, is_senior_mod):
-            interaction.response.send_message(
-                f"{self.config.emotes.fail} You do not have permission to run this command."
-            )
             return
 
         await interaction.response.defer(ephemeral=False)
