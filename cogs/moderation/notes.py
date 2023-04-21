@@ -52,11 +52,21 @@ class Notes(commands.Cog):
 
         await interaction.response.defer(ephemeral=False)
 
-        create_note(self.config, noted, interaction.user, note, int(time.time()))
+        note_id = create_note(
+            self.config, noted, interaction.user, note, int(time.time())
+        )
 
         await interaction.followup.send(
             f"{self.config.emotes.success} The note on {noted.mention} has been successfully created."
         )
+
+        sersi_note = get_note_by_id(self.config, note_id)
+
+        note_embed = create_note_embed(sersi_note, interaction)
+
+        logging_channel = interaction.guild.get_channel(self.config.channels.mod_logs)
+
+        await logging_channel.send(embed=note_embed)
 
     @notes.subcommand(description="Used to get a note by its ID")
     async def by_id(

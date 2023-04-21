@@ -14,6 +14,7 @@ from caseutils import (
     scrub_case,
     fetch_all_cases,
     delete_case,
+    create_scrubbed_case_embed,
 )
 from configutils import Configuration
 from permutils import permcheck, is_mod, is_senior_mod, is_dark_mod
@@ -95,13 +96,23 @@ class Cases(commands.Cog):
             min_length=22,
             max_length=22,
         ),
+        scrubbed: bool = nextcord.SlashOption(
+            name="scrubbed",
+            description="Specify if you're looking for a scrubbed case",
+            required=False,
+        ),
     ):
         if not await permcheck(interaction, is_mod):
             return
 
         await interaction.response.defer(ephemeral=False)
 
-        sersi_case = get_case_by_id(self.config, case_id)
+        sersi_case = get_case_by_id(self.config, case_id, scrubbed)
+
+        if scrubbed:
+            case_embed = create_scrubbed_case_embed(sersi_case, interaction)
+            await interaction.followup.send(embed=case_embed)
+            return
 
         match (sersi_case["Case Type"]):
             case "Slur Usage":

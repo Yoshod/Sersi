@@ -100,12 +100,27 @@ def ping_case(
     conn.close()
 
 
-def get_case_by_id(
-    config: Configuration,
-    case_id: str,
-) -> dict:
+def get_case_by_id(config: Configuration, case_id: str, scrubbed: bool) -> dict:
     conn = sqlite3.connect(config.datafiles.sersi_db)
     cursor = conn.cursor()
+
+    if scrubbed:
+        cursor.execute("SELECT * FROM scrubbed_cases WHERE id=?", (case_id,))
+        try:
+            row = cursor.fetchone()
+
+            return {
+                "ID": f"{row[0]}",
+                "Case Type": f"{row[1]}",
+                "Offender ID": row[2],
+                "Scrubber ID": row[3],
+                "Scrub Reason": f"{row[4]}",
+                "Timestamp": row[5],
+            }
+
+        except TypeError:
+            cursor.close()
+            return False
 
     cursor.execute("SELECT * FROM cases WHERE id=?", (case_id,))
 
@@ -114,7 +129,7 @@ def get_case_by_id(
 
     except TypeError:
         cursor.close()
-        return "No Case"
+        return False
 
     case_type = row[1]
 
@@ -140,7 +155,6 @@ def get_case_by_id(
                 "Timestamp": row[5],
             }
 
-    match (case_type):
         case "Reformation":
             cursor.execute("SELECT * FROM reformation_cases WHERE id=?", (case_id,))
 
@@ -163,7 +177,6 @@ def get_case_by_id(
                 "Timestamp": row[6],
             }
 
-    match (case_type):
         case "Probation":
             cursor.execute("SELECT * FROM probation_cases WHERE id=?", (case_id,))
 
@@ -185,7 +198,6 @@ def get_case_by_id(
                 "Timestamp": row[5],
             }
 
-    match (case_type):
         case "Bad Faith Ping":
             cursor.execute("SELECT * FROM bad_faith_ping_cases WHERE id=?", (case_id,))
 
@@ -225,6 +237,60 @@ def fetch_cases_by_partial_id(config: Configuration, case_id: str):
     id_list = [row[0] for row in rows]
 
     return id_list
+
+
+def create_scrubbed_case_embed(
+    sersi_case: dict, interaction: nextcord.Interaction
+) -> SersiEmbed:
+    case_embed = SersiEmbed()
+    case_embed.add_field(name="Case:", value=f"`{sersi_case['ID']}`", inline=True)
+    case_embed.add_field(
+        name="Type:", value=f"`{sersi_case['Case Type']}`", inline=True
+    )
+
+    scrubber = interaction.guild.get_member(sersi_case["Scrubber ID"])
+
+    if not scrubber:
+        case_embed.add_field(
+            name="Scrubber:",
+            value=f"`{sersi_case['Scrubber ID']}`",
+            inline=True,
+        )
+
+    else:
+        case_embed.add_field(
+            name="Scrubber ID:",
+            value=f"{scrubber.mention}",
+            inline=True,
+        )
+
+    print(sersi_case["Offender ID"])
+    offender = interaction.guild.get_member(sersi_case["Offender ID"])
+
+    if not offender:
+        case_embed.add_field(
+            name="Offender:",
+            value=f"`{sersi_case['Offender ID']}`",
+            inline=False,
+        )
+
+    else:
+        case_embed.add_field(
+            name="Offender:", value=f"{offender.mention}", inline=False
+        )
+        case_embed.set_thumbnail(url=offender.display_avatar.url)
+
+    case_embed.add_field(name="Reason:", value=sersi_case["Scrub Reason"], inline=False)
+
+    case_embed.add_field(
+        name="Timestamp:",
+        value=(f"<t:{sersi_case['Timestamp']}:R>"),
+        inline=True,
+    )
+
+    case_embed.set_footer(text="Sersi Case Tracking")
+
+    return case_embed
 
 
 def create_slur_case_embed(
