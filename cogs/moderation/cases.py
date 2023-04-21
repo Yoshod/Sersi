@@ -278,12 +278,8 @@ class Cases(commands.Cog):
         )
 
         if outcome:
-            await interaction.followup.send(
-                f"{self.config.emotes.success} Case {case_id} successfully scrubbed."
-            )
-
             logging_embed = SersiEmbed(
-                name="Case Scrubbed",
+                title="Case Scrubbed",
             )
 
             logging_embed.add_field(name="Case ID", value=f"`{case_id}`", inline=True)
@@ -300,12 +296,13 @@ class Cases(commands.Cog):
                 self.config.channels.logging
             )
 
-            logging_channel.send(embed=logging_embed)
+            await logging_channel.send(embed=logging_embed)
+
+            await interaction.followup.send(
+                f"{self.config.emotes.success} Case {case_id} successfully scrubbed."
+            )
 
         else:
-            await interaction.followup.send(
-                f"{self.config.emotes.fail} Case {case_id} has not been scrubbed. Please contact Sèitheach."
-            )
             logging_embed = SersiEmbed(
                 name="Case Scrub Attempted",
             )
@@ -324,7 +321,11 @@ class Cases(commands.Cog):
                 self.config.channels.logging
             )
 
-            logging_channel.send(embed=logging_embed)
+            await logging_channel.send(embed=logging_embed)
+
+            await interaction.followup.send(
+                f"{self.config.emotes.fail} Case {case_id} has not been scrubbed. Please contact Sèitheach."
+            )
 
     @get_case.subcommand(description="Used to delete a scrubbed Sersi Case")
     async def delete(
