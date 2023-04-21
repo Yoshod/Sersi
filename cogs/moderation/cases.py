@@ -13,9 +13,10 @@ from caseutils import (
     fetch_moderator_cases,
     scrub_case,
     fetch_all_cases,
+    delete_case,
 )
 from configutils import Configuration
-from permutils import permcheck, is_mod, is_senior_mod
+from permutils import permcheck, is_mod, is_senior_mod, is_dark_mod
 
 
 class Cases(commands.Cog):
@@ -270,10 +271,121 @@ class Cases(commands.Cog):
                 f"{self.config.emotes.success} Case {case_id} successfully scrubbed."
             )
 
+            logging_embed = SersiEmbed(
+                name="Case Scrubbed",
+            )
+
+            logging_embed.add_field(name="Case ID", value=f"`{case_id}`", inline=True)
+            logging_embed.add_field(
+                name="Senior Moderator",
+                value=f"{interaction.user.mention}",
+                inline=True,
+            )
+            logging_embed.add_field(name="Reason", value=f"`{reason}`", inline=False)
+
+            logging_embed.set_thumbnail(interaction.user.display_avatar.url)
+
+            logging_channel = interaction.guild.get_channel(
+                self.config.channels.logging
+            )
+
+            logging_channel.send(embed=logging_embed)
+
         else:
             await interaction.followup.send(
                 f"{self.config.emotes.fail} Case {case_id} has not been scrubbed. Please contact Sèitheach."
             )
+            logging_embed = SersiEmbed(
+                name="Case Scrub Attempted",
+            )
+
+            logging_embed.add_field(name="Case ID", value=f"`{case_id}`", inline=True)
+            logging_embed.add_field(
+                name="Senior Moderator",
+                value=f"{interaction.user.mention}",
+                inline=True,
+            )
+            logging_embed.add_field(name="Reason", value=f"`{reason}`", inline=False)
+
+            logging_embed.set_thumbnail(interaction.user.display_avatar.url)
+
+            logging_channel = interaction.guild.get_channel(
+                self.config.channels.logging
+            )
+
+            logging_channel.send(embed=logging_embed)
+
+    @get_case.subcommand(description="Used to delete a scrubbed Sersi Case")
+    async def delete(
+        self,
+        interaction: nextcord.Interaction,
+        case_id: str = nextcord.SlashOption(
+            name="case_id",
+            description="Case ID",
+            min_length=22,
+            max_length=22,
+        ),
+        reason: str = nextcord.SlashOption(
+            name="reason",
+            description="The reason you are deleting the case",
+            min_length=8,
+            max_length=1024,
+        ),
+    ):
+        if not await permcheck(interaction, is_dark_mod):
+            return
+
+        await interaction.response.defer(ephemeral=False)
+
+        outcome = delete_case(self.config, case_id)
+
+        if outcome:
+            await interaction.followup.send(
+                f"{self.config.emotes.success} Case {case_id} successfully deleted."
+            )
+            logging_embed = SersiEmbed(
+                name="Case Deleted",
+            )
+
+            logging_embed.add_field(name="Case ID", value=f"`{case_id}`", inline=True)
+            logging_embed.add_field(
+                name="Mega Administrator",
+                value=f"{interaction.user.mention}",
+                inline=True,
+            )
+            logging_embed.add_field(name="Reason", value=f"`{reason}`", inline=False)
+
+            logging_embed.set_thumbnail(interaction.user.display_avatar.url)
+
+            logging_channel = interaction.guild.get_channel(
+                self.config.channels.logging
+            )
+
+            logging_channel.send(embed=logging_embed)
+
+        else:
+            await interaction.followup.send(
+                f"{self.config.emotes.fail} Case {case_id} has not been deleted."
+            )
+            logging_embed = SersiEmbed(
+                name="Case Deletion Attempted",
+            )
+
+            logging_embed.add_field(name="Case ID", value=f"`{case_id}`", inline=True)
+            logging_embed.add_field(
+                name="Mega Administrator",
+                value=f"{interaction.user.mention}",
+                inline=True,
+            )
+            logging_embed.add_field(name="Reason", value=f"`{reason}`", inline=False)
+
+            logging_embed.set_thumbnail(interaction.user.display_avatar.url)
+
+            logging_channel = interaction.guild.get_channel(
+                self.config.channels.logging
+            )
+
+            logging_channel.send(embed=logging_embed)
 
     @by_id.on_autocomplete("case_id")
     @scrub.on_autocomplete("case_id")
