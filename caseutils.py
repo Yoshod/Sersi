@@ -457,22 +457,55 @@ def create_bad_faith_ping_case_embed(
     return case_embed
 
 
-def fetch_all_cases(config: Configuration, page: int, per_page: int):
+def fetch_all_cases(
+    config: Configuration,
+    page: int,
+    per_page: int,
+    case_type: typing.Optional[str] = None,
+):
     conn = sqlite3.connect(config.datafiles.sersi_db)
     cursor = conn.cursor()
 
-    cursor.execute(
-        """
-        SELECT id, '`Probation`' as type, timestamp FROM probation_cases
-        UNION
-        SELECT id, '`Reformation`' as type, timestamp FROM reformation_cases
-        UNION
-        SELECT id, '`Slur Usage`' as type, timestamp FROM slur_cases
-        UNION
-        SELECT id, '`Bad Faith Ping`' as type, timestamp FROM bad_faith_ping_cases
-        ORDER BY timestamp DESC
-    """,
-    )
+    if not case_type:
+        cursor.execute(
+            """
+            SELECT id, '`Probation`' as type, timestamp FROM probation_cases
+            UNION
+            SELECT id, '`Reformation`' as type, timestamp FROM reformation_cases
+            UNION
+            SELECT id, '`Slur Usage`' as type, timestamp FROM slur_cases
+            UNION
+            SELECT id, '`Bad Faith Ping`' as type, timestamp FROM bad_faith_ping_cases
+            ORDER BY timestamp DESC
+        """,
+        )
+
+    else:
+        match case_type:
+            case "slur_cases":
+                cursor.execute(
+                    "SELECT id, '`Slur Usage`' as type, timestamp FROM slur_cases ORDER BY timestamp DESC",
+                )
+
+            case "reformation_cases":
+                cursor.execute(
+                    "SELECT id, '`Reformation`' as type, timestamp FROM reformation_cases ORDER BY timestamp DESC",
+                )
+
+            case "probation_cases":
+                cursor.execute(
+                    "SELECT id, '`Probation`' as type, timestamp FROM probation_cases ORDER BY timestamp DESC",
+                )
+
+            case "bad_faith_ping_cases":
+                cursor.execute(
+                    "SELECT id, '`Bad Faith Ping`' as type, timestamp FROM bad_faith_ping_cases ORDER BY timestamp DESC",
+                )
+
+            case "scrubbed_cases":
+                cursor.execute(
+                    "SELECT id, type, timestamp FROM scrubbed_cases ORDER BY timestamp DESC",
+                )
 
     cases = cursor.fetchall()
 

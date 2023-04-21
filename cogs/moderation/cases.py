@@ -42,8 +42,25 @@ class Cases(commands.Cog):
             default=1,
             required=False,
         ),
+        case_type: str = nextcord.SlashOption(
+            name="case_type",
+            description="The specific case type you are looking for",
+            required=False,
+            choices={
+                "Slur Usage": "slur_cases",
+                "Probation": "probation_cases",
+                "Reformation": "reformation_cases",
+                "Bad Faith Ping": "bad_faith_ping_cases",
+                "Scrubbed Cases": "scrubbed_cases",
+            },
+        ),
     ):
         if not await permcheck(interaction, is_mod):
+            return
+
+        if case_type == "scrubbed_cases" and not await permcheck(
+            interaction, is_senior_mod
+        ):
             return
 
         await interaction.response.defer(ephemeral=False)
@@ -62,6 +79,7 @@ class Cases(commands.Cog):
             cols=10,
             per_col=1,
             init_page=int(page),
+            case_type=case_type,
         )
 
         await view.send_followup(interaction)
