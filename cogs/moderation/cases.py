@@ -309,7 +309,7 @@ class Cases(commands.Cog):
 
             logging_embed.add_field(name="Case ID", value=f"`{case_id}`", inline=True)
             logging_embed.add_field(
-                name="Senior Moderator",
+                name="Scrubber",
                 value=f"{interaction.user.mention}",
                 inline=True,
             )
@@ -352,11 +352,33 @@ class Cases(commands.Cog):
         outcome = delete_case(self.config, case_id)
 
         if outcome:
+            logging_embed = SersiEmbed(
+                title="Case Deleted",
+            )
+
+            logging_embed.add_field(name="Case ID", value=f"`{case_id}`", inline=True)
+            logging_embed.add_field(
+                name="Mega Administrator",
+                value=f"{interaction.user.mention}",
+                inline=True,
+            )
+            logging_embed.add_field(name="Reason", value=f"`{reason}`", inline=False)
+
+            logging_embed.set_thumbnail(interaction.user.display_avatar.url)
+
+            logging_channel = interaction.guild.get_channel(
+                self.config.channels.logging
+            )
+
+            await logging_channel.send(embed=logging_embed)
+
             await interaction.followup.send(
                 f"{self.config.emotes.success} Case {case_id} successfully deleted."
             )
+
+        else:
             logging_embed = SersiEmbed(
-                name="Case Deleted",
+                title="Case Deletion Attempted",
             )
 
             logging_embed.add_field(name="Case ID", value=f"`{case_id}`", inline=True)
@@ -373,31 +395,11 @@ class Cases(commands.Cog):
                 self.config.channels.logging
             )
 
-            logging_channel.send(embed=logging_embed)
+            await logging_channel.send(embed=logging_embed)
 
-        else:
             await interaction.followup.send(
                 f"{self.config.emotes.fail} Case {case_id} has not been deleted."
             )
-            logging_embed = SersiEmbed(
-                name="Case Deletion Attempted",
-            )
-
-            logging_embed.add_field(name="Case ID", value=f"`{case_id}`", inline=True)
-            logging_embed.add_field(
-                name="Mega Administrator",
-                value=f"{interaction.user.mention}",
-                inline=True,
-            )
-            logging_embed.add_field(name="Reason", value=f"`{reason}`", inline=False)
-
-            logging_embed.set_thumbnail(interaction.user.display_avatar.url)
-
-            logging_channel = interaction.guild.get_channel(
-                self.config.channels.logging
-            )
-
-            logging_channel.send(embed=logging_embed)
 
     @by_id.on_autocomplete("case_id")
     @scrub.on_autocomplete("case_id")
