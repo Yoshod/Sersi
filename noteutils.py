@@ -26,6 +26,8 @@ def create_note(
     conn.commit()
     conn.close()
 
+    return unique_id
+
 
 def get_note_by_id(
     config: Configuration,
@@ -83,14 +85,18 @@ def get_note_by_user(
 def get_note_by_moderator(
     config: Configuration,
     moderator_id: str,
+    page: int,
+    per_page: int,
 ) -> dict:
     conn = sqlite3.connect(config.datafiles.sersi_db)
     cursor = conn.cursor()
 
-    cursor.execute("SELECT * FROM notes WHERE noter=?", (moderator_id,))
+    cursor.execute(
+        "SELECT * FROM notes WHERE noter=? ORDER BY timestamp DESC", (moderator_id,)
+    )
 
     try:
-        row = cursor.fetchone()
+        notes = cursor.fetchall()
 
     except TypeError:
         cursor.close()
@@ -98,13 +104,8 @@ def get_note_by_moderator(
 
     conn.close()
 
-    return {
-        "ID": f"{row[0]}",
-        "Target ID": row[1],
-        "Moderator ID": row[2],
-        "Note": row[3],
-        "Timestamp": row[4],
-    }
+    notes_list = [list(note) for note in notes]
+    return get_page(notes_list, page, per_page)
 
 
 def fetch_notes_by_partial_id(config: Configuration, note_id: str):

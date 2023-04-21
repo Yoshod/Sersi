@@ -9,6 +9,7 @@ from noteutils import (
     fetch_notes_by_partial_id,
     create_note_embed,
     get_note_by_user,
+    get_note_by_moderator,
 )
 from configutils import Configuration
 from permutils import permcheck, is_mod, is_senior_mod
@@ -51,11 +52,21 @@ class Notes(commands.Cog):
 
         await interaction.response.defer(ephemeral=False)
 
-        create_note(self.config, noted, interaction.user, note, int(time.time()))
+        note_id = create_note(
+            self.config, noted, interaction.user, note, int(time.time())
+        )
 
         await interaction.followup.send(
             f"{self.config.emotes.success} The note on {noted.mention} has been successfully created."
         )
+
+        sersi_note = get_note_by_id(self.config, note_id)
+
+        note_embed = create_note_embed(sersi_note, interaction)
+
+        logging_channel = interaction.guild.get_channel(self.config.channels.mod_logs)
+
+        await logging_channel.send(embed=note_embed)
 
     @notes.subcommand(description="Used to get a note by its ID")
     async def by_id(
@@ -120,6 +131,43 @@ class Notes(commands.Cog):
             per_col=1,
             init_page=int(page),
             user_id=str(user.id),
+        )
+
+        await view.send_followup(interaction)
+
+    @notes.subcommand(description="Used to get a note by its user")
+    async def by_moderator(
+        self,
+        interaction: nextcord.Interaction,
+        moderator: nextcord.Member = nextcord.SlashOption,
+        page: int = nextcord.SlashOption(
+            name="page",
+            description="The page you want to view",
+            min_value=1,
+            default=1,
+            required=False,
+        ),
+    ):
+        if not await permcheck(interaction, is_mod):
+            return
+
+        await interaction.response.defer(ephemeral=False)
+
+        note_embed = SersiEmbed(title=f"{moderator.name}'s Moderator Notes")
+        note_embed.set_thumbnail(moderator.display_avatar.url)
+
+        view = PageView(
+            config=self.config,
+            base_embed=note_embed,
+            fetch_function=get_note_by_moderator,
+            author=interaction.user,
+            entry_form=format_entry,
+            field_title="{entries[0][0]}",
+            inline_fields=False,
+            cols=10,
+            per_col=1,
+            init_page=int(page),
+            moderator_id=str(moderator.id),
         )
 
         await view.send_followup(interaction)
