@@ -8,9 +8,17 @@ from noteutils import (
     get_note_by_id,
     fetch_notes_by_partial_id,
     create_note_embed,
+    get_note_by_user,
 )
 from configutils import Configuration
 from permutils import permcheck, is_mod, is_senior_mod
+
+
+def format_entry(entry):
+    if len(entry[3]) >= 16:
+        return "`{}`... <t:{}:R>".format(entry[3][:15], entry[4])
+    else:
+        return "`{}` <t:{}:R>".format(entry[3], entry[4])
 
 
 class Notes(commands.Cog):
@@ -78,6 +86,43 @@ class Notes(commands.Cog):
 
         notes = fetch_notes_by_partial_id(self.config, note)
         await interaction.response.send_autocomplete(notes)
+
+    @notes.subcommand(description="Used to get a note by its user")
+    async def by_user(
+        self,
+        interaction: nextcord.Interaction,
+        user: nextcord.Member = nextcord.SlashOption,
+        page: int = nextcord.SlashOption(
+            name="page",
+            description="The page you want to view",
+            min_value=1,
+            default=1,
+            required=False,
+        ),
+    ):
+        if not await permcheck(interaction, is_mod):
+            return
+
+        await interaction.response.defer(ephemeral=False)
+
+        note_embed = SersiEmbed(title=f"{user.name}'s Notes")
+        note_embed.set_thumbnail(user.display_avatar.url)
+
+        view = PageView(
+            config=self.config,
+            base_embed=note_embed,
+            fetch_function=get_note_by_user,
+            author=interaction.user,
+            entry_form=format_entry,
+            field_title="{entries[0][0]}",
+            inline_fields=False,
+            cols=10,
+            per_col=1,
+            init_page=int(page),
+            user_id=str(user.id),
+        )
+
+        await view.send_followup(interaction)
 
 
 def setup(bot, **kwargs):

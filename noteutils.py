@@ -47,8 +47,61 @@ def get_note_by_id(
 
     return {
         "ID": f"{row[0]}",
-        "Noted ID": row[1],
-        "Noter ID": row[2],
+        "Target ID": row[1],
+        "Moderator ID": row[2],
+        "Note": row[3],
+        "Timestamp": row[4],
+    }
+
+
+def get_note_by_user(
+    config: Configuration,
+    page: int,
+    per_page: int,
+    user_id: str,
+) -> dict:
+    conn = sqlite3.connect(config.datafiles.sersi_db)
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "SELECT * FROM notes WHERE noted=? ORDER BY timestamp DESC", (user_id,)
+    )
+
+    try:
+        notes = cursor.fetchall()
+
+    except TypeError:
+        cursor.close()
+        return "No Note"
+
+    conn.close()
+
+    notes_list = [list(note) for note in notes]
+    return get_page(notes_list, page, per_page)
+
+
+def get_note_by_moderator(
+    config: Configuration,
+    moderator_id: str,
+) -> dict:
+    conn = sqlite3.connect(config.datafiles.sersi_db)
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM notes WHERE noter=?", (moderator_id,))
+
+    try:
+        row = cursor.fetchone()
+
+    except TypeError:
+        cursor.close()
+        return "No Note"
+
+    conn.close()
+
+    return {
+        "ID": f"{row[0]}",
+        "Target ID": row[1],
+        "Moderator ID": row[2],
         "Note": row[3],
         "Timestamp": row[4],
     }
@@ -80,12 +133,12 @@ def create_note_embed(
     note_embed = SersiEmbed()
     note_embed.add_field(name="Note ID:", value=f"`{sersi_note['ID']}`", inline=True)
 
-    moderator = interaction.guild.get_member(sersi_note["Noter ID"])
+    moderator = interaction.guild.get_member(sersi_note["Moderator ID"])
 
     if not moderator:
         note_embed.add_field(
             name="Moderator:",
-            value=f"`{sersi_note['Noter ID']}`",
+            value=f"`{sersi_note['Moderator ID']}`",
             inline=True,
         )
 
@@ -94,12 +147,12 @@ def create_note_embed(
             name="Moderator:", value=f"{moderator.mention}", inline=True
         )
 
-    noted = interaction.guild.get_member(sersi_note["Noted ID"])
+    noted = interaction.guild.get_member(sersi_note["Target ID"])
 
     if not noted:
         note_embed.add_field(
             name="User:",
-            value=f"`{sersi_note['Noted ID']}`",
+            value=f"`{sersi_note['Target ID']}`",
             inline=True,
         )
 

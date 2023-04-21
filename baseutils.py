@@ -214,7 +214,6 @@ class DualCustodyView(View):
                 config: configutils.Configuration,
                 interaction: nextcord.Interaction,
             ) -> nextcord.Embed:
-
                 # if command used by admin, skip dual custody query
                 if bypass and is_dark_mod(interaction.user):
                     return await func(
@@ -295,8 +294,16 @@ class PageView(View):
 
     def make_column(self, entries):
         entry_list = []
-        for entry in entries:
-            entry_list.append(self.entry_format.format(entry=entry))
+        if callable(self.entry_format):
+            for entry in entries:
+                entry_list.append(self.entry_format(entry=entry))
+        elif isinstance(self.entry_format, str):
+            for entry in entries:
+                entry_list.append(self.entry_format.format(entry=entry))
+        else:
+            raise ValueError(
+                "Invalid entry_format type. Must be a function or a string."
+            )
         return "\n".join(entry_list)
 
     def make_embed(self, page):
