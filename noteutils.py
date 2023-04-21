@@ -26,6 +26,8 @@ def create_note(
     conn.commit()
     conn.close()
 
+    return unique_id
+
 
 def get_note_by_id(
     config: Configuration,
