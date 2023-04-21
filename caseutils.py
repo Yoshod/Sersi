@@ -2,6 +2,7 @@ import sqlite3
 import nextcord
 import shortuuid
 import time
+import typing
 
 from configutils import Configuration
 from baseutils import SersiEmbed, get_page
@@ -484,24 +485,61 @@ def fetch_all_cases(config: Configuration, page: int, per_page: int):
 
 
 def fetch_offender_cases(
-    config: Configuration, page: int, per_page: int, offender: nextcord.Member
+    config: Configuration,
+    page: int,
+    per_page: int,
+    offender: nextcord.Member,
+    case_type: typing.Optional[str] = None,
 ):
     conn = sqlite3.connect(config.datafiles.sersi_db)
     cursor = conn.cursor()
 
-    cursor.execute(
-        """
-        SELECT id, '`Probation`' as type, timestamp FROM probation_cases WHERE offender=:offender
-        UNION
-        SELECT id, '`Reformation`' as type, timestamp FROM reformation_cases WHERE offender=:offender
-        UNION
-        SELECT id, '`Slur Usage`' as type, timestamp FROM slur_cases WHERE offender=:offender
-        UNION
-        SELECT id, '`Bad Faith Ping`' as type, timestamp FROM bad_faith_ping_cases WHERE offender=:offender
-        ORDER BY timestamp DESC
-    """,
-        {"offender": str(offender.id)},
-    )
+    if not case_type:
+        cursor.execute(
+            """
+            SELECT id, '`Probation`' as type, timestamp FROM probation_cases WHERE offender=:offender
+            UNION
+            SELECT id, '`Reformation`' as type, timestamp FROM reformation_cases WHERE offender=:offender
+            UNION
+            SELECT id, '`Slur Usage`' as type, timestamp FROM slur_cases WHERE offender=:offender
+            UNION
+            SELECT id, '`Bad Faith Ping`' as type, timestamp FROM bad_faith_ping_cases WHERE offender=:offender
+            ORDER BY timestamp DESC
+        """,
+            {"offender": str(offender.id)},
+        )
+
+    else:
+        match case_type:
+            case "slur_cases":
+                cursor.execute(
+                    "SELECT id, '`Slur Usage`' as type, timestamp FROM slur_cases WHERE offender=:offender ORDER BY timestamp DESC",
+                    {"offender": str(offender.id)},
+                )
+
+            case "reformation_cases":
+                cursor.execute(
+                    "SELECT id, '`Reformation`' as type, timestamp FROM reformation_cases WHERE offender=:offender ORDER BY timestamp DESC",
+                    {"offender": str(offender.id)},
+                )
+
+            case "probation_cases":
+                cursor.execute(
+                    "SELECT id, '`Probation`' as type, timestamp FROM probation_cases WHERE offender=:offender ORDER BY timestamp DESC",
+                    {"offender": str(offender.id)},
+                )
+
+            case "bad_faith_ping_cases":
+                cursor.execute(
+                    "SELECT id, '`Bad Faith Ping`' as type, timestamp FROM bad_faith_ping_cases WHERE offender=:offender ORDER BY timestamp DESC",
+                    {"offender": str(offender.id)},
+                )
+
+            case "scrubbed_cases":
+                cursor.execute(
+                    "SELECT id, type, timestamp FROM scrubbed_cases WHERE offender=:offender ORDER BY timestamp DESC",
+                    {"offender": str(offender.id)},
+                )
 
     cases = cursor.fetchall()
 
@@ -514,24 +552,61 @@ def fetch_offender_cases(
 
 
 def fetch_moderator_cases(
-    config: Configuration, page: int, per_page: int, moderator: nextcord.Member
+    config: Configuration,
+    page: int,
+    per_page: int,
+    moderator: nextcord.Member,
+    case_type: typing.Optional[str] = None,
 ):
     conn = sqlite3.connect(config.datafiles.sersi_db)
     cursor = conn.cursor()
 
-    cursor.execute(
-        """
-        SELECT id, '`Bad Faith Ping`' as type, timestamp FROM bad_faith_ping_cases WHERE moderator=:moderator
-        UNION
-        SELECT id, '`Probation`' as type, timestamp FROM probation_cases WHERE initial_moderator=:moderator OR approving_moderator=:moderator
-        UNION
-        SELECT id, '`Reformation`' as type, timestamp FROM reformation_cases WHERE moderator=:moderator
-        UNION
-        SELECT id, '`Slur Usage`' as type, timestamp FROM slur_cases WHERE moderator=:moderator
-        ORDER BY timestamp DESC
-    """,
-        {"moderator": str(moderator.id)},
-    )
+    if not case_type:
+        cursor.execute(
+            """
+            SELECT id, '`Bad Faith Ping`' as type, timestamp FROM bad_faith_ping_cases WHERE moderator=:moderator
+            UNION
+            SELECT id, '`Probation`' as type, timestamp FROM probation_cases WHERE initial_moderator=:moderator OR approving_moderator=:moderator
+            UNION
+            SELECT id, '`Reformation`' as type, timestamp FROM reformation_cases WHERE moderator=:moderator
+            UNION
+            SELECT id, '`Slur Usage`' as type, timestamp FROM slur_cases WHERE moderator=:moderator
+            ORDER BY timestamp DESC
+        """,
+            {"moderator": str(moderator.id)},
+        )
+
+    else:
+        match case_type:
+            case "slur_cases":
+                cursor.execute(
+                    "SELECT id, '`Slur Usage`' as type, timestamp FROM slur_cases WHERE moderator=:moderator ORDER BY timestamp DESC",
+                    {"moderator": str(moderator.id)},
+                )
+
+            case "reformation_cases":
+                cursor.execute(
+                    "SELECT id, '`Reformation`' as type, timestamp FROM reformation_cases WHERE moderator=:moderator ORDER BY timestamp DESC",
+                    {"moderator": str(moderator.id)},
+                )
+
+            case "probation_cases":
+                cursor.execute(
+                    "SELECT id, '`Probation`' as type, timestamp FROM probation_cases WHERE initial_moderator=:moderator OR approving_moderator=:moderator ORDER BY timestamp DESC",
+                    {"moderator": str(moderator.id)},
+                )
+
+            case "bad_faith_ping_cases":
+                cursor.execute(
+                    "SELECT id, '`Bad Faith Ping`' as type, timestamp FROM bad_faith_ping_cases WHERE moderator=:moderator ORDER BY timestamp DESC",
+                    {"moderator": str(moderator.id)},
+                )
+
+            case "scrubbed_cases":
+                cursor.execute(
+                    "SELECT id, type, timestamp FROM scrubbed_cases WHERE moderator=:moderator ORDER BY timestamp DESC",
+                    {"moderator": str(moderator.id)},
+                )
 
     cases = cursor.fetchall()
 
