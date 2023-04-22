@@ -56,7 +56,6 @@ async def cog(
     if action in ["unload", "reload"]:
         try:
             bot.unload_extension(f"cogs.{category}.{cog}")
-            await bot.sync_all_application_commands()
             await interaction.followup.send(
                 f"Cog {category}.{cog} unloaded."
             )
@@ -75,12 +74,13 @@ async def cog(
                     "data_folder": f"{root_folder}/persistent_data",
                 },
             )
-            await bot.sync_all_application_commands()
             await interaction.followup.send(f"Cog {category}.{cog} loaded.")
         except commands.errors.ExtensionNotFound:
             await interaction.followup.send("Cog not found.")
         except commands.errors.ExtensionAlreadyLoaded:
             await interaction.followup.send("Cog already loaded.")
+    
+    await bot.sync_all_application_commands()
 
 
 @cog.on_autocomplete("category")
