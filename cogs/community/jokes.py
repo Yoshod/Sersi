@@ -186,8 +186,10 @@ class Jokes(commands.Cog):
 
         await interaction.followup.send(embed=based_check_embed)
 
+    # compromise: let's have both variants for now -gombik
+
     @fun.subcommand(description="UwUifies the message.")
-    async def uwu(
+    async def uwuify(
         self,
         interaction: nextcord.Interaction,
         message: str = nextcord.SlashOption(
