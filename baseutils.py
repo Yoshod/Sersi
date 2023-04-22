@@ -261,16 +261,16 @@ class PageView(View):
     def __init__(
         self,
         config: configutils.Configuration,
-        base_embed,
-        fetch_function,
-        author,
-        entry_form="**•**\u00A0{entry}",
-        field_title="{start} \u2014 {end}",
-        inline_fields=True,
-        cols=1,
-        per_col=10,
-        init_page=1,
-        no_entries="{config.emotes.fail} There are no entries to display.",
+        base_embed: nextcord.Embed,
+        fetch_function: callable,
+        author: nextcord.Member,
+        entry_form: str = "**•**\u00A0{entry}",
+        field_title: str = "{start} \u2014 {end}",
+        inline_fields: bool = True,
+        cols: int = 1,
+        per_col: int = 10,
+        init_page: int = 1,
+        no_entries: str = "{config.emotes.fail} There are no entries to display.",
         **kwargs,
     ):
         super().__init__()
@@ -308,7 +308,7 @@ class PageView(View):
             )
         return "\n".join(entry_list)
 
-    def make_embed(self, page):
+    def make_embed(self, page: int):
         embed = self.embed_base.copy()
         entries, pages, self.page = self.get_entries(
             self.config,
@@ -349,10 +349,10 @@ class PageView(View):
     async def interaction_check(self, interaction: nextcord.Interaction):
         return interaction.user == self.author
 
-    async def send_embed(self, channel):
+    async def send_embed(self, channel: nextcord.TextChannel):
         self.message = await channel.send(embed=self.make_embed(self.page), view=self)
 
-    async def send_followup(self, interaction):
+    async def send_followup(self, interaction: nextcord.Interaction):
         self.message = await interaction.followup.send(
             embed=self.make_embed(self.page), view=self
         )
