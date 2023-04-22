@@ -103,79 +103,75 @@ class MemberRoles(commands.Cog):
             ).flatten()
         )[0]
 
-        if not after == log.target:  # it likes to trigger this even willy nilly
-            return
-
-        before_permissions: str = ""
-        after_permissions: str = ""
-        for before_permission, before_value in before.permissions:
-            for after_permission, after_value in after.permissions:
-                if (
-                    before_permission == after_permission
-                    and before_value != after_value
-                ):
-                    match before_value:
-                        case True:
-                            before_permissions += (
-                                f"{self.config.emotes.success} `{before_permission}`\n"
-                            )
-                        case False:
-                            before_permissions += (
-                                f"{self.config.emotes.fail} `{before_permission}`\n"
-                            )
-                        case None:
-                            before_permissions += (
-                                f"{self.config.emotes.inherit} `{before_permission}`\n"
-                            )
-
-                    match after_value:
-                        case True:
-                            after_permissions += (
-                                f"{self.config.emotes.success} `{after_permission}`\n"
-                            )
-                        case False:
-                            after_permissions += (
-                                f"{self.config.emotes.fail} `{after_permission}`\n"
-                            )
-                        case None:
-                            after_permissions += (
-                                f"{self.config.emotes.inherit} `{after_permission}`\n"
-                            )
+        # if not after == log.target:  # it likes to trigger this even willy nilly
+        #    return
 
         logging_embed: nextcord.Embed = SersiEmbed(
             description=f"Role {after.mention} {after.name} was updated",
-            colour=after.colour,
+            colour=after.colour
+            if int(after.colour) != 0
+            else nextcord.Color.from_rgb(237, 91, 6),
             footer="Sersi Role Logging",
-        ).set_author(name=log.user, icon_url=log.user.display_avatar.url)
+        )
 
         if before.permissions != after.permissions:
+            before_permissions: str = ""
+            after_permissions: str = ""
+            for before_permission, before_value in before.permissions:
+                for after_permission, after_value in after.permissions:
+                    if (
+                        before_permission == after_permission
+                        and before_value != after_value
+                    ):
+                        match before_value:
+                            case True:
+                                before_permissions += f"{self.config.emotes.success} `{before_permission}`\n"
+                            case False:
+                                before_permissions += (
+                                    f"{self.config.emotes.fail} `{before_permission}`\n"
+                                )
+
+                        match after_value:
+                            case True:
+                                after_permissions += f"{self.config.emotes.success} `{after_permission}`\n"
+                            case False:
+                                after_permissions += (
+                                    f"{self.config.emotes.fail} `{after_permission}`\n"
+                                )
+
             logging_embed.add_field(
                 name="Permissions Changed",
-                value=f"**Before:**\n{before_permissions}\n**After:**\n{after_permissions}",
+                value=f"Before:\n{before_permissions}\nAfter:\n{after_permissions}",
                 inline=False,
-            )
+            ).set_author(name=log.user, icon_url=log.user.display_avatar.url)
         if before.colour != after.colour:
             logging_embed.add_field(
                 name="Colour",
-                value=f"**Before:**\n{before.colour}\n**After:**\n{after.colour}",
+                value=f"Before:\n{before.colour}\nAfter:\n{after.colour}",
                 inline=False,
-            )
+            ).set_author(name=log.user, icon_url=log.user.display_avatar.url)
         if before.mentionable != after.mentionable:
             logging_embed.add_field(
                 name="Mentionable",
-                value=f"**Before:**\n{before.mentionable}\n**After:**\n{after.mentionable}",
+                value=f"Before:\n{before.mentionable}\nAfter:\n{after.mentionable}",
                 inline=False,
-            )
+            ).set_author(name=log.user, icon_url=log.user.display_avatar.url)
         if before.hoist != after.hoist:
             logging_embed.add_field(
                 name="Hoist",
-                value=f"**Before:**\n{before.hoist}\n**After:**\n{after.hoist}",
+                value=f"Before:\n{before.hoist}\nAfter:\n{after.hoist}",
                 inline=False,
-            )
+            ).set_author(name=log.user, icon_url=log.user.display_avatar.url)
         if before.name != after.name:
             logging_embed.add_field(
                 name="Name",
-                value=f"**Before:**\n{before.name}\n**After:**\n{after.name}",
+                value=f"Before:\n{before.name}\nAfter:\n{after.name}",
+                inline=False,
+            ).set_author(name=log.user, icon_url=log.user.display_avatar.url)
+        if before.position != after.position:
+            logging_embed.add_field(
+                name="Position",
+                value=f"Before:\n{before.position}\nAfter:\n{after.position}",
                 inline=False,
             )
 
