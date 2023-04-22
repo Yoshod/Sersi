@@ -27,6 +27,91 @@ root_folder = os.path.dirname(os.path.realpath(__file__))
 ### COGS ###
 
 
+@bot.slash_command()
+async def cog(
+    interaction: nextcord.Interaction,
+    action: str = nextcord.SlashOption(
+        description="Action to perform on cog.",
+        choices={
+            "Load": "load",
+            "Unload": "unload",
+            "Reload": "reload",
+        },
+    ),
+    category: str = nextcord.SlashOption(
+        description="Category of cog.",
+    ),
+    cog: str = nextcord.SlashOption(
+        description="Cog to perform action on.",
+    ),
+):
+    """Load, unload, or reload cogs.
+
+    Permission needed: Sersi contributor"""
+    if not await permcheck(interaction, is_sersi_contrib):
+        return
+
+    await interaction.response.defer()
+
+    if action in ["unload", "reload"]:
+        try:
+            bot.unload_extension(f"cogs.{category}.{cog}")
+            await bot.sync_all_application_commands()
+            await interaction.followup.send(
+                f"Cog {category}.{cog} unloaded."
+            )
+        except commands.errors.ExtensionNotFound:
+            await interaction.followup("Cog not found.")
+        except commands.errors.ExtensionNotLoaded:
+            await interaction.followup.send(
+                f"Cog {category}.{cog} was not loaded."
+            )
+    if action in ["load", "reload"]:
+        try:
+            bot.load_extension(
+                f"cogs.{category}.{cog}",
+                extras={
+                    "config": config,
+                    "data_folder": f"{root_folder}/persistent_data",
+                },
+            )
+            await bot.sync_all_application_commands()
+            await interaction.followup.send(f"Cog {category}.{cog} loaded.")
+        except commands.errors.ExtensionNotFound:
+            await interaction.followup.send("Cog not found.")
+        except commands.errors.ExtensionAlreadyLoaded:
+            await interaction.followup.send("Cog already loaded.")
+
+
+@cog.on_autocomplete("category")
+async def cog_category_autocomplete(interaction: nextcord.Interaction, category: str):
+    categories = [dir for dir in os.listdir("./cogs") if dir != "__pycache__"]
+    if not category:
+        return categories
+    
+    return [c for c in categories if c.startswith(category)]
+
+
+@cog.on_autocomplete("cog")
+async def cog_cog_autocomplete(
+    interaction: nextcord.Interaction, cog: str, action: str, category: str
+):
+    bot_cogs = [cog.removeprefix(f"cogs.{category}.") for cog in bot.extensions.keys() if cog.startswith(f"cogs.{category}.")]
+    file_cogs = [cog.removesuffix(".py") for cog in os.listdir(f"./cogs/{category}") if cog != "__pycache__"]
+
+    if action == "load":
+        cogs = [cog for cog in file_cogs if cog not in bot_cogs]
+    elif action == "unload":
+        cogs = [cog for cog in bot_cogs]
+    elif action == "reload":
+        cogs = [cog for cog in bot_cogs if cog in file_cogs]
+
+    if not cog:
+        return cogs
+    
+    return [c for c in cogs if c.startswith(cog)]
+
+
 @bot.command()
 async def load(ctx: commands.Context, extension: str):
     """Loads Cog
