@@ -2,43 +2,128 @@ import nextcord
 import yaml
 
 from nextcord.ext import commands
-from baseutils import sanitize_mention
+from baseutils import sanitize_mention, SersiEmbed
 from configutils import Configuration
 from permutils import permcheck, is_sersi_contrib, is_staff
 from cogutils import reload_all_cogs
 
 
 class Config(commands.Cog):
-    def __init__(self, bot: nextcord.Client, config: Configuration, data_folder: str):
+    def __init__(self, bot: commands.Bot, config: Configuration, data_folder: str):
         self.bot = bot
         self.config = config
         self.data_folder = data_folder
-        self.yaml_file = f"{data_folder}/config.yaml"
-        self.sersisuccess = config.emotes.success
-        self.sersifail = config.emotes.fail
+        self.config_file = f"{data_folder}/config.yaml"
 
-    def set_config(self, section, setting, value):
-        with open(self.yaml_file, "r") as file:
+    def set_config(self, config_section, setting, value):
+        with open(self.config_file, "r") as file:
             config_dict = yaml.safe_load(file)
 
         # hard casting any IDs to integers now
-        if "channels" in section.lower() or "roles" in section.lower():
+        if "channels" in config_section.lower() or "roles" in config_section.lower():
             value = int(value)
 
-        config_dict[section][setting] = value
+        config_dict[config_section][setting] = value
 
-        with open(self.yaml_file, "w") as file:
+        with open(self.config_file, "w") as file:
             yaml.dump(config_dict, file)
 
         # self.config = Configuration.from_yaml_file(self.yaml_file)
 
-    @commands.command(aliases=["set"])
-    async def setsetting(self, ctx, section, setting, value):
-        if not await permcheck(ctx, is_sersi_contrib):
+    async def _reload_bot(self):
+        self.config = Configuration.from_yaml_file(self.config_file)
+        await reload_all_cogs(
+            self.bot, config=self.config, data_folder=self.data_folder
+        )
+
+        self.bot.command_prefix = self.config.bot.prefix
+        await self.bot.change_presence(activity=nextcord.Game(self.config.bot.status))
+
+    @nextcord.slash_command(
+        dm_permission=False, guild_ids=[977377117895536640, 856262303795380224]
+    )
+    async def config(
+        self,
+        interaction: nextcord.Interaction,
+        config_section: str = nextcord.SlashOption(required=False, name="section"),
+    ):
+        if not await permcheck(interaction, is_staff) or await permcheck(
+            interaction, is_sersi_contrib
+        ):
             return
 
+        await interaction.response.defer()
+
+        with open(self.config_file, "r") as file:
+            config = yaml.safe_load(file)
+
+        if config_section:
+            if config_section in config:
+                config_embed = SersiEmbed(
+                    title=config_section,
+                )
+
+                for field in config[config_section]:
+                    value = None
+
+                    if "channels" in config_section.lower():
+                        channel = interaction.guild.get_channel(
+                            config[config_section][field]
+                        )
+                        if channel is not None:
+                            value = channel.mention
+                        else:
+                            value = f"`{config[config_section][field]}`"
+
+                    elif "roles" in config_section.lower():
+                        role = interaction.guild.get_role(config[config_section][field])
+                        if role is not None:
+                            value = role.mention
+                        else:
+                            value = f"`{config[config_section][field]}`"
+
+                    else:
+                        value = config[config_section][field]
+
+                    config_embed.add_field(name=f"{field}:", value=value)
+
+                await interaction.send(embed=config_embed)
+            else:
+                await interaction.send(
+                    f"Section {config_section} is not present in configuration!"
+                )
+
+        config_embed = SersiEmbed(
+            title="Sersi Configuration",
+            description="type /config [section] to display section settings",
+        )
+
+        for section in config:
+            config_embed.add_field(
+                name=f"{section}:", value="`" + "`\n`".join(config[section]) + "`"
+            )
+
+        await interaction.send(embed=config_embed)
+
+    @config.subcommand(
+        description="set a setting to a value",
+    )
+    async def set_setting(
+        self,
+        interaction: nextcord.Interaction,
+        section: str = nextcord.SlashOption(
+            description="the section the setting belongs to"
+        ),
+        setting: str = nextcord.SlashOption(description="the name of the setting"),
+        value: str = nextcord.SlashOption(description="the value to set"),
+    ):
+        if not await permcheck(interaction, is_sersi_contrib):
+            return
+
+        await interaction.response.defer()
+
         section = section.lower()
-        with open(self.yaml_file, "r") as file:
+        with open(self.config_file, "r") as file:
             config = yaml.safe_load(file)
 
         if "channels" in section.lower() or "roles" in section.lower():
@@ -49,124 +134,48 @@ class Config(commands.Cog):
             self.set_config(section, setting, value)
 
             # logging
-            log_embed = nextcord.Embed(
-                title="Configuration setting changed",
-                colour=nextcord.Color.from_rgb(237, 91, 6),
-            )
-            log_embed.add_field(
-                name="Staff Member:", value=ctx.author.mention, inline=False
-            )
-            log_embed.add_field(name="Section:", value=section, inline=False)
-            log_embed.add_field(name="Setting:", value=setting, inline=False)
-            log_embed.add_field(name="Previous Value:", value=prev_value, inline=False)
-            log_embed.add_field(name="New Value:", value=value, inline=False)
-
-            channel = ctx.guild.get_channel(self.config.channels.logging)
-            await channel.send(embed=log_embed)
-
-            await ctx.send(
-                f"{self.sersisuccess} `[{section}] {setting}` has been set to `{value}`"
+            await interaction.guild.get_channel(self.config.channels.logging).send(
+                embed=SersiEmbed(
+                    title="Configuration setting changed",
+                    fields={
+                        "Staff Member:": interaction.user.mention,
+                        "Section:": section,
+                        "Setting:": setting,
+                        "Previous Value:": prev_value,
+                        "New Value:": value,
+                    },
+                ).set_author(
+                    name=interaction.user, icon_url=interaction.user.display_avatar.url
+                )
             )
 
-            await ctx.invoke(
-                self.bot.get_command("reloadbot")
-            )  # if removed, uncomment last line of set_config
+            await interaction.send(
+                f"{self.config.emotes.success} `[{section}] {setting}` has been set to `{value}`"
+            )
+
+            await self._reload_bot()
+            await interaction.followup.send(
+                f"{self.config.emotes.success} Bot reloaded."
+            )
 
         else:
-            dialog_embed = nextcord.Embed(
-                title="Setting not found.", color=nextcord.Color.from_rgb(237, 91, 6)
+
+            await interaction.send(
+                embed=nextcord.Embed(
+                    title="Setting not found.",
+                    color=nextcord.Color.from_rgb(237, 91, 6),
+                )
             )
 
-            await ctx.send(embed=dialog_embed)
-
-    @commands.command()
-    async def reloadbot(self, ctx):
-        if not await permcheck(ctx, is_sersi_contrib):
+    @config.subcommand(description="Reloads all cogs of the bot")
+    async def reload(self, interaction: nextcord.Interaction):
+        if not await permcheck(interaction, is_sersi_contrib):
             return
 
-        self.config = Configuration.from_yaml_file(self.yaml_file)
-        await reload_all_cogs(
-            self.bot, config=self.config, data_folder=self.data_folder
-        )
+        await interaction.response.defer()
+        await self._reload_bot()
 
-        self.bot.command_prefix = self.config.bot.prefix
-        await self.bot.change_presence(activity=nextcord.Game(self.config.bot.status))
-
-        await ctx.send(f"{self.sersisuccess} Bot reloaded.")
-
-    @commands.command(aliases=["config", "conf"])
-    async def configuration(self, ctx, *args):
-        if not is_staff(ctx.author) and not is_sersi_contrib(
-            ctx.author
-        ):  # either is fine
-            await ctx.reply(f"{self.sersifail} Insufficient permission!")
-            return
-
-        with open(self.yaml_file, "r") as file:
-            config = yaml.safe_load(file)
-
-        if len(args) == 4:
-            if (
-                args[0].upper() == "SET"
-            ):  # yes this does need to be stacked that way, no you can't just 'and' the two conditions.
-                await ctx.invoke(
-                    self.bot.get_command("setsetting"),
-                    section=args[1],
-                    setting=args[2],
-                    value=args[3],
-                )
-                return
-
-        elif len(args) == 1:
-            section = args[0].lower()
-
-            if section in config:
-                config_embed = nextcord.Embed(
-                    title=section, color=nextcord.Color.from_rgb(237, 91, 6)
-                )
-
-                for field in config[section]:
-                    value = None
-
-                    if "channels" in section.lower():
-                        channel = ctx.guild.get_channel(config[section][field])
-                        if channel is not None:
-                            value = channel.mention
-                        else:
-                            value = f"`{config[section][field]}`"
-
-                    elif "roles" in section.lower():
-                        role = ctx.guild.get_role(config[section][field])
-                        if role is not None:
-                            value = role.mention
-                        else:
-                            value = f"`{config[section][field]}`"
-
-                    else:
-                        value = config[section][field]
-
-                    config_embed.add_field(name=f"{field}:", value=value)
-
-                await ctx.send(embed=config_embed)
-                return
-            else:
-                await ctx.send(f"Section {section} is not present in configuration!")
-
-        elif len(args) != 0:
-            await ctx.send(f"Invalid argument: `{args}`")
-
-        config_embed = nextcord.Embed(
-            title="Sersi Configuration",
-            description="type s!conf|ig|uration [section] to display section settings",
-            color=nextcord.Color.from_rgb(237, 91, 6),
-        )
-
-        for section in config:
-            config_embed.add_field(
-                name=f"{section}:", value="`" + "`\n`".join(config[section]) + "`"
-            )
-
-        await ctx.send(embed=config_embed)
+        await interaction.followup.send(f"{self.config.emotes.success} Bot reloaded.")
 
 
 def setup(bot, **kwargs):
