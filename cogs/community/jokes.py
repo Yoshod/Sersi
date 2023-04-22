@@ -73,13 +73,14 @@ def calculate_basedness(config: Configuration, member: nextcord.Member):
             bias += 0.05
         elif role.id in config.punishment_roles.values():
             bias -= 1.0
+        elif role.id == config.roles.reformation:
+            bias -= 10.0
         elif role.id == config.roles.never_mod:
             bias -= 1.0
         elif role.id == config.roles.probation:
             bias -= 2.0
-        elif role.id == config.roles.reformation:
-            return 0.0
 
+    print(bias)
     return random.triangular(low=0.0, high=1.0, mode=1 / (1 + math.exp(-bias)))
 
 
@@ -99,10 +100,10 @@ class Jokes(commands.Cog):
     @nextcord.slash_command(
         dm_permission=False, guild_ids=[977377117895536640, 856262303795380224]
     )
-    async def fun(self, interaction: nextcord.Interaction):
+    async def joke(self, interaction: nextcord.Interaction):
         pass
 
-    @fun.subcommand(
+    @joke.subcommand(
         description="Makes absolutely 100% sure that the member will not become mod anytime in the future."
     )
     async def nevermod(
@@ -142,7 +143,7 @@ class Jokes(commands.Cog):
             )
         await interaction.followup.send(embed=nevermod_embed)
 
-    @fun.subcommand(description="Determines how based the member is.")
+    @joke.subcommand(description="Determines how based the member is.")
     async def basedcheck(
         self,
         interaction: nextcord.Interaction,
@@ -159,8 +160,8 @@ class Jokes(commands.Cog):
             "not based at all. In fact, they're so not based they're mega cringe",
             "so cringe that my cringe compilation can't contain them",
             "not based",
-            "might be based but isn't worth the effort it would take to find out",
             "maybe based and will require second ops centre to be opened",
+            "might be based but isn't worth the effort it would take to find out",
             "based",
             "mega based",
             "gigachad level of pure **based**",
@@ -178,50 +179,13 @@ class Jokes(commands.Cog):
 
         based_check_embed = SersiEmbed(
             title="Based Check",
-            description="An Emergency task force at the base department convened "
-                "in a rush to open a new ops centre in order to determine that "
-                f"{member.mention} is {based_levels[basedness]}.",
+            description=f"An Emergency task force at the base department convened \
+                in a rush to open a new ops centre in order to determine that \
+                {member.mention} is {based_levels[basedness]}.",
             footer="Based Check",
         )
 
         await interaction.followup.send(embed=based_check_embed)
-
-    # compromise: let's have both variants for now -gombik
-
-    @fun.subcommand(description="UwUifies the message.")
-    async def uwuify(
-        self,
-        interaction: nextcord.Interaction,
-        message: str = nextcord.SlashOption(
-            required=True, description="The message to uwuify."
-        ),
-    ):
-        await interaction.response.defer(ephemeral=True)
-
-        await interaction.followup.send('OwO *nuzzles the command*', ephemeral=True)
-
-        await send_webhook_message(
-            channel=interaction.channel,
-            content=generate_uwu(message),
-            username=generate_uwu(interaction.user.display_name),
-            avatar_url=interaction.user.display_avatar.url,
-        )
-
-    @fun.subcommand(description="Flips a coin.")
-    async def coinflip(self, interaction: nextcord.Interaction):
-        await interaction.response.defer(ephemeral=False)
-
-        flip_result = random.randint(1, 2)
-        if flip_result == 2:
-            await interaction.followup.send(
-                "https://tenor.com/view/heads-coinflip-flip-a-coin-coin-coins-gif-21479854",
-                ephemeral=False,
-            )
-        elif flip_result == 1:
-            await interaction.followup.send(
-                "https://tenor.com/view/coins-tails-coin-flip-a-coin-coinflip-gif-21479856",
-                ephemeral=False,
-            )
 
     @commands.command()
     async def uwu(self, ctx: commands.Context, *, message: str = ""):
