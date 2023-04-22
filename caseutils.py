@@ -576,7 +576,7 @@ def fetch_all_cases(
     cases = cursor.fetchall()
 
     if not cases:
-        return None
+        return None, 0, 0
 
     else:
         cases_list = [list(case) for case in cases]
@@ -643,7 +643,7 @@ def fetch_offender_cases(
     cases = cursor.fetchall()
 
     if not cases:
-        return None
+        return None, 0, 0
 
     else:
         cases_list = [list(case) for case in cases]
@@ -712,7 +712,7 @@ def fetch_moderator_cases(
     cursor.close()
 
     if not cases:
-        return None
+        return None, 0, 0
 
     else:
         cases_list = [list(case) for case in cases]

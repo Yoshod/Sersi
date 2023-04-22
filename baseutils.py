@@ -270,6 +270,7 @@ class PageView(View):
         cols=1,
         per_col=10,
         init_page=1,
+        no_entries="{config.emotes.fail} There are no entries to display.",
         **kwargs,
     ):
         super().__init__()
@@ -290,6 +291,7 @@ class PageView(View):
         self.column_title = field_title
         self.inline_fields = inline_fields
         self.get_entries = fetch_function
+        self.no_entries = no_entries
         self.message: nextcord.Message
 
     def make_column(self, entries):
@@ -314,6 +316,9 @@ class PageView(View):
             per_page=self.columns * self.per_column,
             **self.kwargs,
         )
+        if not entries:
+            embed.description = self.no_entries.format(config=self.config)
+            return embed
         cols = min(self.columns, 1 + (len(entries) - 1) // self.per_column)
         for col in range(1, cols + 1):
             col_start = (col - 1) * self.per_column
