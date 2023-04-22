@@ -48,7 +48,19 @@ class Caps(commands.Cog):
         if not is_staff(message.author):
             cleaned_message: str = ""
             for line in msg_string.splitlines():
-                if line.startswith(("# ", "## ", "### ")):
+                if line.startswith(
+                    (
+                        "# ",
+                        "## ",
+                        "### ",
+                        "* # ",
+                        "* ## ",
+                        "* ### ",
+                        "> # ",
+                        "> ## ",
+                        "> ### ",
+                    )
+                ):
                     need_replacement = True
 
                     line = line.replace("### ", "")
