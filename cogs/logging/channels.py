@@ -152,7 +152,7 @@ class Channels(commands.Cog):
         logging_embed: nextcord.Embed = SersiEmbed(
             description=f"{type(channel).__name__} Created",
             fields={
-                "Name": channel.name,
+                "Name": f"{channel.mention} {channel.name} (`{channel.id}`)",
                 "Created At": get_discord_timestamp(channel.created_at),
                 "Position": channel.position,
             },

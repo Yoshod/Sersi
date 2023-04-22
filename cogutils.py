@@ -1,5 +1,6 @@
 import os
 import traceback
+
 from nextcord.ext import commands
 from configutils import Configuration
 
@@ -9,17 +10,17 @@ async def load_all_cogs(bot: commands.Bot, *, config: Configuration, data_folder
         for filename in files:
             if filename.endswith(".py"):
 
-                nroot = root[2:].replace(os.sep, ".")
+                cog_category = root[2:].replace(os.sep, ".")
 
-                print(f"Loading {nroot}.{filename[:-3]}...")
+                print(f"Loading {cog_category}.{filename[:-3]}...")
 
                 try:
                     bot.load_extension(
-                        f"{nroot}.{filename[:-3]}",
+                        f"{cog_category}.{filename[:-3]}",
                         extras={"config": config, "data_folder": data_folder},
                     )
                 except commands.errors.ExtensionFailed:
-                    print(f"Could not load {nroot}.{filename[:-3]}.")
+                    print(f"Could not load {cog_category}.{filename[:-3]}.")
                     traceback.print_exc()
     if bot.is_ready():
         await bot.sync_all_application_commands()
