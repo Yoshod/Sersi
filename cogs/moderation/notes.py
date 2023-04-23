@@ -12,7 +12,7 @@ from noteutils import (
     get_note_by_moderator,
 )
 from configutils import Configuration
-from permutils import permcheck, is_mod, is_senior_mod
+from permutils import permcheck, is_mod
 
 
 def format_entry(entry):
