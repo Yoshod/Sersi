@@ -66,7 +66,15 @@ async def permcheck(hook, function):
 
 
 def is_staff(member: nextcord.Member):
-    permitted_roles = [config.permission_roles.staff]
+    permitted_roles = [
+        config.permission_roles.staff,
+        config.permission_roles.trial_moderator,
+        config.permission_roles.moderator,
+        config.permission_roles.senior_moderator,
+        config.permission_roles.cet,
+        config.permission_roles.cet_lead,
+        config.permission_roles.dark_moderator,
+    ]
 
     for role in member.roles:
         if role.id in permitted_roles:

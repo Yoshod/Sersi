@@ -179,8 +179,8 @@ class Jokes(commands.Cog):
         based_check_embed = SersiEmbed(
             title="Based Check",
             description="An Emergency task force at the base department convened "
-                "in a rush to open a new ops centre in order to determine that "
-                f"{member.mention} is {based_levels[basedness]}.",
+            "in a rush to open a new ops centre in order to determine that "
+            f"{member.mention} is {based_levels[basedness]}.",
             footer="Based Check",
         )
 
@@ -198,7 +198,14 @@ class Jokes(commands.Cog):
     ):
         await interaction.response.defer(ephemeral=True)
 
-        await interaction.followup.send('OwO *nuzzles the command*', ephemeral=True)
+        if not isinstance(interaction.channel, nextcord.TextChannel):
+            await interaction.followup.send(
+                generate_uwu(
+                    "Oh no! Turns out this command cannot be run in Voice Channels or Threads :("
+                ),
+                ephemeral=True,
+            )
+            return
 
         await send_webhook_message(
             channel=interaction.channel,
@@ -206,6 +213,8 @@ class Jokes(commands.Cog):
             username=generate_uwu(interaction.user.display_name),
             avatar_url=interaction.user.display_avatar.url,
         )
+
+        await interaction.followup.send("done :3", ephemeral=True)
 
     @fun.subcommand(description="Flips a coin.")
     async def coinflip(self, interaction: nextcord.Interaction):
