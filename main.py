@@ -53,33 +53,59 @@ async def cog(
 
     await interaction.response.defer()
 
-    if action in ["unload", "reload"]:
-        try:
-            bot.unload_extension(f"cogs.{category}.{cog}")
-            await interaction.followup.send(
-                f"Cog {category}.{cog} unloaded."
-            )
-        except commands.errors.ExtensionNotFound:
-            await interaction.followup("Cog not found.")
-        except commands.errors.ExtensionNotLoaded:
-            await interaction.followup.send(
-                f"Cog {category}.{cog} was not loaded."
-            )
-    if action in ["load", "reload"]:
-        try:
-            bot.load_extension(
-                f"cogs.{category}.{cog}",
-                extras={
-                    "config": config,
-                    "data_folder": f"{root_folder}/persistent_data",
-                },
-            )
-            await interaction.followup.send(f"Cog {category}.{cog} loaded.")
-        except commands.errors.ExtensionNotFound:
-            await interaction.followup.send("Cog not found.")
-        except commands.errors.ExtensionAlreadyLoaded:
-            await interaction.followup.send("Cog already loaded.")
-    
+    match action:
+        case "unload":
+            try:
+                bot.unload_extension(f"cogs.{category}.{cog}")
+                await interaction.followup.send(f"Cog {category}.{cog} unloaded.")
+            except commands.errors.ExtensionNotFound:
+                await interaction.followup.send("Cog not found.")
+            except commands.errors.ExtensionNotLoaded:
+                await interaction.followup.send(f"Cog {category}.{cog} was not loaded.")
+
+        case "load":
+            try:
+                bot.load_extension(
+                    f"cogs.{category}.{cog}",
+                    extras={
+                        "config": config,
+                        "data_folder": f"{root_folder}/persistent_data",
+                    },
+                )
+                await interaction.followup.send(f"Cog {category}.{cog} loaded.")
+            except commands.errors.ExtensionNotFound:
+                await interaction.followup.send("Cog not found.")
+            except commands.errors.ExtensionAlreadyLoaded:
+                await interaction.followup.send("Cog already loaded.")
+
+        case "reload":
+            try:
+                bot.unload_extension(f"cogs.{category}.{cog}")
+                bot.load_extension(
+                    f"cogs.{category}.{cog}",
+                    extras={
+                        "config": config,
+                        "data_folder": f"{root_folder}/persistent_data",
+                    },
+                )
+                await interaction.followup.send(f"Cog {category}.{cog} reloaded.")
+            except commands.errors.ExtensionNotFound:
+                await interaction.followup.send("Cog not found.")
+            except commands.errors.ExtensionNotLoaded:
+                try:
+                    bot.load_extension(
+                        f"cogs.{category}.{cog}",
+                        extras={
+                            "config": config,
+                            "data_folder": f"{root_folder}/persistent_data",
+                        },
+                    )
+                    await interaction.followup.send(f"Cog {category}.{cog} loaded.")
+                except commands.errors.ExtensionNotFound:
+                    await interaction.followup.send("Cog not found.")
+                except commands.errors.ExtensionAlreadyLoaded:
+                    await interaction.followup.send("Cog already loaded.")
+
     await bot.sync_all_application_commands()
 
 
@@ -88,28 +114,38 @@ async def cog_category_autocomplete(interaction: nextcord.Interaction, category:
     categories = [dir for dir in os.listdir("./cogs") if dir != "__pycache__"]
     if not category:
         return categories
-    
+
     return [c for c in categories if c.startswith(category)]
 
 
 @cog.on_autocomplete("cog")
 async def cog_cog_autocomplete(
-    interaction: nextcord.Interaction, cog: str, action: str, category: str
+    interaction: nextcord.Interaction, cog_name: str, action: str, category: str
 ):
-    bot_cogs = [cog.removeprefix(f"cogs.{category}.") for cog in bot.extensions.keys() if cog.startswith(f"cogs.{category}.")]
-    file_cogs = [cog.removesuffix(".py") for cog in os.listdir(f"./cogs/{category}") if cog != "__pycache__"]
+    bot_cogs = [
+        cog_name.removeprefix(f"cogs.{category}.")
+        for cog_name in bot.extensions.keys()
+        if cog_name.startswith(f"cogs.{category}.")
+    ]
+    file_cogs = [
+        cog_name.removesuffix(".py")
+        for cog_name in os.listdir(f"./cogs/{category}")
+        if cog_name != "__pycache__"
+    ]
 
     if action == "load":
-        cogs = [cog for cog in file_cogs if cog not in bot_cogs]
+        available_cogs: list[str] = [cog_name for cog_name in file_cogs if cog_name not in bot_cogs]
     elif action == "unload":
-        cogs = [cog for cog in bot_cogs]
+        available_cogs: list[str] = [cog_name for cog_name in bot_cogs]
     elif action == "reload":
-        cogs = [cog for cog in bot_cogs if cog in file_cogs]
+        available_cogs: list[str] = [cog_name for cog_name in bot_cogs if cog_name in file_cogs]
+    else:
+        available_cogs: list[str] = []
 
-    if not cog:
-        return cogs
-    
-    return [c for c in cogs if c.startswith(cog)]
+    if not cog_name:
+        return available_cogs
+
+    return [cog_suggestion for cog_suggestion in available_cogs if cog_suggestion.startswith(cog_name)]
 
 
 @bot.command()
