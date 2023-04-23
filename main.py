@@ -134,18 +134,26 @@ async def cog_cog_autocomplete(
     ]
 
     if action == "load":
-        available_cogs: list[str] = [cog_name for cog_name in file_cogs if cog_name not in bot_cogs]
+        available_cogs: list[str] = [
+            cog_name for cog_name in file_cogs if cog_name not in bot_cogs
+        ]
     elif action == "unload":
         available_cogs: list[str] = [cog_name for cog_name in bot_cogs]
     elif action == "reload":
-        available_cogs: list[str] = [cog_name for cog_name in bot_cogs if cog_name in file_cogs]
+        available_cogs: list[str] = [
+            cog_name for cog_name in bot_cogs if cog_name in file_cogs
+        ]
     else:
         available_cogs: list[str] = []
 
     if not cog_name:
         return available_cogs
 
-    return [cog_suggestion for cog_suggestion in available_cogs if cog_suggestion.startswith(cog_name)]
+    return [
+        cog_suggestion
+        for cog_suggestion in available_cogs
+        if cog_suggestion.startswith(cog_name)
+    ]
 
 
 @bot.command()

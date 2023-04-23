@@ -31,8 +31,8 @@ class Antitamper(commands.Cog):
             fields={
                 "Perpetrator:": f"{log.user.mention} ({log.user.id})",
                 "Target:": f"{log.target.mention} ({log.target.id})",
-                "Count": log.extra.count,
                 "Channel": log.extra.channel.mention,
+                "Message Content": message.content,
             },
         )
 
