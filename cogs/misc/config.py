@@ -45,11 +45,16 @@ class Config(commands.Cog):
     async def config(
         self,
         interaction: nextcord.Interaction,
+    ):
+        pass
+
+    @config.subcommand(description="Read settings from config")
+    async def get_setting(
+        self,
+        interaction: nextcord.Interaction,
         config_section: str = nextcord.SlashOption(required=False, name="section"),
     ):
-        if not await permcheck(interaction, is_staff) or await permcheck(
-            interaction, is_sersi_contrib
-        ):
+        if not await permcheck(interaction, is_staff):
             return
 
         await interaction.response.defer()
@@ -64,46 +69,48 @@ class Config(commands.Cog):
                 )
 
                 for field in config[config_section]:
-                    value = None
 
                     if "channels" in config_section.lower():
-                        channel = interaction.guild.get_channel(
-                            config[config_section][field]
+                        channel: nextcord.abc.GuildChannel = (
+                            interaction.guild.get_channel(config[config_section][field])
                         )
                         if channel is not None:
-                            value = channel.mention
+                            value: str = channel.mention
                         else:
-                            value = f"`{config[config_section][field]}`"
+                            value: str = f"`{config[config_section][field]}`"
 
                     elif "roles" in config_section.lower():
-                        role = interaction.guild.get_role(config[config_section][field])
+                        role: nextcord.Role = interaction.guild.get_role(
+                            config[config_section][field]
+                        )
                         if role is not None:
-                            value = role.mention
+                            value: str = role.mention
                         else:
-                            value = f"`{config[config_section][field]}`"
+                            value: str = f"`{config[config_section][field]}`"
 
                     else:
-                        value = config[config_section][field]
+                        value: str = config[config_section][field]
 
                     config_embed.add_field(name=f"{field}:", value=value)
 
-                await interaction.send(embed=config_embed)
+                await interaction.followup.send(embed=config_embed)
             else:
                 await interaction.send(
                     f"Section {config_section} is not present in configuration!"
                 )
 
-        config_embed = SersiEmbed(
-            title="Sersi Configuration",
-            description="type /config [section] to display section settings",
-        )
-
-        for section in config:
-            config_embed.add_field(
-                name=f"{section}:", value="`" + "`\n`".join(config[section]) + "`"
+        else:
+            config_embed = SersiEmbed(
+                title="Sersi Configuration",
+                description="type /config [section] to display section settings",
             )
 
-        await interaction.send(embed=config_embed)
+            for section in config:
+                config_embed.add_field(
+                    name=f"{section}:", value="`" + "`\n`".join(config[section]) + "`"
+                )
+
+            await interaction.followup.send(embed=config_embed)
 
     @config.subcommand(
         description="set a setting to a value",
