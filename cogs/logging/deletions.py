@@ -111,18 +111,19 @@ class Deletions(commands.Cog):
                     "Channel": messages[0].channel.mention,
                     "Message Count": len(messages),
                 },
+                footer="Sersi Deletion Logging",
             ).set_author(name=log.user, icon_url=log.user.display_avatar.url),
             file=nextcord.File(
                 io.BytesIO(
                     (
                         await chat_exporter.raw_export(
                             channel=messages[0].channel,
-                            messages=messages,
+                            messages=messages[::-1],
                             military_time=True,
                         )
                     ).encode()
                 ),
-                filename=f"bulk-{log.created_at.strftime('%Y-%m-%d_%H:%M_%Z')}.html",
+                filename=f"bulk-{log.created_at.strftime('%Y-%m-%d_%H_%M_%Z')}.html",
             ),
         )
 
