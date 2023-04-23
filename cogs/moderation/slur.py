@@ -26,7 +26,7 @@ from slurdetector import (
 
 
 class Slur(commands.Cog):
-    def __init__(self, bot: nextcord.Client, config: Configuration):
+    def __init__(self, bot: commands.Bot, config: Configuration):
         self.bot = bot
         self.config = config
         self.sersisuccess = config.emotes.success
@@ -444,11 +444,14 @@ class Slur(commands.Cog):
     # events
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.message.Message):
+        if message.content.startswith(self.bot.command_prefix):
+            return
+
         detected_slurs = detect_slur(message.content)
 
         if (
             message.channel.category.name == "Administration Centre"
-        ):  # ignores message if sent inside of the administration centre
+        ):  # ignores message if sent inside the administration centre
             return
 
         if message.author == self.bot.user:  # ignores message if message is by bot

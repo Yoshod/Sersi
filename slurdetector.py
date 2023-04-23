@@ -113,7 +113,7 @@ def load_goodwords():
             goodword.append(line)
 
 
-def clear_string(string):
+def clear_string(string: str) -> str:
     """clean up the message by eliminating special characters and making the entire message lowercase."""
     special_characters = ["#", "%", "&", "[", "]", " ", "]", "_", "-", "<", ">", "'"]
 
@@ -126,20 +126,18 @@ def clear_string(string):
     return string
 
 
-def detect_slur(messageData):
-    if str(messageData).startswith("s!"):  # ignores if message was a command
-        return []
+def detect_slur(message: str) -> list[str]:
 
-    cleanedMessageData = clear_string(messageData)
-    messageData = messageData.lower()
-    messageData = messageData.replace(" ", "")
+    cleaned_message: str = clear_string(message)
+    message = message.lower()
+    message = message.replace(" ", "")
 
-    slur_counter = 0  # more like based_counter, amirite?
-    slur_list = []
+    slur_counter: int = 0  # more like based_counter, amirite?
+    slur_list: list[str] = []
 
     for slur in slurs:
-        s1 = messageData.count(slur)
-        s2 = cleanedMessageData.count(slur)
+        s1: int = message.count(slur)
+        s2: int = cleaned_message.count(slur)
         if s1 > 0:
             slur_list.append(slur)
             slur_counter += s1
@@ -148,8 +146,8 @@ def detect_slur(messageData):
             slur_counter += s2
 
     for word in goodword:
-        g1 = messageData.count(word)
-        g2 = cleanedMessageData.count(word)
+        g1: int = message.count(word)
+        g2: int = cleaned_message.count(word)
         if g1 > 0:
             slur_counter -= g1
         elif g2 > 0:

@@ -144,30 +144,35 @@ class MemberRoles(commands.Cog):
                 value=f"Before:\n{before_permissions}\nAfter:\n{after_permissions}",
                 inline=False,
             ).set_author(name=log.user, icon_url=log.user.display_avatar.url)
+
         if before.colour != after.colour:
             logging_embed.add_field(
                 name="Colour",
                 value=f"Before:\n{before.colour}\nAfter:\n{after.colour}",
                 inline=False,
             ).set_author(name=log.user, icon_url=log.user.display_avatar.url)
+
         if before.mentionable != after.mentionable:
             logging_embed.add_field(
                 name="Mentionable",
                 value=f"Before:\n{before.mentionable}\nAfter:\n{after.mentionable}",
                 inline=False,
             ).set_author(name=log.user, icon_url=log.user.display_avatar.url)
+
         if before.hoist != after.hoist:
             logging_embed.add_field(
                 name="Hoist",
                 value=f"Before:\n{before.hoist}\nAfter:\n{after.hoist}",
                 inline=False,
             ).set_author(name=log.user, icon_url=log.user.display_avatar.url)
+
         if before.name != after.name:
             logging_embed.add_field(
                 name="Name",
                 value=f"Before:\n{before.name}\nAfter:\n{after.name}",
                 inline=False,
             ).set_author(name=log.user, icon_url=log.user.display_avatar.url)
+
         if before.position != after.position:
             logging_embed.add_field(
                 name="Position",
