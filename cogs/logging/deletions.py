@@ -1,7 +1,9 @@
 import datetime
+import io
 
 import nextcord
 from nextcord.ext import commands
+import chat_exporter
 
 from baseutils import SersiEmbed, get_discord_timestamp
 from configutils import Configuration
@@ -91,6 +93,38 @@ class Deletions(commands.Cog):
         await deleted_messages.send(embeds=[logging_embed, *further_images])
         if message_has_images:
             await deleted_images.send(embeds=[logging_embed, *further_images])
+
+    @commands.Cog.listener()
+    async def on_bulk_message_delete(self, messages: list[nextcord.Message]):
+        log: nextcord.AuditLogEntry = (
+            await messages[0]
+            .guild.audit_logs(
+                action=nextcord.AuditLogAction.message_bulk_delete, limit=1
+            )
+            .flatten()
+        )[0]
+
+        await messages[0].guild.get_channel(self.config.channels.deleted_messages).send(
+            embed=SersiEmbed(
+                description="Bulk Message deletion",
+                fields={
+                    "Channel": messages[0].channel.mention,
+                    "Message Count": len(messages),
+                },
+            ).set_author(name=log.user, icon_url=log.user.display_avatar.url),
+            file=nextcord.File(
+                io.BytesIO(
+                    (
+                        await chat_exporter.raw_export(
+                            channel=messages[0].channel,
+                            messages=messages,
+                            military_time=True,
+                        )
+                    ).encode()
+                ),
+                filename=f"bulk-{log.created_at.strftime('%Y-%m-%d_%H:%M_%Z')}.html",
+            ),
+        )
 
 
 def setup(bot, **kwargs):
