@@ -1,23 +1,28 @@
 import asyncio
 from datetime import datetime, timezone
+import re
 
 import nextcord
 from nextcord.ext import commands
 from nextcord.ui import Button, View
 
 import logutils
-from baseutils import sanitize_mention, SersiEmbed
-from caseutils import (
-    slur_history,
-    slur_virgin,
-    create_slur_case,
-)
+from baseutils import sanitize_mention, SersiEmbed, PageView
+from caseutils import slur_history, slur_virgin, create_slur_case, fetch_offender_cases
 from configutils import Configuration
 from permutils import cb_is_mod
 from slurdetector import (
     load_slurdetector,
     detect_slur,
 )
+from noteutils import get_note_by_user
+
+
+def format_entry(entry):
+    if len(entry[3]) >= 16:
+        return "`{}`... <t:{}:R>".format(entry[3][:15], entry[4])
+    else:
+        return "`{}` <t:{}:R>".format(entry[3], entry[4])
 
 
 class Slur(commands.Cog):
@@ -29,6 +34,7 @@ class Slur(commands.Cog):
         load_slurdetector()
 
     def _get_previous_cases(self, user: nextcord.Member, slurs: list[str]) -> str:
+        print("Im fucking gayer")
         slur_test = slur_virgin(self.config, user)
         if slur_test:
             return f"{self.config.emotes.fail} The user is a first time offender."
@@ -154,6 +160,78 @@ class Slur(commands.Cog):
             self.config, interaction.message, datetime.now(timezone.utc)
         )
 
+    async def cb_view_cases(self, interaction: nextcord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+
+        original_embed = interaction.message.embeds[0]
+
+        for field in original_embed.fields:
+            if field.name.lower() == "user:":
+                offender = interaction.guild.get_member(
+                    int(re.sub(r"\D", "", field.value))
+                )
+                break
+
+        else:
+            interaction.followup.send(
+                f"{self.config.emotes.fail} Failed to return user cases"
+            )
+            return
+
+        cases_embed = SersiEmbed(title=f"{offender.name}'s Cases")
+        cases_embed.set_thumbnail(offender.display_avatar.url)
+
+        view = PageView(
+            config=self.config,
+            base_embed=cases_embed,
+            fetch_function=fetch_offender_cases,
+            author=interaction.user,
+            entry_form="{entry[1]} <t:{entry[2]}:R>",
+            field_title="{entries[0][0]}",
+            inline_fields=False,
+            cols=10,
+            per_col=1,
+            offender=offender,
+            case_type="slur_cases",
+        )
+
+        await view.send_followup(interaction)
+
+    async def cb_view_notes(self, interaction: nextcord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+
+        original_embed = interaction.message.embeds[0]
+
+        for field in original_embed.fields:
+            if field.name.lower() == "user:":
+                user = interaction.guild.get_member(int(re.sub(r"\D", "", field.value)))
+                break
+
+        else:
+            interaction.followup.send(
+                f"{self.config.emotes.fail} Failed to return user notes"
+            )
+            return
+
+        note_embed = SersiEmbed(title=f"{user.name}'s Notes")
+        note_embed.set_thumbnail(user.display_avatar.url)
+
+        view = PageView(
+            config=self.config,
+            base_embed=note_embed,
+            fetch_function=get_note_by_user,
+            author=interaction.user,
+            entry_form=format_entry,
+            field_title="{entries[0][0]}",
+            inline_fields=False,
+            cols=10,
+            per_col=1,
+            init_page=0,
+            user_id=str(user.id),
+        )
+
+        await view.send_followup(interaction)
+
     # events
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.message.Message):
@@ -185,11 +263,21 @@ class Slur(commands.Cog):
             false_positive = Button(label="False Positive")
             false_positive.callback = self.cb_false_positive
 
+            view_cases = Button(label="View Slur Cases", row=1)
+            view_cases.callback = self.cb_view_cases
+
+            view_notes = Button(label="View Notes", row=1)
+            view_notes.callback = self.cb_view_notes
+
             button_view = View(timeout=None)
             button_view.add_item(action_taken)
             button_view.add_item(acceptable_use)
             button_view.add_item(false_positive)
+            button_view.add_item(view_cases)
+            button_view.add_item(view_notes)
             button_view.interaction_check = cb_is_mod
+
+            print("Im fucking gay")
 
             alert = await self.bot.get_channel(self.config.channels.alert).send(
                 embed=SersiEmbed(
@@ -203,7 +291,7 @@ class Slur(commands.Cog):
                         "Slurs Found:": ", ".join(set(detected_slurs)),
                         "URL:": message.jump_url,
                         "Previous Slur Uses:": self._get_previous_cases(
-                            message.author.id, detected_slurs
+                            message.author, detected_slurs
                         ),
                     },
                 ),
@@ -236,10 +324,18 @@ class Slur(commands.Cog):
             false_positive = Button(label="False Positive")
             false_positive.callback = self.cb_false_positive
 
+            view_cases = Button(label="View Slur Cases", row=1)
+            view_cases.callback = self.cb_view_cases
+
+            view_notes = Button(label="View Notes", row=1)
+            view_notes.callback = self.cb_view_notes
+
             button_view = View(timeout=None)
             button_view.add_item(action_taken)
             button_view.add_item(acceptable_use)
             button_view.add_item(false_positive)
+            button_view.add_item(view_cases)
+            button_view.add_item(view_notes)
             button_view.interaction_check = cb_is_mod
 
             alert: nextcord.Message = await after.guild.get_channel(
@@ -283,10 +379,18 @@ class Slur(commands.Cog):
             false_positive = Button(label="False Positive")
             false_positive.callback = self.cb_false_positive
 
+            view_cases = Button(label="View Slur Cases", row=1)
+            view_cases.callback = self.cb_view_cases
+
+            view_notes = Button(label="View Notes", row=1)
+            view_notes.callback = self.cb_view_notes
+
             button_view = View(timeout=None)
             button_view.add_item(action_taken)
             button_view.add_item(acceptable_use)
             button_view.add_item(false_positive)
+            button_view.add_item(view_cases)
+            button_view.add_item(view_notes)
             button_view.interaction_check = cb_is_mod
 
             alert: nextcord.Message = await self.bot.get_channel(
@@ -330,10 +434,18 @@ class Slur(commands.Cog):
             false_positive = Button(label="False Positive")
             false_positive.callback = self.cb_false_positive
 
+            view_cases = Button(label="View Slur Cases", row=1)
+            view_cases.callback = self.cb_view_cases
+
+            view_notes = Button(label="View Notes", row=1)
+            view_notes.callback = self.cb_view_notes
+
             button_view = View(timeout=None)
             button_view.add_item(action_taken)
             button_view.add_item(acceptable_use)
             button_view.add_item(false_positive)
+            button_view.add_item(view_cases)
+            button_view.add_item(view_notes)
             button_view.interaction_check = cb_is_mod
 
             alert: nextcord.Message = await self.bot.get_channel(
