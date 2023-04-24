@@ -976,4 +976,4 @@ def delete_case(config: Configuration, case_id: str):
 
 
 def case_history():
-    pass
+    return Exception("This function does not do anything and should not be used")
