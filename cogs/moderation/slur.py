@@ -1,5 +1,4 @@
 import asyncio
-import pickle
 from datetime import datetime, timezone
 
 import nextcord
@@ -8,7 +7,11 @@ from nextcord.ui import Button, View
 
 import logutils
 from baseutils import sanitize_mention, SersiEmbed
-from caseutils import slur_case, case_history
+from caseutils import (
+    slur_history,
+    slur_virgin,
+    create_slur_case,
+)
 from configutils import Configuration
 from permutils import cb_is_mod
 from slurdetector import (
@@ -25,54 +28,26 @@ class Slur(commands.Cog):
         self.sersifail = config.emotes.fail
         load_slurdetector()
 
-    def _get_previous_cases(self, user_id: int, slurs: list[str]) -> str:
-        with open(self.config.datafiles.casehistory, "rb") as file:
-            cases: dict[int:list] = pickle.load(file)
-            # --> dict of list; one dict entry per user ID
+    def get_previous_cases(self, user: nextcord.Member, slurs: list[str]) -> str:
+        slur_test = slur_virgin(self.config, user)
+        if slur_test:
+            return f"{self.config.emotes.fail} The user is a first time offender."
 
-        user_history: list = cases.get(user_id, [])
-        # -> list of user offenses, empty list if none
+        else:
+            cases = slur_history(self.config, user, slurs)
 
-        slur_virgin: bool = True
-        previous_offenses: list[str] = []
-
-        for case in user_history:
-            if case[1] == "Slur Usage":
-                slur_virgin = False
-
-                # check if slur was done before
-                uid = case[0]
-                with open(self.config.datafiles.casedetails, "rb") as file:
-                    case_details = pickle.load(file)
-                    slur_used = case_details[uid][1]
-
-                    previous_slurs = slur_used.split(", ")
-
-                    if any(new_slur in previous_slurs for new_slur in slurs):
-                        # slur has been said before by user
-                        report_url = case_details[uid][2]
-                        previous_offenses.append(f"`{uid}` [Jump!]({report_url})")
-
-        if not slur_virgin and not previous_offenses:
-            # user has said slurs before, however not that particular one
-            return (
-                f"{self.config.emotes.success} The user has a history of using slurs that were not detected "
-                f"in this message."
-            )
-
-        elif previous_offenses:  # user has said that slur before
-            prev_offenses = "\n".join(previous_offenses)
-            if len(prev_offenses) < 900:
+            if not cases:
                 return (
-                    f"{self.config.emotes.success} The user has a history of using a slur detected in this "
-                    f"message:\n{prev_offenses}"
+                    f"{self.config.emotes.success} The user has a history of using slurs that were not detected "
+                    f"in this message."
                 )
 
             else:
-                return "`CASE LIST TOO LONG`"
+                prev_offences = f"{self.config.emotes.success} The user has a history of using a slur detected in this message:"
+                for slur_cases in cases:
+                    prev_offences += f"\n`{slur_cases[0]}` {slur_cases[2]}"
 
-        else:
-            return f"{self.config.emotes.fail} The user is a first time offender."
+                return prev_offences
 
     async def cb_action_taken(self, interaction: nextcord.Interaction):
         new_embed = interaction.message.embeds[0]
@@ -101,19 +76,17 @@ class Slur(commands.Cog):
 
         member = interaction.guild.get_member(int(sanitize_mention(case_data[0])))
 
-        unique_id = case_history(self.config, member.id, "Slur Usage")
-        slur_case(
+        timestamp = datetime.now(timezone.utc)
+
+        create_slur_case(
             self.config,
-            unique_id,
             case_data[1],
             interaction.message.jump_url,
-            member.id,
-            interaction.user.id,
+            member,
+            interaction.user,
         )
 
-        await logutils.update_response(
-            self.config, interaction.message, datetime.now(timezone.utc)
-        )
+        await logutils.update_response(self.config, interaction.message, timestamp)
 
     async def cb_acceptable_use(self, interaction):
         new_embed = interaction.message.embeds[0]
@@ -215,8 +188,8 @@ class Slur(commands.Cog):
                     "Context:": citation,
                     "Slurs Found:": ", ".join(set(detected_slurs)),
                     "URL:": message.jump_url,
-                    "Previous Slur Uses:": self._get_previous_cases(
-                        message.author.id, detected_slurs
+                    "Previous Slur Uses:": self.get_previous_cases(
+                        message.author, detected_slurs
                     ),
                 },
             )
@@ -253,10 +226,8 @@ class Slur(commands.Cog):
 
     @commands.Cog.listener()
     async def on_presence_update(self, before: nextcord.Member, after: nextcord.Member):
-
         slurs: list[str] = detect_slur(after.status)
         if slurs:
-
             action_taken = Button(label="Action Taken")
             action_taken.callback = self.cb_action_taken
 
@@ -283,9 +254,7 @@ class Slur(commands.Cog):
                         "User:": after.mention,
                         "Status:": after.status,
                         "Slurs Found:": ", ".join(set(slurs)),
-                        "Previous Slur Uses:": self._get_previous_cases(
-                            after.id, slurs
-                        ),
+                        "Previous Slur Uses:": self.get_previous_cases(after, slurs),
                     },
                 ),
                 view=button_view,
@@ -332,9 +301,7 @@ class Slur(commands.Cog):
                         "User:": after.mention,
                         "Name:": after.name,
                         "Slurs Found:": ", ".join(set(slurs)),
-                        "Previous Slur Uses:": self._get_previous_cases(
-                            after.id, slurs
-                        ),
+                        "Previous Slur Uses:": self.get_previous_cases(after, slurs),
                     },
                 ),
                 view=button_view,
@@ -381,9 +348,7 @@ class Slur(commands.Cog):
                         "User:": after.mention,
                         "Name:": after.name,
                         "Slurs Found:": ", ".join(set(slurs)),
-                        "Previous Slur Uses:": self._get_previous_cases(
-                            after.id, slurs
-                        ),
+                        "Previous Slur Uses:": self.get_previous_cases(after, slurs),
                     },
                 ),
                 view=button_view,

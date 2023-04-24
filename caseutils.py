@@ -975,5 +975,46 @@ def delete_case(config: Configuration, case_id: str):
         return False
 
 
-def case_history():
-    return Exception("This function does not do anything and should not be used")
+def slur_virgin(config: Configuration, user: nextcord.Member):
+    conn = sqlite3.connect(config.datafiles.sersi_db)
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM slur_cases WHERE offender=?", (user.id,))
+
+    cases = cursor.fetchone()
+
+    print(cases)
+
+    conn.close()
+
+    if cases:
+        return False
+
+    else:
+        return True
+
+
+def slur_history(config: Configuration, user: nextcord.Member, slur: list):
+    conn = sqlite3.connect(config.datafiles.sersi_db)
+    cursor = conn.cursor()
+
+    cases = []
+
+    for sl in slur:
+        cursor.execute(
+            "SELECT * FROM slur_cases WHERE slur_used=? AND offender=? ORDER BY timestamp DESC",
+            (
+                sl,
+                user.id,
+            ),
+        )
+
+        cases.extend(cursor.fetchmany(5))
+
+    if cases:
+        conn.close()
+        return cases
+
+    else:
+        conn.close()
+        return False
