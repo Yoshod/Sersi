@@ -212,6 +212,7 @@ class Notes(commands.Cog):
                 f"{self.config.emotes.fail} You must either provide a note ID to delete, or a user to delete all notes on.",
                 ephemeral=True,
             )
+            return
 
         await interaction.response.defer(ephemeral=False)
 
