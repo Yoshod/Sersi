@@ -10,9 +10,11 @@ from noteutils import (
     create_note_embed,
     get_note_by_user,
     get_note_by_moderator,
+    delete_note,
+    wipe_user_notes,
 )
 from configutils import Configuration
-from permutils import permcheck, is_mod
+from permutils import permcheck, is_mod, is_senior_mod, is_dark_mod
 
 
 def format_entry(entry):
@@ -171,6 +173,168 @@ class Notes(commands.Cog):
         )
 
         await view.send_followup(interaction)
+
+    @notes.subcommand(description="Used to delete a note on a user")
+    async def delete(
+        self,
+        interaction: nextcord.Interaction,
+        reason: str = nextcord.SlashOption(
+            name="reason",
+            description="The reason you are deleting the case",
+            min_length=8,
+            max_length=1024,
+        ),
+        note_id: str = nextcord.SlashOption(
+            name="note_id",
+            description="Note ID",
+            min_length=22,
+            max_length=22,
+            required=False,
+        ),
+        user: nextcord.Member = nextcord.SlashOption(
+            name="user",
+            description="Specify a user if you wish to delete all notes on them",
+            required=False,
+        ),
+    ):
+        if not await permcheck(interaction, is_senior_mod):
+            return
+
+        if note_id and user:
+            await interaction.response.send_message(
+                f"{self.config.emotes.fail} You cannot provide a user and case ID. Please only provide one.",
+                ephemeral=True,
+            )
+            return
+
+        elif not note_id and not user:
+            await interaction.response.send_message(
+                f"{self.config.emotes.fail} You must either provide a note ID to delete, or a user to delete all notes on.",
+                ephemeral=True,
+            )
+
+        await interaction.response.defer(ephemeral=False)
+
+        if user:
+            if not await permcheck(interaction, is_dark_mod):
+                return
+
+            outcome = wipe_user_notes(self.config, user)
+
+            if outcome:
+                logging_embed = SersiEmbed(
+                    title="Notes Wiped",
+                )
+
+                logging_embed.add_field(name="User", value=user.mention, inline=True)
+                logging_embed.add_field(
+                    name="Mega Administrator",
+                    value=f"{interaction.user.mention}",
+                    inline=True,
+                )
+                logging_embed.add_field(
+                    name="Reason", value=f"`{reason}`", inline=False
+                )
+
+                logging_embed.set_thumbnail(user.display_avatar.url)
+
+                logging_channel = interaction.guild.get_channel(
+                    self.config.channels.logging
+                )
+
+                await logging_channel.send(embed=logging_embed)
+
+                await interaction.followup.send(
+                    f"{self.config.emotes.success} All notes on user {user.mention} successfully deleted."
+                )
+
+            else:
+                logging_embed = SersiEmbed(
+                    title="User Notes Deletion Attempted",
+                )
+
+                logging_embed.add_field(name="User", value=user.mention, inline=True)
+                logging_embed.add_field(
+                    name="Mega Administrator",
+                    value=f"{interaction.user.mention}",
+                    inline=True,
+                )
+                logging_embed.add_field(
+                    name="Reason", value=f"`{reason}`", inline=False
+                )
+
+                logging_embed.set_thumbnail(user.display_avatar.url)
+
+                logging_channel = interaction.guild.get_channel(
+                    self.config.channels.logging
+                )
+
+                await logging_channel.send(embed=logging_embed)
+
+                await interaction.followup.send(
+                    f"{self.config.emotes.fail} All notes on user {user.mention} has not been deleted."
+                )
+
+        else:
+            outcome = delete_note(self.config, note_id)
+
+            if outcome:
+                logging_embed = SersiEmbed(
+                    title="Note Deleted",
+                )
+
+                logging_embed.add_field(
+                    name="Note ID", value=f"`{note_id}`", inline=True
+                )
+                logging_embed.add_field(
+                    name="Moderator",
+                    value=f"{interaction.user.mention}",
+                    inline=True,
+                )
+                logging_embed.add_field(
+                    name="Reason", value=f"`{reason}`", inline=False
+                )
+
+                logging_embed.set_thumbnail(interaction.user.display_avatar.url)
+
+                logging_channel = interaction.guild.get_channel(
+                    self.config.channels.logging
+                )
+
+                await logging_channel.send(embed=logging_embed)
+
+                await interaction.followup.send(
+                    f"{self.config.emotes.success} Note {note_id} successfully deleted."
+                )
+
+            else:
+                logging_embed = SersiEmbed(
+                    title="Note Deletion Attempted",
+                )
+
+                logging_embed.add_field(
+                    name="Note ID", value=f"`{note_id}`", inline=True
+                )
+                logging_embed.add_field(
+                    name="Moderator",
+                    value=f"{interaction.user.mention}",
+                    inline=True,
+                )
+                logging_embed.add_field(
+                    name="Reason", value=f"`{reason}`", inline=False
+                )
+
+                logging_embed.set_thumbnail(interaction.user.display_avatar.url)
+
+                logging_channel = interaction.guild.get_channel(
+                    self.config.channels.logging
+                )
+
+                await logging_channel.send(embed=logging_embed)
+
+                await interaction.followup.send(
+                    f"{self.config.emotes.fail} Note {note_id} has not been deleted."
+                )
 
 
 def setup(bot, **kwargs):

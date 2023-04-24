@@ -172,3 +172,43 @@ def create_note_embed(
     note_embed.set_footer(text="Sersi Notes")
 
     return note_embed
+
+
+def delete_note(config: Configuration, note_id: str):
+    conn = sqlite3.connect(config.datafiles.sersi_db)
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM notes WHERE id=?", (note_id,))
+
+    case = cursor.fetchone()
+
+    if case:
+        cursor.execute("DELETE FROM notes WHERE id=?", (note_id,))
+
+        conn.commit()
+        conn.close()
+        return True
+
+    else:
+        conn.close()
+        return False
+
+
+def wipe_user_notes(config: Configuration, user: nextcord.Member):
+    conn = sqlite3.connect(config.datafiles.sersi_db)
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM notes WHERE noted=?", (user.id,))
+
+    case = cursor.fetchall()
+
+    if case:
+        cursor.execute("DELETE FROM notes WHERE noted=?", (user.id,))
+
+        conn.commit()
+        conn.close()
+        return True
+
+    else:
+        conn.close()
+        return False
