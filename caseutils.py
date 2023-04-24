@@ -264,7 +264,6 @@ def create_scrubbed_case_embed(
             inline=True,
         )
 
-    print(sersi_case["Offender ID"])
     offender = interaction.guild.get_member(sersi_case["Offender ID"])
 
     if not offender:
