@@ -28,7 +28,7 @@ class Slur(commands.Cog):
         self.sersifail = config.emotes.fail
         load_slurdetector()
 
-    def get_previous_cases(self, user: nextcord.Member, slurs: list[str]) -> str:
+    def _get_previous_cases(self, user: nextcord.Member, slurs: list[str]) -> str:
         slur_test = slur_virgin(self.config, user)
         if slur_test:
             return f"{self.config.emotes.fail} The user is a first time offender."
@@ -160,7 +160,7 @@ class Slur(commands.Cog):
         if message.content.startswith(self.bot.command_prefix):
             return
 
-        detected_slurs = detect_slur(message.content)
+        detected_slurs: list[str] = detect_slur(message.content)
 
         if message.channel.category.name == "Administration Centre":
             # ignores message if sent inside the administration centre
@@ -171,28 +171,10 @@ class Slur(commands.Cog):
             return
 
         elif len(detected_slurs) > 0:  # checks slur heat
-            channel = self.bot.get_channel(self.config.channels.alert)
-
             if len(message.content) < 1024:
                 citation = message.content
             else:
                 citation = "`MESSAGE TOO LONG`"
-
-            slurembed = SersiEmbed(
-                title="Slur(s) Detected",
-                description="A slur has been detected. Moderation action is advised.",
-                footer="Sersi Slur Detection Alert",
-                fields={
-                    "Channel:": message.channel.mention,
-                    "User:": message.author.mention,
-                    "Context:": citation,
-                    "Slurs Found:": ", ".join(set(detected_slurs)),
-                    "URL:": message.jump_url,
-                    "Previous Slur Uses:": self.get_previous_cases(
-                        message.author, detected_slurs
-                    ),
-                },
-            )
 
             action_taken = Button(label="Action Taken")
             action_taken.callback = self.cb_action_taken
@@ -209,7 +191,24 @@ class Slur(commands.Cog):
             button_view.add_item(false_positive)
             button_view.interaction_check = cb_is_mod
 
-            alert = await channel.send(embed=slurembed, view=button_view)
+            alert = await self.bot.get_channel(self.config.channels.alert).send(
+                embed=SersiEmbed(
+                    title="Slur(s) Detected",
+                    description="A slur has been detected. Moderation action is advised.",
+                    footer="Sersi Slur Detection Alert",
+                    fields={
+                        "Channel:": message.channel.mention,
+                        "User:": message.author.mention,
+                        "Context:": citation,
+                        "Slurs Found:": ", ".join(set(detected_slurs)),
+                        "URL:": message.jump_url,
+                        "Previous Slur Uses:": self._get_previous_cases(
+                            message.author.id, detected_slurs
+                        ),
+                    },
+                ),
+                view=button_view,
+            )
 
             await logutils.create_alert_log(
                 self.config, alert, logutils.AlertType.Slur, alert.created_at
@@ -254,7 +253,7 @@ class Slur(commands.Cog):
                         "User:": after.mention,
                         "Status:": after.status,
                         "Slurs Found:": ", ".join(set(slurs)),
-                        "Previous Slur Uses:": self.get_previous_cases(after, slurs),
+                        "Previous Slur Uses:": self._get_previous_cases(after, slurs),
                     },
                 ),
                 view=button_view,
@@ -301,7 +300,7 @@ class Slur(commands.Cog):
                         "User:": after.mention,
                         "Name:": after.name,
                         "Slurs Found:": ", ".join(set(slurs)),
-                        "Previous Slur Uses:": self.get_previous_cases(after, slurs),
+                        "Previous Slur Uses:": self._get_previous_cases(after, slurs),
                     },
                 ),
                 view=button_view,
@@ -341,14 +340,14 @@ class Slur(commands.Cog):
                 self.config.channels.alert
             ).send(
                 embed=SersiEmbed(
-                    title="Member changed their username to contain slurs",
+                    title="Member changed their nickname to contain slurs",
                     description="A slur has been detected. Moderation action is advised.",
                     footer="Sersi Slur Detection Alert",
                     fields={
                         "User:": after.mention,
-                        "Name:": after.name,
+                        "Nickname:": after.nick,
                         "Slurs Found:": ", ".join(set(slurs)),
-                        "Previous Slur Uses:": self.get_previous_cases(after, slurs),
+                        "Previous Slur Uses:": self._get_previous_cases(after, slurs),
                     },
                 ),
                 view=button_view,

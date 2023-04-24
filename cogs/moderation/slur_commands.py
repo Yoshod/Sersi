@@ -40,7 +40,8 @@ class SlurCommands(nextcord.ext.commands.Cog):
 
         if existing_slur is not None:
             await ctx.send(
-                f"{self.config.emotes.fail} `{slur}` is in conflict with existing slur `{existing_slur}`; cannot be added."
+                f"{self.config.emotes.fail} `{slur}` is in conflict with existing slur `{existing_slur}`; "
+                "cannot be added."
             )
             return
 
@@ -103,12 +104,14 @@ class SlurCommands(nextcord.ext.commands.Cog):
         for existing_word in get_goodwords():
             if word in existing_word:
                 await ctx.send(
-                    f"{self.config.emotes.fail} `{word}` is substring to existing goodword `{existing_word}`; cannot be added."
+                    f"{self.config.emotes.fail} `{word}` is substring to existing goodword `{existing_word}`; "
+                    "cannot be added."
                 )
                 return
             elif existing_word in word:
                 await ctx.send(
-                    f"{self.config.emotes.fail} existing goodword `{existing_word}` is substring to `{word}`; cannot be added."
+                    f"{self.config.emotes.fail} existing goodword `{existing_word}` is substring to `{word}`; "
+                    "cannot be added."
                 )
                 return
 
@@ -121,16 +124,16 @@ class SlurCommands(nextcord.ext.commands.Cog):
         load_goodwords()  # reloads updated list into memory
 
         # logging
-        channel = self.bot.get_channel(self.config.channels.logging)
-        embedVar = SersiEmbed(
-            title="Goodword Added",
-            description="A new goodword has been added to the filter.",
-            fields={
-                "Added By:": f"{ctx.message.author.mention} ({ctx.message.author.id})",
-                "Goodword Added:": word,
-            },
+        await self.bot.get_channel(self.config.channels.logging).send(
+            embed=SersiEmbed(
+                title="Goodword Added",
+                description="A new goodword has been added to the filter.",
+                fields={
+                    "Added By:": f"{ctx.message.author.mention} ({ctx.message.author.id})",
+                    "Goodword Added:": word,
+                },
+            )
         )
-        await channel.send(embed=embedVar)
         await ctx.send(
             f"{self.config.emotes.success} Goodword added. Detection will start now."
         )
@@ -216,16 +219,16 @@ class SlurCommands(nextcord.ext.commands.Cog):
         rm_goodword(word)
 
         # logging
-        channel = self.bot.get_channel(self.config.channels.logging)
-        embedVar = SersiEmbed(
-            title="Goodword Removed",
-            description="A goodword has been removed from the filter.",
-            fields={
-                "Removed By:": f"{ctx.message.author.mention} ({ctx.message.author.id})",
-                "Goodword Removed:": word,
-            },
+        await self.bot.get_channel(self.config.channels.logging).send(
+            embed=SersiEmbed(
+                title="Goodword Removed",
+                description="A goodword has been removed from the filter.",
+                fields={
+                    "Removed By:": f"{ctx.message.author.mention} ({ctx.message.author.id})",
+                    "Goodword Removed:": word,
+                },
+            )
         )
-        await channel.send(embed=embedVar)
 
         await ctx.send(
             f"{self.config.emotes.success} Goodword {word} is no longer in the list"
