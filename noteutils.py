@@ -2,8 +2,7 @@ import sqlite3
 import nextcord
 
 from configutils import Configuration
-from baseutils import SersiEmbed, get_page
-from caseutils import create_unique_id
+from baseutils import SersiEmbed, get_page, create_unique_id
 
 
 def create_note(

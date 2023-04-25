@@ -1,11 +1,10 @@
 import sqlite3
 import nextcord
-import shortuuid
 import time
 import typing
 
 from configutils import Configuration
-from baseutils import SersiEmbed, get_page
+from baseutils import SersiEmbed, get_page, create_unique_id
 
 
 def create_case(config: Configuration, unique_id: str, case_type: str, timestamp: int):
@@ -246,7 +245,7 @@ def fetch_cases_by_partial_id(config: Configuration, case_id: str):
             "SELECT * FROM cases WHERE id LIKE ? LIMIT 10 ", (f"{case_id}%",)
         )
 
-    rows: list = cursor.fetchall()
+    rows = cursor.fetchall()
 
     conn.close()
 
@@ -817,26 +816,6 @@ def fetch_moderator_cases(
         return get_page(cases_list, page, per_page)
 
 
-def create_unique_id(config: Configuration):
-    conn = sqlite3.connect(config.datafiles.sersi_db)
-    cursor = conn.cursor()
-    uuid_unique = False
-    while not uuid_unique:
-        uuid = str(shortuuid.uuid())
-        cursor.execute(
-            """SELECT id FROM cases WHERE id=:id
-            UNION
-            SELECT id FROM notes WHERE id=:id
-            UNION
-            SELECT id FROM tickets WHERE id=:id""",
-            {"id": uuid},
-        )
-        cases = cursor.fetchone()
-        if not cases:
-            cursor.close()
-            return uuid
-
-
 def create_slur_case(
     config: Configuration,
     slur_used: str,
@@ -968,7 +947,7 @@ def create_bad_faith_ping_case(
 
 def scrub_case(
     config: Configuration, case_id: str, scrubber: nextcord.Member, reason: str
-) -> bool:
+):
     timestamp = int(time.time())
 
     conn = sqlite3.connect(config.datafiles.sersi_db)
@@ -1062,7 +1041,7 @@ def scrub_case(
         return False
 
 
-def delete_case(config: Configuration, case_id: str) -> bool:
+def delete_case(config: Configuration, case_id: str):
     conn = sqlite3.connect(config.datafiles.sersi_db)
     cursor = conn.cursor()
 
@@ -1101,17 +1080,17 @@ def slur_virgin(config: Configuration, user: nextcord.User):
         return True
 
 
-def slur_history(config: Configuration, user: nextcord.User, slurs: list):
+def slur_history(config: Configuration, user: nextcord.User, slur: list):
     conn = sqlite3.connect(config.datafiles.sersi_db)
     cursor = conn.cursor()
 
     cases = []
 
-    for slur in slurs:
+    for sl in slur:
         cursor.execute(
             "SELECT * FROM slur_cases WHERE slur_used=? AND offender=? ORDER BY timestamp DESC",
             (
-                slur,
+                sl,
                 user.id,
             ),
         )
