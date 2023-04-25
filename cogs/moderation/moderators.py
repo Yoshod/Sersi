@@ -344,6 +344,9 @@ class Moderators(commands.Cog):
             description="Who to retire; Specify yourself to retire yourself.",
         ),
     ):
+        if member is None:
+            member = interaction.user
+        print(member)
         if member == interaction.user:
             if not await permcheck(interaction, is_staff):
                 return
@@ -359,6 +362,8 @@ class Moderators(commands.Cog):
             role_object: nextcord.Role = interaction.guild.get_role(
                 vars(self.config.permission_roles)[role]
             )
+            if role_object is None:
+                continue
             try:
                 await member.remove_roles(role_object)
             except nextcord.errors.HTTPException:
@@ -367,9 +372,14 @@ class Moderators(commands.Cog):
         honourable_member: nextcord.Role = interaction.guild.get_role(
             self.config.roles.honourable_member
         )
-        await member.add_roles(honourable_member)
+        if honourable_member is None:
+            await interaction.followup.send(
+                f"{self.sersifail} Honourable Member role not found. Please contact an admin."
+            )
+        else:
+            await member.add_roles(honourable_member)
 
-        await interaction.followup.edit(
+        await interaction.followup.send(
             f"{self.sersisuccess} {member.mention} has retired from the mod team. Thank you for your service!",
             embed=None,
             view=None,
