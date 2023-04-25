@@ -3,7 +3,7 @@ from nextcord.ext import commands
 
 from baseutils import SersiEmbed, PageView, DualCustodyView
 from configutils import Configuration
-from permutils import permcheck, is_mod, is_full_mod
+from permutils import permcheck, is_mod, is_full_mod, is_dark_mod
 from slurdetector import (
     get_goodwords,
     get_slurs,
@@ -183,7 +183,7 @@ class SlurCommands(nextcord.ext.commands.Cog):
                 "Slur Removed:": slur,
                 "Removed By:": f"{interaction.user.mention} ({interaction.user.id})",
             }
-            if bypass_reason:
+            if bypass_reason and is_dark_mod(interaction.user):
                 embed_fields["Dual Custody Bypass Reason"] = bypass_reason
             else:
                 embed_fields[
