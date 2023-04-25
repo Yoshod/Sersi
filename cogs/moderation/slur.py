@@ -4,10 +4,9 @@ import re
 
 import nextcord
 from nextcord.ext import commands
-from nextcord.ui import Button, View
 
 import logutils
-from baseutils import sanitize_mention, SersiEmbed, PageView
+from baseutils import sanitize_mention, SersiEmbed, PageView, format_entry
 from caseutils import slur_history, slur_virgin, create_slur_case, fetch_offender_cases
 from configutils import Configuration
 from permutils import cb_is_mod
@@ -18,44 +17,12 @@ from slurdetector import (
 from noteutils import get_note_by_user
 
 
-def format_entry(entry):
-    if len(entry[3]) >= 16:
-        return "`{}`... <t:{}:R>".format(entry[3][:15], entry[4])
-    else:
-        return "`{}` <t:{}:R>".format(entry[3], entry[4])
-
-
-class Slur(commands.Cog):
-    def __init__(self, bot: commands.Bot, config: Configuration):
-        self.bot = bot
+class ActionTakenButton(nextcord.ui.Button):
+    def __init__(self, config: Configuration):
+        super().__init__(label="Action Taken")
         self.config = config
-        self.sersisuccess = config.emotes.success
-        self.sersifail = config.emotes.fail
-        load_slurdetector()
 
-    def _get_previous_cases(self, user: nextcord.Member, slurs: list[str]) -> str:
-        print("Im fucking gayer")
-        slur_test = slur_virgin(self.config, user)
-        if slur_test:
-            return f"{self.config.emotes.fail} The user is a first time offender."
-
-        else:
-            cases = slur_history(self.config, user, slurs)
-
-            if not cases:
-                return (
-                    f"{self.config.emotes.success} The user has a history of using slurs that were not detected "
-                    f"in this message."
-                )
-
-            else:
-                prev_offences = f"{self.config.emotes.success} The user has a history of using a slur detected in this message:"
-                for slur_cases in cases:
-                    prev_offences += f"\n`{slur_cases[0]}` {slur_cases[2]}"
-
-                return prev_offences
-
-    async def cb_action_taken(self, interaction: nextcord.Interaction):
+    def callback(self, interaction: nextcord.Interaction) -> None:
         new_embed = interaction.message.embeds[0]
         new_embed.add_field(
             name="Action Taken By", value=interaction.user.mention, inline=False
@@ -64,7 +31,7 @@ class Slur(commands.Cog):
         await interaction.message.edit(embed=new_embed, view=None)
 
         # Logging
-        await self.bot.get_channel(self.config.channels.logging).send(
+        await interaction.guild.get_channel(self.config.channels.logging).send(
             embed=SersiEmbed(
                 title="Action Taken Pressed",
                 description="Action has been taken by a moderator in response to a report.",
@@ -94,7 +61,13 @@ class Slur(commands.Cog):
 
         await logutils.update_response(self.config, interaction.message, timestamp)
 
-    async def cb_acceptable_use(self, interaction):
+
+class AcceptableUseButton(nextcord.ui.Button):
+    def __init__(self, config: Configuration):
+        super().__init__(label="Acceptable Use")
+        self.config = config
+
+    def callback(self, interaction: nextcord.Interaction) -> None:
         new_embed = interaction.message.embeds[0]
         new_embed.add_field(
             name="Usage Deemed Acceptable By",
@@ -105,7 +78,7 @@ class Slur(commands.Cog):
         await interaction.message.edit(embed=new_embed, view=None)
 
         # Logging
-        await self.bot.get_channel(self.config.channels.logging).send(
+        await interaction.guild.get_channel(self.config.channels.logging).send(
             embed=SersiEmbed(
                 title="Acceptable Use Pressed",
                 description="Usage of a slur has been deemed acceptable by a moderator in response to a report.",
@@ -120,7 +93,13 @@ class Slur(commands.Cog):
             self.config, interaction.message, datetime.now(timezone.utc)
         )
 
-    async def cb_false_positive(self, interaction):
+
+class FalsePositiveButton(nextcord.ui.Button):
+    def __init__(self, config: Configuration):
+        super().__init__(label="False Positive")
+        self.config = config
+
+    def callback(self, interaction: nextcord.Interaction) -> None:
         new_embed = interaction.message.embeds[0]
         new_embed.add_field(
             name="Deemed As False Positive By:",
@@ -129,7 +108,7 @@ class Slur(commands.Cog):
         )
         new_embed.colour = nextcord.Colour.brand_red()
         await interaction.message.edit(embed=new_embed, view=None)
-        channel = self.bot.get_channel(self.config.channels.false_positives)
+        channel = interaction.guild.get_channel(self.config.channels.false_positives)
 
         logging_embed: nextcord.Embed = SersiEmbed(title="Marked as false positive")
 
@@ -145,7 +124,7 @@ class Slur(commands.Cog):
         await channel.send(embed=logging_embed)
 
         # Logging
-        await self.bot.get_channel(self.config.channels.logging).send(
+        await interaction.guild.get_channel(self.config.channels.logging).send(
             embed=SersiEmbed(
                 title="False Positive Pressed",
                 description="Detected slur has been deemed a false positive by a moderator in response to a report.",
@@ -160,7 +139,13 @@ class Slur(commands.Cog):
             self.config, interaction.message, datetime.now(timezone.utc)
         )
 
-    async def cb_view_cases(self, interaction: nextcord.Interaction):
+
+class ViewCasesButton(nextcord.ui.Button):
+    def __init__(self, config: Configuration):
+        super().__init__(label="View Slur Cases", row=1)
+        self.config = config
+
+    def callback(self, interaction: nextcord.Interaction) -> None:
         await interaction.response.defer(ephemeral=True)
 
         original_embed = interaction.message.embeds[0]
@@ -197,7 +182,13 @@ class Slur(commands.Cog):
 
         await view.send_followup(interaction)
 
-    async def cb_view_notes(self, interaction: nextcord.Interaction):
+
+class ViewNotesButton(nextcord.ui.Button):
+    def __init__(self, config: Configuration):
+        super().__init__(label="View Notes", row=1)
+        self.config = config
+
+    def callback(self, interaction: nextcord.Interaction) -> None:
         await interaction.response.defer(ephemeral=True)
 
         original_embed = interaction.message.embeds[0]
@@ -232,6 +223,52 @@ class Slur(commands.Cog):
 
         await view.send_followup(interaction)
 
+
+class SlurAlertButtons(nextcord.ui.View):
+    def __init__(self, config: Configuration, interaction_check):
+        super().__init__(timeout=None)
+        self.add_item(ActionTakenButton(config))
+        self.add_item(AcceptableUseButton(config))
+        self.add_item(FalsePositiveButton(config))
+        self.add_item(ViewCasesButton(config))
+        self.add_item(ViewNotesButton(config))
+        self.interaction_check(interaction_check)
+
+
+class Slur(commands.Cog):
+    def __init__(self, bot: commands.Bot, config: Configuration):
+        self.bot = bot
+        self.config = config
+        self.sersisuccess = config.emotes.success
+        self.sersifail = config.emotes.fail
+        load_slurdetector()
+
+    def _get_previous_cases(
+        self, user: nextcord.User | nextcord.Member, slurs: list[str]
+    ) -> str:
+        slur_test = slur_virgin(self.config, user)
+        if slur_test:
+            return f"{self.config.emotes.fail} The user is a first time offender."
+
+        else:
+            cases = slur_history(self.config, user, slurs)
+
+            if not cases:
+                return (
+                    f"{self.config.emotes.success} The user has a history of using slurs that were not detected "
+                    f"in this message."
+                )
+
+            else:
+                prev_offences = (
+                    f"{self.config.emotes.success} The user has a history of using a slur detected in "
+                    "this message:"
+                )
+                for slur_cases in cases:
+                    prev_offences += f"\n`{slur_cases[0]}` {slur_cases[2]}"
+
+                return prev_offences
+
     # events
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.message.Message):
@@ -254,31 +291,6 @@ class Slur(commands.Cog):
             else:
                 citation = "`MESSAGE TOO LONG`"
 
-            action_taken = Button(label="Action Taken")
-            action_taken.callback = self.cb_action_taken
-
-            acceptable_use = Button(label="Acceptable Use")
-            acceptable_use.callback = self.cb_acceptable_use
-
-            false_positive = Button(label="False Positive")
-            false_positive.callback = self.cb_false_positive
-
-            view_cases = Button(label="View Slur Cases", row=1)
-            view_cases.callback = self.cb_view_cases
-
-            view_notes = Button(label="View Notes", row=1)
-            view_notes.callback = self.cb_view_notes
-
-            button_view = View(timeout=None)
-            button_view.add_item(action_taken)
-            button_view.add_item(acceptable_use)
-            button_view.add_item(false_positive)
-            button_view.add_item(view_cases)
-            button_view.add_item(view_notes)
-            button_view.interaction_check = cb_is_mod
-
-            print("Im fucking gay")
-
             alert = await self.bot.get_channel(self.config.channels.alert).send(
                 embed=SersiEmbed(
                     title="Slur(s) Detected",
@@ -295,7 +307,7 @@ class Slur(commands.Cog):
                         ),
                     },
                 ),
-                view=button_view,
+                view=SlurAlertButtons(self.config, cb_is_mod),
             )
 
             await logutils.create_alert_log(
@@ -315,29 +327,6 @@ class Slur(commands.Cog):
     async def on_presence_update(self, before: nextcord.Member, after: nextcord.Member):
         slurs: list[str] = detect_slur(after.status)
         if slurs:
-            action_taken = Button(label="Action Taken")
-            action_taken.callback = self.cb_action_taken
-
-            acceptable_use = Button(label="Acceptable Use")
-            acceptable_use.callback = self.cb_acceptable_use
-
-            false_positive = Button(label="False Positive")
-            false_positive.callback = self.cb_false_positive
-
-            view_cases = Button(label="View Slur Cases", row=1)
-            view_cases.callback = self.cb_view_cases
-
-            view_notes = Button(label="View Notes", row=1)
-            view_notes.callback = self.cb_view_notes
-
-            button_view = View(timeout=None)
-            button_view.add_item(action_taken)
-            button_view.add_item(acceptable_use)
-            button_view.add_item(false_positive)
-            button_view.add_item(view_cases)
-            button_view.add_item(view_notes)
-            button_view.interaction_check = cb_is_mod
-
             alert: nextcord.Message = await after.guild.get_channel(
                 self.config.channels.alert
             ).send(
@@ -352,7 +341,7 @@ class Slur(commands.Cog):
                         "Previous Slur Uses:": self._get_previous_cases(after, slurs),
                     },
                 ),
-                view=button_view,
+                view=SlurAlertButtons(self.config, cb_is_mod),
             )
 
             await logutils.create_alert_log(
@@ -370,29 +359,6 @@ class Slur(commands.Cog):
     async def on_user_update(self, before: nextcord.User, after: nextcord.User):
         slurs: list[str] = detect_slur(after.name)
         if slurs:
-            action_taken = Button(label="Action Taken")
-            action_taken.callback = self.cb_action_taken
-
-            acceptable_use = Button(label="Acceptable Use")
-            acceptable_use.callback = self.cb_acceptable_use
-
-            false_positive = Button(label="False Positive")
-            false_positive.callback = self.cb_false_positive
-
-            view_cases = Button(label="View Slur Cases", row=1)
-            view_cases.callback = self.cb_view_cases
-
-            view_notes = Button(label="View Notes", row=1)
-            view_notes.callback = self.cb_view_notes
-
-            button_view = View(timeout=None)
-            button_view.add_item(action_taken)
-            button_view.add_item(acceptable_use)
-            button_view.add_item(false_positive)
-            button_view.add_item(view_cases)
-            button_view.add_item(view_notes)
-            button_view.interaction_check = cb_is_mod
-
             alert: nextcord.Message = await self.bot.get_channel(
                 self.config.channels.alert
             ).send(
@@ -407,7 +373,7 @@ class Slur(commands.Cog):
                         "Previous Slur Uses:": self._get_previous_cases(after, slurs),
                     },
                 ),
-                view=button_view,
+                view=SlurAlertButtons(self.config, cb_is_mod),
             )
 
             await logutils.create_alert_log(
@@ -425,29 +391,6 @@ class Slur(commands.Cog):
     async def on_member_update(self, before: nextcord.Member, after: nextcord.Member):
         slurs: list[str] = detect_slur(after.nick)
         if slurs:
-            action_taken = Button(label="Action Taken")
-            action_taken.callback = self.cb_action_taken
-
-            acceptable_use = Button(label="Acceptable Use")
-            acceptable_use.callback = self.cb_acceptable_use
-
-            false_positive = Button(label="False Positive")
-            false_positive.callback = self.cb_false_positive
-
-            view_cases = Button(label="View Slur Cases", row=1)
-            view_cases.callback = self.cb_view_cases
-
-            view_notes = Button(label="View Notes", row=1)
-            view_notes.callback = self.cb_view_notes
-
-            button_view = View(timeout=None)
-            button_view.add_item(action_taken)
-            button_view.add_item(acceptable_use)
-            button_view.add_item(false_positive)
-            button_view.add_item(view_cases)
-            button_view.add_item(view_notes)
-            button_view.interaction_check = cb_is_mod
-
             alert: nextcord.Message = await self.bot.get_channel(
                 self.config.channels.alert
             ).send(
@@ -462,7 +405,7 @@ class Slur(commands.Cog):
                         "Previous Slur Uses:": self._get_previous_cases(after, slurs),
                     },
                 ),
-                view=button_view,
+                view=SlurAlertButtons(self.config, cb_is_mod),
             )
 
             await logutils.create_alert_log(

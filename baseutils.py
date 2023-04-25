@@ -5,6 +5,8 @@ from nextcord.ui import View, Button
 import re
 from datetime import datetime
 import pytz
+import shortuuid
+import sqlite3
 
 from permutils import permcheck, is_dark_mod
 
@@ -107,6 +109,13 @@ def get_page(entry_list: list, page: int, per_page: int = 10):
         return entry_list[index * per_page :], pages, page
     else:
         return entry_list[index * per_page : page * per_page], pages, page
+
+
+def format_entry(entry: tuple[str]) -> str:
+    if len(entry[3]) >= 16:
+        return "`{}`... <t:{}:R>".format(entry[3][:15], entry[4])
+    else:
+        return "`{}` <t:{}:R>".format(entry[3], entry[4])
 
 
 class ConfirmView(nextcord.ui.View):
@@ -356,3 +365,25 @@ class PageView(View):
         self.message = await interaction.followup.send(
             embed=self.make_embed(self.page), view=self
         )
+
+
+def create_unique_id(config: configutils.Configuration):
+    conn = sqlite3.connect(config.datafiles.sersi_db)
+    cursor = conn.cursor()
+    uuid_unique = False
+    while not uuid_unique:
+        uuid = str(shortuuid.uuid())
+        cursor.execute(
+            """SELECT id FROM cases WHERE id=:id
+            UNION
+            SELECT id FROM notes WHERE id=:id
+            UNION
+            SELECT id FROM tickets WHERE id=:id""",
+            {"id": uuid},
+        )
+        cases = cursor.fetchone()
+        if not cases:
+            uuid_unique = True
+
+    cursor.close()
+    return uuid

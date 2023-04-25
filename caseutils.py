@@ -1,11 +1,10 @@
 import sqlite3
 import nextcord
-import shortuuid
 import time
 import typing
 
 from configutils import Configuration
-from baseutils import SersiEmbed, get_page
+from baseutils import SersiEmbed, get_page, create_unique_id
 
 
 def create_case(config: Configuration, unique_id: str, case_type: str, timestamp: int):
@@ -718,26 +717,6 @@ def fetch_moderator_cases(
         return get_page(cases_list, page, per_page)
 
 
-def create_unique_id(config: Configuration):
-    conn = sqlite3.connect(config.datafiles.sersi_db)
-    cursor = conn.cursor()
-    uuid_unique = False
-    while not uuid_unique:
-        uuid = str(shortuuid.uuid())
-        cursor.execute(
-            """SELECT id FROM cases WHERE id=:id
-            UNION
-            SELECT id FROM notes WHERE id=:id""",
-            {"id": uuid},
-        )
-        cases = cursor.fetchone()
-        if not cases:
-            uuid_unique = True
-
-    cursor.close()
-    return uuid
-
-
 def create_slur_case(
     config: Configuration,
     slur_used: str,
@@ -974,7 +953,7 @@ def delete_case(config: Configuration, case_id: str):
         return False
 
 
-def slur_virgin(config: Configuration, user: nextcord.Member):
+def slur_virgin(config: Configuration, user: nextcord.User):
     conn = sqlite3.connect(config.datafiles.sersi_db)
     cursor = conn.cursor()
 
@@ -993,7 +972,7 @@ def slur_virgin(config: Configuration, user: nextcord.Member):
         return True
 
 
-def slur_history(config: Configuration, user: nextcord.Member, slur: list):
+def slur_history(config: Configuration, user: nextcord.User, slur: list):
     conn = sqlite3.connect(config.datafiles.sersi_db)
     cursor = conn.cursor()
 
