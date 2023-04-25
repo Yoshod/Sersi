@@ -109,6 +109,13 @@ def get_page(entry_list: list, page: int, per_page: int = 10):
         return entry_list[index * per_page : page * per_page], pages, page
 
 
+def format_entry(entry: tuple[str]) -> str:
+    if len(entry[3]) >= 16:
+        return "`{}`... <t:{}:R>".format(entry[3][:15], entry[4])
+    else:
+        return "`{}` <t:{}:R>".format(entry[3], entry[4])
+
+
 class ConfirmView(nextcord.ui.View):
     def __init__(
         self,

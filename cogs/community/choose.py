@@ -1,13 +1,20 @@
-import re
-
 import nextcord
+import nextcord.ui
 from nextcord.ext import commands
 
 from baseutils import SersiEmbed
 from configutils import Configuration
 
 
-class Poll(commands.Cog):
+class DropdownMenu(nextcord.ui.Select):
+    def __init__(self, choices: list[nextcord.SelectOption]):
+        super().__init__(placeholder="Pick One", options=choices)
+
+    async def callback(self, interaction: nextcord.Interaction) -> None:
+        await interaction.send(f"{self.values}")
+
+
+class Choose(commands.Cog):
     def __init__(self, bot: commands.Bot, config: Configuration):
         self.bot = bot
         self.config = config
@@ -29,10 +36,10 @@ class Poll(commands.Cog):
     @nextcord.slash_command(
         dm_permission=False, guild_ids=[977377117895536640, 856262303795380224]
     )
-    async def poll(self, interaction: nextcord.Interaction):
+    async def choose(self, interaction: nextcord.Interaction):
         pass
 
-    @poll.subcommand(description="Creates a poll")
+    @choose.subcommand(description="Creates a poll")
     async def create(
         self,
         interaction: nextcord.Interaction,
@@ -51,7 +58,7 @@ class Poll(commands.Cog):
 
         await interaction.response.defer()
 
-        options: list[str | None] = [
+        primitive_options: list[str | None] = [
             option1,
             option2,
             option3,
@@ -63,66 +70,47 @@ class Poll(commands.Cog):
             option9,
             option10,
         ]
+        while None in primitive_options:
+            primitive_options.remove(None)
 
-        while None in options:
-            options.remove(None)
+        options: list[nextcord.SelectOption] = []
+        for option in primitive_options:
+            options.append(nextcord.SelectOption(label=option))
 
-        option_listing: str = ""
-        counter: int = 0
-        for option in options:
-            option_listing += f"{self.emotes[counter]} {option}\n\n"
-            counter += 1
+        selection = nextcord.ui.Select(placeholder="Pick One", options=options)
+
+        dropdown_menu = nextcord.ui.View(timeout=None)
+        dropdown_menu.add_item(selection)
 
         poll: nextcord.Message = await interaction.send(
             embed=SersiEmbed(
                 title=query,
-                description=option_listing,
                 footer=f"Poll by {interaction.user.display_name}",
-            )
+            ),
+            view=dropdown_menu,
         )
 
         counter: int = 0
-        for option in options:
+        for option in primitive_options:
             await poll.add_reaction(self.emotes[counter])
             counter += 1
 
-    @poll.subcommand(description="Shows the result of a past poll")
+    @choose.subcommand(description="Shows the result of a past poll")
     async def evaluate(
         self,
         interaction: nextcord.Interaction,
-        message_hook: str = nextcord.SlashOption(
-            name="Message", description="the message ID or URL of the poll"
+        message_id: str = nextcord.SlashOption(
+            description="the message ID of the poll"
         ),
     ):
         eval_bar_width: int = 20
-        url_regex: str = (
-            r"(?i)\b((?:https?://|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}/)(?:[^\s()<>]+|\(([^\s()<>]+|("
-            r"\([^\s()<>]+\)))*\))+(?:\(([^\s()<>]+|(\([^\s()<>]+\)))*\)|[^\s`!()\[\]{};:'\".,<>?«»“”‘’]))"
-        )
 
         await interaction.response.defer()
 
-        if re.match(url_regex, message_hook):
-            guild_id, channel_id, message_id = message_hook.split("/")[-3:]
-            channel = self.bot.get_channel(int(channel_id))
-
-        elif message_hook.isdigit():
-            channel = interaction.channel
-            message_id = int(message_hook)
-
-        else:
-            await interaction.send(
-                embed=SersiEmbed(
-                    title=f"{self.config.emotes.fail} Could not parse message!",
-                    description="Please provide either the message ID or URL",
-                    footer="Sersi Poll",
-                ),
-                ephemeral=True,
-            )
-            return
-
         try:
-            message: nextcord.Message = await channel.fetch_message(message_id)
+            message: nextcord.Message = await interaction.channel.fetch_message(
+                int(message_id)
+            )
         except nextcord.NotFound:
             await interaction.send(
                 embed=SersiEmbed(
@@ -194,4 +182,4 @@ class Poll(commands.Cog):
 
 
 def setup(bot, **kwargs):
-    bot.add_cog(Poll(bot, kwargs["config"]))
+    bot.add_cog(Choose(bot, kwargs["config"]))
