@@ -16,9 +16,14 @@ class Probation(commands.Cog):
     @nextcord.slash_command(
         dm_permission=False,
         guild_ids=[977377117895536640, 856262303795380224],
+    )
+    async def probation(self, interaction: nextcord.Interaction):
+        pass
+
+    @probation.subcommand(
         description="Puts a member into probation",
     )
-    async def add_to_probation(
+    async def add(
         self,
         interaction: nextcord.Interaction,
         member: nextcord.Member = nextcord.SlashOption(
@@ -48,8 +53,8 @@ class Probation(commands.Cog):
                 f"{self.sersifail} member is already in probation", ephemeral=True
             )
             return
-        
-        interaction.response.defer()
+
+        await interaction.response.defer()
 
         @ConfirmView.query(
             title="Add Member to probation",
@@ -70,7 +75,7 @@ class Probation(commands.Cog):
             },
             bypass=True if bypass_reason else False,
         )
-        async def execute(*, confirming_moderator: nextcord.Member, **kwargs):
+        async def execute(*args, confirming_moderator: nextcord.Member, **kwargs):
             await member.add_roles(probation_role, reason=reason, atomic=True)
 
             # unique_id = case_history(self.config, member.id, "Probation")
@@ -129,12 +134,10 @@ class Probation(commands.Cog):
 
         await execute(self.bot, self.config, interaction)
 
-    @nextcord.slash_command(
-        dm_permission=False,
-        guild_ids=[977377117895536640, 856262303795380224],
+    @probation.subcommand(
         description="Removes a member from probation",
     )
-    async def remove_from_probation(
+    async def remove(
         self,
         interaction: nextcord.Interaction,
         member: nextcord.Member = nextcord.SlashOption(
@@ -167,7 +170,7 @@ class Probation(commands.Cog):
             )
             return
         
-        interaction.response.defer()
+        await interaction.response.defer()
 
         @ConfirmView.query(
             title="Remove Member from probation",
@@ -188,7 +191,7 @@ class Probation(commands.Cog):
             },
             bypass=True if bypass_reason else False,
         )
-        async def execute(*, confirming_moderator: nextcord.Member, **kwargs):
+        async def execute(*args, confirming_moderator: nextcord.Member, **kwargs):
             await member.remove_roles(probation_role, reason=reason, atomic=True)
 
             embed_fields = {
