@@ -727,7 +727,9 @@ def create_unique_id(config: Configuration):
         cursor.execute(
             """SELECT id FROM cases WHERE id=:id
             UNION
-            SELECT id FROM notes WHERE id=:id""",
+            SELECT id FROM notes WHERE id=:id
+            UNION
+            SELECT id FROM tickets WHERE id=:id""",
             {"id": uuid},
         )
         cases = cursor.fetchone()
