@@ -6,7 +6,7 @@ from nextcord.ext import commands
 
 from baseutils import ConfirmView, DualCustodyView, SersiEmbed
 from configutils import Configuration
-from permutils import permcheck, is_staff, is_senior_mod, is_slt
+from permutils import permcheck, is_staff, is_senior_mod, is_slt, is_dark_mod
 
 
 class Moderators(commands.Cog):
@@ -311,7 +311,7 @@ class Moderators(commands.Cog):
                 "Reason:": reason,
                 "Responsible Member:": interaction.user.mention,
             }
-            if bypass_reason:
+            if bypass_reason and is_dark_mod(interaction.user):
                 embed_fields["Bypass Reason:"] = bypass_reason
             else:
                 embed_fields["Confirming Member:"] = confirming_moderator.mention

@@ -3,7 +3,7 @@ from nextcord.ext import commands
 
 from baseutils import ConfirmView, DualCustodyView, SersiEmbed
 from configutils import Configuration
-from permutils import permcheck, is_mod, is_full_mod
+from permutils import permcheck, is_mod, is_full_mod, is_dark_mod
 
 
 class Probation(commands.Cog):
@@ -21,8 +21,22 @@ class Probation(commands.Cog):
     async def add_to_probation(
         self,
         interaction: nextcord.Interaction,
-        member: nextcord.Member,
-        reason: str = nextcord.SlashOption(required=False),
+        member: nextcord.Member = nextcord.SlashOption(
+            description="Member to put into probation",
+            required=True
+        ),
+        reason: str = nextcord.SlashOption(
+            description="Reason for putting member into probation",
+            required=True,
+            min_length=8,
+            max_length=1024,
+        ),
+        bypass_reason: str = nextcord.SlashOption(
+            description="(Mega Administrator only!) Reason to bypass dual custody",
+            min_length=8,
+            max_length=1024,
+            required=False,
+        ),
     ):
         if not await permcheck(interaction, is_mod):
             return
@@ -34,6 +48,8 @@ class Probation(commands.Cog):
                 f"{self.sersifail} member is already in probation", ephemeral=True
             )
             return
+        
+        interaction.response.defer()
 
         @ConfirmView.query(
             title="Add Member to probation",
@@ -52,28 +68,35 @@ class Probation(commands.Cog):
                 "Reason": reason,
                 "Moderator": interaction.user.mention,
             },
+            bypass=True if bypass_reason else False,
         )
-        async def execute(*args, confirming_moderator: nextcord.Member, **kwargs):
+        async def execute(*, confirming_moderator: nextcord.Member, **kwargs):
             await member.add_roles(probation_role, reason=reason, atomic=True)
 
-            """unique_id = case_history(self.config, member.id, "Probation")
-            probation_case(
-                self.config,
-                unique_id,
-                member.id,
-                interaction.user.id,
-                confirming_moderator.id,
-                reason,
-            )"""
+            # unique_id = case_history(self.config, member.id, "Probation")
+            # probation_case(
+            #     self.config,
+            #     unique_id,
+            #     member.id,
+            #     interaction.user.id,
+            #     confirming_moderator.id,
+            #     reason,
+            # )
+
+            embed_fields = {
+                "User": member.mention,
+                "Reason": reason,
+                "Resposible Moderator": interaction.user.mention,
+            }
+
+            if bypass_reason and is_dark_mod(interaction.user):
+                embed_fields["Bypass Reason"] = bypass_reason
+            else:
+                embed_fields["Confirming Moderator"] = confirming_moderator.mention
 
             log_embed = SersiEmbed(
                 title="Member put into Probation",
-                fields={
-                    "Responsible Moderator:": interaction.user.mention,
-                    "Confirming Moderator:": confirming_moderator.mention,
-                    "Member": member.mention,
-                    "Reason:": reason,
-                },
+                fields=embed_fields,
             )
 
             log_channel = interaction.guild.get_channel(self.config.channels.logging)
@@ -81,6 +104,9 @@ class Probation(commands.Cog):
 
             log_channel = interaction.guild.get_channel(self.config.channels.mod_logs)
             await log_channel.send(embed=log_embed)
+
+            if bypass_reason:
+                await interaction.followup.send(embed=log_embed)
 
             dm_embed = SersiEmbed(
                 title="Adam Something Central Probation",
@@ -111,8 +137,22 @@ class Probation(commands.Cog):
     async def remove_from_probation(
         self,
         interaction: nextcord.Interaction,
-        member: nextcord.Member,
-        reason: str = nextcord.SlashOption(required=False),
+        member: nextcord.Member = nextcord.SlashOption(
+            description="Member to remove from probation",
+            required=True
+        ),
+        reason: str = nextcord.SlashOption(
+            description="Reason for removing member from probation",
+            required=True,
+            min_length=8,
+            max_length=1024,
+        ),
+        bypass_reason: str = nextcord.SlashOption(
+            description="(Mega Administrator only!) Reason to bypass dual custody",
+            min_length=8,
+            max_length=1024,
+            required=False,
+        ),
     ):
         if not await permcheck(interaction, is_mod):
             return
@@ -122,10 +162,12 @@ class Probation(commands.Cog):
         )
 
         if probation_role not in member.roles:
-            await interaction.reply(
+            await interaction.send(
                 "Error: cannot remove user from probation, member is currently not in probation"
             )
             return
+        
+        interaction.response.defer()
 
         @ConfirmView.query(
             title="Remove Member from probation",
@@ -142,27 +184,37 @@ class Probation(commands.Cog):
             embed_args={
                 "User": member.mention,
                 "Reason": reason,
-                "Moderator": ctx.author.mention,
+                "Moderator": interaction.user.mention,
             },
+            bypass=True if bypass_reason else False,
         )
-        async def execute(*args, confirming_moderator: nextcord.Member, **kwargs):
+        async def execute(*, confirming_moderator: nextcord.Member, **kwargs):
             await member.remove_roles(probation_role, reason=reason, atomic=True)
+
+            embed_fields = {
+                "User": member.mention,
+                "Reason": reason,
+                "Resposible Moderator": interaction.user.mention,
+            }
+
+            if bypass_reason and is_dark_mod(interaction.user):
+                embed_fields["Bypass Reason"] = bypass_reason
+            else:
+                embed_fields["Confirming Moderator"] = confirming_moderator.mention
 
             log_embed = SersiEmbed(
                 title="Member removed from Probation",
-                fields={
-                    "Responsible Moderator:": ctx.author.mention,
-                    "Confirming Moderator:": confirming_moderator.mention,
-                    "Member": member.mention,
-                    "Reason:": reason,
-                },
+                fields=embed_fields,
             )
 
-            log_channel = ctx.guild.get_channel(self.config.channels.logging)
+            log_channel = interaction.guild.get_channel(self.config.channels.logging)
             await log_channel.send(embed=log_embed)
 
-            log_channel = ctx.guild.get_channel(self.config.channels.mod_logs)
+            log_channel = interaction.guild.get_channel(self.config.channels.mod_logs)
             await log_channel.send(embed=log_embed)
+
+            if bypass_reason:
+                await interaction.followup.send(embed=log_embed)
 
             dm_embed = SersiEmbed(
                 title="Adam Something Central Probation Over",
@@ -178,11 +230,11 @@ class Probation(commands.Cog):
                 fields={
                     "User": member.mention,
                     "Reason": reason,
-                    "Moderator": ctx.author.mention,
+                    "Moderator":  interaction.user.mention,
                 },
             )
 
-        await execute(self.bot, self.config, ctx)
+        await execute(self.bot, self.config, interaction)
 
 
 def setup(bot: commands.Bot, **kwargs):
