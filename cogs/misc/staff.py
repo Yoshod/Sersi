@@ -9,7 +9,7 @@ from configutils import Configuration
 from permutils import permcheck, is_staff, is_senior_mod, is_slt, is_dark_mod
 
 
-class Moderators(commands.Cog):
+class Staff(commands.Cog):
     def __init__(self, bot, config: Configuration):
         self.bot = bot
         self.config = config
@@ -405,5 +405,5 @@ class Moderators(commands.Cog):
         await channel.send(embed=log_embed)
 
 
-def setup(bot, **kwargs):
-    bot.add_cog(Moderators(bot, kwargs["config"]))
+def setup(bot: commands.Bot, **kwargs):
+    bot.add_cog(Staff(bot, kwargs["config"]))
