@@ -48,7 +48,6 @@ class Poll(commands.Cog):
         option9: str = nextcord.SlashOption(required=False),
         option10: str = nextcord.SlashOption(required=False),
     ):
-
         await interaction.response.defer()
 
         options: list[str | None] = [
@@ -91,7 +90,7 @@ class Poll(commands.Cog):
         self,
         interaction: nextcord.Interaction,
         message_hook: str = nextcord.SlashOption(
-            name="Message", description="the message ID or URL of the poll"
+            name="message", description="the message ID or URL of the poll"
         ),
     ):
         eval_bar_width: int = 20
