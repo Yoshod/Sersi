@@ -976,7 +976,7 @@ def delete_case(config: Configuration, case_id: str):
         return False
 
 
-def slur_virgin(config: Configuration, user: nextcord.Member):
+def slur_virgin(config: Configuration, user: nextcord.User):
     conn = sqlite3.connect(config.datafiles.sersi_db)
     cursor = conn.cursor()
 
@@ -995,7 +995,7 @@ def slur_virgin(config: Configuration, user: nextcord.Member):
         return True
 
 
-def slur_history(config: Configuration, user: nextcord.Member, slur: list):
+def slur_history(config: Configuration, user: nextcord.User, slur: list):
     conn = sqlite3.connect(config.datafiles.sersi_db)
     cursor = conn.cursor()
 
