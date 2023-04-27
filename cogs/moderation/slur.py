@@ -6,7 +6,13 @@ import nextcord
 from nextcord.ext import commands
 
 import logutils
-from baseutils import sanitize_mention, SersiEmbed, PageView, format_entry
+from baseutils import (
+    sanitize_mention,
+    SersiEmbed,
+    PageView,
+    format_entry,
+    convert_mention_to_id,
+)
 from caseutils import slur_history, slur_virgin, create_slur_case, fetch_offender_cases
 from configutils import Configuration
 from permutils import cb_is_mod
@@ -153,7 +159,7 @@ class ViewCasesButton(nextcord.ui.Button):
         for field in original_embed.fields:
             if field.name.lower() == "user:":
                 offender = interaction.guild.get_member(
-                    int(re.sub(r"\D", "", field.value))
+                    convert_mention_to_id(field.value)
                 )
                 break
 
@@ -195,7 +201,7 @@ class ViewNotesButton(nextcord.ui.Button):
 
         for field in original_embed.fields:
             if field.name.lower() == "user:":
-                user = interaction.guild.get_member(int(re.sub(r"\D", "", field.value)))
+                user = interaction.guild.get_member(convert_mention_to_id(field.value))
                 break
 
         else:
