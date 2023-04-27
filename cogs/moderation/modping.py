@@ -6,8 +6,9 @@ from nextcord.ui import Button, View
 from datetime import datetime, timezone
 
 import logutils
-from baseutils import modmention_check, SersiEmbed
+from baseutils import modmention_check, SersiEmbed, convert_mention_to_id
 from permutils import cb_is_mod
+from caseutils import create_bad_faith_ping_case
 from configutils import Configuration
 
 # from caseutils import case_history, bad_faith_ping_case
@@ -70,7 +71,7 @@ class ModPing(commands.Cog):
             self.config, interaction.message, datetime.now(timezone.utc)
         )
 
-    async def cb_bad_faith_ping(self, interaction):
+    async def cb_bad_faith_ping(self, interaction: nextcord.Interaction):
         new_embed = interaction.message.embeds[0]
         new_embed.add_field(
             name="Bad Faith Ping", value=interaction.user.mention, inline=True
@@ -92,21 +93,15 @@ class ModPing(commands.Cog):
         channel = self.bot.get_channel(self.config.channels.logging)
         await channel.send(embed=logging_embed)
 
-        case_data = []
         for field in new_embed.fields:
             if field.name in ["User:"]:
-                case_data.append(field.value)
+                offender = interaction.guild.get_member(
+                    convert_mention_to_id(field.value)
+                )
 
-        member = interaction.guild.get_member(case_data[0])
-
-        """unique_id = case_history(self.config, member.id, "Bad Faith Ping")
-        bad_faith_ping_case(
-            self.config,
-            unique_id,
-            interaction.message.jump_url,
-            member.id,
-            interaction.user.id,
-        )"""
+        create_bad_faith_ping_case(
+            self.config, interaction.message.jump_url, offender, interaction.user
+        )
 
         await logutils.update_response(
             self.config, interaction.message, datetime.now(timezone.utc)
