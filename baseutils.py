@@ -387,3 +387,7 @@ def create_unique_id(config: configutils.Configuration):
 
     cursor.close()
     return uuid
+
+
+def convert_mention_to_id(mention: str) -> int:
+    return int(re.sub(r"\D", "", mention))
