@@ -1,14 +1,19 @@
+# Nextcord Imports
 import nextcord
 import nextcord.ext.commands as commands
-import configutils
 from nextcord.ui import View, Button
+
+# Sersi Config Imports
+import configutils
+from permutils import permcheck, is_dark_mod
+
+# All Other Imports
 import re
-from datetime import datetime
 import pytz
 import shortuuid
 import sqlite3
+from datetime import datetime
 
-from permutils import permcheck, is_dark_mod
 
 # config = configutils.Configuration.from_yaml_file("./persistent_data/config.yaml")
 
