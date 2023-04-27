@@ -6,7 +6,7 @@ import nextcord
 import io
 import sqlite3
 from chat_exporter import export
-from baseutils import SersiEmbed
+from baseutils import SersiEmbed, create_unique_id
 from nextcord.ui import View, Button, Select
 from configutils import Configuration
 
@@ -27,14 +27,14 @@ def ticket_check(
     cursor.close()
     conn.close()
 
-    if tickets:
+    if len(tickets) > 2:
         return True
 
     else:
         return False
 
 
-def ticket_create(
+async def ticket_create(
     config: Configuration,
     interaction: nextcord.Interaction,
     ticket_creator: nextcord.Member,
@@ -42,7 +42,7 @@ def ticket_create(
     test=True,
 ):
     if test:
-        guild = interaction.client.get_guild(config.guilds.errors)
+        guild: nextcord.Guild = interaction.client.get_guild(config.guilds.errors)
         overwrites = {
             guild.default_role: nextcord.PermissionOverwrite(
                 read_messages=False, send_messages=True
@@ -104,3 +104,18 @@ def ticket_create(
                     ): nextcord.PermissionOverwrite(read_messages=True)
                 }
             )
+
+    ticket_id = create_unique_id
+
+    channel = await interaction.guild.create_text_channel(ticket_id)
+
+    conn = sqlite3.connect(config.datafiles.sersi_db)
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "INSERT INTO tickets (ticket_id, ticket_escalation_initial, ticket_channel_id, ticket_creator_id, ticket_active, timestamp_opened, priority_initial, survey_sent) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        (
+            ticket_id,
+            ticket_type,
+        ),
+    )

@@ -16,18 +16,24 @@ class TicketingSystem(commands.Cog):
     @nextcord.slash_command(
         dm_permission=True,
         guild_ids=[977377117895536640, 856262303795380224],
-        description="Make a suggestion on Adam Something Central",
+        description="Submit a modmail on Adam Something Central",
     )
     async def ticket(self, interaction: nextcord.Interaction):
         pass
 
-    @ticket.subcommand(description="Used to create a ModMail Ticket")
+    @ticket.subcommand(description="Used to create a Sersi ModMail Ticket")
     async def create(
         self,
         interaction: nextcord.Interaction,
         ticket_type: nextcord.Member = nextcord.SlashOption(
             name="ticket_type",
             description="The type of ticket being created",
+            choices={
+                "Community Engagement Ticket": "Community Engagement Team",
+                "Moderator Ticket": "Moderator",
+                "Senior Moderator Ticket": "Senior Moderator",
+                "Mega Administrator Ticket": "Mega Administrator",
+            },
         ),
         initial_comment: str = nextcord.SlashOption(
             name="initial_comment",
@@ -43,7 +49,7 @@ class TicketingSystem(commands.Cog):
 
         if ticket_check(self.config, interaction.user, ticket_type):
             interaction.response.send_message(
-                f"{self.config.emotes.fail} You already have an open {ticket_type} ticket. That one must be closed before another is opened."
+                f"{self.config.emotes.fail} You already have the maximum amount of {ticket_type} tickets. One must be closed before another can be opened."
             )
             return
 

@@ -27,8 +27,7 @@ class Probation(commands.Cog):
         self,
         interaction: nextcord.Interaction,
         member: nextcord.Member = nextcord.SlashOption(
-            description="Member to put into probation",
-            required=True
+            description="Member to put into probation", required=True
         ),
         reason: str = nextcord.SlashOption(
             description="Reason for putting member into probation",
@@ -141,8 +140,7 @@ class Probation(commands.Cog):
         self,
         interaction: nextcord.Interaction,
         member: nextcord.Member = nextcord.SlashOption(
-            description="Member to remove from probation",
-            required=True
+            description="Member to remove from probation", required=True
         ),
         reason: str = nextcord.SlashOption(
             description="Reason for removing member from probation",
@@ -169,7 +167,7 @@ class Probation(commands.Cog):
                 "Error: cannot remove user from probation, member is currently not in probation"
             )
             return
-        
+
         await interaction.response.defer()
 
         @ConfirmView.query(
@@ -233,7 +231,7 @@ class Probation(commands.Cog):
                 fields={
                     "User": member.mention,
                     "Reason": reason,
-                    "Moderator":  interaction.user.mention,
+                    "Moderator": interaction.user.mention,
                 },
             )
 
