@@ -3,19 +3,16 @@ import nextcord
 import nextcord.ext.commands as commands
 from nextcord.ui import View, Button
 
-# Sersi Config Imports
-import configutils
-from permutils import permcheck, is_dark_mod
-
-# All Other Imports
+# Library Imports
 import re
 import pytz
 import shortuuid
 import sqlite3
 from datetime import datetime
 
-
-# config = configutils.Configuration.from_yaml_file("./persistent_data/config.yaml")
+# Sersi Config Imports
+import configutils
+from permutils import permcheck, is_dark_mod
 
 
 def get_discord_timestamp(time: datetime, *, relative: bool = False) -> str:
