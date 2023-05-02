@@ -1,7 +1,5 @@
 import asyncio
 from datetime import datetime, timezone
-import re
-
 import nextcord
 from nextcord.ext import commands
 
@@ -15,12 +13,12 @@ from baseutils import (
 )
 from caseutils import slur_history, slur_virgin, create_slur_case, fetch_offender_cases
 from configutils import Configuration
+from noteutils import get_note_by_user
 from permutils import cb_is_mod
 from slurdetector import (
     load_slurdetector,
     detect_slur,
 )
-from noteutils import get_note_by_user
 
 
 class ActionTakenButton(nextcord.ui.Button):
@@ -292,10 +290,6 @@ class Slur(commands.Cog):
             return
 
         elif len(detected_slurs) > 0:  # checks slur heat
-            if len(message.content) < 1024:
-                citation = message.content
-            else:
-                citation = "`MESSAGE TOO LONG`"
 
             alert = await self.bot.get_channel(self.config.channels.alert).send(
                 embed=SersiEmbed(
@@ -305,7 +299,7 @@ class Slur(commands.Cog):
                     fields={
                         "Channel:": message.channel.mention,
                         "User:": message.author.mention,
-                        "Context:": citation,
+                        "Context:": message.content if len(message.content) < 1024 else "`MESSAGE TOO LONG`",
                         "Slurs Found:": ", ".join(set(detected_slurs)),
                         "URL:": message.jump_url,
                         "Previous Slur Uses:": self._get_previous_cases(
@@ -322,9 +316,7 @@ class Slur(commands.Cog):
 
             await asyncio.sleep(10800)  # 3 hours
             updated_message = await alert.channel.fetch_message(alert.id)
-            if (
-                len(updated_message.embeds[0].fields) < 7
-            ):  # If there are less than 7 fields that means there is no field for response
+            if not updated_message.edited_at:
                 await alert.reply(
                     content=f"<@&{self.config.permission_roles.moderator}> This alert has not had a recorded response."
                 )
