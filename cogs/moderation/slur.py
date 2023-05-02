@@ -299,7 +299,9 @@ class Slur(commands.Cog):
                     fields={
                         "Channel:": message.channel.mention,
                         "User:": message.author.mention,
-                        "Context:": message.content if len(message.content) < 1024 else "`MESSAGE TOO LONG`",
+                        "Context:": message.content
+                        if len(message.content) < 1024
+                        else "`MESSAGE TOO LONG`",
                         "Slurs Found:": ", ".join(set(detected_slurs)),
                         "URL:": message.jump_url,
                         "Previous Slur Uses:": self._get_previous_cases(

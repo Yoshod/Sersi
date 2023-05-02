@@ -91,21 +91,21 @@ class Caps(commands.Cog):
             wait=True,
         )
 
-        channel = self.bot.get_channel(self.config.channels.logging)
-        logging_embed: nextcord.Embed = SersiEmbed(
-            title="Caps Lock Message replaced",
-            description="",
-            color=nextcord.Color.from_rgb(237, 91, 6),
-            fields={
-                "User:": message.author.mention,
-                "Channel:": message.channel.mention,
-                "Original Message:": message.content,
-                "Replacement Message:": msg_string.lower(),
-                "Link to Replacement Message:": f"[Jump!]({replacement_message.jump_url})",
-            },
-            footer="Sersi Caps Removal",
+        await self.bot.get_channel(self.config.channels.logging).send(
+            embed=SersiEmbed(
+                title="Caps Lock Message replaced",
+                description="",
+                color=nextcord.Color.from_rgb(237, 91, 6),
+                fields={
+                    "User:": message.author.mention,
+                    "Channel:": message.channel.mention,
+                    "Original Message:": message.content,
+                    "Replacement Message:": msg_string.lower(),
+                    "Link to Replacement Message:": f"{replacement_message.jump_url}",
+                },
+                footer="Sersi Caps Removal",
+            )
         )
-        await channel.send(embed=logging_embed)
 
 
 def setup(bot, **kwargs):
