@@ -1,6 +1,6 @@
 import nextcord
 import nextcord.ext.commands
-import configutils
+from utils import configutils
 
 config = configutils.Configuration.from_yaml_file("./persistent_data/config.yaml")
 

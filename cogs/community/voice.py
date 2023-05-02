@@ -3,9 +3,9 @@ import requests
 
 from nextcord.ext import commands
 
-from baseutils import ConfirmView, SersiEmbed
-from configutils import Configuration
-from permutils import permcheck, is_mod
+from utils.baseutils import ConfirmView, SersiEmbed
+from utils.configutils import Configuration
+from utils.permutils import permcheck, is_mod
 import discordTokens
 
 

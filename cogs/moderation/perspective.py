@@ -8,10 +8,10 @@ from nextcord.ext import commands
 from nextcord.ui import Button, View
 
 import discordTokens
-import logutils
-from baseutils import SersiEmbed
-from configutils import Configuration
-from permutils import cb_is_mod
+from utils import logutils
+from utils.baseutils import SersiEmbed
+from utils.configutils import Configuration
+from utils.permutils import cb_is_mod
 
 
 @dataclass

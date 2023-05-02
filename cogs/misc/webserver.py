@@ -3,7 +3,7 @@ import xmltodict
 from aiohttp import web
 from nextcord.ext import commands
 
-from configutils import Configuration
+from utils.configutils import Configuration
 
 app = web.Application()
 routes = web.RouteTableDef()

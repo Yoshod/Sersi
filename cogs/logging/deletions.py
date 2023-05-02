@@ -5,8 +5,8 @@ import nextcord
 from nextcord.ext import commands
 import chat_exporter
 
-from baseutils import SersiEmbed, get_discord_timestamp
-from configutils import Configuration
+from utils.baseutils import SersiEmbed, get_discord_timestamp
+from utils.configutils import Configuration
 
 
 class Deletions(commands.Cog):

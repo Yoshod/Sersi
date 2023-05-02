@@ -6,9 +6,9 @@ import pytz
 from nextcord.ext import commands
 from nextcord.ui import Button, View, Modal
 
-from baseutils import SersiEmbed
-from configutils import Configuration
-from permutils import is_dark_mod, permcheck, is_senior_mod, is_cet, is_slt, is_staff
+from utils.baseutils import SersiEmbed
+from utils.configutils import Configuration
+from utils.permutils import is_dark_mod, permcheck, is_senior_mod, is_cet, is_slt, is_staff
 
 
 class AdultAccessModal(Modal):

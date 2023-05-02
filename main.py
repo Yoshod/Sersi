@@ -9,10 +9,10 @@ import discordTokens
 
 from nextcord.ext import commands
 
-import configutils
-from baseutils import SersiEmbed
-from permutils import permcheck, is_sersi_contrib
-from cogutils import load_all_cogs
+from utils import configutils
+from utils.baseutils import SersiEmbed
+from utils.permutils import permcheck, is_sersi_contrib
+from utils.cogutils import load_all_cogs
 
 start_time = time.time()
 config = configutils.Configuration.from_yaml_file("./persistent_data/config.yaml")
@@ -309,9 +309,9 @@ print(f"System Version:\n{sys.version}")
 print(f"Nextcord Version:\n{nextcord.__version__}")
 
 bot.command_prefix = config.bot.prefix
-
+print("Attempting to load cogs...")
 asyncio.run(
     load_all_cogs(bot, config=config, data_folder=f"{root_folder}/persistent_data")
 )
-
+print("Loaded cogs; starting to run")
 bot.run(discordTokens.getToken())

@@ -1,6 +1,6 @@
 import nextcord
 from nextcord.ext import commands
-from configutils import Configuration
+from utils.configutils import Configuration
 
 
 class ErrorHandling(commands.Cog):

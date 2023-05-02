@@ -1,8 +1,8 @@
 import nextcord
 from nextcord.ext import commands
 
-from baseutils import SersiEmbed, PageView
-from caseutils import (
+from utils.baseutils import SersiEmbed, PageView
+from utils.caseutils import (
     get_case_by_id,
     fetch_cases_by_partial_id,
     create_slur_case_embed,
@@ -16,8 +16,8 @@ from caseutils import (
     delete_case,
     create_scrubbed_case_embed,
 )
-from configutils import Configuration
-from permutils import permcheck, is_mod, is_senior_mod, is_dark_mod
+from utils.configutils import Configuration
+from utils.permutils import permcheck, is_mod, is_senior_mod, is_dark_mod
 
 
 class Cases(commands.Cog):

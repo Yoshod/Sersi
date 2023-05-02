@@ -3,8 +3,8 @@ import nextcord
 import time
 import typing
 
-from configutils import Configuration
-from baseutils import SersiEmbed, get_page, create_unique_id
+from utils.configutils import Configuration
+from utils.baseutils import SersiEmbed, get_page, create_unique_id
 
 
 def create_case(config: Configuration, unique_id: str, case_type: str, timestamp: int):

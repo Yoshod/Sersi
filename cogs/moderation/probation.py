@@ -1,9 +1,9 @@
 import nextcord
 from nextcord.ext import commands
 
-from baseutils import ConfirmView, DualCustodyView, SersiEmbed
-from configutils import Configuration
-from permutils import permcheck, is_mod, is_full_mod, is_dark_mod
+from utils.baseutils import ConfirmView, DualCustodyView, SersiEmbed
+from utils.configutils import Configuration
+from utils.permutils import permcheck, is_mod, is_full_mod, is_dark_mod
 
 
 class Probation(commands.Cog):

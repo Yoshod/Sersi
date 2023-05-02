@@ -1,11 +1,8 @@
 import nextcord
 
-from ticketutils import ticket_check
+from utils.ticketutils import ticket_check
 from nextcord.ext import commands
-from nextcord.ui import Button, View, Select
-from permutils import permcheck, is_dark_mod, is_senior_mod, is_mod
-from configutils import Configuration
-from baseutils import SersiEmbed
+from utils.configutils import Configuration
 
 
 class TicketingSystem(commands.Cog):

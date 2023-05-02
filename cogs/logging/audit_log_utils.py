@@ -1,8 +1,7 @@
 import nextcord
 from nextcord.ext import commands
 
-from baseutils import SersiEmbed
-from configutils import Configuration
+from utils.configutils import Configuration
 
 
 class AuditLogs(commands.Cog):

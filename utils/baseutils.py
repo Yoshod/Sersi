@@ -11,8 +11,8 @@ import sqlite3
 from datetime import datetime
 
 # Sersi Config Imports
-import configutils
-from permutils import permcheck, is_dark_mod
+import utils.configutils as configutils
+from utils.permutils import permcheck, is_dark_mod
 
 
 def get_discord_timestamp(time: datetime, *, relative: bool = False) -> str:
@@ -385,10 +385,8 @@ def create_unique_id(config: configutils.Configuration):
         )
         cases = cursor.fetchone()
         if not cases:
-            uuid_unique = True
-
-    cursor.close()
-    return uuid
+            cursor.close()
+            return uuid
 
 
 def convert_mention_to_id(mention: str) -> int:

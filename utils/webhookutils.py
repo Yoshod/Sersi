@@ -1,7 +1,7 @@
 import nextcord
 
 
-async def send_webhook_message(*, channel: nextcord.abc.GuildChannel, **kwargs):
+async def send_webhook_message(*, channel: nextcord.TextChannel, **kwargs):
     channel_webhooks = await channel.webhooks()
     msg_sent = False
     if "allowed_mentions" in kwargs:

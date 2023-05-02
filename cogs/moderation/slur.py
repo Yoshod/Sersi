@@ -3,18 +3,18 @@ from datetime import datetime, timezone
 import nextcord
 from nextcord.ext import commands
 
-import logutils
-from baseutils import (
+from utils import logutils
+from utils.baseutils import (
     sanitize_mention,
     SersiEmbed,
     PageView,
     format_entry,
     convert_mention_to_id,
 )
-from caseutils import slur_history, slur_virgin, create_slur_case, fetch_offender_cases
-from configutils import Configuration
-from noteutils import get_note_by_user
-from permutils import cb_is_mod
+from utils.caseutils import slur_history, slur_virgin, create_slur_case, fetch_offender_cases
+from utils.configutils import Configuration
+from utils.noteutils import get_note_by_user
+from utils.permutils import cb_is_mod
 from slurdetector import (
     load_slurdetector,
     detect_slur,
@@ -26,7 +26,7 @@ class ActionTakenButton(nextcord.ui.Button):
         super().__init__(label="Action Taken")
         self.config = config
 
-    def callback(self, interaction: nextcord.Interaction) -> None:
+    async def callback(self, interaction: nextcord.Interaction) -> None:
         new_embed = interaction.message.embeds[0]
         new_embed.add_field(
             name="Action Taken By", value=interaction.user.mention, inline=False
@@ -71,7 +71,7 @@ class AcceptableUseButton(nextcord.ui.Button):
         super().__init__(label="Acceptable Use")
         self.config = config
 
-    def callback(self, interaction: nextcord.Interaction) -> None:
+    async def callback(self, interaction: nextcord.Interaction) -> None:
         new_embed = interaction.message.embeds[0]
         new_embed.add_field(
             name="Usage Deemed Acceptable By",
@@ -103,7 +103,7 @@ class FalsePositiveButton(nextcord.ui.Button):
         super().__init__(label="False Positive")
         self.config = config
 
-    def callback(self, interaction: nextcord.Interaction) -> None:
+    async def callback(self, interaction: nextcord.Interaction) -> None:
         new_embed = interaction.message.embeds[0]
         new_embed.add_field(
             name="Deemed As False Positive By:",
@@ -149,7 +149,7 @@ class ViewCasesButton(nextcord.ui.Button):
         super().__init__(label="View Slur Cases", row=1)
         self.config = config
 
-    def callback(self, interaction: nextcord.Interaction) -> None:
+    async def callback(self, interaction: nextcord.Interaction) -> None:
         await interaction.response.defer(ephemeral=True)
 
         original_embed = interaction.message.embeds[0]
@@ -192,7 +192,7 @@ class ViewNotesButton(nextcord.ui.Button):
         super().__init__(label="View Notes", row=1)
         self.config = config
 
-    def callback(self, interaction: nextcord.Interaction) -> None:
+    async def callback(self, interaction: nextcord.Interaction) -> None:
         await interaction.response.defer(ephemeral=True)
 
         original_embed = interaction.message.embeds[0]

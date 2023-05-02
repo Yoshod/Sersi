@@ -1,8 +1,8 @@
 from itertools import product  # needed for slur obscurity permutations
 import unidecode  # needed for cleaning accents and diacritic marks
 
-from baseutils import get_page
-import configutils
+from utils.baseutils import get_page
+from utils import configutils
 
 slurs = []
 goodword = []

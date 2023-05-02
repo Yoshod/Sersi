@@ -1,7 +1,7 @@
 import nextcord
 from nextcord.ext import commands
 
-from baseutils import SersiEmbed
+from utils.baseutils import SersiEmbed
 
 
 class Misc(commands.Cog):

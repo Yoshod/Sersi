@@ -2,8 +2,8 @@ import nextcord
 import nextcord.ui
 from nextcord.ext import commands
 
-from baseutils import SersiEmbed
-from configutils import Configuration
+from utils.baseutils import SersiEmbed
+from utils.configutils import Configuration
 
 
 class DropdownMenu(nextcord.ui.Select):

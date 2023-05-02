@@ -1,7 +1,7 @@
 import nextcord
 from nextcord.ext import commands
-from configutils import Configuration
-from baseutils import SersiEmbed
+from utils.configutils import Configuration
+from utils.baseutils import SersiEmbed
 
 
 class MemberRoles(commands.Cog):

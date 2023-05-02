@@ -5,11 +5,11 @@ from nextcord.ext import commands
 from nextcord.ui import Button, View
 from datetime import datetime, timezone
 
-import logutils
-from baseutils import modmention_check, SersiEmbed, convert_mention_to_id
-from permutils import cb_is_mod
-from caseutils import create_bad_faith_ping_case
-from configutils import Configuration
+from utils import logutils
+from utils.baseutils import modmention_check, SersiEmbed, convert_mention_to_id
+from utils.permutils import cb_is_mod
+from utils.caseutils import create_bad_faith_ping_case
+from utils.configutils import Configuration
 
 # from caseutils import case_history, bad_faith_ping_case
 

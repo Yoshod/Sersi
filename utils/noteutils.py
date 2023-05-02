@@ -1,8 +1,8 @@
 import sqlite3
 import nextcord
 
-from configutils import Configuration
-from baseutils import SersiEmbed, get_page, create_unique_id
+from utils.configutils import Configuration
+from utils.baseutils import SersiEmbed, get_page, create_unique_id
 
 
 def create_note(

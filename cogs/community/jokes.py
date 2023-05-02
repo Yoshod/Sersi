@@ -5,10 +5,10 @@ from dataclasses import asdict
 import nextcord
 from nextcord.ext import commands
 
-from baseutils import SersiEmbed
-from configutils import Configuration
-from permutils import is_mod
-from webhookutils import send_webhook_message
+from utils.baseutils import SersiEmbed
+from utils.configutils import Configuration
+from utils.permutils import is_mod
+from utils.webhookutils import send_webhook_message
 
 
 def generate_uwu(input_text: str) -> str:
