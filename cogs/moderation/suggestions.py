@@ -27,7 +27,7 @@ class Suggestions(commands.Cog):
             max_length=1240,
         ),
         image_suggestion: nextcord.Attachment = nextcord.SlashOption(
-            name="suggestion image",
+            name="suggestion_image",
             description="This is optional. Attach any images as relevant to the suggestion.",
             required=False,
         ),
