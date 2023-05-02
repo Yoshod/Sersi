@@ -2,8 +2,8 @@ import nextcord
 import time
 from nextcord.ext import commands
 
-from utils.baseutils import SersiEmbed, PageView
-from utils.noteutils import (
+from utils.base import SersiEmbed, PageView
+from utils.notes import (
     create_note,
     get_note_by_id,
     fetch_notes_by_partial_id,
@@ -13,8 +13,8 @@ from utils.noteutils import (
     delete_note,
     wipe_user_notes,
 )
-from utils.configutils import Configuration
-from utils.permutils import permcheck, is_mod, is_senior_mod, is_dark_mod
+from utils.config import Configuration
+from utils.perms import permcheck, is_mod, is_senior_mod, is_dark_mod
 
 
 def format_entry(entry):

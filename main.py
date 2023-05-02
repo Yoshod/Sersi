@@ -9,13 +9,13 @@ import discordTokens
 
 from nextcord.ext import commands
 
-from utils import configutils
-from utils.baseutils import SersiEmbed
-from utils.permutils import permcheck, is_sersi_contrib
-from utils.cogutils import load_all_cogs
+import utils
+from utils.base import SersiEmbed
+from utils.perms import permcheck, is_sersi_contrib
+from utils.cogs import load_all_cogs
 
 start_time = time.time()
-config = configutils.Configuration.from_yaml_file("./persistent_data/config.yaml")
+config = utils.config.Configuration.from_yaml_file("./persistent_data/config.yaml")
 bot = commands.Bot(
     command_prefix=config.bot.prefix,
     activity=nextcord.Game(name=config.bot.status),

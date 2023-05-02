@@ -1,7 +1,7 @@
 from Crypto.Cipher import AES
-from utils import configutils
+from utils import config
 
-config = configutils.Configuration.from_yaml_file("../persistent_data/config.yaml")
+config = config.Configuration.from_yaml_file("../persistent_data/config.yaml")
 
 
 def encrypt_data(unencrypted_data):

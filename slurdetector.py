@@ -1,14 +1,14 @@
 from itertools import product  # needed for slur obscurity permutations
 import unidecode  # needed for cleaning accents and diacritic marks
 
-from utils.baseutils import get_page
-from utils import configutils
+import utils
+from utils.base import get_page
 
 slurs = []
 goodword = []
 slurs_list = []
 
-config = configutils.Configuration.from_yaml_file("./persistent_data/config.yaml")
+config = utils.config.Configuration.from_yaml_file("./persistent_data/config.yaml")
 
 
 def leet(word):

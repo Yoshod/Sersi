@@ -1,8 +1,8 @@
 import nextcord
 from nextcord.ext import commands
 
-from utils.baseutils import SersiEmbed, get_discord_timestamp
-from utils.configutils import Configuration
+from utils.base import SersiEmbed, get_discord_timestamp
+from utils.config import Configuration
 
 
 def decypher_permission(permission: nextcord.Permissions) -> list[str]:

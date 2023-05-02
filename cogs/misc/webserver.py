@@ -3,7 +3,7 @@ import xmltodict
 from aiohttp import web
 from nextcord.ext import commands
 
-from utils.configutils import Configuration
+from utils.config import Configuration
 
 app = web.Application()
 routes = web.RouteTableDef()
@@ -83,7 +83,7 @@ class WebServer(commands.Cog):
             )
 
             # create forum post
-            forum = self.bot.get_channel(self.config.channels.video_discussion)
+            forum: nextcord.ForumChannel = self.bot.get_channel(self.config.channels.video_discussion)
             messagestr = f"New video by {channel_name}: {video_url}"
             await forum.create_thread(
                 name=video_title, content=messagestr, reason="Creating Video Thread"

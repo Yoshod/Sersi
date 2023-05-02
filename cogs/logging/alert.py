@@ -3,8 +3,8 @@ import pickle
 
 import nextcord
 from nextcord.ext import commands
-from utils.configutils import Configuration
-from utils.permutils import permcheck, is_senior_mod
+from utils.config import Configuration
+from utils.perms import permcheck, is_senior_mod
 
 
 class Alert(commands.Cog):

@@ -4,7 +4,7 @@ import pickle
 
 import nextcord
 
-from utils.configutils import Configuration
+from utils.config import Configuration
 
 
 class AlertType(enum.Enum):

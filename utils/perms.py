@@ -1,8 +1,8 @@
 import nextcord
 import nextcord.ext.commands
-from utils import configutils
+from utils import config
 
-config = configutils.Configuration.from_yaml_file("./persistent_data/config.yaml")
+config = config.Configuration.from_yaml_file("./persistent_data/config.yaml")
 
 
 async def permcheck(hook, function):

@@ -2,10 +2,10 @@ import nextcord
 from nextcord.ext import commands
 import re
 
-from utils.baseutils import SersiEmbed
-from utils.configutils import Configuration
-from utils.permutils import permcheck, is_mod, is_staff
-from utils.webhookutils import send_webhook_message
+from utils.base import SersiEmbed
+from utils.config import Configuration
+from utils.perms import permcheck, is_mod, is_staff
+from utils.webhooks import send_webhook_message
 
 
 class Caps(commands.Cog):

@@ -2,9 +2,9 @@ import nextcord
 from nextcord.ext import commands
 import io
 from chat_exporter import export
-from utils.configutils import Configuration
-from utils.permutils import permcheck, is_dark_mod
-from utils.baseutils import SersiEmbed
+from utils.config import Configuration
+from utils.perms import permcheck, is_dark_mod
+from utils.base import SersiEmbed
 
 
 class Archive(commands.Cog):

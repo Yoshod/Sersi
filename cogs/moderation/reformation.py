@@ -6,10 +6,10 @@ from nextcord.ui import Button, View
 from nextcord.ext.commands.errors import MemberNotFound
 from chat_exporter import export
 
-from utils.baseutils import ConfirmView, ban
-from utils.configutils import Configuration
-from utils.permutils import permcheck, is_mod, cb_is_mod, is_custom_role
-from utils.caseutils import case_history, reform_case
+from utils.base import ConfirmView, ban
+from utils.config import Configuration
+from utils.perms import permcheck, is_mod, cb_is_mod, is_custom_role
+from utils.cases import case_history, reform_case
 
 
 class Reformation(commands.Cog):

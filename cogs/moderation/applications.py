@@ -1,9 +1,9 @@
 import nextcord
 from nextcord.ext import commands
 from nextcord.ui import Button, View, Modal
-from utils.configutils import Configuration
-from utils.permutils import is_dark_mod, permcheck, is_senior_mod, is_cet, is_mod
-from utils.baseutils import SersiEmbed
+from utils.config import Configuration
+from utils.perms import is_dark_mod, permcheck, is_senior_mod, is_cet, is_mod
+from utils.base import SersiEmbed
 from datetime import datetime
 import pytz
 

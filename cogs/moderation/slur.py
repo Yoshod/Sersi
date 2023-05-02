@@ -3,18 +3,19 @@ from datetime import datetime, timezone
 import nextcord
 from nextcord.ext import commands
 
-from utils import logutils
-from utils.baseutils import (
+import utils
+from utils import logs
+from utils.base import (
     sanitize_mention,
     SersiEmbed,
     PageView,
     format_entry,
     convert_mention_to_id,
 )
-from utils.caseutils import slur_history, slur_virgin, create_slur_case, fetch_offender_cases
-from utils.configutils import Configuration
-from utils.noteutils import get_note_by_user
-from utils.permutils import cb_is_mod
+from utils.cases import slur_history, slur_virgin, create_slur_case, fetch_offender_cases
+from utils.config import Configuration
+from utils.notes import get_note_by_user
+from utils.perms import cb_is_mod
 from slurdetector import (
     load_slurdetector,
     detect_slur,
@@ -63,7 +64,7 @@ class ActionTakenButton(nextcord.ui.Button):
             interaction.user,
         )
 
-        await logutils.update_response(self.config, interaction.message, timestamp)
+        await utils.logs.update_response(self.config, interaction.message, timestamp)
 
 
 class AcceptableUseButton(nextcord.ui.Button):
@@ -93,7 +94,7 @@ class AcceptableUseButton(nextcord.ui.Button):
             )
         )
 
-        await logutils.update_response(
+        await utils.logs.update_response(
             self.config, interaction.message, datetime.now(timezone.utc)
         )
 
@@ -139,7 +140,7 @@ class FalsePositiveButton(nextcord.ui.Button):
             )
         )
 
-        await logutils.update_response(
+        await utils.logs.update_response(
             self.config, interaction.message, datetime.now(timezone.utc)
         )
 
@@ -312,8 +313,8 @@ class Slur(commands.Cog):
                 view=SlurAlertButtons(self.config, cb_is_mod),
             )
 
-            await logutils.create_alert_log(
-                self.config, alert, logutils.AlertType.Slur, alert.created_at
+            await utils.logs.create_alert_log(
+                self.config, alert, utils.logs.AlertType.Slur, alert.created_at
             )
 
             await asyncio.sleep(10800)  # 3 hours
@@ -344,8 +345,8 @@ class Slur(commands.Cog):
                 view=SlurAlertButtons(self.config, cb_is_mod),
             )
 
-            await logutils.create_alert_log(
-                self.config, alert, logutils.AlertType.Slur, alert.created_at
+            await utils.logs.create_alert_log(
+                self.config, alert, utils.logs.AlertType.Slur, alert.created_at
             )
 
             await asyncio.sleep(10800)  # 3 hours
@@ -376,8 +377,8 @@ class Slur(commands.Cog):
                 view=SlurAlertButtons(self.config, cb_is_mod),
             )
 
-            await logutils.create_alert_log(
-                self.config, alert, logutils.AlertType.Slur, alert.created_at
+            await utils.logs.create_alert_log(
+                self.config, alert, utils.logs.AlertType.Slur, alert.created_at
             )
 
             await asyncio.sleep(10800)  # 3 hours
@@ -408,8 +409,8 @@ class Slur(commands.Cog):
                 view=SlurAlertButtons(self.config, cb_is_mod),
             )
 
-            await logutils.create_alert_log(
-                self.config, alert, logutils.AlertType.Slur, alert.created_at
+            await utils.logs.create_alert_log(
+                self.config, alert, utils.logs.AlertType.Slur, alert.created_at
             )
 
             await asyncio.sleep(10800)  # 3 hours

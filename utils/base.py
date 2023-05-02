@@ -11,8 +11,8 @@ import sqlite3
 from datetime import datetime
 
 # Sersi Config Imports
-import utils.configutils as configutils
-from utils.permutils import permcheck, is_dark_mod
+import utils.config
+from utils.perms import permcheck, is_dark_mod
 
 
 def get_discord_timestamp(time: datetime, *, relative: bool = False) -> str:
@@ -52,7 +52,7 @@ def sanitize_mention(string: str) -> str:
 
 
 async def ban(
-    config: configutils.Configuration, member: nextcord.Member, kind: str, reason: str
+    config: utils.configutils.Configuration, member: nextcord.Member, kind: str, reason: str
 ):
     goodbye_embed = nextcord.Embed(
         title=f"You have been banned from {member.guild.name}",
@@ -83,7 +83,7 @@ async def ban(
     await member.ban(reason=reason, delete_message_days=0)
 
 
-def modmention_check(config: configutils.Configuration, message: str) -> bool:
+def modmention_check(config: utils.configutils.Configuration, message: str) -> bool:
     modmentions: list[str] = [
         f"<@&{config.permission_roles.trial_moderator}>",
         f"<@&{config.permission_roles.moderator}>",
@@ -166,7 +166,7 @@ class ConfirmView(nextcord.ui.View):
         def wrapper(func: callable) -> callable:
             async def confirm(
                 bot: commands.Bot,
-                config: configutils.Configuration,
+                config: utils.configutils.Configuration,
                 interaction: nextcord.Interaction,
             ):
                 embed_fields = embed_args.copy()
@@ -222,7 +222,7 @@ class DualCustodyView(View):
         def wrapper(func: callable) -> callable:
             async def dual_custody(
                 bot: commands.Bot,
-                config: configutils.Configuration,
+                config: utils.configutils.Configuration,
                 interaction: nextcord.Interaction,
             ) -> nextcord.Embed:
                 # if command used by admin, skip dual custody query
@@ -271,7 +271,7 @@ class DualCustodyView(View):
 class PageView(View):
     def __init__(
         self,
-        config: configutils.Configuration,
+        config: utils.configutils.Configuration,
         base_embed: nextcord.Embed,
         fetch_function: callable,
         author: nextcord.Member,
@@ -369,18 +369,20 @@ class PageView(View):
         )
 
 
-def create_unique_id(config: configutils.Configuration):
+def create_unique_id(config: utils.configutils.Configuration):
     conn = sqlite3.connect(config.datafiles.sersi_db)
     cursor = conn.cursor()
     uuid_unique = False
     while not uuid_unique:
         uuid = str(shortuuid.uuid())
         cursor.execute(
-            """SELECT id FROM cases WHERE id=:id
+            """
+            SELECT id FROM cases WHERE id=:id
             UNION
             SELECT id FROM notes WHERE id=:id
             UNION
-            SELECT id FROM tickets WHERE id=:id""",
+            SELECT id FROM tickets WHERE id=:id
+            """,
             {"id": uuid},
         )
         cases = cursor.fetchone()

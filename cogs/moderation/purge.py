@@ -4,8 +4,8 @@ import io
 from nextcord.ext import commands
 from datetime import timedelta
 
-from utils.configutils import Configuration
-from utils.permutils import permcheck, is_mod, is_senior_mod
+from utils.config import Configuration
+from utils.perms import permcheck, is_mod, is_senior_mod
 from chat_exporter import raw_export
 
 

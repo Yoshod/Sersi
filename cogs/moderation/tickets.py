@@ -1,8 +1,8 @@
 import nextcord
 
-from utils.ticketutils import ticket_check
+from utils.tickets import ticket_check
 from nextcord.ext import commands
-from utils.configutils import Configuration
+from utils.config import Configuration
 
 
 class TicketingSystem(commands.Cog):
@@ -22,7 +22,7 @@ class TicketingSystem(commands.Cog):
     async def create(
         self,
         interaction: nextcord.Interaction,
-        ticket_type: nextcord.Member = nextcord.SlashOption(
+        ticket_type: str = nextcord.SlashOption(
             name="ticket_type",
             description="The type of ticket being created",
             choices={

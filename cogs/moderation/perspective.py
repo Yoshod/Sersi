@@ -8,10 +8,10 @@ from nextcord.ext import commands
 from nextcord.ui import Button, View
 
 import discordTokens
-from utils import logutils
-from utils.baseutils import SersiEmbed
-from utils.configutils import Configuration
-from utils.permutils import cb_is_mod
+from utils import logs
+from utils.base import SersiEmbed
+from utils.config import Configuration
+from utils.perms import cb_is_mod
 
 
 @dataclass
@@ -151,7 +151,7 @@ class Perspective(commands.Cog):
         sersi_logs = self.bot.get_channel(self.config.channels.logging)
         await sersi_logs.send(embed=logging_embed)
 
-        await logutils.update_response(
+        await logs.update_response(
             self.config, interaction.message, datetime.now(timezone.utc)
         )
 
@@ -179,7 +179,7 @@ class Perspective(commands.Cog):
         sersi_logs = self.bot.get_channel(self.config.channels.logging)
         await sersi_logs.send(embed=logging_embed)
 
-        await logutils.update_response(
+        await logs.update_response(
             self.config, interaction.message, datetime.now(timezone.utc)
         )
 
@@ -207,7 +207,7 @@ class Perspective(commands.Cog):
         sersi_logs = self.bot.get_channel(self.config.channels.logging)
         await sersi_logs.send(embed=logging_embed)
 
-        await logutils.update_response(
+        await logs.update_response(
             self.config, interaction.message, datetime.now(timezone.utc)
         )
 
@@ -286,8 +286,8 @@ class Perspective(commands.Cog):
 
         alert = await information_centre.send(embed=toxic_embed, view=button_view)
 
-        await logutils.create_alert_log(
-            self.config, alert, logutils.AlertType.Toxic, alert.created_at
+        await logs.create_alert_log(
+            self.config, alert, logs.AlertType.Toxic, alert.created_at
         )
 
         await asyncio.sleep(10800)  # 3 hours

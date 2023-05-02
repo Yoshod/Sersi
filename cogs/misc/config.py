@@ -2,10 +2,10 @@ import nextcord
 import yaml
 
 from nextcord.ext import commands
-from utils.baseutils import sanitize_mention, SersiEmbed
-from utils.configutils import Configuration
-from utils.permutils import permcheck, is_sersi_contrib, is_staff
-from utils.cogutils import reload_all_cogs
+from utils.base import sanitize_mention, SersiEmbed
+from utils.config import Configuration
+from utils.perms import permcheck, is_sersi_contrib, is_staff
+from utils.cogs import reload_all_cogs
 
 
 class Config(commands.Cog):

@@ -2,9 +2,9 @@ import nextcord
 import shortuuid
 from nextcord.ext import commands
 from nextcord.ui import Button, View
-from utils.permutils import cb_is_cet
-from utils.configutils import Configuration
-from utils.baseutils import SersiEmbed
+from utils.perms import cb_is_cet
+from utils.config import Configuration
+from utils.base import SersiEmbed
 
 
 class Suggestions(commands.Cog):

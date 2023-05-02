@@ -1,7 +1,7 @@
 import nextcord
 import sqlite3
-from utils.baseutils import create_unique_id
-from utils.configutils import Configuration
+from utils.base import create_unique_id
+from utils.config import Configuration
 
 
 def ticket_check(
@@ -11,7 +11,12 @@ def ticket_check(
     cursor = conn.cursor()
 
     cursor.execute(
-        "SELECT * FROM tickets WHERE ticket_creator_id = ? AND ticket_escalation_initial = ? AND ticket_active = 1",
+        """
+        SELECT * FROM tickets 
+        WHERE ticket_creator_id = ? 
+         AND ticket_escalation_initial = ? 
+         AND ticket_active = 1
+        """,
         (proposed_ticketer.id, ticket_type),
     )
 

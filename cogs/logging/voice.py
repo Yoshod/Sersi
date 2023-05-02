@@ -1,8 +1,8 @@
 import nextcord
 from nextcord.ext import commands
 
-from utils.baseutils import SersiEmbed
-from utils.configutils import Configuration
+from utils.base import SersiEmbed
+from utils.config import Configuration
 
 
 class VoiceLogs(commands.Cog):

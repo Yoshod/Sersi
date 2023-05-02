@@ -1,7 +1,7 @@
 import nextcord
 from nextcord.ext import commands
 
-from utils.configutils import Configuration
+from utils.config import Configuration
 
 
 class AuditLogs(commands.Cog):

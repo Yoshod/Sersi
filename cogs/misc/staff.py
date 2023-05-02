@@ -2,9 +2,9 @@ import nextcord
 from nextcord import SlashOption
 from nextcord.ext import commands
 
-from utils.baseutils import ConfirmView, DualCustodyView, SersiEmbed
-from utils.configutils import Configuration
-from utils.permutils import permcheck, is_staff, is_senior_mod, is_slt, is_dark_mod
+from utils.base import ConfirmView, DualCustodyView, SersiEmbed
+from utils.config import Configuration
+from utils.perms import permcheck, is_staff, is_senior_mod, is_slt, is_dark_mod
 
 
 class Staff(commands.Cog):

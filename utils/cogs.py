@@ -2,7 +2,7 @@ import os
 import traceback
 
 from nextcord.ext import commands
-from utils.configutils import Configuration
+from utils.config import Configuration
 
 
 async def load_all_cogs(bot: commands.Bot, *, config: Configuration, data_folder: str):

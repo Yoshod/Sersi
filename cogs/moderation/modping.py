@@ -5,11 +5,12 @@ from nextcord.ext import commands
 from nextcord.ui import Button, View
 from datetime import datetime, timezone
 
-from utils import logutils
-from utils.baseutils import modmention_check, SersiEmbed, convert_mention_to_id
-from utils.permutils import cb_is_mod
-from utils.caseutils import create_bad_faith_ping_case
-from utils.configutils import Configuration
+import utils
+from utils import logs
+from utils.base import modmention_check, SersiEmbed, convert_mention_to_id
+from utils.perms import cb_is_mod
+from utils.cases import create_bad_faith_ping_case
+from utils.config import Configuration
 
 # from caseutils import case_history, bad_faith_ping_case
 
@@ -41,7 +42,7 @@ class ModPing(commands.Cog):
         channel = self.bot.get_channel(self.config.channels.logging)
         await channel.send(embed=logging_embed)
 
-        await logutils.update_response(
+        await logs.update_response(
             self.config, interaction.message, datetime.now(timezone.utc)
         )
 
@@ -67,7 +68,7 @@ class ModPing(commands.Cog):
         channel = self.bot.get_channel(self.config.channels.logging)
         await channel.send(embed=logging_embed)
 
-        await logutils.update_response(
+        await logs.update_response(
             self.config, interaction.message, datetime.now(timezone.utc)
         )
 
@@ -103,7 +104,7 @@ class ModPing(commands.Cog):
             self.config, interaction.message.jump_url, offender, interaction.user
         )
 
-        await logutils.update_response(
+        await logs.update_response(
             self.config, interaction.message, datetime.now(timezone.utc)
         )
 
@@ -170,8 +171,8 @@ class ModPing(commands.Cog):
 
             alert = await channel.send(embed=alert_embed, view=button_view)
 
-            await logutils.create_alert_log(
-                self.config, alert, logutils.AlertType.Ping, alert.created_at
+            await logs.create_alert_log(
+                self.config, alert, logs.AlertType.Ping, alert.created_at
             )
 
             await asyncio.sleep(10800)  # 3 hours

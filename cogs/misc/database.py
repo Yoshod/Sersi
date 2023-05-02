@@ -2,8 +2,8 @@ import nextcord
 import sqlite3
 import pickle
 from nextcord.ext import commands
-from utils.configutils import Configuration
-from utils.permutils import is_dark_mod, permcheck
+from utils.config import Configuration
+from utils.perms import is_dark_mod, permcheck
 
 
 class Database(commands.Cog):
