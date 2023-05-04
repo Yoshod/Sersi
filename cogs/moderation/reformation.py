@@ -581,7 +581,7 @@ class Reformation(commands.Cog):
             keys = reformation_list.keys()
             if user.id in keys:
                 case_embed = nextcord.Embed(
-                    title=(f"Reformation Case: {reformation_list[user.id][1]}"),
+                    title=f"Reformation Case: {reformation_list[user.id][1]}",
                     color=nextcord.Color.from_rgb(237, 91, 6),
                 )
                 moderator = ctx.guild.get_member(reformation_list[user.id][2])

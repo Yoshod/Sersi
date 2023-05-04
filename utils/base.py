@@ -52,7 +52,7 @@ def sanitize_mention(string: str) -> str:
 
 
 async def ban(
-    config: utils.configutils.Configuration,
+    config: utils.config.Configuration,
     member: nextcord.Member,
     kind: str,
     reason: str,
@@ -141,12 +141,14 @@ class ConfirmView(nextcord.ui.View):
 
     async def cb_cancel(self, interaction: nextcord.Interaction):
         print("confirm view cancel")
-        await interaction.message.edit("Action canceled!", embed=None, view=None)
+        await interaction.message.edit(
+            content="Action canceled!", embed=None, view=None
+        )
 
     async def on_timeout(self):
         self.message = await self.message.channel.fetch_message(self.message.id)
         if self.message.components != []:
-            await self.message.edit("Action timed out!", embed=None, view=None)
+            await self.message.edit(content="Action timed out!", embed=None, view=None)
 
     async def interaction_check(self, interaction: nextcord.Interaction):
         print("confirm view interaction check")

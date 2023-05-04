@@ -1,5 +1,3 @@
-import re
-
 import nextcord
 import nextcord.ui
 from nextcord.ext import commands
@@ -115,7 +113,7 @@ class Choose(commands.Cog):
             embed=SersiEmbed(
                 title=query,
                 footer=f"Poll by {interaction.user.display_name}",
-                fields=fields
+                fields=fields,
             ),
             view=dropdown_menu,
         )
