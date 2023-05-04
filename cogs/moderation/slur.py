@@ -12,7 +12,12 @@ from utils.base import (
     format_entry,
     convert_mention_to_id,
 )
-from utils.cases import slur_history, slur_virgin, create_slur_case, fetch_offender_cases
+from utils.cases import (
+    slur_history,
+    slur_virgin,
+    create_slur_case,
+    fetch_offender_cases,
+)
 from utils.config import Configuration
 from utils.notes import get_note_by_user
 from utils.perms import cb_is_mod

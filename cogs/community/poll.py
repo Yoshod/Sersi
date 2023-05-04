@@ -158,13 +158,18 @@ class Poll(commands.Cog):
 
         counter: int = 0
         total_votes: int = 0
+        top_votes: int = 0
         results: dict[str:int] = {}
         for option in options:
             reaction: nextcord.Reaction = message.reactions[counter]
+            votes_received: int = reaction.count - 1
 
             # one, two, three...
-            results[option] = reaction.count - 1
-            total_votes += reaction.count - 1
+            results[option] = votes_received
+            total_votes += votes_received
+
+            if top_votes < votes_received:
+                top_votes = votes_received
 
             counter += 1
 
@@ -185,7 +190,11 @@ class Poll(commands.Cog):
         for result in results:
             percentage: float = results[result] / total_votes
             bar_filled: int = round(percentage * eval_bar_width)
-            bar = f"{self.filled*bar_filled}{self.empty*(eval_bar_width-bar_filled)} {percentage*100}% ({results[result]} votes)"
+
+            if results[result] == top_votes:
+                bar = f"**{self.filled*bar_filled}{self.empty*(eval_bar_width-bar_filled)} {round(percentage*100, 2)}% ({results[result]} votes)**"
+            else:
+                bar = f"{self.filled*bar_filled}{self.empty*(eval_bar_width-bar_filled)} {round(percentage*100, 2)}% ({results[result]} votes)"
 
             result_embed.add_field(name=result, value=bar, inline=False)
 

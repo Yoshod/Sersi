@@ -1,3 +1,5 @@
+import re
+
 import nextcord
 import nextcord.ui
 from nextcord.ext import commands
@@ -7,29 +9,50 @@ from utils.config import Configuration
 
 
 class DropdownMenu(nextcord.ui.Select):
-    def __init__(self, choices: list[nextcord.SelectOption]):
-        super().__init__(placeholder="Pick One", options=choices)
+    def __init__(self, choices: list[str], max_values: int = 1):
+        if max_values == 1:
+            super().__init__(
+                placeholder="Pick One",
+                options=[nextcord.SelectOption(label=option) for option in choices],
+            )
+        else:
+            super().__init__(
+                placeholder="Pick Multiple",
+                options=[nextcord.SelectOption(label=option) for option in choices],
+            )
+        self.state: dict[int : list[str]] = {}
+        self.choices = choices
+        self.max_values = max_values
 
     async def callback(self, interaction: nextcord.Interaction) -> None:
-        await interaction.send(f"{self.values}")
+
+        self.state[interaction.user.id] = self.values
+
+        result_embed: nextcord.Embed = interaction.message.embeds[0]
+        while result_embed.fields:
+            result_embed.remove_field(0)
+
+        all_votes: list[str] = []
+        for user_id in self.state:
+            all_votes.extend(self.state[user_id])
+
+        eval_bar_width: int = 20
+        for option in self.choices:
+
+            percentage: float = all_votes.count(option) / len(all_votes)
+            bar_filled: int = round(percentage * eval_bar_width)
+
+            bar = f"{'█'*bar_filled}{'░'*(eval_bar_width-bar_filled)} {round(percentage*100, 2)}% ({all_votes.count(option)} votes)"
+
+            result_embed.add_field(name=option, value=bar, inline=False)
+
+        await interaction.message.edit(embed=result_embed)
 
 
 class Choose(commands.Cog):
     def __init__(self, bot: commands.Bot, config: Configuration):
         self.bot = bot
         self.config = config
-        self.emotes: list[str] = [
-            "1️⃣",
-            "2️⃣",
-            "3️⃣",
-            "4️⃣",
-            "5️⃣",
-            "6️⃣",
-            "7️⃣",
-            "8️⃣",
-            "9️⃣",
-            "🔟",
-        ]
         self.filled: str = "█"
         self.empty: str = "░"
 
@@ -44,6 +67,9 @@ class Choose(commands.Cog):
         self,
         interaction: nextcord.Interaction,
         query: str = nextcord.SlashOption(description="The question to ask"),
+        multiple_choice: str = nextcord.SlashOption(
+            name="type", choices={"Multiple Choice": "multi", "Single Choice": ""}
+        ),
         option1: str = nextcord.SlashOption(),
         option2: str = nextcord.SlashOption(),
         option3: str = nextcord.SlashOption(required=False),
@@ -58,7 +84,7 @@ class Choose(commands.Cog):
 
         await interaction.response.defer()
 
-        primitive_options: list[str | None] = [
+        options: list[str] = [
             option1,
             option2,
             option3,
@@ -70,115 +96,29 @@ class Choose(commands.Cog):
             option9,
             option10,
         ]
-        while None in primitive_options:
-            primitive_options.remove(None)
+        while None in options:
+            options.remove(None)
 
-        options: list[nextcord.SelectOption] = []
-        for option in primitive_options:
-            options.append(nextcord.SelectOption(label=option))
-
-        selection = nextcord.ui.Select(placeholder="Pick One", options=options)
+        if multiple_choice:
+            selection = DropdownMenu(options, len(options))
+        else:
+            selection = DropdownMenu(options)
 
         dropdown_menu = nextcord.ui.View(timeout=None)
         dropdown_menu.add_item(selection)
 
-        poll: nextcord.Message = await interaction.send(
+        fields: dict[str:str] = {}
+        for option in options:
+            fields[option] = "*No Votes Yet*"
+
+        await interaction.send(
             embed=SersiEmbed(
                 title=query,
                 footer=f"Poll by {interaction.user.display_name}",
+                fields=fields
             ),
             view=dropdown_menu,
         )
-
-        counter: int = 0
-        for option in primitive_options:
-            await poll.add_reaction(self.emotes[counter])
-            counter += 1
-
-    @choose.subcommand(description="Shows the result of a past poll")
-    async def evaluate(
-        self,
-        interaction: nextcord.Interaction,
-        message_id: str = nextcord.SlashOption(
-            description="the message ID of the poll"
-        ),
-    ):
-        eval_bar_width: int = 20
-
-        await interaction.response.defer()
-
-        try:
-            message: nextcord.Message = await interaction.channel.fetch_message(
-                int(message_id)
-            )
-        except nextcord.NotFound:
-            await interaction.send(
-                embed=SersiEmbed(
-                    title=f"{self.config.emotes.fail} Message not found!",
-                    description="Please note that this command needs to be run in the same channel as the poll is in.",
-                    footer="Sersi Poll",
-                ),
-                ephemeral=True,
-            )
-            return
-        except nextcord.Forbidden:
-            await interaction.send(
-                embed=SersiEmbed(
-                    title=f"{self.config.emotes.fail} Forbidden!", footer="Sersi Poll"
-                ),
-                ephemeral=True,
-            )
-            return
-        except nextcord.HTTPException:
-            await interaction.send(
-                embed=SersiEmbed(
-                    title=f"{self.config.emotes.fail} Something went wrong!",
-                    footer="Sersi Poll",
-                ),
-                ephemeral=True,
-            )
-            return
-
-        poll: nextcord.Embed = message.embeds[0]
-        options: list[str] = [
-            option.split(" ", maxsplit=1)[1]
-            for option in poll.description.split("\n\n")
-        ]
-
-        counter: int = 0
-        total_votes: int = 0
-        results: dict[str:int] = {}
-        for option in options:
-            reaction: nextcord.Reaction = message.reactions[counter]
-
-            # one, two, three...
-            results[option] = reaction.count - 1
-            total_votes += reaction.count - 1
-
-            counter += 1
-
-        if total_votes == 0:
-            await interaction.send(
-                embed=SersiEmbed(
-                    title=f"{self.config.emotes.fail} Cannot evaluate poll with no votes!"
-                ),
-                ephemeral=True,
-            )
-            return
-
-        result_embed: nextcord.Embed = SersiEmbed(
-            title=f"{poll.title} ({total_votes} votes)",
-            footer=f"Results of Poll {message_id}",
-        )
-
-        for result in results:
-            percentage: float = results[result] / total_votes
-            bar_filled: int = round(percentage * eval_bar_width)
-            bar = f"{self.filled*bar_filled}{self.empty*(eval_bar_width-bar_filled)} {percentage*100}% ({results[result]} votes)"
-
-            result_embed.add_field(name=result, value=bar, inline=False)
-
-        await interaction.send(embed=result_embed)
 
 
 def setup(bot, **kwargs):
