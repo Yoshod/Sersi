@@ -232,6 +232,82 @@ class Jokes(commands.Cog):
                 ephemeral=False,
             )
 
+    @fun.subcommand(description="Rolls given number of dice, with given number of sides.")
+    async def roll(
+        self,
+        interaction: nextcord.Interaction,
+        dice: int = nextcord.SlashOption(
+            required=False,
+            default=1,
+            min_value=1,
+            max_value=10,
+            description="The number of dice to roll."
+        ),
+        sides: int = nextcord.SlashOption(
+            required=False,
+            default=6,
+            choices=[2, 4, 6, 8, 10, 12, 20],
+            description="The number of sides on each die."
+        ),
+        advantage: bool = nextcord.SlashOption(
+            required=False,
+            default=False,
+            choices={"yes": True, "no": False},
+            description="Whether to roll with advantage."
+        ),
+        disadvantage: bool = nextcord.SlashOption(
+            required=False,
+            default=False,
+            choices={"yes": True, "no": False},
+            description="Whether to roll with disadvantage."
+        ),
+        base: int = nextcord.SlashOption(
+            required=False,
+            default=0,
+            description="The base number to add to the roll."
+        ),
+        advanced: bool = nextcord.SlashOption(
+            required=False,
+            default=False,
+            choices={"yes": True, "no": False},
+            description="Whether to show information about each dice."
+        ),
+    ):
+        await interaction.response.defer(ephemeral=False)
+
+        # roll all dice, sort them
+        roll = sorted([
+            random.randint(1, sides) for _ in range(
+                dice + int(advantage) + int(disadvantage))
+        ])
+
+        roll_result = base + sum(roll[int(advantage) : dice + int(advantage)])
+
+        extra = []
+        if advantage:
+            extra.append(" with advantage")
+        if disadvantage:
+            extra.append(" with disadvantage")
+
+        dice_info = f"{dice}d{sides}{f' + {base}' if base else ''}"
+        if extra:
+            dice_info += " and".join(extra)
+
+        if not advanced:
+            await interaction.followup.send(
+                f"You rolled **{roll_result}**! *({dice_info})*",
+                ephemeral=False
+            )
+            return
+
+        await interaction.followup.send(
+            f"You rolled {dice_info}"
+            f"```{f' #{roll[0]}# | ' if advantage else ''}"
+            f"{' | '.join(str(n) for n in roll[int(advantage) : dice+int(advantage)])}"
+            f"{f' | #{roll[-1]}# ' if disadvantage else ''}```"
+            f"You rolled **{roll_result}**!", ephemeral=False
+        )
+
     @commands.command()
     async def uwu(self, ctx: commands.Context, *, message: str = ""):
         """OwO *nuzzles the command*.
