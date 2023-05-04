@@ -14,7 +14,7 @@ from utils.webhooks import send_webhook_message
 def generate_uwu(input_text: str) -> str:
     """Will convert input text into uwuified text.
 
-    Replaces specific characters with their uwu equivalents, 
+    Replaces specific characters with their uwu equivalents,
     and inserts "yo" or "ya" after "o" or "a" if the previous
     character is "n", "m", "N", or "M". Returns the uwuified text.
 
@@ -125,7 +125,7 @@ class Jokes(commands.Cog):
             nevermod_embed = SersiEmbed(
                 title="Self Nevermodded!",
                 description=f"Member {interaction.user.mention} ({interaction.user.id})"
-                " thought they were being funny by running the nevermod command!" 
+                " thought they were being funny by running the nevermod command!"
                 "Now they themselves have been nevermodded for their sins.",
                 footer="Nevermod",
             )
@@ -233,7 +233,9 @@ class Jokes(commands.Cog):
                 ephemeral=False,
             )
 
-    @fun.subcommand(description="Rolls given number of dice, with given number of sides.")
+    @fun.subcommand(
+        description="Rolls given number of dice, with given number of sides."
+    )
     async def roll(
         self,
         interaction: nextcord.Interaction,
@@ -242,45 +244,45 @@ class Jokes(commands.Cog):
             default=1,
             min_value=1,
             max_value=10,
-            description="The number of dice to roll."
+            description="The number of dice to roll.",
         ),
         sides: int = nextcord.SlashOption(
             required=False,
             default=6,
             choices=[2, 4, 6, 8, 10, 12, 20],
-            description="The number of sides on each die."
+            description="The number of sides on each die.",
         ),
         advantage: bool = nextcord.SlashOption(
             required=False,
             default=False,
             choices={"yes": True, "no": False},
-            description="Whether to roll with advantage."
+            description="Whether to roll with advantage.",
         ),
         disadvantage: bool = nextcord.SlashOption(
             required=False,
             default=False,
             choices={"yes": True, "no": False},
-            description="Whether to roll with disadvantage."
+            description="Whether to roll with disadvantage.",
         ),
         base: int = nextcord.SlashOption(
-            required=False,
-            default=0,
-            description="The base number to add to the roll."
+            required=False, default=0, description="The base number to add to the roll."
         ),
         advanced: bool = nextcord.SlashOption(
             required=False,
             default=False,
             choices={"yes": True, "no": False},
-            description="Whether to show information about each dice."
+            description="Whether to show information about each dice.",
         ),
     ):
         await interaction.response.defer(ephemeral=False)
 
         # roll all dice, sort them
-        roll = sorted([
-            random.randint(1, sides) for _ in range(
-                dice + int(advantage) + int(disadvantage))
-        ])
+        roll = sorted(
+            [
+                random.randint(1, sides)
+                for _ in range(dice + int(advantage) + int(disadvantage))
+            ]
+        )
 
         roll_result = base + sum(roll[int(advantage) : dice + int(advantage)])
 
@@ -296,8 +298,7 @@ class Jokes(commands.Cog):
 
         if not advanced:
             await interaction.followup.send(
-                f"You rolled **{roll_result}**! *({dice_info})*",
-                ephemeral=False
+                f"You rolled **{roll_result}**! *({dice_info})*", ephemeral=False
             )
             return
 
@@ -306,7 +307,8 @@ class Jokes(commands.Cog):
             f"```{f' #{roll[0]}# | ' if advantage else ''}"
             f"{' | '.join(str(n) for n in roll[int(advantage) : dice+int(advantage)])}"
             f"{f' | #{roll[-1]}# ' if disadvantage else ''}```"
-            f"You rolled **{roll_result}**!", ephemeral=False
+            f"You rolled **{roll_result}**!",
+            ephemeral=False,
         )
 
     @commands.command()
