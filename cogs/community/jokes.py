@@ -14,7 +14,8 @@ from utils.webhooks import send_webhook_message
 def generate_uwu(input_text: str) -> str:
     """Will convert input text into uwuified text.
 
-    Replaces specific characters with their uwu equivalents, and inserts "yo" or "ya" after "o" or "a" if the previous
+    Replaces specific characters with their uwu equivalents, 
+    and inserts "yo" or "ya" after "o" or "a" if the previous
     character is "n", "m", "N", or "M". Returns the uwuified text.
 
     Shamelessly stolen from https://www.geeksforgeeks.org/uwu-text-convertor-in-python/.
@@ -68,12 +69,12 @@ def calculate_basedness(config: Configuration, member: nextcord.Member):
             935673319947141230,
             config.roles.honourable_member,
         ]:
-            bias += 1.0
+            bias += 0.5
         elif role.id in asdict(config.permission_roles).values():
-            bias += 0.05
-        elif role.id in config.punishment_roles.values():
-            bias -= 1.0
+            bias += 0.25
         elif role.id == config.roles.never_mod:
+            bias -= 0.5
+        elif role.id in config.punishment_roles.values():
             bias -= 1.0
         elif role.id == config.roles.probation:
             bias -= 2.0
@@ -123,9 +124,9 @@ class Jokes(commands.Cog):
             )
             nevermod_embed = SersiEmbed(
                 title="Self Nevermodded!",
-                description=f"Member {interaction.user.mention} ({interaction.user.id}) thought they were being funny "
-                "by running the nevermod command! Now they themselves have been nevermodded for their "
-                "sins.",
+                description=f"Member {interaction.user.mention} ({interaction.user.id})"
+                " thought they were being funny by running the nevermod command!" 
+                "Now they themselves have been nevermodded for their sins.",
                 footer="Nevermod",
             )
 
@@ -231,6 +232,82 @@ class Jokes(commands.Cog):
                 "https://tenor.com/view/coins-tails-coin-flip-a-coin-coinflip-gif-21479856",
                 ephemeral=False,
             )
+
+    @fun.subcommand(description="Rolls given number of dice, with given number of sides.")
+    async def roll(
+        self,
+        interaction: nextcord.Interaction,
+        dice: int = nextcord.SlashOption(
+            required=False,
+            default=1,
+            min_value=1,
+            max_value=10,
+            description="The number of dice to roll."
+        ),
+        sides: int = nextcord.SlashOption(
+            required=False,
+            default=6,
+            choices=[2, 4, 6, 8, 10, 12, 20],
+            description="The number of sides on each die."
+        ),
+        advantage: bool = nextcord.SlashOption(
+            required=False,
+            default=False,
+            choices={"yes": True, "no": False},
+            description="Whether to roll with advantage."
+        ),
+        disadvantage: bool = nextcord.SlashOption(
+            required=False,
+            default=False,
+            choices={"yes": True, "no": False},
+            description="Whether to roll with disadvantage."
+        ),
+        base: int = nextcord.SlashOption(
+            required=False,
+            default=0,
+            description="The base number to add to the roll."
+        ),
+        advanced: bool = nextcord.SlashOption(
+            required=False,
+            default=False,
+            choices={"yes": True, "no": False},
+            description="Whether to show information about each dice."
+        ),
+    ):
+        await interaction.response.defer(ephemeral=False)
+
+        # roll all dice, sort them
+        roll = sorted([
+            random.randint(1, sides) for _ in range(
+                dice + int(advantage) + int(disadvantage))
+        ])
+
+        roll_result = base + sum(roll[int(advantage) : dice + int(advantage)])
+
+        extra = []
+        if advantage:
+            extra.append(" with advantage")
+        if disadvantage:
+            extra.append(" with disadvantage")
+
+        dice_info = f"{dice}d{sides}{f' + {base}' if base else ''}"
+        if extra:
+            dice_info += " and".join(extra)
+
+        if not advanced:
+            await interaction.followup.send(
+                f"You rolled **{roll_result}**! *({dice_info})*",
+                ephemeral=False
+            )
+            return
+
+        await interaction.followup.send(
+            f"You rolled {dice_info}"
+            f"```{f' #{roll[0]}# | ' if advantage else ''}"
+            f"{' | '.join(str(n) for n in roll[int(advantage) : dice+int(advantage)])}"
+            f"{f' | #{roll[-1]}# ' if disadvantage else ''}```"
+            f"You rolled **{roll_result}**!", ephemeral=False
+        )
 
     @commands.command()
     async def uwu(self, ctx: commands.Context, *, message: str = ""):
