@@ -14,7 +14,8 @@ from utils.webhooks import send_webhook_message
 def generate_uwu(input_text: str) -> str:
     """Will convert input text into uwuified text.
 
-    Replaces specific characters with their uwu equivalents, and inserts "yo" or "ya" after "o" or "a" if the previous
+    Replaces specific characters with their uwu equivalents, 
+    and inserts "yo" or "ya" after "o" or "a" if the previous
     character is "n", "m", "N", or "M". Returns the uwuified text.
 
     Shamelessly stolen from https://www.geeksforgeeks.org/uwu-text-convertor-in-python/.
@@ -68,12 +69,12 @@ def calculate_basedness(config: Configuration, member: nextcord.Member):
             935673319947141230,
             config.roles.honourable_member,
         ]:
-            bias += 1.0
+            bias += 0.5
         elif role.id in asdict(config.permission_roles).values():
-            bias += 0.05
-        elif role.id in config.punishment_roles.values():
-            bias -= 1.0
+            bias += 0.25
         elif role.id == config.roles.never_mod:
+            bias -= 0.5
+        elif role.id in config.punishment_roles.values():
             bias -= 1.0
         elif role.id == config.roles.probation:
             bias -= 2.0
@@ -123,9 +124,9 @@ class Jokes(commands.Cog):
             )
             nevermod_embed = SersiEmbed(
                 title="Self Nevermodded!",
-                description=f"Member {interaction.user.mention} ({interaction.user.id}) thought they were being funny "
-                "by running the nevermod command! Now they themselves have been nevermodded for their "
-                "sins.",
+                description=f"Member {interaction.user.mention} ({interaction.user.id})"
+                " thought they were being funny by running the nevermod command!" 
+                "Now they themselves have been nevermodded for their sins.",
                 footer="Nevermod",
             )
 
