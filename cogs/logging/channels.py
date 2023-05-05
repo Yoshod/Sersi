@@ -199,6 +199,19 @@ class Channels(commands.Cog):
                 ]:
                     return entry
 
+        if after.position != before.position:
+            await after.guild.get_channel(self.config.channels.channel_logs).send(
+                embed=SersiEmbed(
+                    description=f"{type(after).__name__} {after.mention} was moved",
+                    fields={
+                        "Created At": get_discord_timestamp(after.created_at),
+                        "Before": f"Position {before.position}",
+                        "After": f"Position {after.position}",
+                    },
+                    footer="Sersi Channel Logs",
+                )
+            )
+
         log: nextcord.AuditLogEntry = await get_audit_log(after.guild)
 
         match log.action:
@@ -220,7 +233,7 @@ class Channels(commands.Cog):
                             "After": after_values,
                         },
                         footer="Sersi Channel Logs",
-                    )
+                    ).set_author(name=log.user, icon_url=log.user.display_avatar.url)
                 )
 
             case nextcord.AuditLogAction.overwrite_create:
@@ -233,7 +246,7 @@ class Channels(commands.Cog):
                             "Overwrite Created For": f"[{type(log.extra).__name__}] {log.extra.mention}",
                         },
                         footer="Sersi Channel Logs",
-                    )
+                    ).set_author(name=log.user, icon_url=log.user.display_avatar.url)
                 )
 
             case nextcord.AuditLogAction.overwrite_update:
@@ -265,6 +278,9 @@ class Channels(commands.Cog):
                                     after_values += f"{self.config.emotes.fail} `{after_permission}`\n"
                                 case None:
                                     after_values += f"{self.config.emotes.inherit} `{after_permission}`\n"
+
+                if not before_values or not after_values:
+                    return
 
                 await after.guild.get_channel(self.config.channels.channel_logs).send(
                     embed=SersiEmbed(
@@ -301,7 +317,7 @@ class Channels(commands.Cog):
                             "Was": before_values,
                         },
                         footer="Sersi Channel Logs",
-                    )
+                    ).set_author(name=log.user, icon_url=log.user.display_avatar.url)
                 )
 
 
