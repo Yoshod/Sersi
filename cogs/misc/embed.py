@@ -64,7 +64,7 @@ class Embeds(commands.Cog):
     async def send(
         self,
         interaction: nextcord.Interaction,
-        type: str = nextcord.SlashOption(
+        embed_type: str = nextcord.SlashOption(
             choices={
                 "Moderator": "moderator",
                 "Administator": "admin",
@@ -75,14 +75,18 @@ class Embeds(commands.Cog):
         channel: nextcord.TextChannel = nextcord.SlashOption(
             description="The Channel to send the Embed to"
         ),
-        title: str = nextcord.SlashOption(description="The Title of the Embed"),
-        body: str = nextcord.SlashOption(description="The Body of the Embed"),
+        title: str = nextcord.SlashOption(
+            description="The Title of the Embed", max_length=256
+        ),
+        body: str = nextcord.SlashOption(
+            description="The Body of the Embed", max_length=2048
+        ),
     ):
 
         await interaction.response.defer()
 
         # permcheck
-        match type:
+        match embed_type:
             case "moderator":
                 if not permcheck(interaction, is_mod):
                     return
@@ -102,24 +106,45 @@ class Embeds(commands.Cog):
             title=title, description=body, footer="Sersi Announcement"
         )
 
-        match type:
+        match embed_type:
             case "moderator":
-                announcement_embed.set_author(name="Moderator Announcement")
-                announcement_embed.colour = interaction.guild.get_role(
+                role: nextcord.Role = interaction.guild.get_role(
                     self.config.permission_roles.moderator
-                ).colour
+                )
+
+                announcement_embed.colour = role.colour
+                if role.icon:
+                    announcement_embed.set_author(
+                        name="Moderator Announcement", icon_url=role.icon.url
+                    )
+                else:
+                    announcement_embed.set_author(name="Moderator Announcement")
 
             case "admin":
-                announcement_embed.set_author(name="Administration Announcement")
-                announcement_embed.colour = interaction.guild.get_role(
+                role: nextcord.Role = interaction.guild.get_role(
                     self.config.permission_roles.dark_moderator
-                ).colour
+                )
+
+                announcement_embed.colour = role.colour
+                if role.icon:
+                    announcement_embed.set_author(
+                        name="Administration Announcement", icon_url=role.icon.url
+                    )
+                else:
+                    announcement_embed.set_author(name="Administration Announcement")
 
             case "cet":
-                announcement_embed.set_author(name="Community Announcement")
-                announcement_embed.colour = interaction.guild.get_role(
+                role: nextcord.Role = interaction.guild.get_role(
                     self.config.permission_roles.cet
-                ).colour
+                )
+
+                announcement_embed.colour = role.colour
+                if role.icon:
+                    announcement_embed.set_author(
+                        name="Community Announcement", icon_url=role.icon.url
+                    )
+                else:
+                    announcement_embed.set_author(name="Community Announcement")
 
             case "staff":
                 announcement_embed.set_author(name="Staff Announcement")
