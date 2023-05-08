@@ -82,26 +82,24 @@ class Embeds(commands.Cog):
             description="The Body of the Embed", max_length=2048
         ),
     ):
-
-        await interaction.response.defer()
-
         # permcheck
         match embed_type:
             case "moderator":
-                if not permcheck(interaction, is_mod):
+                if not await permcheck(interaction, is_mod):
                     return
             case "admin":
-                if not permcheck(interaction, is_dark_mod):
+                if not await permcheck(interaction, is_dark_mod):
                     return
             case "cet":
-                if not permcheck(interaction, is_cet):
+                if not await permcheck(interaction, is_cet):
                     return
             case "staff":
-                if not permcheck(interaction, is_staff):
+                if not await permcheck(interaction, is_staff):
                     return
 
-        # build embed
+        await interaction.response.defer()
 
+        # build embed
         announcement_embed: nextcord.Embed = SersiEmbed(
             title=title, description=body, footer="Sersi Announcement"
         )
@@ -150,7 +148,14 @@ class Embeds(commands.Cog):
                 announcement_embed.set_author(name="Staff Announcement")
 
         await interaction.send(
-            embed=announcement_embed, view=YesNoView(interaction.user, channel)
+            embeds=[
+                announcement_embed,
+                nextcord.Embed(
+                    title=f"Send to {channel.mention}?",
+                    colour=nextcord.Color.from_rgb(237, 91, 6),
+                ),
+            ],
+            view=YesNoView(interaction.user, channel),
         )
 
 
