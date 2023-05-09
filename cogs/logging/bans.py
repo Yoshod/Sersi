@@ -32,11 +32,6 @@ class BanUnban(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_unban(self, guild: nextcord.Guild, user: nextcord.User):
-        """kedyfab#1979 was unbanned
-        User Information
-        kedyfab#1979 (452101373409099777) @kedyfab
-        Reason
-        Appealed, accepted by JUNIPER#3250"""
         log: nextcord.AuditLogEntry = (
             await guild.audit_logs(
                 limit=1, action=nextcord.AuditLogAction.unban
