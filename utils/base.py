@@ -403,7 +403,7 @@ def convert_mention_to_id(mention: str) -> int:
 def ignored_message(
     config: utils.config.Configuration, message: nextcord.Message
 ) -> bool:
-    """Checks if a message should be ignored by the bot."""
+    """Check if a message should be ignored by the bot."""
     if message.guild is None:
         return True  # ignore DMs
     if message.author.bot:
