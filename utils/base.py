@@ -401,16 +401,15 @@ def convert_mention_to_id(mention: str) -> int:
 
 
 def ignored_message(
-        config: utils.config.Configuration, message: nextcord.Message
-    ) -> bool:
+    config: utils.config.Configuration, message: nextcord.Message
+) -> bool:
     """Checks if a message should be ignored by the bot."""
-    if message.guild is None:   
-        return True # ignore DMs
+    if message.guild is None:
+        return True  # ignore DMs
     if message.author.bot:
-        return True # ignore bots
+        return True  # ignore bots
     if message.channel.id in config.ignored_channels.values():
-        return True # ignore specified channels
+        return True  # ignore specified channels
     if message.channel.category.name in config.ignored_categories:
-        return True # ignore specified categories
+        return True  # ignore specified categories
     return False
-
