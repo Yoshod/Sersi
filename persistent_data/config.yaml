@@ -71,6 +71,16 @@ channels:
     voice_logs:               903368043101556837
     automod_logs:             903370888358023258
 
+ignored_categories:
+    - Important stuff
+    - Administration Centre
+    - The Staff Zone
+    - The Mod Zone
+    - The CET Zone
+    - Moderation Support
+
+ignored_channels:
+    bot-commands: 875815983632252938
 
 roles:
     reformation:                878289857527562310
