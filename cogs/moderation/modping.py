@@ -187,6 +187,7 @@ class ModPing(commands.Cog):
             adam_something is not None
             and adam_something.mentioned_in(message)
             and not message.mention_everyone
+            and message.type is not nextcord.MessageType.reply
         ):  # adam something ping
             channel = self.bot.get_channel(self.config.channels.alert)
             alert_embed: nextcord.Embed = SersiEmbed(
