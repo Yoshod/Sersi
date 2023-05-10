@@ -853,6 +853,33 @@ def create_bad_faith_ping_case(
     conn.close()
 
 
+def create_warn_case(
+    config: Configuration,
+    offender: nextcord.Member,
+    moderator: nextcord.Member,
+    offence: str,
+    detail: str,
+):
+    uuid = create_unique_id(config)
+
+    timestamp = int(time.time())
+
+    conn = sqlite3.connect(config.datafiles.sersi_db)
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "INSERT INTO warn_cases (id, offender, moderator, offence, detail, active, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        (uuid, offender.id, moderator.id, offence, detail, True, timestamp),
+    )
+    cursor.execute(
+        "INSERT INTO cases (id, type, timestamp) VALUES (?, ?, ?)",
+        (uuid, "Warn", timestamp),
+    )
+
+    conn.commit()
+    conn.close()
+
+
 def scrub_case(
     config: Configuration, case_id: str, scrubber: nextcord.Member, reason: str
 ):
@@ -1011,4 +1038,19 @@ def slur_history(config: Configuration, user: nextcord.User, slur: list):
 
     else:
         conn.close()
+        return False
+
+
+def offence_validity_check(config: Configuration, offence: str):
+    conn = sqlite3.connect(config.datafiles.sersi_db)
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT offence FROM offences WHERE offence=?", offence)
+
+    offence_exists = cursor.fetchone()
+
+    if offence_exists:
+        return True
+
+    else:
         return False
