@@ -385,8 +385,6 @@ def create_unique_id(config: utils.config.Configuration):
             SELECT id FROM cases WHERE id=:id
             UNION
             SELECT id FROM notes WHERE id=:id
-            UNION
-            SELECT id FROM tickets WHERE id=:id
             """,
             {"id": uuid},
         )

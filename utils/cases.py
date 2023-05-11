@@ -6,6 +6,8 @@ import typing
 from utils.config import Configuration
 from utils.base import SersiEmbed, get_page, create_unique_id
 
+GLOBAL_CONFIG = Configuration.from_yaml_file("./persistent_data/config.yaml")
+
 
 def create_case(config: Configuration, unique_id: str, case_type: str, timestamp: int):
     conn = sqlite3.connect(config.datafiles.sersi_db)
@@ -141,6 +143,28 @@ def get_case_by_id(
                 "Timestamp": row[4],
             }
 
+        case "Warn":
+            cursor.execute("SELECT * FROM warn_cases WHERE id=?", (case_id,))
+
+            try:
+                row = cursor.fetchone()
+                cursor.close()
+
+            except TypeError:
+                cursor.close()
+                return "Exists Not Found"
+
+            return {
+                "ID": f"{row[0]}",
+                "Case Type": case_type,
+                "Offender ID": row[1],
+                "Moderator ID": row[2],
+                "Offence": row[3],
+                "Offence Details": row[4],
+                "Active": row[5],
+                "Timestamp": row[6],
+            }
+
 
 def fetch_cases_by_partial_id(config: Configuration, case_id: str):
     conn = sqlite3.connect(config.datafiles.sersi_db)
@@ -151,6 +175,26 @@ def fetch_cases_by_partial_id(config: Configuration, case_id: str):
     else:
         cursor.execute(
             "SELECT * FROM cases WHERE id LIKE ? LIMIT 10 ", (f"{case_id}%",)
+        )
+
+    rows = cursor.fetchall()
+
+    conn.close()
+
+    id_list = [row[0] for row in rows]
+
+    return id_list
+
+
+def fetch_offences_by_partial_name(config: Configuration, offence: str):
+    conn = sqlite3.connect(config.datafiles.sersi_db)
+    cursor = conn.cursor()
+
+    if offence == "":
+        cursor.execute("SELECT * FROM offences DESC LIMIT 10")
+    else:
+        cursor.execute(
+            "SELECT * FROM offences WHERE offence LIKE ? LIMIT 10 ", (f"{offence}%",)
         )
 
     rows = cursor.fetchall()
@@ -432,6 +476,66 @@ def create_bad_faith_ping_case_embed(
 
     case_embed.add_field(
         name="Report URL:", value=sersi_case["Report URL"], inline=False
+    )
+
+    case_embed.add_field(
+        name="Timestamp:",
+        value=f"<t:{sersi_case['Timestamp']}:R>",
+        inline=True,
+    )
+
+    case_embed.set_footer(text="Sersi Case Tracking")
+
+    return case_embed
+
+
+def create_warn_case_embed(
+    sersi_case: dict, interaction: nextcord.Interaction
+) -> SersiEmbed:
+    case_embed = SersiEmbed()
+    case_embed.add_field(name="Case:", value=f"`{sersi_case['ID']}`", inline=True)
+    case_embed.add_field(name="Type:", value="`Warn`", inline=True)
+    if sersi_case["Active"]:
+        case_embed.add_field(
+            name="Active:", value=GLOBAL_CONFIG.emotes.success, inline=True
+        )
+
+    else:
+        case_embed.add_field(
+            name="Active:", value=GLOBAL_CONFIG.emotes.fail, inline=True
+        )
+
+    moderator = interaction.guild.get_member(sersi_case["Moderator ID"])
+
+    if not moderator:
+        case_embed.add_field(
+            name="Moderator:",
+            value=f"`{sersi_case['Moderator ID']}`",
+            inline=True,
+        )
+
+    else:
+        case_embed.add_field(
+            name="Moderator:", value=f"{moderator.mention}", inline=True
+        )
+
+    offender = interaction.guild.get_member(sersi_case["Offender ID"])
+
+    if not offender:
+        case_embed.add_field(
+            name="Offender:",
+            value=f"`{sersi_case['Offender ID']}`",
+            inline=True,
+        )
+
+    else:
+        case_embed.add_field(name="Offender:", value=f"{offender.mention}", inline=True)
+        case_embed.set_thumbnail(url=offender.display_avatar.url)
+
+    case_embed.add_field(name="Offence:", value=sersi_case["Offence"], inline=False)
+
+    case_embed.add_field(
+        name="Offence Details:", value=sersi_case["Offence Details"], inline=False
     )
 
     case_embed.add_field(
@@ -868,7 +972,7 @@ def create_warn_case(
     cursor = conn.cursor()
 
     cursor.execute(
-        "INSERT INTO warn_cases (id, offender, moderator, offence, detail, active, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO warn_cases (id, offender, moderator, offence, details, active, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?)",
         (uuid, offender.id, moderator.id, offence, detail, True, timestamp),
     )
     cursor.execute(
@@ -878,6 +982,8 @@ def create_warn_case(
 
     conn.commit()
     conn.close()
+
+    return uuid
 
 
 def scrub_case(
@@ -1004,8 +1110,6 @@ def slur_virgin(config: Configuration, user: nextcord.User):
 
     cases = cursor.fetchone()
 
-    print(cases)
-
     conn.close()
 
     if cases:
@@ -1045,7 +1149,7 @@ def offence_validity_check(config: Configuration, offence: str):
     conn = sqlite3.connect(config.datafiles.sersi_db)
     cursor = conn.cursor()
 
-    cursor.execute("SELECT offence FROM offences WHERE offence=?", offence)
+    cursor.execute("SELECT offence FROM offences WHERE offence=?", (offence,))
 
     offence_exists = cursor.fetchone()
 
