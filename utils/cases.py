@@ -568,6 +568,8 @@ def fetch_all_cases(
             SELECT id, '`Slur Usage`' as type, timestamp FROM slur_cases
             UNION
             SELECT id, '`Bad Faith Ping`' as type, timestamp FROM bad_faith_ping_cases
+            UNION
+            select id, '`Warn`' as type, timestamp FROM warn_cases
             ORDER BY timestamp DESC
             """
         )
@@ -617,6 +619,14 @@ def fetch_all_cases(
                     """,
                 )
 
+            case "warn_cases":
+                cursor.execute(
+                    """
+                    SELECT id, '`Warn`' as type, timestamp
+                    FROM warn_cases
+                    ORDER BY timestamp DESC"""
+                )
+
     cases = cursor.fetchall()
 
     if not cases:
@@ -647,6 +657,8 @@ def fetch_offender_cases(
             SELECT id, '`Slur Usage`' as type, timestamp FROM slur_cases WHERE offender=:offender
             UNION
             SELECT id, '`Bad Faith Ping`' as type, timestamp FROM bad_faith_ping_cases WHERE offender=:offender
+            UNION
+            select id, '`Warn`' as type, timestamp FROM warn_cases WHERE offender=:offender
             ORDER BY timestamp DESC
             """,
             {"offender": str(offender.id)},
@@ -708,6 +720,15 @@ def fetch_offender_cases(
                     """,
                     {"offender": str(offender.id)},
                 )
+            case "warn_cases":
+                cursor.execute(
+                    """
+                    SELECT id, '`Warn`' as type, timestamp
+                    FROM warn_cases
+                    WHERE offender=:offender
+                    ORDER BY timestamp DESC""",
+                    {"offender": str(offender.id)},
+                )
 
     cases = cursor.fetchall()
 
@@ -752,6 +773,11 @@ def fetch_moderator_cases(
 
             SELECT id, '`Slur Usage`' as type, timestamp
             FROM slur_cases
+            WHERE moderator=:moderator
+
+            UNION
+            select id, '`Warn`' as type, timestamp
+            FROM warn_cases
             WHERE moderator=:moderator
             ORDER BY timestamp DESC
         """,
@@ -813,6 +839,15 @@ def fetch_moderator_cases(
                     WHERE moderator=:moderator
                     ORDER BY timestamp DESC
                     """,
+                    {"moderator": str(moderator.id)},
+                )
+            case "warn_cases":
+                cursor.execute(
+                    """
+                    SELECT id, '`Warn`' as type, timestamp
+                    FROM warn_cases
+                    WHERE moderator=:moderator
+                    ORDER BY timestamp DESC""",
                     {"moderator": str(moderator.id)},
                 )
 
