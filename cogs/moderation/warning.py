@@ -9,6 +9,7 @@ from utils.cases import (
     create_warn_case_embed,
     get_case_by_id,
     fetch_offences_by_partial_name,
+    deactivate_warn,
 )
 from utils.base import SersiEmbed
 
@@ -108,6 +109,67 @@ class WarningSystem(commands.Cog):
                 name="DM Sent:", value=self.config.emotes.success, inline=True
             )
             await interaction.followup.send(embed=confirm_embed)
+
+    @warn.subcommand(description="Deactivate a warn")
+    async def deactivate(
+        self,
+        interaction: nextcord.Interaction,
+        case_id: str = nextcord.SlashOption(
+            name="case_id",
+            description="The Case ID of the warn you want to deactivate",
+            min_length=22,
+            max_length=22,
+        ),
+        reason: str = nextcord.SlashOption(
+            name="reason",
+            description="Reason for deactivating the warning",
+            min_length=8,
+            max_length=1024,
+        ),
+    ):
+        if not await permcheck(interaction, is_mod):
+            return
+
+        await interaction.response.defer(ephemeral=False)
+
+        deactivated, offender_id = deactivate_warn(self.config, case_id)
+
+        if deactivated:
+            logging_embed = SersiEmbed(
+                title="Warn Deactivated",
+                fields={
+                    "Warn ID:": case_id,
+                    "Moderator:": f"{interaction.user.mention} ({interaction.user.id})",
+                    "Reason:": reason,
+                },
+            )
+            offender = interaction.guild.get_member(offender_id)
+
+            try:
+                alert_embed = SersiEmbed(
+                    title=f"Warn Deactivated in {interaction.guild.name}",
+                    description=f"Your warn in {interaction.guild.name} has been deactivated. It is still visible to moderators.",
+                )
+                await offender.send(embed=alert_embed)
+            except nextcord.HTTPException:
+                pass
+
+            modlog_channel = interaction.guild.get_channel(
+                self.config.channels.mod_logs
+            )
+            sersi_logs = interaction.guild.get_channel(self.config.channels.logging)
+
+            await modlog_channel.send(embed=logging_embed)
+            await sersi_logs.send(embed=logging_embed)
+
+            await interaction.followup.send(
+                f"{self.config.emotes.success} Warn {case_id} has been deactivated!"
+            )
+
+        else:
+            await interaction.followup.send(
+                f"{self.config.emotes.fail} Warn {case_id} could not be deactivated."
+            )
 
     @add.on_autocomplete("offence")
     async def search_offences(self, interaction: nextcord.Interaction, offence):

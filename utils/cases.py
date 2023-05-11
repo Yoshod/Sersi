@@ -1137,6 +1137,32 @@ def delete_case(config: Configuration, case_id: str):
         return False
 
 
+def deactivate_warn(config: Configuration, case_id: str):
+    conn = sqlite3.connect(config.datafiles.sersi_db)
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM warn_cases WHERE id=?", (case_id,))
+
+    case = cursor.fetchone()
+
+    if case:
+        offender_id = case[1]
+        cursor.execute(
+            """
+            UPDATE warn_cases
+            SET active = False
+            WHERE id =?""",
+            (case_id,),
+        )
+        conn.commit()
+        conn.close()
+        return True, offender_id
+
+    else:
+        conn.close()
+        return False, None
+
+
 def slur_virgin(config: Configuration, user: nextcord.User):
     conn = sqlite3.connect(config.datafiles.sersi_db)
     cursor = conn.cursor()
