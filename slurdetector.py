@@ -34,7 +34,7 @@ def leet(word):
     return ["".join(permutations) for permutations in product(*possibles)]
 
 
-def get_slurs(config=None, page=None, per_page=10):
+def get_slurs(page=None, per_page=10):
     if page is None:
         return slurs_list
     else:
@@ -45,7 +45,7 @@ def get_slurs_leet():
     return slurs
 
 
-def get_goodwords(config=None, page=None, per_page=10):
+def get_goodwords(page=None, per_page=10):
     if page is None:
         return goodword
     else:
@@ -58,7 +58,6 @@ def load_slurdetector():
 
 
 def rm_slur(slur):
-    lines = []
     if slur in slurs_list:
         slurs_list.remove(slur)
         slurs.clear()
@@ -83,7 +82,6 @@ def slur_comb(slur):
 
 
 def rm_goodword(word):
-    lines = []
     if word in goodword:
         goodword.remove(word)
     with open(config.datafiles.goodwordfile, "r") as fp:
