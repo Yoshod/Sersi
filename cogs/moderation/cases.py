@@ -15,6 +15,7 @@ from utils.cases import (
     fetch_all_cases,
     delete_case,
     create_scrubbed_case_embed,
+    create_warn_case_embed,
 )
 from utils.config import Configuration
 from utils.perms import permcheck, is_mod, is_senior_mod, is_dark_mod
@@ -53,6 +54,7 @@ class Cases(commands.Cog):
                 "Probation": "probation_cases",
                 "Reformation": "reformation_cases",
                 "Bad Faith Ping": "bad_faith_ping_cases",
+                "Warn": "warn_cases",
                 "Scrubbed Cases": "scrubbed_cases",
             },
         ),
@@ -127,6 +129,9 @@ class Cases(commands.Cog):
             case "Bad Faith Ping":
                 case_embed = create_bad_faith_ping_case_embed(sersi_case, interaction)
 
+            case "Warn":
+                case_embed = create_warn_case_embed(sersi_case, interaction)
+
         await interaction.followup.send(embed=case_embed)
 
     @get_case.subcommand(description="Used to get a case by Offender")
@@ -146,6 +151,7 @@ class Cases(commands.Cog):
                 "Probation": "probation_cases",
                 "Reformation": "reformation_cases",
                 "Bad Faith Ping": "bad_faith_ping_cases",
+                "Warn": "warn_cases",
                 "Scrubbed Cases": "scrubbed_cases",
             },
         ),
@@ -207,6 +213,7 @@ class Cases(commands.Cog):
                 "Probation": "probation_cases",
                 "Reformation": "reformation_cases",
                 "Bad Faith Ping": "bad_faith_ping_cases",
+                "Warn": "warn_cases",
                 "Scrubbed Cases": "scrubbed_cases",
             },
         ),
