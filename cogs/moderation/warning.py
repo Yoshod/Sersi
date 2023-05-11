@@ -54,6 +54,7 @@ class WarningSystem(commands.Cog):
             await interaction.followup.send(
                 f"{self.config.emotes.fail} {offence} is not in the list of offences. Try again or consider using the 'Other' offence."
             )
+            return
 
         uuid = create_warn_case(
             self.config, offender, interaction.user, offence, detail
