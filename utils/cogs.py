@@ -6,10 +6,9 @@ from utils.config import Configuration
 
 
 async def load_all_cogs(bot: commands.Bot, *, config: Configuration, data_folder: str):
-    for root, dirs, files in os.walk(f"./cogs"):
+    for root, dirs, files in os.walk("./cogs"):
         for filename in files:
             if filename.endswith(".py"):
-
                 cog_category = root[2:].replace(os.sep, ".")
 
                 print(f"Loading {cog_category}.{filename[:-3]}...")
@@ -29,10 +28,9 @@ async def load_all_cogs(bot: commands.Bot, *, config: Configuration, data_folder
 async def reload_all_cogs(
     bot: commands.Bot, *, config: Configuration, data_folder: str
 ):
-    for root, dirs, files in os.walk(f"../cogs"):
+    for root, dirs, files in os.walk("../cogs"):
         for filename in files:
             if filename.endswith(".py"):
-
                 nroot = root[2:].replace(os.sep, ".")
 
                 print(f"Reloading {nroot}.{filename[:-3]}...")

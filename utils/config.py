@@ -177,6 +177,8 @@ class Configuration(YAMLWizard):
     datafiles: ConfigurationDatafiles
     bot: ConfigurationBot
     channels: ConfigurationChannels
+    ignored_channels: dict[str, int]
+    ignored_categories: list[str]
     roles: ConfigurationRoles
     opt_in_roles: ConfigurationOptInRoles
     permission_roles: ConfigurationPermissionRoles

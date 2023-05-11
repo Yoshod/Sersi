@@ -7,7 +7,12 @@ from datetime import datetime, timezone
 
 import utils
 from utils import logs
-from utils.base import modmention_check, SersiEmbed, convert_mention_to_id
+from utils.base import (
+    modmention_check,
+    SersiEmbed,
+    convert_mention_to_id,
+    ignored_message
+)
 from utils.perms import cb_is_mod
 from utils.cases import create_bad_faith_ping_case
 from utils.config import Configuration
@@ -109,24 +114,11 @@ class ModPing(commands.Cog):
         )
 
     @commands.Cog.listener()
-    async def on_message(self, message):
-        if message.guild is not None:
-            adam_something = message.guild.get_member(809891646606409779)
-        else:
-            return  # ignores message if it is a DM
-
-        if message.author.bot:  # ignores message if message is by bot
+    async def on_message(self, message: nextcord.Message):
+        if ignored_message(self.config, message):
             return
 
-        if message.channel.category.name in [
-            "Important stuff",
-            "Administration Centre",
-            "The Staff Zone",
-            "The Mod Zone",
-            "The CET Zone",
-            "Moderation Support",
-        ]:
-            return
+        adam_something = message.guild.get_member(809891646606409779)
 
         if modmention_check(self.config, message.content):
             # Reply to user

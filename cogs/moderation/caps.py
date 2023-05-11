@@ -2,7 +2,7 @@ import nextcord
 from nextcord.ext import commands
 import re
 
-from utils.base import SersiEmbed
+from utils.base import SersiEmbed, ignored_message
 from utils.config import Configuration
 from utils.perms import permcheck, is_mod, is_staff
 from utils.webhooks import send_webhook_message
@@ -33,8 +33,8 @@ class Caps(commands.Cog):
 
     # events
     @commands.Cog.listener()
-    async def on_message(self, message):
-        if message.author.bot:  # ignores message if message is by bot
+    async def on_message(self, message: nextcord.Message):
+        if ignored_message(self.config, message):
             return
         need_replacement: bool = False
 

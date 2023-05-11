@@ -5,7 +5,7 @@ from dataclasses import asdict
 import nextcord
 from nextcord.ext import commands
 
-from utils.base import SersiEmbed
+from utils.base import SersiEmbed, ignored_message
 from utils.config import Configuration
 from utils.perms import is_mod
 from utils.webhooks import send_webhook_message
@@ -345,10 +345,7 @@ class Jokes(commands.Cog):
     # events
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.Message):
-        if message.author.bot:  # ignores message if message is by bot
-            return
-
-        if message.guild is None:
+        if ignored_message(self.config, message):
             return
 
         if "admin furry stash" in message.content.lower():

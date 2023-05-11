@@ -6,6 +6,8 @@ import typing
 from utils.config import Configuration
 from utils.base import SersiEmbed, get_page, create_unique_id
 
+GLOBAL_CONFIG = Configuration.from_yaml_file("./persistent_data/config.yaml")
+
 
 def create_case(config: Configuration, unique_id: str, case_type: str, timestamp: int):
     conn = sqlite3.connect(config.datafiles.sersi_db)
@@ -15,98 +17,6 @@ def create_case(config: Configuration, unique_id: str, case_type: str, timestamp
         f"""
         INSERT INTO cases (id, type, timestamp)
         VALUES ({unique_id}, {case_type}, {timestamp})"""
-    )
-
-    conn.commit()
-    conn.close()
-
-
-def slur_case(
-    config: Configuration,
-    unique_id: str,
-    slur_used: str,
-    report_url: str,
-    offender_id: int,
-    moderator_id: int,
-    timestamp: int,
-):
-    conn = sqlite3.connect(config.datafiles.sersi_db)
-    cursor = conn.cursor()
-
-    cursor.execute(
-        f"""
-        INSERT INTO slur_cases (id, slur_used, report_url, offender, moderator, timestamp)
-        VALUES ('{unique_id}', '{slur_used}', '{report_url}', {offender_id}, {moderator_id}, {timestamp})
-        """
-    )
-
-    conn.commit()
-    conn.close()
-
-
-def reform_case(
-    config: Configuration,
-    unique_id: str,
-    case_num: int,
-    offender_id: int,
-    moderator_id: int,
-    cell_id: int,
-    reason: str,
-    timestamp: int,
-):
-    conn = sqlite3.connect(config.datafiles.sersi_db)
-    cursor = conn.cursor()
-
-    cursor.execute(
-        f"""
-        INSERT INTO reformation_cases (id, case_number, offender, moderator, cell_id, reason, timestamp)
-        VALUES ('{unique_id}', {case_num}, {offender_id}, {moderator_id}, {cell_id}, '{reason}', {timestamp})
-        """
-    )
-
-    conn.commit()
-    conn.close()
-
-
-def probation_case(
-    config: Configuration,
-    unique_id: str,
-    offender_id: int,
-    initial_moderator_id: int,
-    approving_moderator_id: int,
-    reason: str,
-    timestamp: int,
-):
-    conn = sqlite3.connect(config.datafiles.sersi_db)
-    cursor = conn.cursor()
-
-    cursor.execute(
-        f"""
-        INSERT INTO probation_cases (id, offender, initial_moderator, approving_moderator, reason, timestamp)
-        VALUES ('{unique_id}', {offender_id}, {initial_moderator_id}, {approving_moderator_id}, '{reason}', {timestamp})
-        """
-    )
-
-    conn.commit()
-    conn.close()
-
-
-def ping_case(
-    config: Configuration,
-    unique_id: str,
-    report_url: str,
-    offender_id: int,
-    moderator_id: int,
-    timestamp: int,
-):
-    conn = sqlite3.connect(config.datafiles.sersi_db)
-    cursor = conn.cursor()
-
-    cursor.execute(
-        f"""
-        INSERT INTO bad_faith_ping_cases (id, report_url, offender, moderator, timestamp)
-        VALUES ('{unique_id}', '{report_url}', {offender_id}, {moderator_id}, {timestamp})
-        """
     )
 
     conn.commit()
@@ -233,6 +143,28 @@ def get_case_by_id(
                 "Timestamp": row[4],
             }
 
+        case "Warn":
+            cursor.execute("SELECT * FROM warn_cases WHERE id=?", (case_id,))
+
+            try:
+                row = cursor.fetchone()
+                cursor.close()
+
+            except TypeError:
+                cursor.close()
+                return "Exists Not Found"
+
+            return {
+                "ID": f"{row[0]}",
+                "Case Type": case_type,
+                "Offender ID": row[1],
+                "Moderator ID": row[2],
+                "Offence": row[3],
+                "Offence Details": row[4],
+                "Active": row[5],
+                "Timestamp": row[6],
+            }
+
 
 def fetch_cases_by_partial_id(config: Configuration, case_id: str):
     conn = sqlite3.connect(config.datafiles.sersi_db)
@@ -243,6 +175,26 @@ def fetch_cases_by_partial_id(config: Configuration, case_id: str):
     else:
         cursor.execute(
             "SELECT * FROM cases WHERE id LIKE ? LIMIT 10 ", (f"{case_id}%",)
+        )
+
+    rows = cursor.fetchall()
+
+    conn.close()
+
+    id_list = [row[0] for row in rows]
+
+    return id_list
+
+
+def fetch_offences_by_partial_name(config: Configuration, offence: str):
+    conn = sqlite3.connect(config.datafiles.sersi_db)
+    cursor = conn.cursor()
+
+    if offence == "":
+        cursor.execute("SELECT * FROM offences DESC LIMIT 10")
+    else:
+        cursor.execute(
+            "SELECT * FROM offences WHERE offence LIKE ? LIMIT 10 ", (f"{offence}%",)
         )
 
     rows = cursor.fetchall()
@@ -537,6 +489,66 @@ def create_bad_faith_ping_case_embed(
     return case_embed
 
 
+def create_warn_case_embed(
+    sersi_case: dict, interaction: nextcord.Interaction
+) -> SersiEmbed:
+    case_embed = SersiEmbed()
+    case_embed.add_field(name="Case:", value=f"`{sersi_case['ID']}`", inline=True)
+    case_embed.add_field(name="Type:", value="`Warn`", inline=True)
+    if sersi_case["Active"]:
+        case_embed.add_field(
+            name="Active:", value=GLOBAL_CONFIG.emotes.success, inline=True
+        )
+
+    else:
+        case_embed.add_field(
+            name="Active:", value=GLOBAL_CONFIG.emotes.fail, inline=True
+        )
+
+    moderator = interaction.guild.get_member(sersi_case["Moderator ID"])
+
+    if not moderator:
+        case_embed.add_field(
+            name="Moderator:",
+            value=f"`{sersi_case['Moderator ID']}`",
+            inline=True,
+        )
+
+    else:
+        case_embed.add_field(
+            name="Moderator:", value=f"{moderator.mention}", inline=True
+        )
+
+    offender = interaction.guild.get_member(sersi_case["Offender ID"])
+
+    if not offender:
+        case_embed.add_field(
+            name="Offender:",
+            value=f"`{sersi_case['Offender ID']}`",
+            inline=True,
+        )
+
+    else:
+        case_embed.add_field(name="Offender:", value=f"{offender.mention}", inline=True)
+        case_embed.set_thumbnail(url=offender.display_avatar.url)
+
+    case_embed.add_field(name="Offence:", value=sersi_case["Offence"], inline=False)
+
+    case_embed.add_field(
+        name="Offence Details:", value=sersi_case["Offence Details"], inline=False
+    )
+
+    case_embed.add_field(
+        name="Timestamp:",
+        value=f"<t:{sersi_case['Timestamp']}:R>",
+        inline=True,
+    )
+
+    case_embed.set_footer(text="Sersi Case Tracking")
+
+    return case_embed
+
+
 def fetch_all_cases(
     config: Configuration,
     page: int,
@@ -564,16 +576,16 @@ def fetch_all_cases(
         match case_type:
             case "slur_cases":
                 cursor.execute(
-                    """SELECT id, '`Slur Usage`' as type, timestamp 
-                    FROM slur_cases 
+                    """SELECT id, '`Slur Usage`' as type, timestamp
+                    FROM slur_cases
                     ORDER BY timestamp DESC""",
                 )
 
             case "reformation_cases":
                 cursor.execute(
                     """
-                    SELECT id, '`Reformation`' as type, timestamp 
-                    FROM reformation_cases 
+                    SELECT id, '`Reformation`' as type, timestamp
+                    FROM reformation_cases
                     ORDER BY timestamp DESC
                     """,
                 )
@@ -590,8 +602,8 @@ def fetch_all_cases(
             case "bad_faith_ping_cases":
                 cursor.execute(
                     """
-                    SELECT id, '`Bad Faith Ping`' as type, timestamp 
-                    FROM bad_faith_ping_cases 
+                    SELECT id, '`Bad Faith Ping`' as type, timestamp
+                    FROM bad_faith_ping_cases
                     ORDER BY timestamp DESC
                     """,
                 )
@@ -656,9 +668,9 @@ def fetch_offender_cases(
             case "reformation_cases":
                 cursor.execute(
                     """
-                    SELECT id, '`Reformation`' as type, timestamp 
-                    FROM reformation_cases 
-                    WHERE offender=:offender 
+                    SELECT id, '`Reformation`' as type, timestamp
+                    FROM reformation_cases
+                    WHERE offender=:offender
                     ORDER BY timestamp DESC
                     """,
                     {"offender": str(offender.id)},
@@ -667,9 +679,9 @@ def fetch_offender_cases(
             case "probation_cases":
                 cursor.execute(
                     """
-                    SELECT id, '`Probation`' as type, timestamp 
-                    FROM probation_cases 
-                    WHERE offender=:offender 
+                    SELECT id, '`Probation`' as type, timestamp
+                    FROM probation_cases
+                    WHERE offender=:offender
                     ORDER BY timestamp DESC
                     """,
                     {"offender": str(offender.id)},
@@ -689,9 +701,9 @@ def fetch_offender_cases(
             case "scrubbed_cases":
                 cursor.execute(
                     """
-                    SELECT id, type, timestamp 
-                    FROM scrubbed_cases 
-                    WHERE offender=:offender 
+                    SELECT id, type, timestamp
+                    FROM scrubbed_cases
+                    WHERE offender=:offender
                     ORDER BY timestamp DESC
                     """,
                     {"offender": str(offender.id)},
@@ -720,26 +732,26 @@ def fetch_moderator_cases(
     if not case_type:
         cursor.execute(
             """
-            SELECT id, '`Bad Faith Ping`' as type, timestamp 
-            FROM bad_faith_ping_cases 
+            SELECT id, '`Bad Faith Ping`' as type, timestamp
+            FROM bad_faith_ping_cases
             WHERE moderator=:moderator
-            
+
             UNION
-            
-            SELECT id, '`Probation`' as type, timestamp 
-            FROM probation_cases 
+
+            SELECT id, '`Probation`' as type, timestamp
+            FROM probation_cases
             WHERE initial_moderator=:moderator OR approving_moderator=:moderator
-            
+
             UNION
-            
-            SELECT id, '`Reformation`' as type, timestamp 
-            FROM reformation_cases 
+
+            SELECT id, '`Reformation`' as type, timestamp
+            FROM reformation_cases
             WHERE moderator=:moderator
-            
+
             UNION
-            
-            SELECT id, '`Slur Usage`' as type, timestamp 
-            FROM slur_cases 
+
+            SELECT id, '`Slur Usage`' as type, timestamp
+            FROM slur_cases
             WHERE moderator=:moderator
             ORDER BY timestamp DESC
         """,
@@ -751,9 +763,9 @@ def fetch_moderator_cases(
             case "slur_cases":
                 cursor.execute(
                     """
-                    SELECT id, '`Slur Usage`' as type, timestamp 
-                    FROM slur_cases 
-                    WHERE moderator=:moderator 
+                    SELECT id, '`Slur Usage`' as type, timestamp
+                    FROM slur_cases
+                    WHERE moderator=:moderator
                     ORDER BY timestamp DESC
                     """,
                     {"moderator": str(moderator.id)},
@@ -762,9 +774,9 @@ def fetch_moderator_cases(
             case "reformation_cases":
                 cursor.execute(
                     """
-                    SELECT id, '`Reformation`' as type, timestamp 
-                    FROM reformation_cases 
-                    WHERE moderator=:moderator 
+                    SELECT id, '`Reformation`' as type, timestamp
+                    FROM reformation_cases
+                    WHERE moderator=:moderator
                     ORDER BY timestamp DESC
                     """,
                     {"moderator": str(moderator.id)},
@@ -773,9 +785,9 @@ def fetch_moderator_cases(
             case "probation_cases":
                 cursor.execute(
                     """
-                    SELECT id, '`Probation`' as type, timestamp 
-                    FROM probation_cases 
-                    WHERE initial_moderator=:moderator 
+                    SELECT id, '`Probation`' as type, timestamp
+                    FROM probation_cases
+                    WHERE initial_moderator=:moderator
                        OR approving_moderator=:moderator
                     ORDER BY timestamp DESC
                     """,
@@ -785,9 +797,9 @@ def fetch_moderator_cases(
             case "bad_faith_ping_cases":
                 cursor.execute(
                     """
-                    SELECT id, '`Bad Faith Ping`' as type, timestamp 
-                    FROM bad_faith_ping_cases 
-                    WHERE moderator=:moderator 
+                    SELECT id, '`Bad Faith Ping`' as type, timestamp
+                    FROM bad_faith_ping_cases
+                    WHERE moderator=:moderator
                     ORDER BY timestamp DESC
                     """,
                     {"moderator": str(moderator.id)},
@@ -796,9 +808,9 @@ def fetch_moderator_cases(
             case "scrubbed_cases":
                 cursor.execute(
                     """
-                    SELECT id, type, timestamp 
-                    FROM scrubbed_cases 
-                    WHERE moderator=:moderator 
+                    SELECT id, type, timestamp
+                    FROM scrubbed_cases
+                    WHERE moderator=:moderator
                     ORDER BY timestamp DESC
                     """,
                     {"moderator": str(moderator.id)},
@@ -859,7 +871,7 @@ def create_probation_case(
 
     cursor.execute(
         """
-        INSERT INTO probation_cases (id, offender, initial_moderator, approving_moderator, reason, timestamp) 
+        INSERT INTO probation_cases (id, offender, initial_moderator, approving_moderator, reason, timestamp)
         VALUES (?, ?, ?, ?, ?, ?)
         """,
         (
@@ -897,7 +909,7 @@ def create_reformation_case(
 
     cursor.execute(
         """
-        INSERT INTO reformation_cases (id, case_number, offender, moderator, cell_id, reason, timestamp) 
+        INSERT INTO reformation_cases (id, case_number, offender, moderator, cell_id, reason, timestamp)
         VALUES (?, ?, ?, ?, ?, ?, ?)
         """,
         (
@@ -943,6 +955,35 @@ def create_bad_faith_ping_case(
 
     conn.commit()
     conn.close()
+
+
+def create_warn_case(
+    config: Configuration,
+    offender: nextcord.Member,
+    moderator: nextcord.Member,
+    offence: str,
+    detail: str,
+):
+    uuid = create_unique_id(config)
+
+    timestamp = int(time.time())
+
+    conn = sqlite3.connect(config.datafiles.sersi_db)
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "INSERT INTO warn_cases (id, offender, moderator, offence, details, active, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        (uuid, offender.id, moderator.id, offence, detail, True, timestamp),
+    )
+    cursor.execute(
+        "INSERT INTO cases (id, type, timestamp) VALUES (?, ?, ?)",
+        (uuid, "Warn", timestamp),
+    )
+
+    conn.commit()
+    conn.close()
+
+    return uuid
 
 
 def scrub_case(
@@ -1069,8 +1110,6 @@ def slur_virgin(config: Configuration, user: nextcord.User):
 
     cases = cursor.fetchone()
 
-    print(cases)
-
     conn.close()
 
     if cases:
@@ -1103,4 +1142,19 @@ def slur_history(config: Configuration, user: nextcord.User, slur: list):
 
     else:
         conn.close()
+        return False
+
+
+def offence_validity_check(config: Configuration, offence: str):
+    conn = sqlite3.connect(config.datafiles.sersi_db)
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT offence FROM offences WHERE offence=?", (offence,))
+
+    offence_exists = cursor.fetchone()
+
+    if offence_exists:
+        return True
+
+    else:
         return False

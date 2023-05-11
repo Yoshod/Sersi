@@ -385,8 +385,6 @@ def create_unique_id(config: utils.config.Configuration):
             SELECT id FROM cases WHERE id=:id
             UNION
             SELECT id FROM notes WHERE id=:id
-            UNION
-            SELECT id FROM tickets WHERE id=:id
             """,
             {"id": uuid},
         )
@@ -398,3 +396,18 @@ def create_unique_id(config: utils.config.Configuration):
 
 def convert_mention_to_id(mention: str) -> int:
     return int(re.sub(r"\D", "", mention))
+
+
+def ignored_message(
+    config: utils.config.Configuration, message: nextcord.Message
+) -> bool:
+    """Check if a message should be ignored by the bot."""
+    if message.guild is None:
+        return True  # ignore DMs
+    if message.author.bot:
+        return True  # ignore bots
+    if message.channel.id in config.ignored_channels.values():
+        return True  # ignore specified channels
+    if message.channel.category.name in config.ignored_categories:
+        return True  # ignore specified categories
+    return False

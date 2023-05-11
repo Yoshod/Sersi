@@ -9,7 +9,7 @@ from nextcord.ui import Button, View
 
 import discordTokens
 from utils import logs
-from utils.base import SersiEmbed
+from utils.base import SersiEmbed, ignored_message
 from utils.config import Configuration
 from utils.perms import cb_is_mod
 
@@ -213,6 +213,9 @@ class Perspective(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.message.Message):
+        if ignored_message(self.config, message):
+            return
+
         if len(message.content) < 10:
             return
         # ignores message if sent outside general chat.
@@ -220,9 +223,6 @@ class Perspective(commands.Cog):
             not message.channel.id == 856262304337100832
             and message.guild.id == 856262303795380224
         ):
-            return
-        # ignores message if message is by bot
-        elif message.author == self.bot.user:
             return
 
         evaluation: PerspectiveEvaluation = await self.ask_perspective(

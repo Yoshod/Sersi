@@ -11,6 +11,7 @@ from utils.base import (
     PageView,
     format_entry,
     convert_mention_to_id,
+    ignored_message,
 )
 from utils.cases import (
     slur_history,
@@ -282,20 +283,12 @@ class Slur(commands.Cog):
     # events
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.message.Message):
-        if message.content.startswith(self.bot.command_prefix):
+        if ignored_message(self.config, message):
             return
 
         detected_slurs: list[str] = detect_slur(message.content)
 
-        if message.channel.category.name == "Administration Centre":
-            # ignores message if sent inside the administration centre
-            return
-
-        if message.author == self.bot.user:
-            # ignores message if message is by bot
-            return
-
-        elif len(detected_slurs) > 0:  # checks slur heat
+        if len(detected_slurs) > 0:  # checks slur heat
 
             alert = await self.bot.get_channel(self.config.channels.alert).send(
                 embed=SersiEmbed(

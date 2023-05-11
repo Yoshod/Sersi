@@ -71,6 +71,16 @@ channels:
     voice_logs: 1098602372915273779
     automod_logs: 1098602528406523914
 
+ignored_categories:
+    - alerts
+    - Important Information
+
+ignored_channels:
+    discord updates:    1030300015761047606
+    priority issues:    1018834204039053322
+    tokens:             977388875100090368
+    developers:         978678011375288370
+    devlog:             977784875618824272
 
 roles:
     reformation:                978334782968721468
