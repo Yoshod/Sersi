@@ -183,8 +183,8 @@ def target_eligibility(actor: nextcord.Member, target: nextcord.Member):
         config.permission_roles.cet_lead: 3,
         config.permission_roles.senior_moderator: 3,
         config.permission_roles.moderator: 2,
-        config.permission_roles.cet: 1,
-        config.permission_roles.trial_moderator: 1,
+        config.permission_roles.cet: 2,
+        config.permission_roles.trial_moderator: 2,
     }
 
     actor_rank = 0
