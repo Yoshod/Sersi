@@ -150,6 +150,15 @@ class Database(commands.Cog):
         )
 
         cursor.execute(
+            """CREATE TABLE IF NOT EXISTS kick_cases
+            (id TEXT PRIMARY KEY,
+            offender INTEGER,
+            moderator INTEGER,
+            reason TEXT,
+            timestamp INTEGER)"""
+        )
+
+        cursor.execute(
             """CREATE TABLE IF NOT EXISTS ban_cases
             (id TEXT PRIMARY KEY,
             vote_url TEXT,
