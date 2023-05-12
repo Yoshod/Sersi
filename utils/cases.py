@@ -1086,6 +1086,17 @@ def scrub_case(
 
                 offender_id = row[2]
 
+            case "Warn":
+                cursor.execute("SELECT * FROM warn_cases WHERE id=?", (case_id,))
+
+                try:
+                    row = cursor.fetchone()
+
+                except TypeError:
+                    return False
+
+                offender_id = row[1]
+
             case _:
                 offender_id = ""
 
@@ -1127,6 +1138,28 @@ def delete_case(config: Configuration, case_id: str):
 
     if case:
         cursor.execute("DELETE FROM scrubbed_cases WHERE id=?", (case_id,))
+
+        conn.commit()
+        conn.close()
+        return True
+
+    else:
+        conn.close()
+        return False
+
+
+def delete_warn(config: Configuration, case_id: str):
+    conn = sqlite3.connect(config.datafiles.sersi_db)
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM warn_cases WHERE id=?", (case_id,))
+
+    case = cursor.fetchone()
+
+    if case:
+        cursor.execute("DELETE FROM warn_cases WHERE id=?", (case_id,))
+
+        cursor.execute("DELETE FROM cases WHERE id=?", (case_id,))
 
         conn.commit()
         conn.close()
@@ -1215,6 +1248,21 @@ def offence_validity_check(config: Configuration, offence: str):
     offence_exists = cursor.fetchone()
 
     if offence_exists:
+        return True
+
+    else:
+        return False
+
+
+def deletion_validity_check(config: Configuration, case_id: str):
+    conn = sqlite3.connect(config.datafiles.sersi_db)
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM warn_cases WHERE id=?", (case_id,))
+
+    warn_exists = cursor.fetchone()
+
+    if warn_exists:
         return True
 
     else:

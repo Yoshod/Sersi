@@ -2,7 +2,7 @@ import nextcord
 
 from nextcord.ext import commands
 from utils.config import Configuration
-from utils.perms import permcheck, is_mod
+from utils.perms import permcheck, is_mod, is_dark_mod
 from utils.cases import (
     offence_validity_check,
     create_warn_case,
@@ -10,6 +10,8 @@ from utils.cases import (
     get_case_by_id,
     fetch_offences_by_partial_name,
     deactivate_warn,
+    deletion_validity_check,
+    delete_warn,
 )
 from utils.base import SersiEmbed
 
@@ -169,6 +171,95 @@ class WarningSystem(commands.Cog):
         else:
             await interaction.followup.send(
                 f"{self.config.emotes.fail} Warn {case_id} could not be deactivated."
+            )
+
+    @warn.subcommand(description="Used to delete a deactivated warn")
+    async def delete(
+        self,
+        interaction: nextcord.Interaction,
+        case_id: str = nextcord.SlashOption(
+            name="case_id",
+            description="Case ID",
+            min_length=22,
+            max_length=22,
+        ),
+        reason: str = nextcord.SlashOption(
+            name="reason",
+            description="The reason you are deleting the warn",
+            min_length=8,
+            max_length=1024,
+        ),
+    ):
+        if not await permcheck(interaction, is_dark_mod):
+            return
+
+        await interaction.response.defer(ephemeral=False)
+
+        valid_warn = deletion_validity_check(self.config, case_id)
+
+        if valid_warn:
+            deleted = delete_warn(self.config, case_id)
+
+            if deleted:
+                logging_embed = SersiEmbed(
+                    title="Warning Deleted",
+                )
+
+                logging_embed.add_field(
+                    name="Warn ID", value=f"`{case_id}`", inline=True
+                )
+                logging_embed.add_field(
+                    name="Mega Administrator",
+                    value=f"{interaction.user.mention}",
+                    inline=True,
+                )
+                logging_embed.add_field(
+                    name="Reason", value=f"`{reason}`", inline=False
+                )
+
+                logging_embed.set_thumbnail(interaction.user.display_avatar.url)
+
+                logging_channel = interaction.guild.get_channel(
+                    self.config.channels.logging
+                )
+
+                await logging_channel.send(embed=logging_embed)
+
+                await interaction.followup.send(
+                    f"{self.config.emotes.success} Warning {case_id} successfully deleted."
+                )
+            else:
+                logging_embed = SersiEmbed(
+                    title="Warning Deletion Attempted",
+                )
+
+                logging_embed.add_field(
+                    name="Warn ID", value=f"`{case_id}`", inline=True
+                )
+                logging_embed.add_field(
+                    name="Mega Administrator",
+                    value=f"{interaction.user.mention}",
+                    inline=True,
+                )
+                logging_embed.add_field(
+                    name="Reason", value=f"`{reason}`", inline=False
+                )
+
+                logging_embed.set_thumbnail(interaction.user.display_avatar.url)
+
+                logging_channel = interaction.guild.get_channel(
+                    self.config.channels.logging
+                )
+
+                await logging_channel.send(embed=logging_embed)
+
+                await interaction.followup.send(
+                    f"{self.config.emotes.fail} Warning {case_id} has not been deleted."
+                )
+
+        else:
+            await interaction.followup.send(
+                f"{self.config.emotes.fail} {case_id} is not a valid warn case."
             )
 
     @add.on_autocomplete("offence")
