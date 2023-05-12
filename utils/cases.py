@@ -165,6 +165,26 @@ def get_case_by_id(
                 "Timestamp": row[6],
             }
 
+        case "Kick":
+            cursor.execute("SELECT * FROM kick_cases WHERE id=?", (case_id,))
+
+            try:
+                row = cursor.fetchone()
+                cursor.close()
+
+            except TypeError:
+                cursor.close()
+                return "Exists Not Found"
+
+            return {
+                "ID": f"{row[0]}",
+                "Case Type": case_type,
+                "Offender ID": row[1],
+                "Moderator ID": row[2],
+                "Reason": row[3],
+                "Timestamp": row[4],
+            }
+
 
 def fetch_cases_by_partial_id(config: Configuration, case_id: str):
     conn = sqlite3.connect(config.datafiles.sersi_db)
@@ -195,7 +215,7 @@ def fetch_offences_by_partial_name(config: Configuration, offence: str):
     else:
         cursor.execute(
             "SELECT * FROM offences WHERE LOWER(offence) LIKE ? LIMIT 25 ",
-            (f"%{offence.lower()}%",)
+            (f"%{offence.lower()}%",),
         )
 
     rows = cursor.fetchall()
@@ -495,14 +515,12 @@ def create_warn_case_embed(
     case_embed.add_field(name="Case:", value=f"`{sersi_case['ID']}`", inline=True)
     case_embed.add_field(name="Type:", value="`Warn`", inline=True)
     if sersi_case["Active"]:
-        case_embed.add_field(
-            name="Active:", value=GLOBAL_CONFIG.emotes.success, inline=True
-        )
+        active_emote = GLOBAL_CONFIG.emotes.success
 
     else:
-        case_embed.add_field(
-            name="Active:", value=GLOBAL_CONFIG.emotes.fail, inline=True
-        )
+        active_emote = GLOBAL_CONFIG.emotes.fail
+
+    case_embed.add_field(name="Active:", value=active_emote, inline=True)
 
     moderator = interaction.guild.get_member(sersi_case["Moderator ID"])
 
@@ -548,6 +566,53 @@ def create_warn_case_embed(
     return case_embed
 
 
+def create_kick_case_embed(
+    sersi_case: dict, interaction: nextcord.Interaction
+) -> SersiEmbed:
+    case_embed = SersiEmbed()
+    case_embed.add_field(name="Case:", value=f"`{sersi_case['ID']}`", inline=True)
+    case_embed.add_field(name="Type:", value="`Kick`", inline=True)
+
+    moderator = interaction.guild.get_member(sersi_case["Moderator ID"])
+
+    if not moderator:
+        case_embed.add_field(
+            name="Moderator:",
+            value=f"`{sersi_case['Moderator ID']}`",
+            inline=True,
+        )
+
+    else:
+        case_embed.add_field(
+            name="Moderator:", value=f"{moderator.mention}", inline=True
+        )
+
+    offender = interaction.guild.get_member(sersi_case["Offender ID"])
+
+    if not offender:
+        case_embed.add_field(
+            name="Offender:",
+            value=f"`{sersi_case['Offender ID']}`",
+            inline=True,
+        )
+
+    else:
+        case_embed.add_field(name="Offender:", value=f"{offender.mention}", inline=True)
+        case_embed.set_thumbnail(url=offender.display_avatar.url)
+
+    case_embed.add_field(name="Reason:", value=sersi_case["Reason"], inline=False)
+
+    case_embed.add_field(
+        name="Timestamp:",
+        value=f"<t:{sersi_case['Timestamp']}:R>",
+        inline=True,
+    )
+
+    case_embed.set_footer(text="Sersi Case Tracking")
+
+    return case_embed
+
+
 def fetch_all_cases(
     config: Configuration,
     page: int,
@@ -569,6 +634,8 @@ def fetch_all_cases(
             SELECT id, '`Bad Faith Ping`' as type, timestamp FROM bad_faith_ping_cases
             UNION
             select id, '`Warn`' as type, timestamp FROM warn_cases
+            UNION
+            select id, '`Kick`' as type, timestamp FROM kick_cases
             ORDER BY timestamp DESC
             """
         )
@@ -626,6 +693,14 @@ def fetch_all_cases(
                     ORDER BY timestamp DESC"""
                 )
 
+            case "kick_cases":
+                cursor.execute(
+                    """
+                    SELECT id, '`Kick`' as type, timestamp
+                    FROM kick_cases
+                    ORDER BY timestamp DESC"""
+                )
+
     cases = cursor.fetchall()
 
     if not cases:
@@ -658,6 +733,8 @@ def fetch_offender_cases(
             SELECT id, '`Bad Faith Ping`' as type, timestamp FROM bad_faith_ping_cases WHERE offender=:offender
             UNION
             select id, '`Warn`' as type, timestamp FROM warn_cases WHERE offender=:offender
+            UNION
+            select id, '`Kick`' as type, timestamp FROM kick_cases WHERE offender=:offender
             ORDER BY timestamp DESC
             """,
             {"offender": str(offender.id)},
@@ -728,6 +805,15 @@ def fetch_offender_cases(
                     ORDER BY timestamp DESC""",
                     {"offender": str(offender.id)},
                 )
+            case "warn_cases":
+                cursor.execute(
+                    """
+                    SELECT id, '`Kick`' as type, timestamp
+                    FROM kick_cases
+                    WHERE offender=:offender
+                    ORDER BY timestamp DESC""",
+                    {"offender": str(offender.id)},
+                )
 
     cases = cursor.fetchall()
 
@@ -777,6 +863,11 @@ def fetch_moderator_cases(
             UNION
             select id, '`Warn`' as type, timestamp
             FROM warn_cases
+            WHERE moderator=:moderator
+
+            UNION
+            select id, '`Kick`' as type, timestamp
+            FROM kick_cases
             WHERE moderator=:moderator
             ORDER BY timestamp DESC
         """,
@@ -840,11 +931,22 @@ def fetch_moderator_cases(
                     """,
                     {"moderator": str(moderator.id)},
                 )
+
             case "warn_cases":
                 cursor.execute(
                     """
                     SELECT id, '`Warn`' as type, timestamp
                     FROM warn_cases
+                    WHERE moderator=:moderator
+                    ORDER BY timestamp DESC""",
+                    {"moderator": str(moderator.id)},
+                )
+
+            case "kick_cases":
+                cursor.execute(
+                    """
+                    SELECT id, '`Kick`' as type, timestamp
+                    FROM kick_cases
                     WHERE moderator=:moderator
                     ORDER BY timestamp DESC""",
                     {"moderator": str(moderator.id)},
@@ -1012,6 +1114,34 @@ def create_warn_case(
     cursor.execute(
         "INSERT INTO cases (id, type, timestamp) VALUES (?, ?, ?)",
         (uuid, "Warn", timestamp),
+    )
+
+    conn.commit()
+    conn.close()
+
+    return uuid
+
+
+def create_kick_case(
+    config: Configuration,
+    offender: nextcord.Member,
+    moderator: nextcord.Member,
+    reason: str,
+):
+    uuid = create_unique_id(config)
+
+    timestamp = int(time.time())
+
+    conn = sqlite3.connect(config.datafiles.sersi_db)
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "INSERT INTO kick_cases (id, offender, moderator, reason, timestamp) VALUES (?, ?, ?, ?, ?)",
+        (uuid, offender.id, moderator.id, reason, timestamp),
+    )
+    cursor.execute(
+        "INSERT INTO cases (id, type, timestamp) VALUES (?, ?, ?)",
+        (uuid, "Kick", timestamp),
     )
 
     conn.commit()
