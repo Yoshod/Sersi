@@ -89,8 +89,8 @@ class KickSystem(commands.Cog):
             await interaction.guild.kick(
                 offender, reason=f"[{reason}] -{interaction.user.name}"
             )
-            logging_channel.send(logging_embed)
-            modlogs_channel.send(embed=logging_embed)
+            await logging_channel.send(logging_embed)
+            await modlogs_channel.send(embed=logging_embed)
 
             confirm_embed = SersiEmbed(
                 title="Kick Result:",
