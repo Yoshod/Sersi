@@ -1118,6 +1118,8 @@ def scrub_case(
         cursor.execute("DELETE FROM probation_cases WHERE id=?", (case_id,))
         cursor.execute("DELETE FROM slur_cases WHERE id=?", (case_id,))
         cursor.execute("DELETE FROM reformation_cases WHERE id=?", (case_id,))
+        cursor.execute("DELETE FROM bad_faith_ping_cases WHERE id=?", (case_id,))
+        cursor.execute("DELETE FROM warn_cases WHERE id=?", (case_id,))
 
         conn.commit()
         conn.close()
