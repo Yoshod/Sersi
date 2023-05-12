@@ -169,6 +169,8 @@ def is_immune(member: nextcord.Member):
         config.permission_roles.dark_moderator,
         config.permission_roles.cet_lead,
         config.permission_roles.senior_moderator,
+        config.permission_roles.moderator,
+        config.permission_roles.trial_moderator,
     ]
 
     for role in member.roles:
