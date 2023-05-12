@@ -11,7 +11,7 @@ from utils.base import (
     modmention_check,
     SersiEmbed,
     convert_mention_to_id,
-    ignored_message
+    ignored_message,
 )
 from utils.perms import cb_is_mod
 from utils.cases import create_bad_faith_ping_case
