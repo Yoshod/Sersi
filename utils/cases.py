@@ -191,7 +191,11 @@ def fetch_offences_by_partial_name(config: Configuration, offence: str):
     cursor = conn.cursor()
 
     if offence == "":
-        cursor.execute("SELECT * FROM offences DESC LIMIT 25")
+        cursor.execute("""
+            SELECT * FROM offences o
+            ORDER BY (SELECT COUNT(*) FROM warn_cases wc WHERE wc.offence = o.offence)
+            DESC LIMIT 25
+        """)
     else:
         cursor.execute(
             "SELECT * FROM offences WHERE LOWER(offence) LIKE ? LIMIT 25 ",
