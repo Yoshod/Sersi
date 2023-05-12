@@ -53,12 +53,6 @@ class WarningSystem(commands.Cog):
 
         await interaction.response.defer(ephemeral=False)
 
-        if is_immune(offender):
-            await interaction.followup.send(
-                f"{self.config.emotes.fail} {offender.mention} is immune."
-            )
-            return
-
         if not target_eligibility(interaction.user, offender):
             warning_alert = SersiEmbed(
                 title="Unauthorised Moderation Target",
@@ -79,6 +73,12 @@ class WarningSystem(commands.Cog):
 
             await interaction.followup.send(
                 f"{self.config.emotes.fail} {offender.mention} is a higher level than you. This has been reported."
+            )
+            return
+
+        if is_immune(offender):
+            await interaction.followup.send(
+                f"{self.config.emotes.fail} {offender.mention} is immune."
             )
             return
 
