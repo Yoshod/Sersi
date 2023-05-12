@@ -169,39 +169,14 @@ def is_cet(member: nextcord.Member):
     return False
 
 
-def is_immune(member: nextcord.Member, action: str):
-    match action:
-        case "Warn":
-            immune_roles: list[int] = [
-                config.permission_roles.dark_moderator,
-                config.permission_roles.cet_lead,
-                config.permission_roles.senior_moderator,
-            ]
-
-        case "Kick":
-            immune_roles: list[int] = [
-                config.permission_roles.dark_moderator,
-                config.permission_roles.cet_lead,
-                config.permission_roles.senior_moderator,
-                config.permission_roles.moderator,
-            ]
-
-        case "Ban":
-            immune_roles: list[int] = [
-                config.permission_roles.dark_moderator,
-                config.permission_roles.cet_lead,
-                config.permission_roles.senior_moderator,
-                config.permission_roles.moderator,
-            ]
-
-        case "Timeout":
-            immune_roles: list[int] = [
-                config.permission_roles.dark_moderator,
-                config.permission_roles.cet_lead,
-                config.permission_roles.senior_moderator,
-            ]
-        case _:
-            immune_roles: list[int] = []
+def is_immune(member: nextcord.Member):
+    immune_roles: list[int] = [
+        config.permission_roles.dark_moderator,
+        config.permission_roles.cet_lead,
+        config.permission_roles.senior_moderator,
+        config.permission_roles.moderator,
+        config.permission_roles.trial_moderator,
+    ]
 
     for role in member.roles:
         if role.id in immune_roles:
