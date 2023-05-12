@@ -191,19 +191,18 @@ def fetch_offences_by_partial_name(config: Configuration, offence: str):
     cursor = conn.cursor()
 
     if offence == "":
-        cursor.execute("SELECT * FROM offences DESC LIMIT 10")
+        cursor.execute("SELECT * FROM offences DESC LIMIT 25")
     else:
         cursor.execute(
-            "SELECT * FROM offences WHERE offence LIKE ? LIMIT 10 ", (f"{offence}%",)
+            "SELECT * FROM offences WHERE LOWER(offence) LIKE ? LIMIT 25 ",
+            (f"%{offence.lower()}%",)
         )
 
     rows = cursor.fetchall()
 
     conn.close()
 
-    id_list = [row[0] for row in rows]
-
-    return id_list
+    return [row[0] for row in rows]
 
 
 def create_scrubbed_case_embed(
