@@ -164,6 +164,43 @@ def is_cet(member: nextcord.Member):
     return False
 
 
+def is_immune(member: nextcord.Member):
+    immune_roles = [
+        config.permission_roles.dark_moderator,
+        config.permission_roles.cet_lead,
+        config.permission_roles.senior_moderator,
+    ]
+
+    for role in member.roles:
+        if role.id in immune_roles:
+            return True
+    return False
+
+
+def target_eligibility(actor: nextcord.Member, target: nextcord.Member):
+    hierarchy = {
+        config.permission_roles.dark_moderator: 10,
+        config.permission_roles.cet_lead: 3,
+        config.permission_roles.senior_moderator: 3,
+        config.permission_roles.moderator: 2,
+        config.permission_roles.cet: 1,
+        config.permission_roles.trial_moderator: 1,
+    }
+
+    actor_rank = 0
+    target_rank = 0
+
+    for role in actor.roles:
+        rank = hierarchy.get(role.id, 0)
+        actor_rank = max(actor_rank, rank)
+
+    for role in target.roles:
+        rank = hierarchy.get(role.id, 0)
+        target_rank = max(target_rank, rank)
+
+    return actor_rank > target_rank
+
+
 # This does not work, perhaps if I knew more about why I could fix it
 def is_custom_role(
     member: nextcord.Member, permitted_roles: list[nextcord.Role] = None
