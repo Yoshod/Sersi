@@ -2,7 +2,7 @@ import nextcord
 
 from nextcord.ext import commands
 from utils.config import Configuration
-from utils.perms import permcheck, is_mod, is_dark_mod
+from utils.perms import permcheck, is_mod, is_dark_mod, is_immune, target_eligibility
 from utils.cases import (
     offence_validity_check,
     create_warn_case,
@@ -52,6 +52,35 @@ class WarningSystem(commands.Cog):
             return
 
         await interaction.response.defer(ephemeral=False)
+
+        if is_immune(offender):
+            await interaction.followup.send(
+                f"{self.config.emotes.fail} {offender.mention} is immune."
+            )
+            return
+
+        if not target_eligibility(interaction.user, offender):
+            warning_alert = SersiEmbed(
+                title="Unauthorised Moderation Target",
+                description=f"{interaction.user.mention} ({interaction.user.id}) attempted to warn {offender.mention} ({offender.id}) despite being outranked!",
+            )
+
+            logging_channel = interaction.guild.get_channel(
+                self.config.channels.logging
+            )
+
+            mega_admin_role = interaction.guild.get_role(
+                self.config.permission_roles.dark_moderator
+            )
+
+            await logging_channel.send(
+                content=f"**ALERT:** {mega_admin_role.mention}", embed=warning_alert
+            )
+
+            await interaction.followup.send(
+                f"{self.config.emotes.fail} {offender.mention} is a higher level than you. This has been reported."
+            )
+            return
 
         if not offence_validity_check(self.config, offence):
             await interaction.followup.send(
