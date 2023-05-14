@@ -145,7 +145,8 @@ class Database(commands.Cog):
             (id TEXT PRIMARY KEY,
             offender INTEGER,
             moderator INTEGER,
-            reason TEXT,
+            offence TEXT,
+            details TEXT,
             timestamp INTEGER)"""
         )
 
@@ -164,7 +165,8 @@ class Database(commands.Cog):
             vote_url TEXT,
             offender INTEGER,
             moderator INTEGER,
-            reason TEXT,
+            offence TEXT,
+            details TEXT,
             type TEXT,
             timestamp INTEGER,
             reviewer TEXT,
