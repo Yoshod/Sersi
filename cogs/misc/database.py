@@ -142,6 +142,22 @@ class Database(commands.Cog):
         )
 
         cursor.execute(
+            """CREATE TABLE IF NOT EXISTS warn_adjustments
+            (id TEXT PRIMARY KEY,
+            adjustor INTEGER,
+            original_offence TEXT,
+            new_offence TEXT,
+            offence_adjusted TEXT,
+            original_details TEXT,
+            new_details TEXT,
+            details_adjusted BOOLEAN,
+            original_deactive_reason TEXT,
+            new_deactive_reason TEXT,
+            reason TEXT,
+            timestamp INTEGER)"""
+        )
+
+        cursor.execute(
             """CREATE TABLE IF NOT EXISTS timeout_cases
             (id TEXT PRIMARY KEY,
             offender INTEGER,
@@ -150,6 +166,24 @@ class Database(commands.Cog):
             details TEXT,
             planned_end INTEGER,
             actual_end INTEGER,
+            adjusted BOOLEAN,
+            timestamp INTEGER)"""
+        )
+
+        cursor.execute(
+            """CREATE TABLE IF NOT EXISTS timeout_adjustments
+            (id TEXT PRIMARY KEY,
+            adjustor INTEGER,
+            original_planned_end INTEGER,
+            new_planned_end INTEGER,
+            end_adjusted BOOLEAN,
+            original_offence TEXT,
+            new_offence TEXT,
+            offence_adjusted BOOLEAN,
+            original_offence_details TEXT,
+            new_offence_details TEXT,
+            offence_details_adjusted BOOLEAN
+            adjustment_reason TEXT,
             timestamp INTEGER)"""
         )
 
@@ -163,6 +197,16 @@ class Database(commands.Cog):
         )
 
         cursor.execute(
+            """CREATE TABLE IF NOT EXISTS kick_adjustments
+            (id TEXT PRIMARY KEY,
+            adjustor INTEGER,
+            original_reason TEXT,
+            new_reason TEXT,
+            reason TEXT,
+            timestamp INTEGER)"""
+        )
+
+        cursor.execute(
             """CREATE TABLE IF NOT EXISTS ban_cases
             (id TEXT PRIMARY KEY,
             vote_url TEXT,
@@ -170,7 +214,7 @@ class Database(commands.Cog):
             moderator INTEGER,
             offence TEXT,
             details TEXT,
-            type TEXT,
+            ban_type TEXT,
             timestamp INTEGER,
             reviewer TEXT,
             review_outcome TEXT,
