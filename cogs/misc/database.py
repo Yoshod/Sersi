@@ -137,7 +137,8 @@ class Database(commands.Cog):
             offence TEXT,
             details TEXT,
             active BOOLEAN,
-            timestamp INTEGER)"""
+            timestamp INTEGER,
+            deactive_reason TEXT)"""
         )
 
         cursor.execute(
@@ -147,6 +148,8 @@ class Database(commands.Cog):
             moderator INTEGER,
             offence TEXT,
             details TEXT,
+            planned_end INTEGER,
+            actual_end INTEGER,
             timestamp INTEGER)"""
         )
 
@@ -171,7 +174,9 @@ class Database(commands.Cog):
             timestamp INTEGER,
             reviewer TEXT,
             review_outcome TEXT,
-            review_comment TEXT)"""
+            review_comment TEXT,
+            active BOOLEAN,
+            unban_reason TEXT)"""
         )
 
         cursor.execute(
