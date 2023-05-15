@@ -137,6 +137,24 @@ class Database(commands.Cog):
             offence TEXT,
             details TEXT,
             active BOOLEAN,
+            timestamp INTEGER,
+            adjusted BOOLEAN,
+            deactive_reason TEXT)"""
+        )
+
+        cursor.execute(
+            """CREATE TABLE IF NOT EXISTS warn_adjustments
+            (id TEXT PRIMARY KEY,
+            adjustor INTEGER,
+            original_offence TEXT,
+            new_offence TEXT,
+            offence_adjusted TEXT,
+            original_details TEXT,
+            new_details TEXT,
+            details_adjusted BOOLEAN,
+            original_deactive_reason TEXT,
+            new_deactive_reason TEXT,
+            reason TEXT,
             timestamp INTEGER)"""
         )
 
@@ -145,7 +163,28 @@ class Database(commands.Cog):
             (id TEXT PRIMARY KEY,
             offender INTEGER,
             moderator INTEGER,
-            reason TEXT,
+            offence TEXT,
+            details TEXT,
+            planned_end INTEGER,
+            actual_end INTEGER,
+            adjusted BOOLEAN,
+            timestamp INTEGER)"""
+        )
+
+        cursor.execute(
+            """CREATE TABLE IF NOT EXISTS timeout_adjustments
+            (id TEXT PRIMARY KEY,
+            adjustor INTEGER,
+            original_planned_end INTEGER,
+            new_planned_end INTEGER,
+            end_adjusted BOOLEAN,
+            original_offence TEXT,
+            new_offence TEXT,
+            offence_adjusted BOOLEAN,
+            original_offence_details TEXT,
+            new_offence_details TEXT,
+            offence_details_adjusted BOOLEAN
+            adjustment_reason TEXT,
             timestamp INTEGER)"""
         )
 
@@ -154,6 +193,17 @@ class Database(commands.Cog):
             (id TEXT PRIMARY KEY,
             offender INTEGER,
             moderator INTEGER,
+            reason TEXT,
+            adjusted BOOLEAN,
+            timestamp INTEGER)"""
+        )
+
+        cursor.execute(
+            """CREATE TABLE IF NOT EXISTS kick_adjustments
+            (id TEXT PRIMARY KEY,
+            adjustor INTEGER,
+            original_reason TEXT,
+            new_reason TEXT,
             reason TEXT,
             timestamp INTEGER)"""
         )
@@ -164,12 +214,17 @@ class Database(commands.Cog):
             vote_url TEXT,
             offender INTEGER,
             moderator INTEGER,
-            reason TEXT,
-            type TEXT,
+            offence TEXT,
+            details TEXT,
+            ban_type TEXT,
+            end_date INTEGER,
             timestamp INTEGER,
             reviewer TEXT,
             review_outcome TEXT,
-            review_comment TEXT)"""
+            review_comment TEXT,
+            active BOOLEAN,
+            adjusted BOOLEAN,
+            unban_reason TEXT)"""
         )
 
         cursor.execute(
