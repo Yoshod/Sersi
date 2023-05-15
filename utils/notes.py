@@ -31,7 +31,7 @@ def create_note(
 def get_note_by_id(
     config: Configuration,
     note_id: str,
-) -> dict:
+) -> dict[str:str] | str:
     conn = sqlite3.connect(config.datafiles.sersi_db)
     cursor = conn.cursor()
 
@@ -60,7 +60,7 @@ def get_note_by_user(
     page: int,
     per_page: int,
     user_id: str,
-) -> dict:
+) -> str | tuple[list, int, int]:
     conn = sqlite3.connect(config.datafiles.sersi_db)
     cursor = conn.cursor()
 
@@ -86,7 +86,7 @@ def get_note_by_moderator(
     moderator_id: str,
     page: int,
     per_page: int,
-) -> dict:
+) -> str | tuple[list, int, int]:
     conn = sqlite3.connect(config.datafiles.sersi_db)
     cursor = conn.cursor()
 

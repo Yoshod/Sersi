@@ -100,7 +100,7 @@ def modmention_check(config: utils.config.Configuration, message: str) -> bool:
     return False
 
 
-def get_page(entry_list: list, page: int, per_page: int = 10):
+def get_page(entry_list: list, page: int, per_page: int = 10) -> tuple[list, int, int]:
     pages = 1 + (len(entry_list) - 1) // per_page
 
     index = page - 1
@@ -136,8 +136,8 @@ class ConfirmView(nextcord.ui.View):
         btn_cancel.callback = self.cb_cancel
         self.add_item(btn_proceed)
         self.add_item(btn_cancel)
-        self.message: nextcord.Message = None
-        self.author: nextcord.Member = None
+        self.message: nextcord.Message
+        self.author: nextcord.Member
 
     async def cb_cancel(self, interaction: nextcord.Interaction):
         print("confirm view cancel")
@@ -151,7 +151,6 @@ class ConfirmView(nextcord.ui.View):
             await self.message.edit(content="Action timed out!", embed=None, view=None)
 
     async def interaction_check(self, interaction: nextcord.Interaction):
-        print("confirm view interaction check")
         return interaction.user == self.author
 
     async def send_as_reply(

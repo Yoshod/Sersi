@@ -82,7 +82,7 @@ class Choose(commands.Cog):
 
         await interaction.response.defer()
 
-        options: list[str] = [
+        options: list[str | None] = [
             option1,
             option2,
             option3,

@@ -103,7 +103,7 @@ async def ticket_create(
                 }
             )
 
-    ticket_id = create_unique_id
+    ticket_id = create_unique_id(config)
 
     channel = await interaction.guild.create_text_channel(ticket_id)
 

@@ -211,6 +211,7 @@ class Channels(commands.Cog):
                     footer="Sersi Channel Logs",
                 )
             )
+            return
 
         log: nextcord.AuditLogEntry = await get_audit_log(after.guild)
 

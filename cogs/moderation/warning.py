@@ -51,7 +51,7 @@ class WarningSystem(commands.Cog):
         if not await permcheck(interaction, is_mod):
             return
 
-        await interaction.response.defer(ephemeral=False)
+        await interaction.response.defer()
 
         if not target_eligibility(interaction.user, offender):
             warning_alert = SersiEmbed(
@@ -71,20 +71,23 @@ class WarningSystem(commands.Cog):
                 content=f"**ALERT:** {mega_admin_role.mention}", embed=warning_alert
             )
 
-            await interaction.followup.send(
-                f"{self.config.emotes.fail} {offender.mention} is a higher level than you. This has been reported."
+            await interaction.send(
+                f"{self.config.emotes.fail} {offender.mention} is a higher level than you. This has been reported.",
+                ephemeral=True,
             )
             return
 
         if is_immune(offender):
-            await interaction.followup.send(
-                f"{self.config.emotes.fail} {offender.mention} is immune."
+            await interaction.send(
+                f"{self.config.emotes.fail} {offender.mention} is immune.",
+                ephemeral=True,
             )
             return
 
         if not offence_validity_check(self.config, offence):
-            await interaction.followup.send(
-                f"{self.config.emotes.fail} {offence} is not in the list of offences. Try again or consider using the 'Other' offence."
+            await interaction.send(
+                f"{self.config.emotes.fail} {offence} is not in the list of offences. Try again or consider using the 'Other' offence.",
+                ephemeral=True,
             )
             return
 

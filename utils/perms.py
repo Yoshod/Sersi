@@ -1,12 +1,15 @@
 import nextcord
 import nextcord.ext.commands
+
 from utils import config
 from utils.base import SersiEmbed
 
 config = config.Configuration.from_yaml_file("./persistent_data/config.yaml")
 
 
-async def permcheck(hook, function):
+async def permcheck(
+    hook: [nextcord.ext.commands.Context | nextcord.Interaction], function: callable
+) -> bool:
     if isinstance(hook, nextcord.ext.commands.Context):
         if function is True:
             return True
@@ -26,22 +29,23 @@ async def permcheck(hook, function):
             )
 
             del hook.args[:2]  # chop off self and ctx off the args
-            argstr = ""
+            args: str = ""
             for arg in hook.args:
-                argstr += f"• {arg}\n"
-            if argstr == "":
-                argstr = "`none`"
-            embed.add_field(name="Args:", value=argstr, inline=False)
+                args += f"• {arg}\n"
+            if args == "":
+                args = "`none`"
+            embed.add_field(name="Args:", value=args, inline=False)
 
-            kwargstr = ""
+            kwargs: str = ""
             for kwarg in hook.kwargs:
-                kwargstr += f"• {kwarg}: {hook.kwargs[kwarg]}\n"
-            if kwargstr == "":
-                kwargstr = "`none`"
-            embed.add_field(name="Kwargs:", value=kwargstr, inline=False)
+                kwargs += f"• {kwarg}: {hook.kwargs[kwarg]}\n"
+            if kwargs == "":
+                kwargs = "`none`"
+            embed.add_field(name="Kwargs:", value=kwargs, inline=False)
 
-            channel = hook.guild.get_channel(hook.cog.config.channels.logging)
-            await channel.send(embed=embed)
+            await hook.guild.get_channel(hook.cog.config.channels.logging).send(
+                embed=embed
+            )
 
             return False
 
@@ -67,7 +71,7 @@ async def permcheck(hook, function):
             return False
 
 
-def is_staff(member: nextcord.Member):
+def is_staff(member: nextcord.Member) -> bool:
     permitted_roles: list[int] = [
         config.permission_roles.staff,
         config.permission_roles.trial_moderator,
@@ -84,7 +88,7 @@ def is_staff(member: nextcord.Member):
     return False
 
 
-def is_mod(member: nextcord.Member):
+def is_mod(member: nextcord.Member) -> bool:
     permitted_roles: list[int] = [
         config.permission_roles.moderator,
         config.permission_roles.trial_moderator,
@@ -96,7 +100,7 @@ def is_mod(member: nextcord.Member):
     return False
 
 
-def is_full_mod(member: nextcord.Member):
+def is_full_mod(member: nextcord.Member) -> bool:
     permitted_roles: list[int] = [config.permission_roles.moderator]
 
     for role in member.roles:
@@ -105,7 +109,7 @@ def is_full_mod(member: nextcord.Member):
     return False
 
 
-def is_dark_mod(member: nextcord.Member):
+def is_dark_mod(member: nextcord.Member) -> bool:
     permitted_roles: list[int] = [config.permission_roles.dark_moderator]
 
     for role in member.roles:
@@ -114,7 +118,7 @@ def is_dark_mod(member: nextcord.Member):
     return False
 
 
-def is_senior_mod(member: nextcord.Member):
+def is_senior_mod(member: nextcord.Member) -> bool:
     permitted_roles: list[int] = [
         config.permission_roles.senior_moderator,
         config.permission_roles.dark_moderator,
@@ -126,7 +130,7 @@ def is_senior_mod(member: nextcord.Member):
     return False
 
 
-def is_cet_lead(member: nextcord.Member):
+def is_cet_lead(member: nextcord.Member) -> bool:
     permitted_roles: list[int] = [config.permission_roles.cet_lead]
 
     for role in member.roles:
@@ -135,7 +139,7 @@ def is_cet_lead(member: nextcord.Member):
     return False
 
 
-def is_slt(member: nextcord.Member):
+def is_slt(member: nextcord.Member) -> bool:
     permitted_roles: list[int] = [
         config.permission_roles.cet_lead,
         config.permission_roles.senior_moderator,
@@ -148,7 +152,7 @@ def is_slt(member: nextcord.Member):
     return False
 
 
-def is_sersi_contrib(member: nextcord.Member):
+def is_sersi_contrib(member: nextcord.Member) -> bool:
     permitted_roles: list[int] = [config.permission_roles.sersi_contributor]
 
     for role in member.roles:
@@ -157,7 +161,7 @@ def is_sersi_contrib(member: nextcord.Member):
     return False
 
 
-def is_cet(member: nextcord.Member):
+def is_cet(member: nextcord.Member) -> bool:
     permitted_roles: list[int] = [
         config.permission_roles.cet,
         config.permission_roles.cet_lead,
@@ -169,7 +173,7 @@ def is_cet(member: nextcord.Member):
     return False
 
 
-def is_immune(member: nextcord.Member):
+def is_immune(member: nextcord.Member) -> bool:
     immune_roles: list[int] = [
         config.permission_roles.dark_moderator,
         config.permission_roles.cet_lead,
@@ -184,7 +188,7 @@ def is_immune(member: nextcord.Member):
     return False
 
 
-def target_eligibility(actor: nextcord.Member, target: nextcord.Member):
+def target_eligibility(actor: nextcord.Member, target: nextcord.Member) -> bool:
     hierarchy: dict[int:int] = {
         config.permission_roles.dark_moderator: 10,
         config.permission_roles.cet_lead: 3,
@@ -210,7 +214,7 @@ def target_eligibility(actor: nextcord.Member, target: nextcord.Member):
 
 def is_custom_role(
     member: nextcord.Member, permitted_roles: list[nextcord.Role] = None
-):
+) -> bool:
     if permitted_roles is None:
         permitted_roles = []
 
@@ -220,13 +224,13 @@ def is_custom_role(
     return False
 
 
-async def cb_is_mod(interaction):
+async def cb_is_mod(interaction) -> bool:
     return await permcheck(interaction, is_mod)
 
 
-async def cb_is_dark_mod(interaction):
+async def cb_is_dark_mod(interaction) -> bool:
     return await permcheck(interaction, is_dark_mod)
 
 
-async def cb_is_cet(interaction):
+async def cb_is_cet(interaction) -> bool:
     return await permcheck(interaction, is_cet)
