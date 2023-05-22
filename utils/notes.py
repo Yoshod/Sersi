@@ -1,4 +1,5 @@
 import sqlite3
+
 import nextcord
 
 from utils.config import Configuration

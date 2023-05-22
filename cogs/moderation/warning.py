@@ -300,7 +300,7 @@ class WarningSystem(commands.Cog):
             await interaction.response.send_autocomplete([])
 
         offences = fetch_offences_by_partial_name(self.config, offence)
-        await interaction.response.send_autocomplete(offences)
+        await  interaction.response.send_autocomplete(sorted (offences))
 
 
 def setup(bot, **kwargs):
