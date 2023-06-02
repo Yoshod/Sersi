@@ -206,7 +206,7 @@ def fetch_cases_by_partial_id(config: Configuration, case_id: str):
     return id_list
 
 
-def fetch_offences_by_partial_name(config: Configuration, offence: str):
+def fetch_offences_by_partial_name(config: Configuration, offence: str) -> list[str]:
     conn = sqlite3.connect(config.datafiles.sersi_db)
     cursor = conn.cursor()
 

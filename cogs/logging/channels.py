@@ -200,6 +200,9 @@ class Channels(commands.Cog):
                     return entry
 
         if after.position != before.position:
+            if -1 <= (after.position - before.position) <= 1:
+                return
+
             await after.guild.get_channel(self.config.channels.channel_logs).send(
                 embed=SersiEmbed(
                     description=f"{type(after).__name__} {after.mention} was moved",

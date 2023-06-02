@@ -174,6 +174,9 @@ class MemberRoles(commands.Cog):
             ).set_author(name=log.user, icon_url=log.user.display_avatar.url)
 
         if before.position != after.position:
+            if -1 <= (after.position - before.position) <= 1:
+                return
+
             logging_embed.add_field(
                 name="Position",
                 value=f"Before:\n{before.position}\nAfter:\n{after.position}",

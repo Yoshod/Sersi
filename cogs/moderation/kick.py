@@ -69,28 +69,28 @@ class KickSystem(commands.Cog):
 
         case_id = create_kick_case(self.config, offender, interaction.user, reason)
 
-        logging_embed = create_kick_case_embed(
-            get_case_by_id(self.config, case_id, False), interaction
+        await offender.send(
+            embed=SersiEmbed(
+                title=f"Kicked from {interaction.guild.name}",
+                description=f"You have been kicked from {interaction.guild.name}. As this is not a ban you do not have to appeal this decision and can rejoin at your leisure. If you believe this was in error please rejoin and open an Administrator ticket.",
+                fields={"Reason:": reason},
+                footer="Sersi Moderation",
+            )
         )
-
-        logging_channel = interaction.guild.get_channel(self.config.channels.logging)
-        modlogs_channel = interaction.guild.get_channel(self.config.channels.mod_logs)
-
-        kick_message = SersiEmbed(
-            title=f"Kicked from {interaction.guild.name}",
-            description=f"You have been kicked from {interaction.guild.name}. As this is not a ban you do not have to appeal this decision and can rejoin at your leisure. If you believe this was in error please rejoin and open an Administrator ticket.",
-            fields={"Reason:": reason},
-            footer="Sersi Moderation",
-        )
-
-        await offender.send(embed=kick_message)
 
         try:
             await interaction.guild.kick(
                 offender, reason=f"[{reason}] -{interaction.user.name}"
             )
-            await logging_channel.send(logging_embed)
-            await modlogs_channel.send(embed=logging_embed)
+            logging_embed = create_kick_case_embed(
+                get_case_by_id(self.config, case_id, False), interaction
+            )
+            await interaction.guild.get_channel(self.config.channels.logging).send(
+                embed=logging_embed
+            )
+            await interaction.guild.get_channel(self.config.channels.mod_logs).send(
+                embed=logging_embed
+            )
 
             confirm_embed = SersiEmbed(
                 title="Kick Result:",

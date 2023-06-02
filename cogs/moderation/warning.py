@@ -95,54 +95,43 @@ class WarningSystem(commands.Cog):
             self.config, offender, interaction.user, offence, detail
         )
 
-        warn_embed = SersiEmbed(
-            title=f"You have been warned in {interaction.guild.name}!",
-            fields={"Offence:": f"`{offence}`", "Detail:": f"`{detail}`"},
-            footer="Sersi Warning",
-        )
-
-        warn_embed.set_thumbnail(interaction.guild.icon.url)
-
         try:
-            await offender.send(embed=warn_embed)
+            await offender.send(
+                embed=SersiEmbed(
+                    title=f"You have been warned in {interaction.guild.name}!",
+                    fields={"Offence:": f"`{offence}`", "Detail:": f"`{detail}`"},
+                    footer="Sersi Warning",
+                ).set_thumbnail(interaction.guild.icon.url)
+            )
             not_sent = False
 
-        except nextcord.Forbidden:
+        except (nextcord.Forbidden, nextcord.HTTPException):
             not_sent = True
 
-        except nextcord.HTTPException:
-            not_sent = True
-
-        warn_case = get_case_by_id(self.config, uuid, False)
-
-        logging_embed = create_warn_case_embed(warn_case, interaction)
-
-        modlog_channel = interaction.guild.get_channel(self.config.channels.mod_logs)
-        sersi_logs = interaction.guild.get_channel(self.config.channels.logging)
-
-        await modlog_channel.send(embed=logging_embed)
-        await sersi_logs.send(embed=logging_embed)
-
-        confirm_embed = SersiEmbed(
-            title="Warn Result:",
-            fields={
-                "Offence:": f"`{offence}`",
-                "Detail:": f"`{detail}`",
-                "Member:": f"{offender.mention} ({offender.id})",
-            },
+        logging_embed: SersiEmbed = create_warn_case_embed(
+            sersi_case=get_case_by_id(self.config, uuid, False), interaction=interaction
         )
 
-        if not_sent:
-            confirm_embed.add_field(
-                name="DM Sent:", value=self.config.emotes.fail, inline=True
-            )
-            await interaction.followup.send(embed=confirm_embed)
+        await interaction.guild.get_channel(self.config.channels.mod_logs).send(
+            embed=logging_embed
+        )
+        await interaction.guild.get_channel(self.config.channels.logging).send(
+            embed=logging_embed
+        )
 
-        else:
-            confirm_embed.add_field(
-                name="DM Sent:", value=self.config.emotes.success, inline=True
+        await interaction.followup.send(
+            embed=SersiEmbed(
+                title="Warn Result:",
+                fields={
+                    "Offence:": f"`{offence}`",
+                    "Detail:": f"`{detail}`",
+                    "Member:": f"{offender.mention} ({offender.id})",
+                    "DM Sent:": self.config.emotes.fail
+                    if not_sent
+                    else self.config.emotes.success,
+                },
             )
-            await interaction.followup.send(embed=confirm_embed)
+        )
 
     @warn.subcommand(description="Deactivate a warn")
     async def deactivate(
@@ -177,24 +166,25 @@ class WarningSystem(commands.Cog):
                     "Reason:": reason,
                 },
             )
-            offender = interaction.guild.get_member(offender_id)
 
+            offender = interaction.guild.get_member(offender_id)
             try:
-                alert_embed = SersiEmbed(
-                    title=f"Warn Deactivated in {interaction.guild.name}",
-                    description=f"Your warn in {interaction.guild.name} has been deactivated. It is still visible to moderators.",
+                await offender.send(
+                    embed=SersiEmbed(
+                        title=f"Warn Deactivated in {interaction.guild.name}",
+                        description=f"Your warn in {interaction.guild.name} has been deactivated. "
+                        "It is still visible to moderators.",
+                    )
                 )
-                await offender.send(embed=alert_embed)
             except nextcord.HTTPException:
                 pass
 
-            modlog_channel = interaction.guild.get_channel(
-                self.config.channels.mod_logs
+            await interaction.guild.get_channel(self.config.channels.mod_logs).send(
+                embed=logging_embed
             )
-            sersi_logs = interaction.guild.get_channel(self.config.channels.logging)
-
-            await modlog_channel.send(embed=logging_embed)
-            await sersi_logs.send(embed=logging_embed)
+            await interaction.guild.get_channel(self.config.channels.logging).send(
+                embed=logging_embed
+            )
 
             await interaction.followup.send(
                 f"{self.config.emotes.success} Warn {case_id} has been deactivated!"
@@ -227,63 +217,42 @@ class WarningSystem(commands.Cog):
 
         await interaction.response.defer(ephemeral=False)
 
-        valid_warn = deletion_validity_check(self.config, case_id)
+        if deletion_validity_check(self.config, case_id):
+            if delete_warn(self.config, case_id):
 
-        if valid_warn:
-            deleted = delete_warn(self.config, case_id)
-
-            if deleted:
-                logging_embed = SersiEmbed(
-                    title="Warning Deleted",
+                await interaction.guild.get_channel(self.config.channels.logging).send(
+                    embed=SersiEmbed(
+                        title="Warning Deleted",
+                    )
+                    .add_field(name="Warn ID", value=f"`{case_id}`", inline=True)
+                    .add_field(
+                        name="Mega Administrator",
+                        value=f"{interaction.user.mention}",
+                        inline=True,
+                    )
+                    .add_field(name="Reason", value=f"`{reason}`", inline=False)
+                    .set_thumbnail(interaction.user.display_avatar.url)
                 )
-
-                logging_embed.add_field(
-                    name="Warn ID", value=f"`{case_id}`", inline=True
-                )
-                logging_embed.add_field(
-                    name="Mega Administrator",
-                    value=f"{interaction.user.mention}",
-                    inline=True,
-                )
-                logging_embed.add_field(
-                    name="Reason", value=f"`{reason}`", inline=False
-                )
-
-                logging_embed.set_thumbnail(interaction.user.display_avatar.url)
-
-                logging_channel = interaction.guild.get_channel(
-                    self.config.channels.logging
-                )
-
-                await logging_channel.send(embed=logging_embed)
 
                 await interaction.followup.send(
                     f"{self.config.emotes.success} Warning {case_id} successfully deleted."
                 )
+
             else:
-                logging_embed = SersiEmbed(
-                    title="Warning Deletion Attempted",
-                )
 
-                logging_embed.add_field(
-                    name="Warn ID", value=f"`{case_id}`", inline=True
+                await interaction.guild.get_channel(self.config.channels.logging).send(
+                    embed=SersiEmbed(
+                        title="Warning Deletion Attempted",
+                    )
+                    .add_field(name="Warn ID", value=f"`{case_id}`", inline=True)
+                    .add_field(
+                        name="Mega Administrator",
+                        value=f"{interaction.user.mention}",
+                        inline=True,
+                    )
+                    .add_field(name="Reason", value=f"`{reason}`", inline=False)
+                    .set_thumbnail(interaction.user.display_avatar.url)
                 )
-                logging_embed.add_field(
-                    name="Mega Administrator",
-                    value=f"{interaction.user.mention}",
-                    inline=True,
-                )
-                logging_embed.add_field(
-                    name="Reason", value=f"`{reason}`", inline=False
-                )
-
-                logging_embed.set_thumbnail(interaction.user.display_avatar.url)
-
-                logging_channel = interaction.guild.get_channel(
-                    self.config.channels.logging
-                )
-
-                await logging_channel.send(embed=logging_embed)
 
                 await interaction.followup.send(
                     f"{self.config.emotes.fail} Warning {case_id} has not been deleted."
@@ -295,12 +264,12 @@ class WarningSystem(commands.Cog):
             )
 
     @add.on_autocomplete("offence")
-    async def search_offences(self, interaction: nextcord.Interaction, offence):
+    async def search_offences(self, interaction: nextcord.Interaction, offence: str):
         if not is_mod(interaction.user):
             await interaction.response.send_autocomplete([])
 
-        offences = fetch_offences_by_partial_name(self.config, offence)
-        await  interaction.response.send_autocomplete(sorted (offences))
+        offences: list[str] = fetch_offences_by_partial_name(self.config, offence)
+        await interaction.response.send_autocomplete(sorted(offences))
 
 
 def setup(bot, **kwargs):
