@@ -12,9 +12,9 @@ def ticket_check(
 
     cursor.execute(
         """
-        SELECT * FROM tickets 
-        WHERE ticket_creator_id = ? 
-         AND ticket_escalation_initial = ? 
+        SELECT * FROM tickets
+        WHERE ticket_creator_id = ?
+         AND ticket_escalation_initial = ?
          AND ticket_active = 1
         """,
         (proposed_ticketer.id, ticket_type),
