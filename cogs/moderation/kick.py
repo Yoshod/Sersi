@@ -1,13 +1,12 @@
 import nextcord
 
 from nextcord.ext import commands
+
+from utils.cases.create import create_kick_case
+from utils.cases.embed_factory import create_kick_case_embed
+from utils.cases.fetch import get_case_by_id
 from utils.config import Configuration
 from utils.perms import permcheck, is_mod, is_dark_mod, is_immune, target_eligibility
-from utils.cases import (
-    create_kick_case,
-    create_kick_case_embed,
-    get_case_by_id,
-)
 from utils.base import SersiEmbed
 
 

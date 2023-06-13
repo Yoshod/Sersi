@@ -24,8 +24,6 @@ class GuildChanges(commands.Cog):
                 after_list.remove(before_emoji)
                 before_list.remove(before_emoji)
                 # the emoji has not changed
-        print(f"before: {before_list}")
-        print(f"after: {after_list}")
 
         # removal case:
         if not after_list:

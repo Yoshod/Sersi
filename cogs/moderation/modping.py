@@ -1,11 +1,10 @@
-import nextcord
 import asyncio
-
-from nextcord.ext import commands
-from nextcord.ui import Button, View
 from datetime import datetime, timezone
 
-import utils
+import nextcord
+from nextcord.ext import commands
+from nextcord.ui import Button, View
+
 from utils import logs
 from utils.base import (
     modmention_check,
@@ -13,9 +12,10 @@ from utils.base import (
     convert_mention_to_id,
     ignored_message,
 )
-from utils.perms import cb_is_mod
-from utils.cases import create_bad_faith_ping_case
+from utils.cases.create import create_bad_faith_ping_case
 from utils.config import Configuration
+from utils.perms import cb_is_mod
+
 
 # from caseutils import case_history, bad_faith_ping_case
 

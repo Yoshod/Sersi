@@ -1,15 +1,10 @@
 import nextcord
 
 from nextcord.ext import commands
+
+from utils.cases.misc import offence_validity_check
 from utils.config import Configuration
 from utils.perms import permcheck, is_mod, is_dark_mod, is_immune, target_eligibility
-from utils.cases import (
-    create_timeout_case,
-    create_timeout_case_embed,
-    get_case_by_id,
-    edit_timeout_duration,
-    offence_validity_check,
-)
 from utils.base import SersiEmbed
 
 
@@ -86,7 +81,8 @@ class TimeoutSystem(commands.Cog):
 
         if not valid_time:
             interaction.followup.send(
-                f"{self.config.emotes.fail} You have input an invalid timeout duration. A timeout cannot last any longer than 28 days."
+                f"{self.config.emotes.fail} You have input an invalid timeout duration. "
+                "A timeout cannot last any longer than 28 days."
             )
 
         if not target_eligibility(interaction.user, offender):

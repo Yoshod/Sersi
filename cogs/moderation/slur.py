@@ -13,12 +13,9 @@ from utils.base import (
     convert_mention_to_id,
     ignored_message,
 )
-from utils.cases import (
-    slur_history,
-    slur_virgin,
-    create_slur_case,
-    fetch_offender_cases,
-)
+from utils.cases.create import create_slur_case
+from utils.cases.fetch import fetch_offender_cases
+from utils.cases.misc import slur_history, slur_virgin
 from utils.config import Configuration
 from utils.notes import get_note_by_user
 from utils.perms import cb_is_mod
@@ -257,8 +254,7 @@ class Slur(commands.Cog):
     def _get_previous_cases(
         self, user: nextcord.User | nextcord.Member, slurs: list[str]
     ) -> str:
-        slur_test = slur_virgin(self.config, user)
-        if slur_test:
+        if slur_virgin(self.config, user):
             return f"{self.config.emotes.fail} The user is a first time offender."
 
         else:

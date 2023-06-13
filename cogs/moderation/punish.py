@@ -1,6 +1,7 @@
-# import nextcord.slash_command
 import nextcord
 from nextcord.ext import commands
+
+from utils.base import SersiEmbed
 from utils.config import Configuration
 from utils.perms import permcheck, is_staff
 
@@ -28,6 +29,7 @@ class Punish(commands.Cog):
         interaction: nextcord.Interaction,
         member: nextcord.Member,
         punishment: str = nextcord.SlashOption(name="punishment_role"),
+            reason:str=nextcord.SlashOption()
     ):
         """Adds a punishment role to the user."""
 
@@ -42,11 +44,16 @@ class Punish(commands.Cog):
 
         role = member.guild.get_role(self.choices[punishment])
 
-        await member.add_roles(role)
+        await member.add_roles(role, reason=reason)
 
         await interaction.response.send_message(
-            f"Uh-oh, {member.mention} posted cringe and has been given the role {role.mention} as punishment."
+            f"{member.mention} has been given the {role.mention} role as punishment."
         )
+
+
+        await member.guild.get_channel(self.config.channels.logging).send(embed=SersiEmbed(
+            title="Member Punished"
+        ))
 
     @commands.Cog.listener()
     async def on_ready(self):
