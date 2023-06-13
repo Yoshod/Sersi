@@ -4,7 +4,12 @@ from utils.base import PageView
 from utils.cases.autocomplete import fetch_cases_by_partial_id
 from utils.cases.delete import delete_case
 from utils.cases.embed_factory import *
-from utils.cases.fetch import fetch_all_cases, get_case_by_id, fetch_offender_cases, fetch_moderator_cases
+from utils.cases.fetch import (
+    fetch_all_cases,
+    get_case_by_id,
+    fetch_offender_cases,
+    fetch_moderator_cases,
+)
 from utils.cases.mend import scrub_case
 from utils.config import Configuration
 from utils.perms import permcheck, is_mod, is_senior_mod, is_dark_mod
@@ -108,24 +113,34 @@ class Cases(commands.Cog):
 
         match (sersi_case["Case Type"]):
             case "Slur Usage":
-                await interaction.followup.send(embed=create_slur_case_embed(sersi_case, interaction))
+                await interaction.followup.send(
+                    embed=create_slur_case_embed(sersi_case, interaction)
+                )
 
             case "Reformation":
-                await interaction.followup.send(embed=create_reformation_case_embed(sersi_case, interaction))
+                await interaction.followup.send(
+                    embed=create_reformation_case_embed(sersi_case, interaction)
+                )
 
             case "Probation":
-                await interaction.followup.send(embed=create_probation_case_embed(sersi_case, interaction))
+                await interaction.followup.send(
+                    embed=create_probation_case_embed(sersi_case, interaction)
+                )
 
             case "Bad Faith Ping":
-                await interaction.followup.send(embed=create_bad_faith_ping_case_embed(sersi_case, interaction))
+                await interaction.followup.send(
+                    embed=create_bad_faith_ping_case_embed(sersi_case, interaction)
+                )
 
             case "Warn":
-                await interaction.followup.send(embed=create_warn_case_embed(sersi_case, interaction))
+                await interaction.followup.send(
+                    embed=create_warn_case_embed(sersi_case, interaction)
+                )
 
             case "Kick":
-                await interaction.followup.send(embed=create_kick_case_embed(sersi_case, interaction))
-
-
+                await interaction.followup.send(
+                    embed=create_kick_case_embed(sersi_case, interaction)
+                )
 
     @get_case.subcommand(description="Used to get a case by Offender")
     async def by_offender(
