@@ -69,7 +69,7 @@ class TimeoutSystem(commands.Cog):
         interaction: nextcord.Interaction,
         offender: nextcord.Member = nextcord.SlashOption(
             name="offender",
-            description="The person you wish to warn.",
+            description="The person you wish to timeout.",
         ),
         offence: str = nextcord.SlashOption(
             name="offence",
@@ -196,6 +196,27 @@ class TimeoutSystem(commands.Cog):
                 footer="Sersi Timeout",
             )
         )
+
+    @timeout.subcommand(description="Used to remove a user's timeout")
+    async def remove(
+            self,
+            interaction: nextcord.Interaction,
+            offender: nextcord.Member = nextcord.SlashOption(
+                name="offender",
+                description="The person you wish to end the timeout for.",
+            ),
+            reason: str = nextcord.SlashOption(
+                name="reason",
+                description="Reason for ending the timeout",
+                min_length=8,
+                max_length=1024,
+            )
+
+    ):
+        if not await permcheck(interaction, is_mod):
+            return
+
+        await interaction.response.defer(ephemeral=False)
 
     @add.on_autocomplete("offence")
     async def search_offences(self, interaction: nextcord.Interaction, offence: str):
