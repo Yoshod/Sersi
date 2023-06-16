@@ -230,6 +230,23 @@ class Database(commands.Cog):
         )
 
         cursor.execute(
+            """CREATE TABLE IF NOT EXISTS ban_adjustments
+            (id TEXT PRIMARY KEY,
+            adjustor INTEGER,
+            original_offence TEXT,
+            new_offence TEXT,
+            offence_adjusted BOOLEAN,
+            original_offence_details TEXT,
+            new_offence_details TEXT,
+            offence_details_adjusted BOOLEAN,
+            original_unban_reason TEXT,
+            new_unban_reason TEXT,
+            unban_reason_adjusted BOOLEAN,
+            adjustment_reason TEXT,
+            timestamp INTEGER)"""
+        )
+
+        cursor.execute(
             """CREATE TABLE IF NOT EXISTS offences
             (offence TEXT PRIMARY KEY,
             first_instance TEXT,
