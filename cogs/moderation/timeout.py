@@ -4,6 +4,7 @@ import nextcord
 
 from nextcord.ext import commands
 
+from utils.cases.autocomplete import fetch_offences_by_partial_name
 from utils.cases.embed_factory import create_timeout_case_embed
 from utils.cases.fetch import get_case_by_id
 from utils.cases.misc import offence_validity_check
@@ -194,7 +195,13 @@ class TimeoutSystem(commands.Cog):
             )
         )
 
+    @add.on_autocomplete("offence")
+    async def search_offences(self, interaction: nextcord.Interaction, offence: str):
+        if not is_mod(interaction.user):
+            await interaction.response.send_autocomplete([])
 
+        offences: list[str] = fetch_offences_by_partial_name(self.config, offence)
+        await interaction.response.send_autocomplete(sorted(offences))
 
 
 def setup(bot, **kwargs):
