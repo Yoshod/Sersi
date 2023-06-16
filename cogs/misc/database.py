@@ -504,6 +504,38 @@ class Database(commands.Cog):
 
         await interaction.followup.send(f"{self.config.emotes.success} Complete")
 
+    @database.subcommand(
+        description="Used to drop a table from the Sersi Database",
+    )
+    async def drop(
+        self,
+        interaction: nextcord.Interaction,
+        table_name: str = nextcord.SlashOption(
+            name="table", description="The table you are dropping"
+        ),
+    ):
+        if not await permcheck(interaction, is_dark_mod):
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        conn = sqlite3.connect(self.config.datafiles.sersi_db)
+        cursor = conn.cursor()
+
+        try:
+            cursor.execute(f"DROP TABLE {table_name}")
+            conn.commit()
+            await interaction.followup.send(
+                f"{self.config.emotes.success}The table '{table_name}' has been dropped."
+            )
+        except sqlite3.Error as error_code:
+            await interaction.followup.send(
+                f"{self.config.emotes.fail}An error occurred: {error_code}"
+            )
+        finally:
+            cursor.close()
+            conn.close()
+
 
 def setup(bot, **kwargs):
     bot.add_cog(Database(bot, kwargs["config"]))
