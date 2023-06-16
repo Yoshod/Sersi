@@ -179,6 +179,8 @@ class TimeoutSystem(commands.Cog):
             embed=logging_embed
         )
 
+        offender.timeout(planned_end, reason="Sersi Timeout")
+
         await interaction.followup.send(
             embed=SersiEmbed(
                 title="Warn Result:",
