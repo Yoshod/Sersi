@@ -14,40 +14,24 @@ from utils.perms import permcheck, is_mod, is_dark_mod, is_immune, target_eligib
 from utils.sersi_embed import SersiEmbed
 
 
-def convert(timespan: str, duration: int) -> int:
+def convert(timespan: str, duration: int) -> datetime.timedelta | None:
     match timespan:
         case "m":
-            return int(
-                (
-                    datetime.datetime.now() + datetime.timedelta(minutes=duration)
-                ).timestamp()
-            )
+            return datetime.timedelta(minutes=duration)
 
         case "h":
             if not duration > 672:
-                return int(
-                    (
-                        datetime.datetime.now() + datetime.timedelta(hours=duration)
-                    ).timestamp()
-                )
+                return datetime.timedelta(hours=duration)
 
         case "d":
             if not duration > 28:
-                return int(
-                    (
-                        datetime.datetime.now() + datetime.timedelta(days=duration)
-                    ).timestamp()
-                )
+                return datetime.timedelta(days=duration)
 
         case "w":
             if not duration > 4:
-                return int(
-                    (
-                        datetime.datetime.now() + datetime.timedelta(weeks=duration)
-                    ).timestamp()
-                )
+                return datetime.timedelta(weeks=duration)
 
-    return -1
+    return None
 
 
 class TimeoutSystem(commands.Cog):
@@ -103,9 +87,9 @@ class TimeoutSystem(commands.Cog):
 
         await interaction.response.defer(ephemeral=False)
 
-        planned_end: int = convert(timespan, duration)
+        planned_end: datetime.timedelta = convert(timespan, duration)
 
-        if planned_end == -1:
+        if not planned_end:
             interaction.followup.send(
                 f"{self.config.emotes.fail} You have input an invalid timeout duration. "
                 "A timeout cannot last any longer than 28 days."
@@ -144,7 +128,12 @@ class TimeoutSystem(commands.Cog):
             return
 
         uuid: str = create_timeout_case(
-            self.config, offender, interaction.user, offence, detail, planned_end
+            self.config,
+            offender,
+            interaction.user,
+            offence,
+            detail,
+            int((datetime.datetime.now() + planned_end).timestamp()),
         )
 
         try:

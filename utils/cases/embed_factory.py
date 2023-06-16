@@ -451,18 +451,17 @@ def create_timeout_case_embed(
         case_embed.add_field(name="Offender:", value=f"{offender.mention}", inline=True)
         case_embed.set_thumbnail(url=offender.display_avatar.url)
 
-    case_embed.add_field(name="Offence:", value=sersi_case["Offence"], inline=False)
-
     case_embed.add_field(
+        name="Offence:", value=sersi_case["Offence"], inline=False
+    ).add_field(
         name="Offence Details:", value=sersi_case["Details"], inline=False
-    )
-
-    case_embed.add_field(
+    ).add_field(
         name="Timestamp:",
         value=f"<t:{sersi_case['Timestamp']}:R>",
-        inline=True,
+    ).add_field(
+        name="Muted until:", value=f"<t:{sersi_case['Planned End']}:R>"
+    ).set_footer(
+        text="Sersi Case Tracking"
     )
-
-    case_embed.set_footer(text="Sersi Case Tracking")
 
     return case_embed
