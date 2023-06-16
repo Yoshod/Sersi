@@ -239,7 +239,7 @@ def create_timeout_case(
     )
     cursor.execute(
         "INSERT INTO cases (id, type, timestamp) VALUES (?, ?, ?)",
-        (uuid, "Warn", timestamp),
+        (uuid, "Timeout", timestamp),
     )
 
     conn.commit()

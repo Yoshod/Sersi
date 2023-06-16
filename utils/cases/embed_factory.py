@@ -454,7 +454,7 @@ def create_timeout_case_embed(
     case_embed.add_field(name="Offence:", value=sersi_case["Offence"], inline=False)
 
     case_embed.add_field(
-        name="Offence Details:", value=sersi_case["Offence Details"], inline=False
+        name="Offence Details:", value=sersi_case["Details"], inline=False
     )
 
     case_embed.add_field(

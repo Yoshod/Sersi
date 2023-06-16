@@ -61,9 +61,9 @@ def get_case_by_id(
                 "Details": f"{row[4]}",
                 "Offender ID": row[1],
                 "Moderator ID": row[2],
-                "Planned End": row[6],
-                "Actual End": row[7],
-                "Timestamp": row[8],
+                "Planned End": row[5],
+                "Actual End": row[6],
+                "Timestamp": row[7],
             }
 
         case "Slur Usage":
