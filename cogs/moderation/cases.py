@@ -50,6 +50,7 @@ class Cases(commands.Cog):
                 "Bad Faith Ping": "bad_faith_ping_cases",
                 "Warn": "warn_cases",
                 "Kick": "kick_cases",
+                "Timeout": "timeout_cases",
                 "Scrubbed Cases": "scrubbed_cases",
             },
         ),
@@ -142,6 +143,11 @@ class Cases(commands.Cog):
                     embed=create_kick_case_embed(sersi_case, interaction)
                 )
 
+            case "Timeout":
+                await interaction.followup.send(
+                    embed=create_timeout_case_embed(sersi_case, interaction)
+                )
+
     @get_case.subcommand(description="Used to get a case by Offender")
     async def by_offender(
         self,
@@ -161,6 +167,7 @@ class Cases(commands.Cog):
                 "Bad Faith Ping": "bad_faith_ping_cases",
                 "Warn": "warn_cases",
                 "Kick": "kick_cases",
+                "Timeout": "timeout_cases",
                 "Scrubbed Cases": "scrubbed_cases",
             },
         ),
@@ -224,6 +231,7 @@ class Cases(commands.Cog):
                 "Bad Faith Ping": "bad_faith_ping_cases",
                 "Warn": "warn_cases",
                 "Kick": "kick_cases",
+                "Timeout": "timeout_cases",
                 "Scrubbed Cases": "scrubbed_cases",
             },
         ),
