@@ -77,26 +77,9 @@ class MemberRoles(commands.Cog):
 
     @commands.Cog.listener()
     async def on_guild_role_update(self, before: nextcord.Role, after: nextcord.Role):
-        """
-        A role was updated (Over 18's Verified)
-        Name
-        Now: Over 18's Verified
-        Was: Adult Only Verified
-        ---
-        A role was updated. This triggers in the following situations:
-        The name has changed
-        The permissions have changed
-        The colour has changed
-        Its hoist/mentionable state has changed
 
-        When this is the action, the type of target is the Role or a Object with the ID.
 
-        Possible attributes for AuditLogDiff:
-            colour
-            mentionable
-            hoist
-            name
-            permissions"""
+
         log: nextcord.AuditLogEntry = (
             await after.guild.audit_logs(
                 action=nextcord.AuditLogAction.role_update, limit=1
@@ -173,19 +156,10 @@ class MemberRoles(commands.Cog):
                 inline=False,
             ).set_author(name=log.user, icon_url=log.user.display_avatar.url)
 
-        if before.position != after.position:
-            if -1 <= (after.position - before.position) <= 1:
-                return
-
-            logging_embed.add_field(
-                name="Position",
-                value=f"Before:\n{before.position}\nAfter:\n{after.position}",
-                inline=False,
+        if logging_embed.fields:
+            await after.guild.get_channel(self.config.channels.role_logs).send(
+                embed=logging_embed
             )
-
-        await after.guild.get_channel(self.config.channels.role_logs).send(
-            embed=logging_embed
-        )
 
 
 def setup(bot, **kwargs):

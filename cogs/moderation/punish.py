@@ -29,7 +29,7 @@ class Punish(commands.Cog):
         interaction: nextcord.Interaction,
         member: nextcord.Member,
         punishment: str = nextcord.SlashOption(name="punishment_role"),
-            reason:str=nextcord.SlashOption()
+        reason: str = nextcord.SlashOption(),
     ):
         """Adds a punishment role to the user."""
 
@@ -50,10 +50,9 @@ class Punish(commands.Cog):
             f"{member.mention} has been given the {role.mention} role as punishment."
         )
 
-
-        await member.guild.get_channel(self.config.channels.logging).send(embed=SersiEmbed(
-            title="Member Punished"
-        ))
+        await member.guild.get_channel(self.config.channels.logging).send(
+            embed=SersiEmbed(title="Member Punished")
+        )
 
     @commands.Cog.listener()
     async def on_ready(self):

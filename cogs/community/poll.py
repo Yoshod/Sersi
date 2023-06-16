@@ -65,8 +65,8 @@ class Choose(commands.Cog):
         self,
         interaction: nextcord.Interaction,
         query: str = nextcord.SlashOption(description="The question to ask"),
-        multiple_choice: bool = nextcord.SlashOption(
-            name="type", choices={"Multiple Choice": True, "Single Choice": False}
+        multiple_choice: str = nextcord.SlashOption(
+            name="type", choices={"Multiple Choice": "True", "Single Choice": ""}
         ),
         option1: str = nextcord.SlashOption(),
         option2: str = nextcord.SlashOption(),
