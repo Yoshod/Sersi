@@ -1,8 +1,12 @@
+import datetime
+
 import nextcord
 
 from nextcord.ext import commands
 
+from utils.cases.fetch import get_case_by_id
 from utils.cases.misc import offence_validity_check
+from utils.cases.create import create_timeout_case
 from utils.config import Configuration
 from utils.perms import permcheck, is_mod, is_dark_mod, is_immune, target_eligibility
 from utils.base import SersiEmbed
@@ -63,21 +67,27 @@ class TimeoutSystem(commands.Cog):
 
         valid_time = False
 
+        planned_end = int((datetime.datetime.now() + datetime.timedelta(minutes=1)).timestamp())
+
         match timespan:
             case "m":
                 valid_time = True
+                planned_end = int((datetime.datetime.now() + datetime.timedelta(minutes=duration)).timestamp())
 
             case "h":
                 if not duration > 672:
                     valid_time = True
+                    planned_end = int((datetime.datetime.now() + datetime.timedelta(hours=duration)).timestamp())
 
             case "d":
                 if not duration > 28:
                     valid_time = True
+                    planned_end = int((datetime.datetime.now() + datetime.timedelta(days=duration)).timestamp())
 
             case "w":
                 if not duration > 4:
                     valid_time = True
+                    planned_end = int((datetime.datetime.now() + datetime.timedelta(weeks=duration)).timestamp())
 
         if not valid_time:
             interaction.followup.send(
@@ -88,7 +98,8 @@ class TimeoutSystem(commands.Cog):
         if not target_eligibility(interaction.user, offender):
             warning_alert = SersiEmbed(
                 title="Unauthorised Moderation Target",
-                description=f"{interaction.user.mention} ({interaction.user.id}) attempted to warn {offender.mention} ({offender.id}) despite being outranked!",
+                description=f"{interaction.user.mention} ({interaction.user.id}) attempted to warn {offender.mention} "
+                            f"({offender.id}) despite being outranked!",
             )
 
             logging_channel = interaction.guild.get_channel(
@@ -117,6 +128,29 @@ class TimeoutSystem(commands.Cog):
 
         if not offence_validity_check(self.config, offence):
             await interaction.followup.send(
-                f"{self.config.emotes.fail} {offence} is not in the list of offences. Try again or consider using the 'Other' offence."
+                f"{self.config.emotes.fail} {offence} is not in the list of offences. Try again or consider using the "
+                f"'Other' offence."
             )
             return
+
+        uuid = create_timeout_case(self.config, offender, interaction.user, offence, detail, planned_end)
+
+        try:
+            await offender.send(
+                embed=SersiEmbed(
+                    title=f"You have been timed out in {interaction.guild.name}!",
+                    description=f"You have been timed out in {interaction.guild.name}. The details about the timeout are"
+                                f"below. If you would like to appeal your timeout you can do so:\n"
+                                f"https://appeals.wickbot.com",
+                    fields={"Offence:": f"`{offence}`", "Detail:": f"`{detail}`", "Duration:": f"`{duration}{timespan}`"},
+                    footer="Sersi Timeout",
+                ).set_thumbnail(interaction.guild.icon.url)
+            )
+            not_sent = False
+
+        except (nextcord.Forbidden, nextcord.HTTPException):
+            not_sent = True
+
+        logging_embed: SersiEmbed = create_timeout_case_embed(
+            sersi_case=get_case_by_id(self.config, uuid, False), interaction=interaction
+        )

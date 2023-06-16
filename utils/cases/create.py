@@ -206,3 +206,34 @@ def create_kick_case(
     conn.close()
 
     return uuid
+
+
+def create_timeout_case(
+    config: Configuration,
+    offender: nextcord.Member,
+    moderator: nextcord.Member,
+    offence: str,
+    detail: str,
+    planned_end: int,
+):
+    uuid = create_unique_id(config)
+
+    timestamp = int(time.time())
+
+    conn = sqlite3.connect(config.datafiles.sersi_db)
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "INSERT INTO timeout_cases (id, offender, moderator, offence, details, planned_end, adjusted, timestamp) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        (uuid, offender.id, moderator.id, offence, detail, planned_end, False, timestamp),
+    )
+    cursor.execute(
+        "INSERT INTO cases (id, type, timestamp) VALUES (?, ?, ?)",
+        (uuid, "Warn", timestamp),
+    )
+
+    conn.commit()
+    conn.close()
+
+    return uuid

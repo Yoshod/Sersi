@@ -1,3 +1,5 @@
+import time
+
 import nextcord
 
 from utils.base import SersiEmbed
@@ -385,6 +387,70 @@ def create_kick_case_embed(
         case_embed.set_thumbnail(url=offender.display_avatar.url)
 
     case_embed.add_field(name="Reason:", value=sersi_case["Reason"], inline=False)
+
+    case_embed.add_field(
+        name="Timestamp:",
+        value=f"<t:{sersi_case['Timestamp']}:R>",
+        inline=True,
+    )
+
+    case_embed.set_footer(text="Sersi Case Tracking")
+
+    return case_embed
+
+def create_timeout_case_embed(
+    sersi_case: dict, interaction: nextcord.Interaction
+) -> SersiEmbed:
+    case_embed = SersiEmbed()
+    case_embed.add_field(name="Case:", value=f"`{sersi_case['ID']}`", inline=True)
+    case_embed.add_field(name="Type:", value="`Timeout`", inline=True)
+
+    if not sersi_case["Actual End"] and sersi_case["Planned End"] > int(time.time()):
+        ongoing_emote = Configuration.from_yaml_file(
+            "./persistent_data/config.yaml"
+        ).emotes.success
+        ongoing = True
+
+    else:
+        ongoing_emote = Configuration.from_yaml_file(
+            "./persistent_data/config.yaml"
+        ).emotes.fail
+        ongoing = False
+
+    case_embed.add_field(name="Ongoing:", value=ongoing_emote, inline=True)
+
+    moderator = interaction.guild.get_member(sersi_case["Moderator ID"])
+
+    if not moderator:
+        case_embed.add_field(
+            name="Moderator:",
+            value=f"`{sersi_case['Moderator ID']}`",
+            inline=True,
+        )
+
+    else:
+        case_embed.add_field(
+            name="Moderator:", value=f"{moderator.mention}", inline=True
+        )
+
+    offender = interaction.guild.get_member(sersi_case["Offender ID"])
+
+    if not offender:
+        case_embed.add_field(
+            name="Offender:",
+            value=f"`{sersi_case['Offender ID']}`",
+            inline=True,
+        )
+
+    else:
+        case_embed.add_field(name="Offender:", value=f"{offender.mention}", inline=True)
+        case_embed.set_thumbnail(url=offender.display_avatar.url)
+
+    case_embed.add_field(name="Offence:", value=sersi_case["Offence"], inline=False)
+
+    case_embed.add_field(
+        name="Offence Details:", value=sersi_case["Offence Details"], inline=False
+    )
 
     case_embed.add_field(
         name="Timestamp:",
