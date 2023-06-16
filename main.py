@@ -10,7 +10,7 @@ import discordTokens
 from nextcord.ext import commands
 
 import utils
-from utils.base import SersiEmbed
+from utils.sersi_embed import SersiEmbed
 from utils.perms import permcheck, is_sersi_contrib
 from utils.cogs import load_all_cogs
 

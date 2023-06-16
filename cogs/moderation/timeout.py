@@ -193,3 +193,9 @@ class TimeoutSystem(commands.Cog):
                 footer="Sersi Timeout",
             )
         )
+
+
+
+
+def setup(bot, **kwargs):
+    bot.add_cog(TimeoutSystem(bot, kwargs["config"]))

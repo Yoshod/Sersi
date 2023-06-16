@@ -2,7 +2,7 @@ import nextcord
 import nextcord.ext.commands
 
 from utils import config
-from utils.base import SersiEmbed
+from utils.sersi_embed import SersiEmbed
 
 config = config.Configuration.from_yaml_file("./persistent_data/config.yaml")
 
