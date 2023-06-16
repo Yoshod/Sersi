@@ -5,7 +5,8 @@ import nextcord
 from nextcord.ext import commands
 import chat_exporter
 
-from utils.base import SersiEmbed, get_discord_timestamp
+from utils.sersi_embed import SersiEmbed
+from utils.base import get_discord_timestamp
 from utils.config import Configuration
 
 

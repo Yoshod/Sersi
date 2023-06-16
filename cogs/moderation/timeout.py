@@ -4,12 +4,49 @@ import nextcord
 
 from nextcord.ext import commands
 
+from utils.cases.embed_factory import create_timeout_case_embed
 from utils.cases.fetch import get_case_by_id
 from utils.cases.misc import offence_validity_check
 from utils.cases.create import create_timeout_case
 from utils.config import Configuration
 from utils.perms import permcheck, is_mod, is_dark_mod, is_immune, target_eligibility
-from utils.base import SersiEmbed
+from utils.sersi_embed import SersiEmbed
+
+
+def convert(timespan: str, duration: int) -> int:
+    match timespan:
+        case "m":
+            return int(
+                (
+                    datetime.datetime.now() + datetime.timedelta(minutes=duration)
+                ).timestamp()
+            )
+
+        case "h":
+            if not duration > 672:
+                return int(
+                    (
+                        datetime.datetime.now() + datetime.timedelta(hours=duration)
+                    ).timestamp()
+                )
+
+        case "d":
+            if not duration > 28:
+                return int(
+                    (
+                        datetime.datetime.now() + datetime.timedelta(days=duration)
+                    ).timestamp()
+                )
+
+        case "w":
+            if not duration > 4:
+                return int(
+                    (
+                        datetime.datetime.now() + datetime.timedelta(weeks=duration)
+                    ).timestamp()
+                )
+
+    return -1
 
 
 class TimeoutSystem(commands.Cog):
@@ -65,53 +102,25 @@ class TimeoutSystem(commands.Cog):
 
         await interaction.response.defer(ephemeral=False)
 
-        valid_time = False
+        planned_end: int = convert(timespan, duration)
 
-        planned_end = int((datetime.datetime.now() + datetime.timedelta(minutes=1)).timestamp())
-
-        match timespan:
-            case "m":
-                valid_time = True
-                planned_end = int((datetime.datetime.now() + datetime.timedelta(minutes=duration)).timestamp())
-
-            case "h":
-                if not duration > 672:
-                    valid_time = True
-                    planned_end = int((datetime.datetime.now() + datetime.timedelta(hours=duration)).timestamp())
-
-            case "d":
-                if not duration > 28:
-                    valid_time = True
-                    planned_end = int((datetime.datetime.now() + datetime.timedelta(days=duration)).timestamp())
-
-            case "w":
-                if not duration > 4:
-                    valid_time = True
-                    planned_end = int((datetime.datetime.now() + datetime.timedelta(weeks=duration)).timestamp())
-
-        if not valid_time:
+        if planned_end == -1:
             interaction.followup.send(
                 f"{self.config.emotes.fail} You have input an invalid timeout duration. "
                 "A timeout cannot last any longer than 28 days."
             )
+            return
 
         if not target_eligibility(interaction.user, offender):
             warning_alert = SersiEmbed(
                 title="Unauthorised Moderation Target",
                 description=f"{interaction.user.mention} ({interaction.user.id}) attempted to warn {offender.mention} "
-                            f"({offender.id}) despite being outranked!",
+                f"({offender.id}) despite being outranked!",
             )
 
-            logging_channel = interaction.guild.get_channel(
-                self.config.channels.logging
-            )
-
-            mega_admin_role = interaction.guild.get_role(
-                self.config.permission_roles.dark_moderator
-            )
-
-            await logging_channel.send(
-                content=f"**ALERT:** {mega_admin_role.mention}", embed=warning_alert
+            await interaction.guild.get_channel(self.config.channels.logging).send(
+                content=f"**ALERT:** {interaction.guild.get_role(self.config.permission_roles.dark_moderator).mention}",
+                embed=warning_alert,
             )
 
             await interaction.followup.send(
@@ -133,16 +142,22 @@ class TimeoutSystem(commands.Cog):
             )
             return
 
-        uuid = create_timeout_case(self.config, offender, interaction.user, offence, detail, planned_end)
+        uuid: str = create_timeout_case(
+            self.config, offender, interaction.user, offence, detail, planned_end
+        )
 
         try:
             await offender.send(
                 embed=SersiEmbed(
                     title=f"You have been timed out in {interaction.guild.name}!",
-                    description=f"You have been timed out in {interaction.guild.name}. The details about the timeout are"
-                                f"below. If you would like to appeal your timeout you can do so:\n"
-                                f"https://appeals.wickbot.com",
-                    fields={"Offence:": f"`{offence}`", "Detail:": f"`{detail}`", "Duration:": f"`{duration}{timespan}`"},
+                    description=f"You have been timed out in {interaction.guild.name}. The details about the timeout are "
+                    "below. If you would like to appeal your timeout you can do so:\n"
+                    "https://appeals.wickbot.com",
+                    fields={
+                        "Offence:": f"`{offence}`",
+                        "Detail:": f"`{detail}`",
+                        "Duration:": f"`{duration}{timespan}`",
+                    },
                     footer="Sersi Timeout",
                 ).set_thumbnail(interaction.guild.icon.url)
             )
@@ -152,5 +167,29 @@ class TimeoutSystem(commands.Cog):
             not_sent = True
 
         logging_embed: SersiEmbed = create_timeout_case_embed(
-            sersi_case=get_case_by_id(self.config, uuid, False), interaction=interaction
+            sersi_case=get_case_by_id(self.config, uuid, scrubbed=False),
+            interaction=interaction,
+        )
+
+        await interaction.guild.get_channel(self.config.channels.mod_logs).send(
+            embed=logging_embed
+        )
+        await interaction.guild.get_channel(self.config.channels.logging).send(
+            embed=logging_embed
+        )
+
+        await interaction.followup.send(
+            embed=SersiEmbed(
+                title="Warn Result:",
+                fields={
+                    "Offence:": f"`{offence}`",
+                    "Detail:": f"`{detail}`",
+                    "Duration:": f"`{duration}{timespan}`",
+                    "Member:": f"{offender.mention} ({offender.id})",
+                    "DM Sent:": self.config.emotes.fail
+                    if not_sent
+                    else self.config.emotes.success,
+                },
+                footer="Sersi Timeout",
+            )
         )

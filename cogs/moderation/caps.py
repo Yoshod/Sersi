@@ -2,7 +2,8 @@ import nextcord
 from nextcord.ext import commands
 import re
 
-from utils.base import SersiEmbed, ignored_message
+from utils.sersi_embed import SersiEmbed
+from utils.base import ignored_message
 from utils.config import Configuration
 from utils.perms import permcheck, is_mod, is_staff
 from utils.webhooks import send_webhook_message

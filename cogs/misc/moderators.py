@@ -2,7 +2,8 @@ import nextcord
 from nextcord import SlashOption
 from nextcord.ext import commands
 
-from utils.base import ConfirmView, DualCustodyView, SersiEmbed
+from utils.sersi_embed import SersiEmbed
+from utils.base import ConfirmView, DualCustodyView
 from utils.config import Configuration
 from utils.perms import permcheck, is_staff, is_senior_mod, is_slt, is_dark_mod
 
@@ -13,114 +14,6 @@ class Staff(commands.Cog):
         self.config = config
         self.sersisuccess = config.emotes.success
         self.sersifail = config.emotes.fail
-
-    async def cb_addticket_proceed(self, interaction):
-        member_id = 0
-        for field in interaction.message.embeds[0].fields:
-            if field.name == "User ID":
-                member_id = int(field.value)
-        member = interaction.guild.get_member(member_id)
-
-        ticket_support = interaction.guild.get_role(
-            self.config.permission_roles.ticket_support
-        )
-        await member.add_roles(ticket_support)
-        await interaction.message.edit(
-            f"{self.sersisuccess} {member.mention} was given the {ticket_support.name} role.",
-            embed=None,
-            view=None,
-        )
-
-        # logging
-        log_embed = nextcord.Embed(
-            title=f"New {ticket_support.name} member added.",
-            colour=nextcord.Color.from_rgb(237, 91, 6),
-        )
-        log_embed.add_field(
-            name="Responsible Staff Member:",
-            value=interaction.user.mention,
-            inline=False,
-        )
-        log_embed.add_field(
-            name=f"New {ticket_support.name}:", value=member.mention, inline=False
-        )
-
-        channel = interaction.guild.get_channel(self.config.channels.logging)
-        await channel.send(embed=log_embed)
-
-        channel = interaction.guild.get_channel(self.config.channels.mod_logs)
-        await channel.send(embed=log_embed)
-
-    @commands.command(aliases=["addticket"])
-    async def addticketsupport(self, ctx, member: nextcord.Member):
-        if not await permcheck(ctx, is_staff):
-            return
-
-        dialog_embed = nextcord.Embed(
-            title="Add Member as ticket Support",
-            description="Following member will be assigned the ticket support role:",
-            color=nextcord.Color.from_rgb(237, 91, 6),
-        )
-        dialog_embed.add_field(name="User", value=member.mention)
-        dialog_embed.add_field(name="User ID", value=member.id)
-
-        await ConfirmView(self.cb_addticket_proceed).send_as_reply(
-            ctx, embed=dialog_embed
-        )
-
-    async def cb_rmticket_proceed(self, interaction):
-        member_id = 0
-        for field in interaction.message.embeds[0].fields:
-            if field.name == "User ID":
-                member_id = int(field.value)
-        member = interaction.guild.get_member(member_id)
-
-        ticket_support = interaction.guild.get_role(
-            self.config.permission_roles.ticket_support
-        )
-        await member.remove_roles(ticket_support)
-        await interaction.message.edit(
-            f"{self.sersisuccess} {member.mention} was removed from the {ticket_support.name} role.",
-            embed=None,
-            view=None,
-        )
-
-        # logging
-        log_embed = nextcord.Embed(
-            title=f"{ticket_support.name} member removed.",
-            colour=nextcord.Color.from_rgb(237, 91, 6),
-        )
-        log_embed.add_field(
-            name="Responsible Staff Member:",
-            value=interaction.user.mention,
-            inline=False,
-        )
-        log_embed.add_field(
-            name=f"Former {ticket_support.name}:", value=member.mention, inline=False
-        )
-
-        channel = interaction.guild.get_channel(self.config.channels.logging)
-        await channel.send(embed=log_embed)
-
-        channel = interaction.guild.get_channel(self.config.channels.mod_logs)
-        await channel.send(embed=log_embed)
-
-    @commands.command(aliases=["rmticket"])
-    async def removeticketsupport(self, ctx, member: nextcord.Member):
-        if not await permcheck(ctx, is_staff):
-            return
-
-        dialog_embed = nextcord.Embed(
-            title="Add Member as ticket Support",
-            description="Following member will be assigned the ticket support role:",
-            color=nextcord.Color.from_rgb(237, 91, 6),
-        )
-        dialog_embed.add_field(name="User", value=member.mention)
-        dialog_embed.add_field(name="User ID", value=member.id)
-
-        await ConfirmView(self.cb_rmticket_proceed).send_as_reply(
-            ctx, embed=dialog_embed
-        )
 
     async def cb_addtrialmod_proceed(self, interaction):
         member_id = 0

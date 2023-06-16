@@ -11,7 +11,7 @@ from utils.cases.misc import offence_validity_check, deletion_validity_check
 from utils.config import Configuration
 from utils.cases.fetch import get_case_by_id
 from utils.perms import permcheck, is_mod, is_dark_mod, is_immune, target_eligibility
-from utils.base import SersiEmbed
+from utils.sersi_embed import SersiEmbed
 
 
 class WarningSystem(commands.Cog):
@@ -128,6 +128,7 @@ class WarningSystem(commands.Cog):
                     if not_sent
                     else self.config.emotes.success,
                 },
+                footer="Sersi Warning",
             )
         )
 

@@ -9,7 +9,8 @@ from nextcord.ui import Button, View
 
 import discordTokens
 from utils import logs
-from utils.base import SersiEmbed, ignored_message
+from utils.sersi_embed import SersiEmbed
+from utils.base import ignored_message
 from utils.config import Configuration
 from utils.perms import cb_is_mod
 

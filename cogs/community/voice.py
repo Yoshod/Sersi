@@ -3,7 +3,8 @@ import requests
 
 from nextcord.ext import commands
 
-from utils.base import ConfirmView, SersiEmbed
+from utils.sersi_embed import SersiEmbed
+from utils.base import ConfirmView
 from utils.config import Configuration
 from utils.perms import permcheck, is_mod
 import discordTokens

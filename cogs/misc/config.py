@@ -2,7 +2,9 @@ import nextcord
 import yaml
 
 from nextcord.ext import commands
-from utils.base import sanitize_mention, SersiEmbed
+
+from utils.sersi_embed import SersiEmbed
+from utils.base import sanitize_mention
 from utils.config import Configuration
 from utils.perms import permcheck, is_sersi_contrib, is_staff
 from utils.cogs import reload_all_cogs

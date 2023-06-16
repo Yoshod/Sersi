@@ -4,7 +4,7 @@ import io
 from chat_exporter import export
 from utils.config import Configuration
 from utils.perms import permcheck, is_dark_mod
-from utils.base import SersiEmbed
+from utils.sersi_embed import SersiEmbed
 
 
 class Archive(commands.Cog):

@@ -3,7 +3,7 @@ from nextcord.ext import commands
 
 import re
 
-from utils.base import SersiEmbed
+from utils.sersi_embed import SersiEmbed
 from utils.config import Configuration
 
 

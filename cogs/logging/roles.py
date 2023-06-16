@@ -1,7 +1,9 @@
 import nextcord
+
+
 from nextcord.ext import commands
 from utils.config import Configuration
-from utils.base import SersiEmbed
+from utils.sersi_embed import SersiEmbed
 
 
 class MemberRoles(commands.Cog):
@@ -77,8 +79,6 @@ class MemberRoles(commands.Cog):
 
     @commands.Cog.listener()
     async def on_guild_role_update(self, before: nextcord.Role, after: nextcord.Role):
-
-
 
         log: nextcord.AuditLogEntry = (
             await after.guild.audit_logs(

@@ -13,6 +13,7 @@ from datetime import datetime
 # Sersi Config Imports
 import utils.config
 from utils.perms import permcheck, is_dark_mod
+from utils.sersi_embed import SersiEmbed
 
 
 def get_discord_timestamp(time: datetime, *, relative: bool = False) -> str:
@@ -20,31 +21,6 @@ def get_discord_timestamp(time: datetime, *, relative: bool = False) -> str:
         return f"<t:{int(time.timestamp())}:R>"
     else:
         return f"<t:{int(time.timestamp())}:f>"
-
-
-class SersiEmbed(nextcord.Embed):
-    def __init__(
-        self,
-        *,
-        fields: dict[str, str] = None,
-        footer: str = nextcord.embeds.EmptyEmbed,
-        footer_icon: str = nextcord.embeds.EmptyEmbed,
-        **kwargs,
-    ):
-        super().__init__(**kwargs)
-
-        # Configure Embed Footer
-        self.set_footer(text=footer, icon_url=footer_icon)
-        self.timestamp = datetime.now(pytz.UTC)
-
-        # Configure Colour
-        if "color" not in kwargs and "colour" not in kwargs:
-            self.colour = nextcord.Color.from_rgb(237, 91, 6)
-
-        # Configure Fields
-        if fields:
-            for field in fields:
-                self.add_field(name=field, value=fields[field], inline=False)
 
 
 def sanitize_mention(string: str) -> str:

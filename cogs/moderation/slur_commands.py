@@ -1,7 +1,8 @@
 import nextcord.ext.commands
 from nextcord.ext import commands
 
-from utils.base import SersiEmbed, PageView, DualCustodyView
+from utils.sersi_embed import SersiEmbed
+from utils.base import PageView, DualCustodyView
 from utils.config import Configuration
 from utils.perms import permcheck, is_mod, is_full_mod, is_dark_mod
 from slurdetector import (

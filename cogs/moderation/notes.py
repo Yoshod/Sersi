@@ -2,7 +2,8 @@ import nextcord
 import time
 from nextcord.ext import commands
 
-from utils.base import SersiEmbed, PageView
+from utils.sersi_embed import SersiEmbed
+from utils.base import PageView
 from utils.notes import (
     create_note,
     get_note_by_id,

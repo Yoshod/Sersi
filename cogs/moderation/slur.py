@@ -5,9 +5,9 @@ from nextcord.ext import commands
 
 import utils
 from utils import logs
+from utils.sersi_embed import SersiEmbed
 from utils.base import (
     sanitize_mention,
-    SersiEmbed,
     PageView,
     format_entry,
     convert_mention_to_id,

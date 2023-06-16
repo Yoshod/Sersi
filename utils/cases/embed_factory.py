@@ -2,7 +2,7 @@ import time
 
 import nextcord
 
-from utils.base import SersiEmbed
+from utils.sersi_embed import SersiEmbed
 from utils.config import Configuration
 
 
@@ -398,26 +398,33 @@ def create_kick_case_embed(
 
     return case_embed
 
+
 def create_timeout_case_embed(
     sersi_case: dict, interaction: nextcord.Interaction
 ) -> SersiEmbed:
-    case_embed = SersiEmbed()
-    case_embed.add_field(name="Case:", value=f"`{sersi_case['ID']}`", inline=True)
-    case_embed.add_field(name="Type:", value="`Timeout`", inline=True)
+    case_embed: SersiEmbed = (
+        SersiEmbed()
+        .add_field(name="Case:", value=f"`{sersi_case['ID']}`", inline=True)
+        .add_field(name="Type:", value="`Timeout`", inline=True)
+    )
 
     if not sersi_case["Actual End"] and sersi_case["Planned End"] > int(time.time()):
-        ongoing_emote = Configuration.from_yaml_file(
-            "./persistent_data/config.yaml"
-        ).emotes.success
-        ongoing = True
+        case_embed.add_field(
+            name="Ongoing:",
+            value=Configuration.from_yaml_file(
+                "./persistent_data/config.yaml"
+            ).emotes.success,
+            inline=True,
+        )
 
     else:
-        ongoing_emote = Configuration.from_yaml_file(
-            "./persistent_data/config.yaml"
-        ).emotes.fail
-        ongoing = False
-
-    case_embed.add_field(name="Ongoing:", value=ongoing_emote, inline=True)
+        case_embed.add_field(
+            name="Ongoing:",
+            value=Configuration.from_yaml_file(
+                "./persistent_data/config.yaml"
+            ).emotes.fail,
+            inline=True,
+        )
 
     moderator = interaction.guild.get_member(sersi_case["Moderator ID"])
 
@@ -429,11 +436,9 @@ def create_timeout_case_embed(
         )
 
     else:
-        case_embed.add_field(
-            name="Moderator:", value=f"{moderator.mention}", inline=True
-        )
+        case_embed.add_field(name="Moderator:", value=moderator.mention, inline=True)
 
-    offender = interaction.guild.get_member(sersi_case["Offender ID"])
+    offender: nextcord.Member = interaction.guild.get_member(sersi_case["Offender ID"])
 
     if not offender:
         case_embed.add_field(

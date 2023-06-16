@@ -6,7 +6,8 @@ from nextcord.ext import commands
 import datetime
 
 # sersi imports
-from utils.base import SersiEmbed, get_discord_timestamp
+from utils.sersi_embed import SersiEmbed
+from utils.base import get_discord_timestamp
 from utils.config import Configuration
 from utils.perms import permcheck, is_mod, is_dark_mod, is_staff, is_cet
 

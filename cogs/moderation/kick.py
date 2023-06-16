@@ -7,7 +7,7 @@ from utils.cases.embed_factory import create_kick_case_embed
 from utils.cases.fetch import get_case_by_id
 from utils.config import Configuration
 from utils.perms import permcheck, is_mod, is_dark_mod, is_immune, target_eligibility
-from utils.base import SersiEmbed
+from utils.sersi_embed import SersiEmbed
 
 
 class KickSystem(commands.Cog):

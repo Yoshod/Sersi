@@ -6,9 +6,9 @@ from nextcord.ext import commands
 from nextcord.ui import Button, View
 
 from utils import logs
+from utils.sersi_embed import SersiEmbed
 from utils.base import (
     modmention_check,
-    SersiEmbed,
     convert_mention_to_id,
     ignored_message,
 )

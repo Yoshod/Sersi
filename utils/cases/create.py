@@ -226,7 +226,16 @@ def create_timeout_case(
     cursor.execute(
         "INSERT INTO timeout_cases (id, offender, moderator, offence, details, planned_end, adjusted, timestamp) "
         "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-        (uuid, offender.id, moderator.id, offence, detail, planned_end, False, timestamp),
+        (
+            uuid,
+            offender.id,
+            moderator.id,
+            offence,
+            detail,
+            planned_end,
+            False,
+            timestamp,
+        ),
     )
     cursor.execute(
         "INSERT INTO cases (id, type, timestamp) VALUES (?, ?, ?)",
