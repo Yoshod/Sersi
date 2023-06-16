@@ -49,7 +49,7 @@ class Cases(commands.Cog):
                 "Reformation": "reformation_cases",
                 "Bad Faith Ping": "bad_faith_ping_cases",
                 "Warn": "warn_cases",
-                "Kidk": "kick_cases",
+                "Kick": "kick_cases",
                 "Scrubbed Cases": "scrubbed_cases",
             },
         ),
