@@ -60,6 +60,9 @@ class Caps(commands.Cog):
                         "> # ",
                         "> ## ",
                         "> ### ",
+                        ">>> # ",
+                        ">>> ## ",
+                        ">>> ### ",
                     )
                 ):
                     need_replacement = True
@@ -68,7 +71,7 @@ class Caps(commands.Cog):
                     line = line.replace("## ", "")
                     line = line.replace("# ", "")
 
-                cleaned_message += line
+                cleaned_message += f"{line}\n"
             msg_string = cleaned_message
 
         # count uppercase chars
