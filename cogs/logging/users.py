@@ -1,3 +1,5 @@
+import datetime
+
 import nextcord
 from nextcord.ext import commands
 
@@ -138,7 +140,7 @@ class UserLogging(commands.Cog):
         ):
             log: nextcord.AuditLogEntry = (
                 await after.guild.audit_logs(
-                    action=nextcord.AuditLogAction.member_role_update, limit=1
+                    action=nextcord.AuditLogAction.member_update, limit=1
                 ).flatten()
             )[0]
 
@@ -148,6 +150,29 @@ class UserLogging(commands.Cog):
                     fields={
                         "Communication Disabled Until": f"{get_discord_timestamp(after.communication_disabled_until)} "
                         f"({get_discord_timestamp(after.communication_disabled_until, relative=True)})",
+                        "Changed By": f"{log.user.mention} ({log.user.id})",
+                        "Reason": log.reason,
+                    },
+                    footer="Sersi Member Logging",
+                ).set_author(name=log.user, icon_url=log.user.display_avatar.url)
+            )
+
+        if (
+            before.communication_disabled_until != after.communication_disabled_until
+            and before.communication_disabled_until
+        ):
+            log: nextcord.AuditLogEntry = (
+                await after.guild.audit_logs(
+                    action=nextcord.AuditLogAction.member_update, limit=1
+                ).flatten()
+            )[0]
+
+            await after.guild.get_channel(self.config.channels.user_chanes).send(
+                embed=SersiEmbed(
+                    description=f"{after.mention} was unmuted",
+                    fields={
+                        "Mute cut short by": before.communication_disabled_until
+                        - datetime.datetime.now(datetime.timezone.utc),
                         "Changed By": f"{log.user.mention} ({log.user.id})",
                         "Reason": log.reason,
                     },
