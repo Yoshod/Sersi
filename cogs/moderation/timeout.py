@@ -168,11 +168,13 @@ class TimeoutSystem(commands.Cog):
             embed=logging_embed
         )
 
-        await offender.timeout(planned_end, reason="Sersi Timeout")
+        await offender.timeout(
+            planned_end, reason=f"[{offence}: {detail}] - {interaction.user}"
+        )
 
         await interaction.followup.send(
             embed=SersiEmbed(
-                title="Warn Result:",
+                title="Timeout Result:",
                 fields={
                     "Offence:": f"`{offence}`",
                     "Detail:": f"`{detail}`",
@@ -188,24 +190,29 @@ class TimeoutSystem(commands.Cog):
 
     @timeout.subcommand(description="Used to remove a user's timeout")
     async def remove(
-            self,
-            interaction: nextcord.Interaction,
-            offender: nextcord.Member = nextcord.SlashOption(
-                name="offender",
-                description="The person you wish to end the timeout for.",
-            ),
-            reason: str = nextcord.SlashOption(
-                name="reason",
-                description="Reason for ending the timeout",
-                min_length=8,
-                max_length=1024,
-            )
-
+        self,
+        interaction: nextcord.Interaction,
+        offender: nextcord.Member = nextcord.SlashOption(
+            name="offender",
+            description="The person you wish to end the timeout for.",
+        ),
+        reason: str = nextcord.SlashOption(
+            name="reason",
+            description="Reason for ending the timeout",
+            min_length=8,
+            max_length=1024,
+        ),
     ):
         if not await permcheck(interaction, is_mod):
             return
 
         await interaction.response.defer(ephemeral=False)
+
+        ...
+        ...
+        ...
+
+        await offender.edit(timeout=None, reason=f"[{reason}] - {interaction.user}")
 
     @add.on_autocomplete("offence")
     async def search_offences(self, interaction: nextcord.Interaction, offence: str):

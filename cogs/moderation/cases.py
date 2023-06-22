@@ -437,59 +437,59 @@ class Cases(commands.Cog):
 
     @offence.subcommand(description="Used to add a new offence")
     async def add(
-            self,
-            interaction: nextcord.Interaction,
-            offence_name: str = nextcord.SlashOption(
-                name="offence",
-                description="The name of the new offence",
-                min_length=4,
-                max_length=64
-            ),
-            offence_description: str = nextcord.SlashOption(
-                name="description",
-                description="A description of the new offence",
-                min_length=32,
-                max_length=1024
-            ),
-            first_punishment: str = nextcord.SlashOption(
-                name="first_punishment",
-                description="This is the punishment for the first instance of the offence",
-                choices={
-                    "Informal Warning": "Informal Warning",
-                    "Warning": "Warning",
-                    "Reformation": "Reformation Centre",
-                    "Temporary Ban": "Temporary Ban",
-                    "Priority Ban": "Priority Ban",
-                    "Emergency Ban": "Emergency Ban",
-                    "Emergency Ban & Trust and Safety": "Emergency Ban & TnS Report"
-                }
-            ),
-            second_punishment: str = nextcord.SlashOption(
-                name="second_punishment",
-                description="This is the punishment for the second instance of the offence",
-                choices={
-                    "Informal Warning": "Informal Warning",
-                    "Warning": "Warning",
-                    "Reformation": "Reformation Centre",
-                    "Temporary Ban": "Temporary Ban",
-                    "Priority Ban": "Priority Ban",
-                    "Emergency Ban": "Emergency Ban",
-                    "Emergency Ban & Trust and Safety": "Emergency Ban & TnS Report"
-                }
-            ),
-            third_punishment: str = nextcord.SlashOption(
-                name="third_punishment",
-                description="This is the punishment for the third instance of the offence",
-                choices={
-                    "Informal Warning": "Informal Warning",
-                    "Warning": "Warning",
-                    "Reformation": "Reformation Centre",
-                    "Temporary Ban": "Temporary Ban",
-                    "Priority Ban": "Priority Ban",
-                    "Emergency Ban": "Emergency Ban",
-                    "Emergency Ban & Trust and Safety": "Emergency Ban & TnS Report"
-                }
-            )
+        self,
+        interaction: nextcord.Interaction,
+        offence_name: str = nextcord.SlashOption(
+            name="offence",
+            description="The name of the new offence",
+            min_length=4,
+            max_length=64,
+        ),
+        offence_description: str = nextcord.SlashOption(
+            name="description",
+            description="A description of the new offence",
+            min_length=32,
+            max_length=1024,
+        ),
+        first_punishment: str = nextcord.SlashOption(
+            name="first_punishment",
+            description="This is the punishment for the first instance of the offence",
+            choices={
+                "Informal Warning": "Informal Warning",
+                "Warning": "Warning",
+                "Reformation": "Reformation Centre",
+                "Temporary Ban": "Temporary Ban",
+                "Priority Ban": "Priority Ban",
+                "Emergency Ban": "Emergency Ban",
+                "Emergency Ban & Trust and Safety": "Emergency Ban & TnS Report",
+            },
+        ),
+        second_punishment: str = nextcord.SlashOption(
+            name="second_punishment",
+            description="This is the punishment for the second instance of the offence",
+            choices={
+                "Informal Warning": "Informal Warning",
+                "Warning": "Warning",
+                "Reformation": "Reformation Centre",
+                "Temporary Ban": "Temporary Ban",
+                "Priority Ban": "Priority Ban",
+                "Emergency Ban": "Emergency Ban",
+                "Emergency Ban & Trust and Safety": "Emergency Ban & TnS Report",
+            },
+        ),
+        third_punishment: str = nextcord.SlashOption(
+            name="third_punishment",
+            description="This is the punishment for the third instance of the offence",
+            choices={
+                "Informal Warning": "Informal Warning",
+                "Warning": "Warning",
+                "Reformation": "Reformation Centre",
+                "Temporary Ban": "Temporary Ban",
+                "Priority Ban": "Priority Ban",
+                "Emergency Ban": "Emergency Ban",
+                "Emergency Ban & Trust and Safety": "Emergency Ban & TnS Report",
+            },
+        ),
     ):
         if not await permcheck(interaction, is_senior_mod):
             return
@@ -501,20 +501,24 @@ class Cases(commands.Cog):
             offence_description,
             first_punishment,
             second_punishment,
-            third_punishment)
+            third_punishment,
+        )
 
         offence_added_log = SersiEmbed(
             title="New Offence Added",
-            fields={"Offence": f"`{offence_name}`",
-                    "Description": f"`{offence_description}`",
-                    "First Instance": f"`{first_punishment}`",
-                    "Second Instance": f"`{second_punishment}`",
-                    "Third Instance": f"`{third_punishment}`"}
-
+            fields={
+                "Offence": f"`{offence_name}`",
+                "Description": f"`{offence_description}`",
+                "First Instance": f"`{first_punishment}`",
+                "Second Instance": f"`{second_punishment}`",
+                "Third Instance": f"`{third_punishment}`",
+            },
         )
         offence_added_log.set_footer(text="Sersi Offences")
 
-        logging_channel: nextcord.TextChannel = interaction.guild.get_channel(self.config.channels.logging)
+        logging_channel: nextcord.TextChannel = interaction.guild.get_channel(
+            self.config.channels.logging
+        )
 
         await logging_channel.send(embed=offence_added_log)
 
