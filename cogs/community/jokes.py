@@ -25,6 +25,7 @@ def generate_uwu(input_text: str) -> str:
 
     output_text = ""
     previous_char = "\0"
+
     # check the cases for every individual character
     for current_char in input_text:
         # change 'L' and 'R' to 'W'
@@ -36,18 +37,12 @@ def generate_uwu(input_text: str) -> str:
             output_text += "w"
 
         # if the current character is 'o' or 'O' and the previous one is 'N', 'n', 'M' or 'm'
-        elif current_char in ["O", "o"]:
-            if previous_char in ["N", "n", "M", "m"]:
-                output_text += "yo"
-            else:
-                output_text += current_char
+        elif current_char in ["O", "o"] and previous_char in ["N", "n", "M", "m"]:
+            output_text += "yo"
 
         # if the current character is 'a' or 'A' and the previous one is 'N', 'n', 'M' or 'm'
-        elif current_char in ["A", "a"]:
-            if previous_char in ["N", "n", "M", "m"]:
-                output_text += "ya"
-            else:
-                output_text += current_char
+        elif current_char in ["A", "a"] and previous_char in ["N", "n", "M", "m"]:
+            output_text += "ya"
 
         # if no case match, write it as it is
         else:
