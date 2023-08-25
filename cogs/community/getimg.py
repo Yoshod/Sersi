@@ -20,7 +20,9 @@ class GetResources(commands.Cog):
 
         await interaction.response.defer(ephemeral=False)
 
-        with zipfile.ZipFile("resources.zip", "w", compression=zipfile.ZIP_DEFLATED) as file:
+        with zipfile.ZipFile(
+            "resources.zip", "w", compression=zipfile.ZIP_DEFLATED
+        ) as file:
 
             for emote in interaction.guild.emojis:
                 data: bytes = await emote.read()

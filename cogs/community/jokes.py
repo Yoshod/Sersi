@@ -53,33 +53,6 @@ def generate_uwu(input_text: str) -> str:
     return output_text
 
 
-def calculate_basedness(config: Configuration, member: nextcord.Member):
-    if member.id == 809891646606409779:
-        return 1.0
-
-    bias = 0.0
-
-    for role in member.roles:
-        if role.id in [
-            858382469987958804,
-            935673319947141230,
-            config.roles.honourable_member,
-        ]:
-            bias += 0.5
-        elif role.id in asdict(config.permission_roles).values():
-            bias += 0.25
-        elif role.id == config.roles.never_mod:
-            bias -= 0.5
-        elif role.id in config.punishment_roles.values():
-            bias -= 1.0
-        elif role.id == config.roles.probation:
-            bias -= 2.0
-        elif role.id == config.roles.reformation:
-            return 0.0
-
-    return random.triangular(low=0.0, high=1.0, mode=1 / (1 + math.exp(-bias)))
-
-
 class Jokes(commands.Cog):
     def __init__(self, bot: commands.Bot, config: Configuration):
         """Cog that provides fun commands and events.
@@ -138,52 +111,6 @@ class Jokes(commands.Cog):
                 footer="Nevermod",
             )
         await interaction.followup.send(embed=nevermod_embed)
-
-    @fun.subcommand(description="Determines how based the member is.")
-    async def basedcheck(
-        self,
-        interaction: nextcord.Interaction,
-        member: nextcord.Member = nextcord.SlashOption(
-            required=False, description="The member to check if they are based."
-        ),
-    ):
-        await interaction.response.defer(ephemeral=False)
-
-        if member is None:
-            member = interaction.user
-
-        based_levels = [
-            "not based at all. In fact, they're so not based they're mega cringe",
-            "so cringe that my cringe compilation can't contain them",
-            "not based",
-            "might be based but isn't worth the effort it would take to find out",
-            "maybe based and will require second ops centre to be opened",
-            "based",
-            "mega based",
-            "gigachad level of pure **based**",
-        ]
-
-        basedness: int = max(
-            0,
-            min(
-                math.floor(
-                    calculate_basedness(self.config, member) * len(based_levels)
-                ),
-                len(based_levels) - 1,
-            ),
-        )
-
-        based_check_embed = SersiEmbed(
-            title="Based Check",
-            description="An Emergency task force at the base department convened "
-            "in a rush to open a new ops centre in order to determine that "
-            f"{member.mention} is {based_levels[basedness]}.",
-            footer="Based Check",
-        )
-
-        await interaction.followup.send(embed=based_check_embed)
-
-    # compromise: let's have both variants for now -gombik
 
     @fun.subcommand(description="UwUifies the message.")
     async def uwuify(
@@ -326,84 +253,80 @@ class Jokes(commands.Cog):
             avatar_url=ctx.author.display_avatar.url,
         )
 
-    @commands.command(aliases=["coin", "coinflip"])
-    async def flip(self, ctx: commands.Context):
-        flip_result = random.randint(1, 2)
-        if flip_result == 2:
-            await ctx.reply(
-                "https://tenor.com/view/heads-coinflip-flip-a-coin-coin-coins-gif-21479854"
-            )
-        elif flip_result == 1:
-            await ctx.reply(
-                "https://tenor.com/view/coins-tails-coin-flip-a-coin-coinflip-gif-21479856"
-            )
-
     # events
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.Message):
         if ignored_message(self.config, message):
             return
 
-        if "admin furry stash" in message.content.lower():
-            randomValue = random.randint(1, 10)
-            if randomValue == 10:
-                embed = nextcord.Embed(
-                    title="Admin Furry Stash Rumour",
-                    description='The so called "Admin Furry Stash" channel does not exist. It has never existed, '
-                    "and never will exist, as there are no furry admins on this server. Please remain "
-                    "calm as our specialist anti-disinformation team arrives at your address in order to "
-                    "further educate you on this matter.",
-                    colour=nextcord.Colour.from_rgb(138, 43, 226),
-                )
-                await message.channel.send(embed=embed)
-                return
+        def chance(success_percentage: int) -> bool:
+            """returns true at a success_percentage% chance"""
+            percentage: int = random.randint(1, 100)
+            return percentage <= success_percentage
 
-        if "literally 1984" in message.content.lower():
-            randomValue = random.randint(1, 4)
-            if randomValue == 1:
-                years = [1419, 1483, 1618, 1812, 1848, 1894, 1942, 1948, 1968, 1989]
-                await message.channel.send(
-                    f"Oh my god, so true. It literally is like George Orlando's {random.choice(years)}"
-                )
-                return
+        match message.content.lower():
+            case "admin furry stash":
+                if chance(10):
+                    await message.channel.send(
+                        embed=SersiEmbed(
+                            title="Admin Furry Stash Rumour",
+                            description='The so called "Admin Furry Stash" channel does not exist. It has never "'
+                            "existed, and never will exist, as there are no furry admins on this server. Please remain "
+                            "calm as our specialist anti-disinformation team arrives at your address in order to "
+                            "further educate you on this matter.",
+                            footer="Sersi Anti Rumour Aktion",
+                        )
+                    )
 
-        if message.content.lower() == "nya":
-            randomValue = random.randint(1, 10)
-            if randomValue == 1:
-                await message.channel.send(
-                    f"Nya... nya? What are you, a fucking weeb {message.author.mention}?"
-                )
-                return
+            case "literally 1984":
+                if chance(25):
+                    years: list[int] = [
+                        1483,
+                        1848,
+                        1894,
+                        1942,
+                        1948,
+                        1968,
+                        1989,
+                    ]
+                    await message.channel.send(
+                        f"Oh my god, so true. It literally is like George Orlando's {random.choice(years)}"
+                    )
 
-        if message.content.lower() == "meow":
-            randomValue = random.randint(1, 10)
-            if randomValue == 1:
-                await message.channel.send(
-                    f"Meow meow meow, we get it you have a prissy attitude {message.author.mention}, we already noticed."
-                )
-                return
+            case "nya":
+                if chance(10):
+                    await message.channel.send(
+                        f"Nya... nya? What are you, a fucking weeb {message.author.mention}?"
+                    )
 
-        if (
-            message.type == nextcord.MessageType.reply
-            and "is this" in message.content.lower()
-            and len(message.mentions) == 1
-        ):
-            randomValue = random.randint(1, 100)
-            if randomValue == 1:
-                await message.reply(
-                    f"No, this is {message.mentions[0].nick or message.mentions[0].name}."
-                )
-                return
+            case "meow":
+                if chance(10):
+                    await message.channel.send(
+                        f"Meow meow meow, we get it you have a prissy attitude {message.author.mention}, we already noticed."
+                    )
 
-        if message.author.is_on_mobile():
+            case "woof":
+                if chance(10):
+                    await message.channel.send(
+                        f"Who's a good dog? You are! {message.author.mention}"
+                    )
+
+            case "bark":
+                if chance(10):
+                    await message.channel.send(
+                        f"What are you barking around? Do you need a muzzle {message.author.mention}?"
+                    )
+
+        # don't know what to do with this -mel
+        """if message.author.is_on_mobile():
             randomValue = random.randint(1, 100000)
             if randomValue == 1:
-                # let's have it simple _and_ gender neutral. okay?
+                # let's have it simple _and_ gender-neutral. okay?
                 await message.reply(
                     "Discord mobile was the greatest mistake in the history of humankind"
                 )
             elif randomValue < 4:
-                await message.reply("Phone user detected, opinion rejected")
+                await message.reply("Phone user detected, opinion rejected")"""
 
 
 def setup(bot, **kwargs):
