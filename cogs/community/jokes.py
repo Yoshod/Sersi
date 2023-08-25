@@ -1,14 +1,12 @@
 import random
-import math
-from dataclasses import asdict
 
 import nextcord
 from nextcord.ext import commands
 
-from utils.sersi_embed import SersiEmbed
 from utils.base import ignored_message
 from utils.config import Configuration
 from utils.perms import is_mod
+from utils.sersi_embed import SersiEmbed
 from utils.webhooks import send_webhook_message
 
 
@@ -305,6 +303,12 @@ class Jokes(commands.Cog):
                         f"Meow meow meow, we get it you have a prissy attitude {message.author.mention}, we already noticed."
                     )
 
+            case "mrow":
+                if chance(10):
+                    await message.channel.send(
+                        f"Mrow? You're feeling particularly wild right now, do you? {message.author.mention}"
+                    )
+
             case "woof":
                 if chance(10):
                     await message.channel.send(
@@ -314,8 +318,12 @@ class Jokes(commands.Cog):
             case "bark":
                 if chance(10):
                     await message.channel.send(
-                        f"What are you barking around? Do you need a muzzle {message.author.mention}?"
+                        f"What are you barking about? Do you need a muzzle {message.author.mention}?"
                     )
+
+            case "wuff":
+                if chance(10):
+                    await message.channel.send(f"PLACEHOLDER TEXT WUFF RESPONSE {message.author.mention}")
 
         # don't know what to do with this -mel
         """if message.author.is_on_mobile():
