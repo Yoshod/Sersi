@@ -20,11 +20,15 @@ class GetResources(commands.Cog):
 
         await interaction.response.defer(ephemeral=False)
 
-        with zipfile.ZipFile("resources.zip", "w") as file:
+        with zipfile.ZipFile("resources.zip", "w", compression=zipfile.ZIP_DEFLATED) as file:
 
             for emote in interaction.guild.emojis:
                 data: bytes = await emote.read()
-                file.writestr(f"emotes/{emote.name}.webp", data)
+
+                if emote.animated:
+                    file.writestr(f"emotes/{emote.name}.gif", data)
+                else:
+                    file.writestr(f"emotes/{emote.name}.png", data)
 
             for sticker in interaction.guild.stickers:
                 uri: str = f"https://media.discordapp.net/stickers/{sticker.id}.webp"
@@ -34,7 +38,10 @@ class GetResources(commands.Cog):
                 if response.status_code != 200:
                     continue
 
-                file.writestr(f"stickers/{sticker.name}.webp", response.content)
+                if sticker.format == nextcord.StickerFormatType.png:
+                    file.writestr(f"stickers/{sticker.name}.webp", response.content)
+                else:
+                    file.writestr(f"stickers/{sticker.name}.png", response.content)
 
             for role in interaction.guild.roles:
                 if not role.icon:
