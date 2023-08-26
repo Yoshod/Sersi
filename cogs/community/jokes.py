@@ -323,7 +323,9 @@ class Jokes(commands.Cog):
 
             case "wuff":
                 if chance(10):
-                    await message.channel.send(f"PLACEHOLDER TEXT WUFF RESPONSE {message.author.mention}")
+                    await message.channel.send(
+                        f"PLACEHOLDER TEXT WUFF RESPONSE {message.author.mention}"
+                    )
 
         # don't know what to do with this -mel
         """if message.author.is_on_mobile():

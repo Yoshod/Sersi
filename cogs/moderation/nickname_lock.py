@@ -25,7 +25,6 @@ class NicknameLock(commands.Cog):
             after.guild.get_role(self.config.punishment_roles["role_lock"])
             in after.roles
         ):
-            print("member is locked")
             await after.edit(nick=before.nick, reason="Nickname Lock")
 
             # logging
