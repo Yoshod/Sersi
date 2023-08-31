@@ -51,6 +51,18 @@ class GetResources(commands.Cog):
                         data: bytes = await response.read()
                         file.writestr(f"{name}.{extension}", data)
 
+            for reaction in message.reactions:
+                if not reaction.is_custom_emoji():
+                    continue
+                if not reaction.emoji.name:
+                    continue
+
+                data: bytes = await reaction.emoji.read()
+                file.writestr(
+                    f"reactions/{reaction.emoji.name}.{'gif' if reaction.emoji.animated else 'png'}",
+                    data,
+                )
+
         file_buffer.seek(0)  # be kind, rewind
 
         await interaction.followup.send(
