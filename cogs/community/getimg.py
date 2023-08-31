@@ -1,7 +1,9 @@
+import io
+import re
 import zipfile
 
+import aiohttp
 import nextcord
-import requests
 from nextcord.ext import commands
 
 from utils.perms import is_cet, permcheck
@@ -11,17 +13,65 @@ class GetResources(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    @nextcord.message_command(
+        name="Get Emojis",
+        name_localizations={nextcord.Locale.de: "Emojis Holen"},
+        dm_permission=False,
+        guild_ids=[977377117895536640, 856262303795380224],
+    )
+    async def get_emotes(
+        self, interaction: nextcord.Interaction, message: nextcord.Message
+    ):
+        """https://stackoverflow.com/questions/76070374/how-to-get-emoji-from-message-reference"""
+        if not await permcheck(interaction, is_cet):
+            return
+        await interaction.response.defer(ephemeral=True)
+
+        EMOJI_REGEX: str = (
+            r"<(?P<animated>a?):(?P<name>[a-zA-Z0-9_]{2,32}):(?P<id>[0-9]{18,22})>"
+        )
+        emojis: list[tuple[str]] = re.findall(EMOJI_REGEX, message.content)
+
+        file_buffer = io.BytesIO()
+
+        with zipfile.ZipFile(
+            file_buffer, "w", compression=zipfile.ZIP_DEFLATED
+        ) as file:
+
+            for emoji in emojis:
+                animated: bool = bool(emoji[0])
+                name: str = emoji[1]
+                snowflake: str = emoji[2]
+                extension: str = "gif" if animated else "png"
+
+                uri: str = f"https://cdn.discordapp.com/emojis/{snowflake}.{extension}"
+
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(uri) as response:
+                        data: bytes = await response.read()
+                        file.writestr(f"{name}.{extension}", data)
+
+        file_buffer.seek(0)  # be kind, rewind
+
+        await interaction.followup.send(
+            file=nextcord.File(file_buffer, f"emojis_{message.id}.zip")
+        )
+
     @nextcord.slash_command(
-        dm_permission=False, guild_ids=[977377117895536640, 856262303795380224]
+        dm_permission=False,
+        guild_ids=[977377117895536640, 856262303795380224],
+        description="Fetches all image resources of the server and sends them in a ZIP-File",
     )
     async def get_server_resources(self, interaction: nextcord.Interaction):
         if not await permcheck(interaction, is_cet):
             return
 
-        await interaction.response.defer(ephemeral=False)
+        await interaction.response.defer(ephemeral=True)
+
+        file_buffer = io.BytesIO()
 
         with zipfile.ZipFile(
-            "resources.zip", "w", compression=zipfile.ZIP_DEFLATED
+            file_buffer, "w", compression=zipfile.ZIP_DEFLATED
         ) as file:
 
             for emote in interaction.guild.emojis:
@@ -35,15 +85,19 @@ class GetResources(commands.Cog):
             for sticker in interaction.guild.stickers:
                 uri: str = f"https://media.discordapp.net/stickers/{sticker.id}.webp"
 
-                response = requests.get(uri)
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(uri) as response:
+                        if response.status != 200:
+                            continue
 
-                if response.status_code != 200:
-                    continue
-
-                if sticker.format == nextcord.StickerFormatType.png:
-                    file.writestr(f"stickers/{sticker.name}.webp", response.content)
-                else:
-                    file.writestr(f"stickers/{sticker.name}.png", response.content)
+                        if sticker.format == nextcord.StickerFormatType.png:
+                            file.writestr(
+                                f"stickers/{sticker.name}.webp", await response.read()
+                            )
+                        else:
+                            file.writestr(
+                                f"stickers/{sticker.name}.png", await response.read()
+                            )
 
             for role in interaction.guild.roles:
                 if not role.icon:
@@ -55,8 +109,11 @@ class GetResources(commands.Cog):
 
                 file.writestr(f"role_icons/{role.name}.png", data)
 
-        with open("resources.zip", "rb") as file:
-            await interaction.followup.send(file=nextcord.File(file))
+        file_buffer.seek(0)  # be kind, rewind
+
+        await interaction.followup.send(
+            file=nextcord.File(file_buffer, "resources.zip")
+        )
 
 
 def setup(bot, **kwargs):
