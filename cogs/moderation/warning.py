@@ -1,7 +1,9 @@
+from datetime import datetime
 import nextcord
 
 from nextcord.ext import commands
 from nextcord.ui import Button, View
+from pytz import timezone
 
 from utils.cases.autocomplete import fetch_offences_by_partial_name
 from utils.cases.create import create_warn_case
@@ -14,12 +16,69 @@ from utils.cases.fetch import get_case_by_id
 from utils.perms import permcheck, is_mod, is_dark_mod, is_immune, target_eligibility
 from utils.sersi_embed import SersiEmbed
 from utils.review import create_alert
+from utils import logs
 
 
 class WarningSystem(commands.Cog):
     def __init__(self, bot, config: Configuration):
         self.bot = bot
         self.config = config
+
+    async def cb_approve(self, interaction: nextcord.Interaction):
+        new_embed = interaction.message.embeds[0]
+        new_embed.add_field(
+            name="Moderation Action Approved",
+            value=interaction.user.mention,
+            inline=True,
+        )
+        new_embed.colour = nextcord.Colour.brand_green()
+        await interaction.message.edit(embed=new_embed, view=None)
+
+        # Logging
+        logging_embed = SersiEmbed(
+            title="Moderation Action Approved",
+            description="A Moderator Action has been approved by a moderator in response to a report.",
+            fields={
+                "Report:": interaction.message.jump_url,
+                "Moderator:": f"{interaction.user.mention} ({interaction.user.id})",
+            },
+            footer="Sersi Moderation Peer Review",
+        )
+
+        channel = self.bot.get_channel(self.config.channels.logging)
+        await channel.send(embed=logging_embed)
+
+        await logs.update_response(
+            self.config, interaction.message, datetime.now(timezone.utc)
+        )
+
+    async def cb_objection(self, interaction: nextcord.Interaction):
+        new_embed = interaction.message.embeds[0]
+        new_embed.add_field(
+            name="Moderation Action Objected To",
+            value=interaction.user.mention,
+            inline=True,
+        )
+        new_embed.colour = nextcord.Colour.brand_green()
+        await interaction.message.edit(embed=new_embed, view=None)
+
+        # Logging
+        logging_embed = SersiEmbed(
+            title="Moderation Action Objected To",
+            description="A Moderator Action has been objected to by a moderator in response to a report.",
+            fields={
+                "Report:": interaction.message.jump_url,
+                "Moderator:": f"{interaction.user.mention} ({interaction.user.id})",
+            },
+            footer="Sersi Moderation Peer Review",
+        )
+
+        channel = self.bot.get_channel(self.config.channels.logging)
+        await channel.send(embed=logging_embed)
+
+        await logs.update_response(
+            self.config, interaction.message, datetime.now(timezone.utc)
+        )
 
     @nextcord.slash_command(
         dm_permission=False,
@@ -135,22 +194,29 @@ class WarningSystem(commands.Cog):
                     else self.config.emotes.success,
                 },
                 footer="Sersi Warning",
-            )
+            ),
+            wait=True,
         )
 
         reviewer_role, reviewed_role, review_embed, review_channel = create_alert(
-            interaction.user, Configuration, logging_embed, sersi_case, result.jump_url
+            interaction.user, self.config, logging_embed, sersi_case, result.jump_url
         )
 
-        cookie = Button(label="cookie", style=nextcord.ButtonStyle.green)
-        cookie.callback = self.cb_cookie
+        approve = Button(label="Approve", style=nextcord.ButtonStyle.green)
+        approve.callback = self.cb_approve
 
-        thewall = Button(label="thewall", style=nextcord.ButtonStyle.red)
-        thewall.callback = self.cb_thewall
+        objection = Button(label="Object", style=nextcord.ButtonStyle.red)
+        objection.callback = self.cb_objection
 
         button_view = View(timeout=None)
-        button_view.add_item(cookie)
-        button_view.add_item(thewall)
+        button_view.add_item(approve)
+        button_view.add_item(objection)
+
+        await review_channel.send(
+            f"{reviewer_role.mention} a warning by a {reviewed_role.mention} has been taken and should now be reviewed.",
+            embed=review_embed,
+            view=button_view,
+        )
 
     @warn.subcommand(description="Deactivate a warn")
     async def deactivate(
