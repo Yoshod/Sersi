@@ -44,26 +44,34 @@ def create_alert(
 
     match reviewer:
         case config.permission_roles.compliance:
-            review_channel = config.channels.compliance_review
+            review_channel = moderator.guild.get_channel(
+                config.channels.compliance_review
+            )
             reviewer_role = moderator.guild.get_role(reviewer)
             reviewed_role = moderator.guild.get_role(
                 config.permission_roles.dark_moderator
             )
 
         case config.permission_roles.dark_moderator:
-            review_channel = config.channels.dark_mod_review
+            review_channel = moderator.guild.get_channel(
+                config.channels.dark_mod_review
+            )
             reviewer_role = moderator.guild.get_role(reviewer)
             reviewed_role = moderator.guild.get_role(
                 config.permission_roles.senior_moderator
             )
 
         case config.permission_roles.senior_moderator:
-            review_channel = config.channels.senior_mod_review
+            review_channel = moderator.guild.get_channel(
+                config.channels.senior_mod_review
+            )
             reviewer_role = moderator.guild.get_role(reviewer)
             reviewed_role = moderator.guild.get_role(config.permission_roles.moderator)
 
         case config.permission_roles.moderator:
-            review_channel = config.channels.moderator_review
+            review_channel = moderator.guild.get_channel(
+                config.channels.moderator_review
+            )
             reviewer_role = moderator.guild.get_role(reviewer)
             reviewed_role = moderator.guild.get_role(
                 config.permission_roles.trial_moderator

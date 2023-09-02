@@ -59,7 +59,7 @@ class WarningSystem(commands.Cog):
             value=interaction.user.mention,
             inline=True,
         )
-        new_embed.colour = nextcord.Colour.brand_green()
+        new_embed.colour = nextcord.Colour.brand_red()
         await interaction.message.edit(embed=new_embed, view=None)
 
         # Logging
