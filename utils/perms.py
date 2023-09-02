@@ -72,120 +72,76 @@ async def permcheck(
 
 
 def is_staff(member: nextcord.Member) -> bool:
-    permitted_roles: list[int] = [
-        config.permission_roles.staff,
-        config.permission_roles.trial_moderator,
-        config.permission_roles.moderator,
-        config.permission_roles.senior_moderator,
-        config.permission_roles.cet,
-        config.permission_roles.cet_lead,
-        config.permission_roles.dark_moderator,
-    ]
-
-    for role in member.roles:
-        if role.id in permitted_roles:
-            return True
-    return False
+    return is_allowed(
+        member,
+        [
+            config.permission_roles.staff,
+            config.permission_roles.trial_moderator,
+            config.permission_roles.moderator,
+            config.permission_roles.senior_moderator,
+            config.permission_roles.cet,
+            config.permission_roles.cet_lead,
+            config.permission_roles.dark_moderator,
+        ],
+    )
 
 
 def is_mod(member: nextcord.Member) -> bool:
-    permitted_roles: list[int] = [
-        config.permission_roles.moderator,
-        config.permission_roles.trial_moderator,
-    ]
-
-    for role in member.roles:
-        if role.id in permitted_roles:
-            return True
-    return False
+    return is_allowed(
+        member,
+        [
+            config.permission_roles.moderator,
+            config.permission_roles.trial_moderator,
+        ],
+    )
 
 
 def is_full_mod(member: nextcord.Member) -> bool:
-    permitted_roles: list[int] = [config.permission_roles.moderator]
-
-    for role in member.roles:
-        if role.id in permitted_roles:
-            return True
-    return False
+    return is_allowed(member, [config.permission_roles.moderator])
 
 
 def is_dark_mod(member: nextcord.Member) -> bool:
-    permitted_roles: list[int] = [config.permission_roles.dark_moderator]
-
-    for role in member.roles:
-        if role.id in permitted_roles:
-            return True
-    return False
+    return is_allowed(member, [config.permission_roles.dark_moderator])
 
 
 def is_senior_mod(member: nextcord.Member) -> bool:
-    permitted_roles: list[int] = [
-        config.permission_roles.senior_moderator,
-        config.permission_roles.dark_moderator,
-    ]
-
-    for role in member.roles:
-        if role.id in permitted_roles:
-            return True
-    return False
+    return is_allowed(
+        member,
+        [
+            config.permission_roles.senior_moderator,
+            config.permission_roles.dark_moderator,
+        ],
+    )
 
 
 def is_cet_lead(member: nextcord.Member) -> bool:
-    permitted_roles: list[int] = [config.permission_roles.cet_lead]
-
-    for role in member.roles:
-        if role.id in permitted_roles:
-            return True
-    return False
+    return is_allowed(member, [config.permission_roles.cet_lead])
 
 
 def is_slt(member: nextcord.Member) -> bool:
-    permitted_roles: list[int] = [
-        config.permission_roles.cet_lead,
-        config.permission_roles.senior_moderator,
-        config.permission_roles.dark_moderator,
-    ]
-
-    for role in member.roles:
-        if role.id in permitted_roles:
-            return True
-    return False
+    return is_allowed(
+        member,
+        [
+            config.permission_roles.cet_lead,
+            config.permission_roles.senior_moderator,
+            config.permission_roles.compliance,
+            config.permission_roles.dark_moderator,
+        ],
+    )
 
 
 def is_sersi_contributor(member: nextcord.Member) -> bool:
-    permitted_roles: list[int] = [config.permission_roles.sersi_contributor]
-
-    for role in member.roles:
-        if role.id in permitted_roles:
-            return True
-    return False
+    return is_allowed(member, [config.permission_roles.sersi_contributor])
 
 
 def is_cet(member: nextcord.Member) -> bool:
-    permitted_roles: list[int] = [
-        config.permission_roles.cet,
-        config.permission_roles.cet_lead,
-    ]
-
-    for role in member.roles:
-        if role.id in permitted_roles:
-            return True
-    return False
+    return is_allowed(
+        member, [config.permission_roles.cet, config.permission_roles.cet_lead]
+    )
 
 
 def is_immune(member: nextcord.Member) -> bool:
-    immune_roles: list[int] = [
-        config.permission_roles.dark_moderator,
-        config.permission_roles.cet_lead,
-        config.permission_roles.senior_moderator,
-        config.permission_roles.moderator,
-        config.permission_roles.trial_moderator,
-    ]
-
-    for role in member.roles:
-        if role.id in immune_roles:
-            return True
-    return False
+    return is_allowed(member, [config.permission_roles.dark_moderator])
 
 
 def target_eligibility(actor: nextcord.Member, target: nextcord.Member) -> bool:
@@ -220,6 +176,13 @@ def is_custom_role(
 
     for role in member.roles:
         if role in permitted_roles:
+            return True
+    return False
+
+
+def is_allowed(member: nextcord.Member, roles: list[int]) -> bool:
+    for role in member.roles:
+        if role.id in roles:
             return True
     return False
 
