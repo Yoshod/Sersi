@@ -19,137 +19,29 @@ class Reformation(commands.Cog):
         self.case_history_file = config.datafiles.casehistory
         self.case_details_file = config.datafiles.casedetails
 
-    async def cb_rn_proceed(self, interaction):
-        member_id, reason = 0, ""
-        for field in interaction.message.embeds[0].fields:
-            if field.name == "User ID":
-                member_id = int(field.value)
-            elif field.name == "Reason":
-                reason = field.value
-        member = interaction.guild.get_member(member_id)
 
-        # ------------------------------- ROLES CHANNELS
-        # give reformation role
-        reformation_role = interaction.guild.get_role(self.config.roles.reformation)
-        await member.add_roles(reformation_role, reason=reason, atomic=True)
+    @nextcord.slash_command(
+        dm_permission=False,
+        guild_ids=[977377117895536640, 856262303795380224],
+    )
+    async def reformation(self, interaction: nextcord.Interaction):
+        pass
 
-        # remove civil engineering initiate
-        role_obj = interaction.guild.get_role(
-            self.config.roles.civil_engineering_initiate
-        )
-        await member.remove_roles(role_obj, reason=reason, atomic=True)
 
-        # remove opt-ins
-        for role in vars(self.config.opt_in_roles):
-            role_obj = interaction.guild.get_role(vars(self.config.opt_in_roles)[role])
-            await member.remove_roles(role_obj, reason=reason, atomic=True)
-
-        # ------------------------------- CREATING THE CASE CHANNEL
-        # updating the case number in the iter file
-        with open(self.config.datafiles.reform_iter, "r") as file:
-            case_num = file.readline()
-            case_num = int(case_num) + 1
-
-        with open(self.config.datafiles.reform_iter, "w") as file:
-            file.write(str(case_num))
-
-        case_name = f"reformation-case-{str(case_num).zfill(4)}"
-
-        overwrites = {
-            interaction.guild.default_role: nextcord.PermissionOverwrite(
-                read_messages=False
-            ),
-            interaction.guild.me: nextcord.PermissionOverwrite(read_messages=True),
-            interaction.guild.get_role(
-                self.config.permission_roles.reformist
-            ): nextcord.PermissionOverwrite(read_messages=True),
-            interaction.guild.get_role(
-                self.config.permission_roles.moderator
-            ): nextcord.PermissionOverwrite(read_messages=True),
-            member: nextcord.PermissionOverwrite(
-                read_messages=True,
-                create_public_threads=False,
-                create_private_threads=False,
-                external_stickers=False,
-                embed_links=False,
-                attach_files=False,
-                use_external_emojis=False,
-            ),
-        }
-        category = nextcord.utils.get(
-            interaction.guild.categories, name="REFORMATION ROOMS"
-        )
-        case_channel = await interaction.guild.create_text_channel(
-            case_name, overwrites=overwrites, category=category
-        )
-
-        # ------------------------------- CREATING THE CASEFILE ENTRY
-        # load the reformation cases
-        try:
-            with open(self.config.datafiles.reformation_cases, "rb") as file:
-                reformation_list = pickle.load(file)
-        except (EOFError, TypeError):
-            reformation_list = {}
-
-        case_details = [case_name, case_num, interaction.user.id, reason]
-        reformation_list[member.id] = case_details
-
-        with open(self.config.datafiles.reformation_cases, "wb") as file:
-            pickle.dump(reformation_list, file)
-
-        unique_id = case_history(self.config, member.id, "Reformation")
-        reform_case(
-            self.config,
-            unique_id,
-            case_num,
-            member.id,
-            interaction.user.id,
-            case_channel.id,
-            reason,
-        )
-
-        await interaction.message.edit(
-            f"Member {member.mention} has been sent to reformation by {interaction.user.mention} for reason: `{reason}`",
-            embed=None,
-            view=None,
-        )
-
-        # ------------------------------- LOGGING
-
-        # Giving a welcome to the person sent to reformation
-        welcome_embed = nextcord.Embed(
-            title="Welcome to Reformation",
-            description=f"Hello {member.mention}, you have been sent to reformation by {interaction.user.mention}. "
-            f"The reason given for this is `{reason}`. \n\nFor more information on reformation "
-            f"check out <#{self.config.channels.reformation_info}> or talk to a <@&"
-            f"{self.config.permission_roles.reformist}>.",
-            color=nextcord.Color.from_rgb(237, 91, 6),
-        )
-
-        channel = nextcord.utils.get(interaction.guild.channels, name=case_name)
-        await channel.send(embed=welcome_embed)
-
-        embed = nextcord.Embed(
-            title="User Has Been Sent to Reformation",
-            description=f"Moderator {interaction.user.mention} ({interaction.user.id}) has sent user {member.mention}"
-            f" ({member.id}) to reformation.\n\n" + f"**__Reason:__**\n{reason}",
-            color=nextcord.Color.from_rgb(237, 91, 6),
-        )
-
-        channel = interaction.guild.get_channel(self.config.channels.logging)
-        await channel.send(embed=embed)
-
-        channel = interaction.guild.get_channel(self.config.channels.mod_logs)
-        await channel.send(embed=embed)
-
-        channel = interaction.guild.get_channel(self.config.channels.teachers_lounge)
-        await channel.send(embed=embed)
-
-        channel = interaction.guild.get_channel(self.config.channels.reform_public_log)
-        await channel.send(embed=embed)
-
-    @commands.command(aliases=["rn", "reformneeded", "reform"])
-    async def reformationneeded(self, ctx, member: nextcord.Member, *, reason=""):
+    @reformation.subcommand(name="add", description="Send a user to reformation centre.")
+    async def reformation_needed(
+        self,
+        interaction: nextcord.Interaction,
+        member: nextcord.Member = nextcord.SlashOption(
+            description="Member to send to reformation", required=True
+        ), 
+        reason: str = nextcord.SlashOption(
+            description="Reason for sending to reformation",
+            required=True,
+            min_length=8,
+            max_length=1024,
+        ),
+    ):
         """Send a user to reformation centre.
 
         Sends a [member] to reformation centre for reform by giving said [member] the @Reformation role.
@@ -157,28 +49,120 @@ class Reformation(commands.Cog):
         Permission Needed: Moderator, Trial Moderator.
         """
 
-        if not await permcheck(ctx, is_mod):
+        if not await permcheck(interaction, is_mod):
             return
 
-        if reason.startswith(
-            "?r "
-        ):  # splices away the "?r" that moderators accustomed to wick might put in there
-            reason = reason[3:]
+        reformation_role = interaction.guild.get_role(self.config.roles.reformation)
 
-        elif reason == "":
-            await ctx.send(f"{ctx.author.mention} please provide a reason.")
+        if reformation_role in member.roles:
+            await interaction.send(
+                f"{self.sersifail} member is already in reformation", ephemeral=True
+            )
             return
+        
+        await interaction.response.defer()
 
-        dialog_embed = nextcord.Embed(
-            title="Reform Member",
-            description="Following member will be sent to reformation:",
-            color=nextcord.Color.from_rgb(237, 91, 6),
+        @ConfirmView.query(
+            title="Reformation Needed",
+            prompt="Following member will be sent to reformation:",
+            embed_args={
+                "User": member.mention,
+                "Reason": reason,
+            },
         )
-        dialog_embed.add_field(name="User", value=member.mention)
-        dialog_embed.add_field(name="User ID", value=member.id)
-        dialog_embed.add_field(name="Reason", value=reason)
+        async def execute(*args, **kwargs):
+            # ------------------------------- ROLES
+            # give reformation role
+            await member.add_roles(reformation_role, reason=reason, atomic=True)
 
-        await ConfirmView(self.cb_rn_proceed).send_as_reply(ctx, embed=dialog_embed)
+            # remove civil engineering initiate
+            role_obj = interaction.guild.get_role(
+                self.config.roles.civil_engineering_initiate
+            )
+            await member.remove_roles(role_obj, reason=reason, atomic=True)
+
+            # remove opt-ins
+            for role in vars(self.config.opt_in_roles):
+                role_obj = interaction.guild.get_role(vars(self.config.opt_in_roles)[role])
+                await member.remove_roles(role_obj, reason=reason, atomic=True)
+            
+            # ------------------------------- CREATING THE CASE CHANNEL
+            # updating the case number in the iter file
+            with open(self.config.datafiles.reform_iter, "r") as file:
+                case_num = file.readline()
+                case_num = int(case_num) + 1
+
+            with open(self.config.datafiles.reform_iter, "w") as file:
+                file.write(str(case_num))
+            
+            case_name = f"reformation-case-{str(case_num).zfill(4)}"
+            overwrites = {
+                interaction.guild.default_role: nextcord.PermissionOverwrite(
+                    read_messages=False
+                ),
+                interaction.guild.me: nextcord.PermissionOverwrite(read_messages=True),
+                interaction.guild.get_role(
+                    self.config.permission_roles.reformist
+                ): nextcord.PermissionOverwrite(read_messages=True),
+                interaction.guild.get_role(
+                    self.config.permission_roles.moderator
+                ): nextcord.PermissionOverwrite(read_messages=True),
+                member: nextcord.PermissionOverwrite(
+                    read_messages=True,
+                    create_public_threads=False,
+                    create_private_threads=False,
+                    external_stickers=False,
+                    embed_links=False,
+                    attach_files=False,
+                    use_external_emojis=False,
+                ),
+            }
+            category = nextcord.utils.get(
+                interaction.guild.categories, name="REFORMATION ROOMS"
+            )
+
+            case_channel = await interaction.guild.create_text_channel(
+                case_name, overwrites=overwrites, category=category
+            )
+
+            # ------------------------------- CREATING THE CASEFILE ENTRY
+
+            # TODO: implement new case system
+
+            # ------------------------------- LOGGING
+
+            # Giving a welcome to the person sent to reformation
+            welcome_embed = nextcord.Embed(
+                title="Welcome to Reformation",
+                description=f"Hello {member.mention}, you have been sent to reformation by {interaction.user.mention}. "
+                f"The reason given for this is `{reason}`. \n\nFor more information on reformation "
+                f"check out <#{self.config.channels.reformation_info}> or talk to a <@&"
+                f"{self.config.permission_roles.reformist}>.",
+                color=nextcord.Color.from_rgb(237, 91, 6),
+            )
+
+            await case_channel.send(embed=welcome_embed)
+
+            embed = nextcord.Embed(
+                title="User Has Been Sent to Reformation",
+                description=f"Moderator {interaction.user.mention} ({interaction.user.id}) has sent user {member.mention}"
+                f" ({member.id}) to reformation.\n\n" + f"**__Reason:__**\n{reason}",
+                color=nextcord.Color.from_rgb(237, 91, 6),
+            )
+
+            channel = interaction.guild.get_channel(self.config.channels.logging)
+            await channel.send(embed=embed)
+
+            channel = interaction.guild.get_channel(self.config.channels.mod_logs)
+            await channel.send(embed=embed)
+
+            channel = interaction.guild.get_channel(self.config.channels.teachers_lounge)
+            await channel.send(embed=embed)
+
+            channel = interaction.guild.get_channel(self.config.channels.reform_public_log)
+            await channel.send(embed=embed)
+
+        await execute(self.bot, self.config, interaction)
 
     async def cb_rq_yes(self, interaction):
         new_embed = interaction.message.embeds[0]
