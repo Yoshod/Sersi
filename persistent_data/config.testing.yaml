@@ -70,10 +70,10 @@ channels:
     ban_unban: 1098601966034223125
     voice_logs: 1098602372915273779
     automod_logs: 1098602528406523914
-    compliance_review:       0
-    dark_mod_review:         0
-    senior_mod_review:       0
-    moderator_review:        0
+    compliance_review: 1147602461343891466
+    dark_mod_review: 1147602489017892944
+    senior_mod_review: 1147602514154377247
+    moderator_review: 1147602548971278407
 
 ignored_categories:
     - alerts
