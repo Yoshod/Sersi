@@ -27,15 +27,28 @@ class GuildChanges(commands.Cog):
 
         # removal case:
         if not after_list:
+
+            log: nextcord.AuditLogEntry = (
+                await guild.audit_logs(
+                    action=nextcord.AuditLogAction.emoji_delete, limit=1
+                ).flatten()
+            )[0]
             emoji: nextcord.Emoji = before_list[0]
+
+            if not log.target.id == emoji.id:
+                return
+
             await guild.get_channel(self.config.channels.guild_logs).send(
                 embed=SersiEmbed(
                     description="Guild emoji was removed",
                     fields={
                         "Removed Emote": f"Name: {emoji.name}\nManaged: {emoji.managed}\nAnimated: {emoji.animated}",
+                        "Emote Removed by:": f"{log.user.mention} ({log.user.id})",
                     },
                     footer="Sersi Guild Changes",
-                ).set_thumbnail(emoji.url)
+                )
+                .set_thumbnail(emoji.url)
+                .set_author(name=log.user, icon_url=log.user.display_avatar.url)
             )
         # adding case:
         elif not before_list:
@@ -57,18 +70,29 @@ class GuildChanges(commands.Cog):
             after_emoji: nextcord.Emoji = after_list[0]
             before_emoji: nextcord.Emoji = before_list[0]
             emoji: nextcord.Emoji = await guild.fetch_emoji(after_list[0].id)
+
+            log: nextcord.AuditLogEntry = (
+                await guild.audit_logs(
+                    action=nextcord.AuditLogAction.emoji_update, limit=1
+                ).flatten()
+            )[0]
+
+            if not log.target.id == emoji.id:
+                return
+
             await guild.get_channel(self.config.channels.guild_logs).send(
                 embed=SersiEmbed(
                     description="Guild emoji was changed",
                     fields={
                         "Before": f"Name: {before_emoji.name}\nManaged: {before_emoji.managed}\nAnimated: {before_emoji.animated}",
                         "After": f"Name: {after_emoji.name}\nManaged: {after_emoji.managed}\nAnimated: {after_emoji.animated}",
-                        "User": f"{emoji.user.mention} ({emoji.user.id})",
+                        "Added By": f"{emoji.user.mention} ({emoji.user.id})",
+                        "Changed By": f"{log.user.mention} ({log.user.id})",
                     },
                     footer="Sersi Guild Changes",
                 )
                 .set_thumbnail(after_emoji.url)
-                .set_author(name=emoji.user, icon_url=emoji.user.display_avatar.url)
+                .set_author(name=log.user, icon_url=log.user.display_avatar.url)
             )
 
     async def on_guild_stickers_update(
