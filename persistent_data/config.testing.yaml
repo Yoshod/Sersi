@@ -70,6 +70,10 @@ channels:
     ban_unban: 1098601966034223125
     voice_logs: 1098602372915273779
     automod_logs: 1098602528406523914
+    compliance_review:       0
+    dark_mod_review:         0
+    senior_mod_review:       0
+    moderator_review:        0
 
 ignored_categories:
     - alerts
@@ -118,6 +122,7 @@ permission_roles:
     dark_moderator:    978681533453971526
     cet: 0
     cet_lead: 0
+    compliance:        0
 
 emotes:
     success: "<:sersisuccess:979066662856822844>"

@@ -49,6 +49,10 @@ class ConfigurationChannels(YAMLWizard):
     internalfeedback: int
     timeoutappeals: int
     ageverification: int
+    compliance_review: int
+    dark_mod_review: int
+    senior_mod_review: int
+    moderator_review: int
 
     # debugging channels
     errors: int
@@ -137,6 +141,7 @@ class ConfigurationPermissionRoles(YAMLWizard):
     sersi_contributor: int
     cet: int
     cet_lead: int
+    compliance: int
 
     # AMAB: all mods are bastards ;)
     trial_moderator: int

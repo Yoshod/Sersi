@@ -70,6 +70,10 @@ channels:
     ban_unban:                895228834067144704
     voice_logs:               903368043101556837
     automod_logs:             903370888358023258
+    compliance_review:       1141028893248208916
+    dark_mod_review:         1141029001125691534
+    senior_mod_review:       1141029068372983849
+    moderator_review:        1141029132852019241
 
 ignored_categories:
     - Important stuff
@@ -118,6 +122,7 @@ permission_roles:
     dark_moderator:    875805670799179799
     cet:               956795983621132289
     cet_lead:         1022923124053921853
+    compliance:        927564712206544926
 
 punishment roles:
     annoying:                 925191425904238592

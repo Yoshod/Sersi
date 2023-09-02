@@ -1,6 +1,7 @@
 import nextcord
 
 from nextcord.ext import commands
+from nextcord.ui import Button, View
 
 from utils.cases.autocomplete import fetch_offences_by_partial_name
 from utils.cases.create import create_warn_case
@@ -12,6 +13,7 @@ from utils.config import Configuration
 from utils.cases.fetch import get_case_by_id
 from utils.perms import permcheck, is_mod, is_dark_mod, is_immune, target_eligibility
 from utils.sersi_embed import SersiEmbed
+from utils.review import create_alert
 
 
 class WarningSystem(commands.Cog):
@@ -106,8 +108,10 @@ class WarningSystem(commands.Cog):
         except (nextcord.Forbidden, nextcord.HTTPException):
             not_sent = True
 
+        sersi_case = get_case_by_id(self.config, uuid, False)
+
         logging_embed: SersiEmbed = create_warn_case_embed(
-            sersi_case=get_case_by_id(self.config, uuid, False), interaction=interaction
+            sersi_case, interaction=interaction
         )
 
         await interaction.guild.get_channel(self.config.channels.mod_logs).send(
@@ -117,7 +121,9 @@ class WarningSystem(commands.Cog):
             embed=logging_embed
         )
 
-        await interaction.followup.send(
+        # anchor: nextcord.Message = await interaction.channel.send("⚓")
+
+        result: nextcord.WebhookMessage = await interaction.followup.send(
             embed=SersiEmbed(
                 title="Warn Result:",
                 fields={
@@ -131,6 +137,20 @@ class WarningSystem(commands.Cog):
                 footer="Sersi Warning",
             )
         )
+
+        reviewer_role, reviewed_role, review_embed, review_channel = create_alert(
+            interaction.user, Configuration, logging_embed, sersi_case, result.jump_url
+        )
+
+        cookie = Button(label="cookie", style=nextcord.ButtonStyle.green)
+        cookie.callback = self.cb_cookie
+
+        thewall = Button(label="thewall", style=nextcord.ButtonStyle.red)
+        thewall.callback = self.cb_thewall
+
+        button_view = View(timeout=None)
+        button_view.add_item(cookie)
+        button_view.add_item(thewall)
 
     @warn.subcommand(description="Deactivate a warn")
     async def deactivate(
@@ -218,7 +238,6 @@ class WarningSystem(commands.Cog):
 
         if deletion_validity_check(self.config, case_id):
             if delete_warn(self.config, case_id):
-
                 await interaction.guild.get_channel(self.config.channels.logging).send(
                     embed=SersiEmbed(
                         title="Warning Deleted",
@@ -238,7 +257,6 @@ class WarningSystem(commands.Cog):
                 )
 
             else:
-
                 await interaction.guild.get_channel(self.config.channels.logging).send(
                     embed=SersiEmbed(
                         title="Warning Deletion Attempted",
