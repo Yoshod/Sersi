@@ -1,13 +1,12 @@
 import nextcord
 import requests
-
 from nextcord.ext import commands
 
-from utils.sersi_embed import SersiEmbed
+import discordTokens
 from utils.base import ConfirmView
 from utils.config import Configuration
-from utils.perms import permcheck, is_mod
-import discordTokens
+from utils.perms import permcheck, is_staff
+from utils.sersi_embed import SersiEmbed
 
 
 class Voice(commands.Cog):
@@ -66,7 +65,7 @@ class Voice(commands.Cog):
 
         both VCs must be referenced to by mention or Channel ID
         """
-        if not await permcheck(ctx, is_mod):
+        if not await permcheck(ctx, is_staff):
             return
 
         dialog_embed = SersiEmbed(
@@ -88,9 +87,8 @@ class Voice(commands.Cog):
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
-        def make_embed(message: str):
-            embed_obj = {"color": 0xED5B06, "description": message}
-            return embed_obj
+        def make_embed(message: str) -> dict:
+            return {"color": 0xED5B06, "description": message}
 
         if (
             after.channel != before.channel

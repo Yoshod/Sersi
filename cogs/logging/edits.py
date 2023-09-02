@@ -17,22 +17,16 @@ class Edits(commands.Cog):
         elif before.content == "" or after.content == "":
             return
 
-        pin_log: nextcord.AuditLogEntry = (
-            await after.guild.audit_logs(
-                limit=1, action=nextcord.AuditLogAction.message_pin
-            ).flatten()
-        )[0]
-        unpin_log: nextcord.AuditLogEntry = (
-            await after.guild.audit_logs(
-                limit=1, action=nextcord.AuditLogAction.message_unpin
-            ).flatten()
-        )[0]
+        if before.pinned is False and after.pinned is True:
+            pin_log: nextcord.AuditLogEntry = (
+                await after.guild.audit_logs(
+                    limit=1, action=nextcord.AuditLogAction.message_pin
+                ).flatten()
+            )[0]
 
-        if (
-            pin_log.extra.message_id == after.id
-            and before.pinned is False
-            and after.pinned is True
-        ):
+            if not pin_log.extra.message_id == after.id:
+                return
+
             await before.guild.get_channel(self.config.channels.edited_messages).send(
                 embed=SersiEmbed(
                     description="A message has been pinned",
@@ -46,11 +40,16 @@ class Edits(commands.Cog):
                     name=pin_log.user, icon_url=pin_log.user.display_avatar.url
                 )
             )
-        elif (
-            unpin_log.extra.message_id == after.id
-            and before.pinned is True
-            and after.pinned is False
-        ):
+        elif before.pinned is True and after.pinned is False:
+            unpin_log: nextcord.AuditLogEntry = (
+                await after.guild.audit_logs(
+                    limit=1, action=nextcord.AuditLogAction.message_unpin
+                ).flatten()
+            )[0]
+
+            if not unpin_log.extra.message_id == after.id:
+                return
+
             await before.guild.get_channel(self.config.channels.edited_messages).send(
                 embed=SersiEmbed(
                     description="A message has been unpinned",

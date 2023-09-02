@@ -135,7 +135,7 @@ class Channels(commands.Cog):
 
             logging_embed.add_field(
                 name=overwrite,
-                value=f"Type: {type_of_overwrite}\nPermissions: {', '.join(permissions)}",
+                value=f"__Type__: {type_of_overwrite}\n__Permissions__: {', '.join(permissions)}",
                 inline=False,
             )
 
@@ -171,7 +171,7 @@ class Channels(commands.Cog):
 
             logging_embed.add_field(
                 name=overwrite,
-                value=f"Type: {type_of_overwrite}\nPermissions: {', '.join(permissions)}",
+                value=f"__Type__: {type_of_overwrite}\n__Permissions__: {', '.join(permissions)}",
                 inline=False,
             )
 
@@ -201,7 +201,7 @@ class Channels(commands.Cog):
                     return entry
 
         if after.position != before.position:
-            if -1 <= (after.position - before.position) <= 1:
+            if abs(after.position - before.position) <= 1:
                 return
 
             await after.guild.get_channel(self.config.channels.channel_logs).send(
@@ -223,11 +223,11 @@ class Channels(commands.Cog):
             case nextcord.AuditLogAction.channel_update:
                 after_values: str = ""
                 for attribute, value in log.after:
-                    after_values = f"{after_values}{attribute}: {value}\n"
+                    after_values = f"{after_values}__{attribute}__: {value}\n"
 
                 before_values: str = ""
                 for attribute, value in log.before:
-                    before_values = f"{before_values}{attribute}: {value}\n"
+                    before_values = f"{before_values}__{attribute}__: {value}\n"
 
                 await after.guild.get_channel(self.config.channels.channel_logs).send(
                     embed=SersiEmbed(

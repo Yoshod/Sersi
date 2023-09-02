@@ -6,7 +6,7 @@ from nextcord.ext import commands
 from utils.sersi_embed import SersiEmbed
 from utils.base import sanitize_mention
 from utils.config import Configuration
-from utils.perms import permcheck, is_sersi_contrib, is_staff
+from utils.perms import permcheck, is_sersi_contributor, is_staff
 from utils.cogs import reload_all_cogs
 
 
@@ -126,7 +126,7 @@ class Config(commands.Cog):
         setting: str = nextcord.SlashOption(description="the name of the setting"),
         value: str = nextcord.SlashOption(description="the value to set"),
     ):
-        if not await permcheck(interaction, is_sersi_contrib):
+        if not await permcheck(interaction, is_sersi_contributor):
             return
 
         await interaction.response.defer()
@@ -178,7 +178,7 @@ class Config(commands.Cog):
 
     @config.subcommand(description="Reloads all cogs of the bot")
     async def reload(self, interaction: nextcord.Interaction):
-        if not await permcheck(interaction, is_sersi_contrib):
+        if not await permcheck(interaction, is_sersi_contributor):
             return
 
         await interaction.response.defer()

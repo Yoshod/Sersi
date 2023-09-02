@@ -27,18 +27,15 @@ class GuildChanges(commands.Cog):
 
         # removal case:
         if not after_list:
-            emoji: nextcord.Emoji = await guild.fetch_emoji(before_list[0].id)
+            emoji: nextcord.Emoji = before_list[0]
             await guild.get_channel(self.config.channels.guild_logs).send(
                 embed=SersiEmbed(
                     description="Guild emoji was removed",
                     fields={
                         "Removed Emote": f"Name: {emoji.name}\nManaged: {emoji.managed}\nAnimated: {emoji.animated}",
-                        "User": f"{emoji.user.mention} ({emoji.user.id})",
                     },
                     footer="Sersi Guild Changes",
-                )
-                .set_thumbnail(emoji.url)
-                .set_author(name=emoji.user, icon_url=emoji.user.display_avatar.url)
+                ).set_thumbnail(emoji.url)
             )
         # adding case:
         elif not before_list:

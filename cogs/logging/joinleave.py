@@ -11,6 +11,8 @@ class JoinLeave(commands.Cog):
     def __init__(self, bot, config: Configuration):
         self.bot = bot
         self.config = config
+
+        # maps the guild ID to a list of the invites of said guild
         self.invites: dict[int : list[nextcord.Invite]] = {}
 
     @commands.Cog.listener()

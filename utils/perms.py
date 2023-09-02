@@ -152,7 +152,7 @@ def is_slt(member: nextcord.Member) -> bool:
     return False
 
 
-def is_sersi_contrib(member: nextcord.Member) -> bool:
+def is_sersi_contributor(member: nextcord.Member) -> bool:
     permitted_roles: list[int] = [config.permission_roles.sersi_contributor]
 
     for role in member.roles:

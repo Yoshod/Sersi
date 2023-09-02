@@ -19,20 +19,14 @@ class Deletions(commands.Cog):
     async def on_message_delete(self, message: nextcord.Message):
         if message.guild is None:
             return
-        deleted_messages: nextcord.TextChannel = message.guild.get_channel(
-            self.config.channels.deleted_messages
-        )
-        deleted_images: nextcord.TextChannel = message.guild.get_channel(
-            self.config.channels.deleted_images
-        )
 
         message_has_images: bool = False
 
-        entries = await message.guild.audit_logs(
-            action=nextcord.AuditLogAction.message_delete, limit=1
-        ).flatten()
-
-        log: nextcord.AuditLogEntry = entries[0]
+        log: nextcord.AuditLogEntry = (
+            await message.guild.audit_logs(
+                action=nextcord.AuditLogAction.message_delete, limit=1
+            ).flatten()
+        )[0]
 
         if log is None:
             return
@@ -46,7 +40,9 @@ class Deletions(commands.Cog):
             logging_embed: nextcord.Embed = SersiEmbed(
                 description="A message has been deleted",
                 fields={
-                    "Message Content": message.content,
+                    "Message Content": message.content
+                    if message.content
+                    else "`Empty Content`",
                     "Message Created": get_discord_timestamp(message.created_at),
                     "Message Deleted": get_discord_timestamp(
                         datetime.datetime.now(datetime.timezone.utc)
@@ -91,9 +87,13 @@ class Deletions(commands.Cog):
                     )
                 )
 
-        await deleted_messages.send(embeds=[logging_embed, *further_images])
+        await message.guild.get_channel(self.config.channels.deleted_messages).send(
+            embeds=[logging_embed, *further_images]
+        )
         if message_has_images:
-            await deleted_images.send(embeds=[logging_embed, *further_images])
+            await message.guild.get_channel(self.config.channels.deleted_images).send(
+                embeds=[logging_embed, *further_images]
+            )
 
     @commands.Cog.listener()
     async def on_bulk_message_delete(self, messages: list[nextcord.Message]):

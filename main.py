@@ -11,7 +11,7 @@ from nextcord.ext import commands
 
 import utils
 from utils.sersi_embed import SersiEmbed
-from utils.perms import permcheck, is_sersi_contrib
+from utils.perms import permcheck, is_sersi_contributor
 from utils.cogs import load_all_cogs
 
 start_time = time.time()
@@ -48,7 +48,7 @@ async def cog(
     """Load, unload, or reload cogs.
 
     Permission needed: Sersi contributor"""
-    if not await permcheck(interaction, is_sersi_contrib):
+    if not await permcheck(interaction, is_sersi_contributor):
         return
 
     await interaction.response.defer()
@@ -162,7 +162,7 @@ async def load(ctx: commands.Context, extension: str):
 
     Loads cog.
     Permission needed: Sersi contributor"""
-    if await permcheck(ctx, is_sersi_contrib):
+    if await permcheck(ctx, is_sersi_contributor):
         try:
             bot.load_extension(
                 f"cogs.{extension}",
@@ -189,7 +189,7 @@ async def unload(ctx: commands.Context, extension: str):
 
     Unloads cog.
     Permission needed: Sersi contributor"""
-    if await permcheck(ctx, is_sersi_contrib):
+    if await permcheck(ctx, is_sersi_contributor):
         try:
             bot.unload_extension(f"cogs.{extension}")
             await bot.sync_all_application_commands()
@@ -210,7 +210,7 @@ async def reload(ctx: commands.Context, extension: str):
 
     Reloads cog. If cog wasn't loaded, loads cog.
     Permission needed: Sersi contributor"""
-    if await permcheck(ctx, is_sersi_contrib):
+    if await permcheck(ctx, is_sersi_contributor):
         try:
             bot.unload_extension(f"cogs.{extension}")
             bot.load_extension(

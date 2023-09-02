@@ -13,14 +13,6 @@ class MemberRoles(commands.Cog):
 
     @commands.Cog.listener()
     async def on_guild_role_create(self, role: nextcord.Role):
-        """A new role was created.
-        When this is the action, the type of target is the Role or a Object with the ID.
-        Possible attributes for AuditLogDiff:
-            colour
-            mentionable
-            hoist
-            name
-            permissions"""
         log: nextcord.AuditLogEntry = (
             await role.guild.audit_logs(
                 action=nextcord.AuditLogAction.role_create, limit=1
@@ -85,9 +77,6 @@ class MemberRoles(commands.Cog):
                 action=nextcord.AuditLogAction.role_update, limit=1
             ).flatten()
         )[0]
-
-        # if not after == log.target:  # it likes to trigger this even willy nilly
-        #    return
 
         logging_embed: nextcord.Embed = SersiEmbed(
             description=f"Role {after.mention} {after.name} was updated",
