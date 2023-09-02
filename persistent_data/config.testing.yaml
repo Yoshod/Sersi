@@ -112,17 +112,17 @@ opt_in_roles:
     environment:    0
 
 permission_roles:
-    staff:             978678150789754890
-    reformist:         943193811574751314
+    staff:              978678150789754890
+    reformist:          943193811574751314
     ticket_support:    1021477270331850795
-    sersi_contributor: 978677753945657356
+    sersi_contributor:  978677753945657356
     trial_moderator:   1021476974901870652
-    moderator:         977394150494326855
+    moderator:          977394150494326855
     senior_moderator:  1021477021664153653
-    dark_moderator:    978681533453971526
-    cet: 0
-    cet_lead: 0
-    compliance:        0
+    dark_moderator:     978681533453971526
+    cet:               1103757125286641716
+    cet_lead:                            0
+    compliance:        1147603484431089705
 
 emotes:
     success: "<:sersisuccess:979066662856822844>"
