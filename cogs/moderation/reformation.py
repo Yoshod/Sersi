@@ -3,22 +3,20 @@ import pickle
 import io
 from nextcord.ext import commands
 from nextcord.ui import Button, View
-from nextcord.ext.commands.errors import MemberNotFound
 from chat_exporter import export
 
-from utils.base import ConfirmView, ban
+from utils.base import ConfirmView, SersiEmbed, ban
 from utils.config import Configuration
-from utils.perms import permcheck, is_mod, cb_is_mod, is_custom_role
+from utils.perms import permcheck, is_mod, cb_is_mod
 
 
 class Reformation(commands.Cog):
-    def __init__(self, bot, config: Configuration):
+    def __init__(self, bot: commands.Bot, config: Configuration):
         self.bot = bot
         self.config = config
         self.sersifail = config.emotes.fail
         self.case_history_file = config.datafiles.casehistory
         self.case_details_file = config.datafiles.casedetails
-
 
     @nextcord.slash_command(
         dm_permission=False,
@@ -26,7 +24,6 @@ class Reformation(commands.Cog):
     )
     async def reformation(self, interaction: nextcord.Interaction):
         pass
-
 
     @reformation.subcommand(name="add", description="Send a user to reformation centre.")
     async def reformation_needed(
@@ -132,7 +129,7 @@ class Reformation(commands.Cog):
             # ------------------------------- LOGGING
 
             # Giving a welcome to the person sent to reformation
-            welcome_embed = nextcord.Embed(
+            welcome_embed = SersiEmbed(
                 title="Welcome to Reformation",
                 description=f"Hello {member.mention}, you have been sent to reformation by {interaction.user.mention}. "
                 f"The reason given for this is `{reason}`. \n\nFor more information on reformation "
@@ -143,7 +140,7 @@ class Reformation(commands.Cog):
 
             await case_channel.send(embed=welcome_embed)
 
-            embed = nextcord.Embed(
+            embed = SersiEmbed(
                 title="User Has Been Sent to Reformation",
                 description=f"Moderator {interaction.user.mention} ({interaction.user.id}) has sent user {member.mention}"
                 f" ({member.id}) to reformation.\n\n" + f"**__Reason:__**\n{reason}",
@@ -164,7 +161,7 @@ class Reformation(commands.Cog):
 
         await execute(self.bot, self.config, interaction)
 
-    async def cb_rq_yes(self, interaction):
+    async def cb_rq_yes(self, interaction: nextcord.Interaction):
         new_embed = interaction.message.embeds[0]
         new_embed.add_field(
             name="Voted Yes:",
@@ -272,7 +269,7 @@ class Reformation(commands.Cog):
             )
             await channel.send(embed=log_embed, file=transcript_file)
 
-    async def cb_rq_yes_open_modal(self, interaction):
+    async def cb_rq_yes_open_modal(self, interaction: nextcord.Interaction):
         # check if user has already voted
         for field in interaction.message.embeds[0].fields:
             if field.value.splitlines()[0] == interaction.user.mention:
@@ -285,7 +282,7 @@ class Reformation(commands.Cog):
             ReasonModal("Reason for voting Yes", self.cb_rq_yes)
         )
 
-    async def cb_rf_yes(self, interaction):
+    async def cb_rf_yes(self, interaction: nextcord.Interaction):
         new_embed = interaction.message.embeds[0]
         new_embed.add_field(
             name="Voted Yes:",
@@ -382,7 +379,7 @@ class Reformation(commands.Cog):
             )
             await channel.send(embed=embed, file=transcript_file)
 
-    async def cb_rf_yes_open_modal(self, interaction):
+    async def cb_rf_yes_open_modal(self, interaction: nextcord.Interaction):
         # check if user has already voted
         for field in interaction.message.embeds[0].fields:
             if field.value.splitlines()[0] == interaction.user.mention:
@@ -395,7 +392,7 @@ class Reformation(commands.Cog):
             ReasonModal("Reason for voting Yes", self.cb_rf_yes)
         )
 
-    async def cb_no(self, interaction):
+    async def cb_no(self, interaction: nextcord.Interaction):
         new_embed = interaction.message.embeds[0]
         new_embed.add_field(
             name="Voted No:",
@@ -404,7 +401,7 @@ class Reformation(commands.Cog):
         )
         await interaction.message.edit(embed=new_embed)
 
-    async def cb_no_open_modal(self, interaction):
+    async def cb_no_open_modal(self, interaction: nextcord.Interaction):
         # check if user has already voted
         for field in interaction.message.embeds[0].fields:
             if field.value.splitlines()[0] == interaction.user.mention:
@@ -417,7 +414,7 @@ class Reformation(commands.Cog):
             ReasonModal("Reason for voting No", self.cb_no)
         )
 
-    async def cb_maybe(self, interaction):
+    async def cb_maybe(self, interaction: nextcord.Interaction):
         new_embed = interaction.message.embeds[0]
         new_embed.add_field(
             name="Voted Maybe:",
@@ -426,7 +423,7 @@ class Reformation(commands.Cog):
         )
         await interaction.message.edit(embed=new_embed)
 
-    async def cb_maybe_open_modal(self, interaction):
+    async def cb_maybe_open_modal(self, interaction: nextcord.Interaction):
         # check if user has already voted
         for field in interaction.message.embeds[0].fields:
             if field.value.splitlines()[0] == interaction.user.mention:
@@ -439,42 +436,44 @@ class Reformation(commands.Cog):
             ReasonModal("Reason for voting Maybe", self.cb_maybe)
         )
 
-    @commands.command(aliases=["rq", "reformquery", "reformq"])
-    async def reformationquery(self, ctx, member: nextcord.Member, *, reason=""):
-        """Query releasing a user from reformation centre.
-
-        Sends query for release out of reformation centre for [member] into the information centre.
-        Three 'Yes' votes will result in an automatic release.
-        Permission Needed: Moderator, Trial Moderator.
-        """
-        if not await permcheck(ctx, is_mod):
+    @reformation.subcommand(name="query_release", description="Query releasing a user from reformation centre.")
+    async def reformation_query(
+        self,
+        interaction: nextcord.Interaction,
+        member: nextcord.Member = nextcord.SlashOption(
+            description="Member to send to reformation", required=True
+        ),
+        reason: str = nextcord.SlashOption(
+            description="Reason for sending to reformation",
+            required=True,
+            min_length=8,
+            max_length=1024,
+        ),
+    ):
+        if not await permcheck(interaction, is_mod):
             return
-
-        elif reason == "":
-            await ctx.send(f"{ctx.author.mention} please provide a reason.")
-            return
-
+        
         # member have reformation role check
         is_in_reformation = False
         for role in member.roles:
             if role.id == self.config.roles.reformation:
                 is_in_reformation = True
         if not is_in_reformation:
-            await ctx.send("Member is not in reformation.")
+            await interaction.send("Member is not in reformation.")
             return
+        
+        await interaction.response.defer()
 
-        try:
-            embedVar = nextcord.Embed(
-                title=f"Reformation Query: **{member.name}** ({member.id})",
-                description=f"Reformation Inmate {member.name} was deemed well enough to start a query about their "
-                f"release\nQuery started by {ctx.author.mention} ({ctx.author.id})\n\nYes Votes: 0",
-                color=nextcord.Color.from_rgb(237, 91, 6),
-            )
-            embedVar.set_footer(text=f"{member.id}")
-        except MemberNotFound:
-            await ctx.send("Member not found!")
-
-        embedVar.add_field(name="Reason", value=reason, inline=False)
+        embedVar = SersiEmbed(
+            title=f"Reformation Query: **{member.name}** ({member.id})",
+            description=f"Reformation Inmate {member.name} was deemed well enough to start a query about their "
+            f"release\nQuery started by {interaction.user.mention} ({interaction.user.id})\n\nYes Votes: 0",
+            color=nextcord.Color.from_rgb(237, 91, 6),
+            footer=f"{member.id}",
+            fields={
+                "Reason": reason,
+            },
+        )
 
         yes = Button(label="Yes", style=nextcord.ButtonStyle.green)
         yes.callback = self.cb_rq_yes_open_modal
@@ -494,38 +493,45 @@ class Reformation(commands.Cog):
         channel = self.bot.get_channel(self.config.channels.alert)
         await channel.send(embed=embedVar, view=button_view)
 
-    @commands.command(aliases=["rf", "reformfailed", "reformfail", "reformf"])
-    async def reformationfailed(self, ctx, member: nextcord.Member):
-        """Query banning a user in reformation centre.
-
-        Sends query for ban of a [member] who is currently in the reformation centre.
-        Members should have been in reformation of at least 14 Days.
-        Three 'Yes' votes will result in a greenlight for a ban.
-        Permission Needed: Moderator, Trial Moderator.
-        """
-        if not await permcheck(ctx, is_mod):
+    @reformation.subcommand(name="query_failed", description="Query a ban of failed reformation inmate.")
+    async def reformation_failed(
+        self,
+        interaction: nextcord.Interaction,
+        member: nextcord.Member = nextcord.SlashOption(
+            description="Member to ban", required=True
+        ),
+        reason: str = nextcord.SlashOption(
+            description="Reason for banning member",
+            required=False,
+            min_length=8,
+            max_length=1024,
+        ),
+    ):
+        if not await permcheck(interaction, is_mod):
             return
-
+        
         # member have reformation role check
         is_in_reformation = False
         for role in member.roles:
             if role.id == self.config.roles.reformation:
                 is_in_reformation = True
         if not is_in_reformation:
-            await ctx.send("Member is not in reformation.")
+            await interaction.send("Member is not in reformation.")
             return
+        
+        await interaction.response.defer()
 
-        try:
-            embedVar = nextcord.Embed(
-                title=f"Reformation Failed Query: **{member.name}** ({member.id})",
-                description=f"Reformation Inmate {member.name} seems to not be able to be reformed. Should the "
-                f"reformation process therefore be given up and the user be banned?\nQuery"
-                f" started by {ctx.author.mention} ({ctx.author.id})\n\nYes Votes: 0",
-                color=nextcord.Color.from_rgb(237, 91, 6),
-            )
-            embedVar.set_footer(text=f"{member.id}")
-        except MemberNotFound:
-            await ctx.send("Member not found!")
+        embedVar = SersiEmbed(
+            title=f"Reformation Failed Query: **{member.name}** ({member.id})",
+            description=f"Reformation Inmate {member.name} seems to not be able to be reformed. Should the "
+            f"reformation process therefore be given up and the user be banned?\nQuery"
+            f" started by {interaction.user.mention} ({interaction.user.id})\n\nYes Votes: 0",
+            color=nextcord.Color.from_rgb(237, 91, 6),
+            footer=f"{member.id}",
+            fields={
+                "Reason": reason,
+            },
+        )
 
         yes = Button(label="Yes", style=nextcord.ButtonStyle.green)
         yes.callback = self.cb_rf_yes_open_modal
@@ -541,60 +547,12 @@ class Reformation(commands.Cog):
         button_view.add_item(no)
         button_view.add_item(maybe)
         button_view.interaction_check = cb_is_mod
-
+        
         channel = self.bot.get_channel(self.config.channels.alert)
         await channel.send(embed=embedVar, view=button_view)
 
-    @commands.command(aliases=["rcase", "reformcase"])
-    async def reformationcase(self, ctx, user: nextcord.Member):
-        permitted_roles = [
-            self.config.permission_roles.moderator,
-            self.config.permission_roles.trial_moderator,
-            self.config.permission_roles.reformist,
-        ]
-        if not await permcheck(ctx, is_custom_role(ctx.author, permitted_roles)):
-            return
-
-        elif user is None:
-            await ctx.send(f"{self.sersifail} Please provide a user.")
-
-        elif user is not None:
-            with open(self.config.datafiles.reformation_cases, "rb") as file:
-                reformation_list = pickle.load(file)
-            keys = reformation_list.keys()
-            if user.id in keys:
-                case_embed = nextcord.Embed(
-                    title=f"Reformation Case: {reformation_list[user.id][1]}",
-                    color=nextcord.Color.from_rgb(237, 91, 6),
-                )
-                moderator = ctx.guild.get_member(reformation_list[user.id][2])
-                channel_name = reformation_list[user.id][0]
-                reform_channel = nextcord.utils.get(
-                    ctx.guild.channels, name=channel_name
-                )
-                case_embed.add_field(
-                    name="Username:",
-                    value=(f"{user.mention} ({user.id})"),
-                    inline=False,
-                )
-                case_embed.add_field(
-                    name="Responsible Moderator:",
-                    value=(f"{moderator.mention} ({moderator.id}"),
-                    inline=False,
-                )
-                case_embed.add_field(
-                    name="Channel:", value=(reform_channel.mention), inline=False
-                )
-                case_embed.add_field(name="Reason:", value=reformation_list[user.id][3])
-                await ctx.send(embed=case_embed)
-                return
-        else:
-            ctx.send(
-                f"{self.sersifail} Failed to find the specified user! Perhaps they do not have a case?"
-            )
-
     @commands.Cog.listener()
-    async def on_member_remove(self, member):
+    async def on_member_remove(self, member: nextcord.Member):
         reformation_role = member.get_role(self.config.roles.reformation)
 
         if reformation_role is not None:
@@ -678,7 +636,7 @@ class Reformation(commands.Cog):
 
 
 class ReasonModal(nextcord.ui.Modal):
-    def __init__(self, name, cb):
+    def __init__(self, name: str, cb: callable):
         super().__init__(name)
         self.field = nextcord.ui.TextInput(
             label="Reason",
@@ -691,5 +649,5 @@ class ReasonModal(nextcord.ui.Modal):
         self.callback = cb
 
 
-def setup(bot, **kwargs):
+def setup(bot: commands.Bot, **kwargs):
     bot.add_cog(Reformation(bot, kwargs["config"]))
