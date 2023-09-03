@@ -166,7 +166,7 @@ def create_warn_case(
 
     cursor.execute(
         "INSERT INTO warn_cases (id, offender, moderator, offence, details, active, approved, timestamp, deactive_reason) "
-        "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
         (uuid, offender.id, moderator.id, offence, detail, True, None, timestamp, None),
     )
     cursor.execute(

@@ -169,7 +169,7 @@ def get_case_by_id(
                 "Offence": row[3],
                 "Offence Details": row[4],
                 "Active": row[5],
-                "Active": row[6],
+                "Approved": row[6],
                 "Timestamp": row[7],
             }
 

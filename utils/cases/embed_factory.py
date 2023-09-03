@@ -340,15 +340,15 @@ def create_warn_case_embed(
             "./persistent_data/config.yaml"
         ).emotes.success
 
-    elif sersi_case["Approved"] is False:
+    elif sersi_case["Approved"] is None:
         approved_emote = Configuration.from_yaml_file(
             "./persistent_data/config.yaml"
-        ).emotes.fail
+        ).emotes.inherit
 
     else:
         approved_emote = Configuration.from_yaml_file(
             "./persistent_data/config.yaml"
-        ).emotes.inherit
+        ).emotes.fail
 
     case_embed.add_field(name="Approved:", value=approved_emote, inline=True)
 
