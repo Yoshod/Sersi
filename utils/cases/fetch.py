@@ -169,7 +169,8 @@ def get_case_by_id(
                 "Offence": row[3],
                 "Offence Details": row[4],
                 "Active": row[5],
-                "Timestamp": row[6],
+                "Active": row[6],
+                "Timestamp": row[7],
             }
 
         case "Kick":
@@ -218,7 +219,7 @@ def fetch_all_cases(
             select id, '`Kick`' as type, timestamp FROM kick_cases
             UNION
             select id, '`Timeout`' as type, timestamp FROM timeout_cases
-            
+
             ORDER BY timestamp DESC
             """
         )
@@ -453,13 +454,13 @@ def fetch_moderator_cases(
             WHERE moderator=:moderator
 
             UNION
-            
+
             SELECT id, '`Warn`' as type, timestamp
             FROM warn_cases
             WHERE moderator=:moderator
 
             UNION
-            
+
             SELECT id, '`Kick`' as type, timestamp
             FROM kick_cases
             WHERE moderator=:moderator

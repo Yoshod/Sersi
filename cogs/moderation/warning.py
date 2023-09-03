@@ -13,7 +13,15 @@ from utils.cases.mend import deactivate_warn
 from utils.cases.misc import offence_validity_check, deletion_validity_check
 from utils.config import Configuration
 from utils.cases.fetch import get_case_by_id
-from utils.perms import permcheck, is_mod, is_dark_mod, is_immune, target_eligibility
+from utils.cases.approval import update_approval
+from utils.perms import (
+    permcheck,
+    is_mod,
+    is_dark_mod,
+    is_immune,
+    target_eligibility,
+    cb_is_compliance,
+)
 from utils.sersi_embed import SersiEmbed
 from utils.review import create_alert
 from utils import logs
@@ -25,7 +33,7 @@ class WarningSystem(commands.Cog):
         self.config = config
 
     async def cb_approve(self, interaction: nextcord.Interaction):
-        new_embed = interaction.message.embeds[0]
+        new_embed: nextcord.Embed = interaction.message.embeds[0]
         new_embed.add_field(
             name="Moderation Action Approved",
             value=interaction.user.mention,
@@ -33,6 +41,8 @@ class WarningSystem(commands.Cog):
         )
         new_embed.colour = nextcord.Colour.brand_green()
         await interaction.message.edit(embed=new_embed, view=None)
+
+        case_id = new_embed.fields[0].value
 
         # Logging
         logging_embed = SersiEmbed(
@@ -211,6 +221,9 @@ class WarningSystem(commands.Cog):
         button_view = View(timeout=None)
         button_view.add_item(approve)
         button_view.add_item(objection)
+
+        if reviewer_role.id == self.config.permission_roles.compliance:
+            button_view.interaction_check = cb_is_compliance
 
         await review_channel.send(
             f"{reviewer_role.mention} a warning by a {reviewed_role.mention} has been taken and should now be reviewed.",
