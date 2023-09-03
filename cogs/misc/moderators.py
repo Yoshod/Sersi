@@ -15,129 +15,116 @@ class Staff(commands.Cog):
         self.sersisuccess = config.emotes.success
         self.sersifail = config.emotes.fail
 
-    async def cb_addtrialmod_proceed(self, interaction):
-        member_id = 0
-        for field in interaction.message.embeds[0].fields:
-            if field.name == "User ID":
-                member_id = int(field.value)
-        member = interaction.guild.get_member(member_id)
-
-        trial_moderator = interaction.guild.get_role(
-            self.config.permission_roles.trial_moderator
-        )
-        await member.add_roles(
-            trial_moderator, reason="Sersi addtrialmod command", atomic=True
-        )
-        await interaction.message.edit(
-            f"{self.sersisuccess} {member.mention} was given the {trial_moderator.name} role.",
-            embed=None,
-            view=None,
-        )
-
-        # logging
-        log_embed = nextcord.Embed(title="New Trial Moderator added.")
-        log_embed.add_field(
-            name="Responsible Moderator:", value=interaction.user.mention, inline=False
-        )
-        log_embed.add_field(
-            name=f"New {trial_moderator.name}:", value=member.mention, inline=False
-        )
-
-        channel = interaction.guild.get_channel(self.config.channels.logging)
-        await channel.send(embed=log_embed)
-
-        channel = interaction.guild.get_channel(self.config.channels.mod_logs)
-        await channel.send(embed=log_embed)
-
-    @commands.command()
-    async def addtrialmod(self, ctx, member: nextcord.Member):
-        if not await permcheck(ctx, is_senior_mod):
-            return
-
-        is_blacklisted = await ctx.invoke(
-            self.bot.get_command("checkblacklist"), member=member
-        )
-        if is_blacklisted:
-            await ctx.send(
-                f"Member {member} cannot be given Trial Mod! Reason: Is on blacklist"
+    async def remove_all_permission_roles(self, member: nextcord.Member):
+        for role in vars(self.config.permission_roles):
+            role_object: nextcord.Role = member.guild.get_role(
+                vars(self.config.permission_roles)[role]
             )
+            if role_object is None:
+                continue
+            try:
+                await member.remove_roles(role_object)
+            except nextcord.errors.HTTPException:
+                continue
+
+    @nextcord.slash_command(
+        dm_permission=False, guild_ids=[977377117895536640, 856262303795380224]
+    )
+    async def moderator(self, interaction: nextcord.Interaction):
+        pass
+
+    @moderator.subcommand()
+    async def add(self, interaction: nextcord.Interaction):
+        pass
+
+    @add.subcommand(
+        description="Adds a server member as a trial mod",
+    )
+    async def trial_moderator(
+        self, interaction: nextcord.Interaction, member: nextcord.Member
+    ):
+        if not permcheck(interaction, is_senior_mod):
             return
 
-        dialog_embed = nextcord.Embed(
-            title="Add new Trial Moderator",
-            description="Following member will be assigned the Trial Moderator role:",
-            color=nextcord.Color.from_rgb(237, 91, 6),
+        trial_moderator: nextcord.Role = interaction.guild.get_role(
+            self.config.permission_roles.trial_moderator
         )
-        dialog_embed.add_field(name="User", value=member.mention)
-        dialog_embed.add_field(name="User ID", value=member.id)
+        await member.add_roles(trial_moderator, reason="Sersi command", atomic=True)
 
-        await ConfirmView(self.cb_addtrialmod_proceed).send_as_reply(
-            ctx, embed=dialog_embed
-        )
-
-    async def cb_makefullmod_proceed(self, interaction):
-        member_id = 0
-        for field in interaction.message.embeds[0].fields:
-            if field.name == "User ID":
-                member_id = int(field.value)
-        member = interaction.guild.get_member(member_id)
-
-        trial_moderator = interaction.guild.get_role(
-            self.config.permission_roles.ticket_support
-        )
-        moderator = interaction.guild.get_role(self.config.permission_roles.moderator)
-
-        await member.remove_roles(
-            trial_moderator, reason="Sersi makefullmod command", atomic=True
-        )
-        await member.add_roles(
-            moderator, reason="Sersi makefullmod command", atomic=True
-        )
-        await interaction.message.edit(
-            f"{self.sersisuccess} {member.mention} was given the {moderator.name} role.\nRemember: You're not truly a "
-            "mod until your first ban. ;)",
-            embed=None,
-            view=None,
+        await interaction.send(
+            f"{self.sersisuccess} {member.mention} was given the {trial_moderator.name} role."
         )
 
         # logging
-        log_embed = nextcord.Embed(
-            title="Trial Moderator matured into a full Moderator."
+        log_embed = SersiEmbed(
+            title="New Trial Moderator added.",
+            fields={
+                "Responsible Moderator:": interaction.user.mention,
+                f"New {trial_moderator.name}:": member.mention,
+            },
+            footer="Sersi Add Trial Mod",
+        ).set_author(
+            name=interaction.user, icon_url=interaction.user.display_avatar.url
         )
-        log_embed.add_field(
-            name="Responsible Moderator:", value=interaction.user.mention, inline=False
+
+        await interaction.guild.get_channel(self.config.channels.logging).send(
+            embed=log_embed
         )
-        log_embed.add_field(name="New Moderator:", value=member.mention, inline=False)
 
-        channel = interaction.guild.get_channel(self.config.channels.logging)
-        await channel.send(embed=log_embed)
+        await interaction.guild.get_channel(self.config.channels.mod_logs).send(
+            embed=log_embed
+        )
 
-        channel = interaction.guild.get_channel(self.config.channels.mod_logs)
-        await channel.send(embed=log_embed)
-
-    @commands.command()
-    async def makefullmod(self, ctx, member: nextcord.Member):
-        if not await permcheck(ctx, is_senior_mod):
+    @add.subcommand(
+        description="Turns a trial moderator into a moderator",
+    )
+    async def moderator(
+        self, interaction: nextcord.Interaction, member: nextcord.Member
+    ):
+        if not permcheck(interaction, is_senior_mod):
             return
 
-        trial_moderator = ctx.guild.get_role(
+        await interaction.response.defer()
+
+        trial_moderator: nextcord.Role = interaction.guild.get_role(
             self.config.permission_roles.trial_moderator
+        )
+        moderator: nextcord.Role = interaction.guild.get_role(
+            self.config.permission_roles.moderator
         )
 
         if trial_moderator not in member.roles:
-            await ctx.reply(f"{self.sersifail} Member is not a trial moderator.")
+            await interaction.followup.send(
+                f"{self.config.emotes.fail} Moderators need to be trial modertors first"
+            )
             return
 
-        dialog_embed = nextcord.Embed(
-            title="Promote Trial Moderator to Moderator",
-            description="Following Trial Moderator will be promoted to Moderator:",
-            color=nextcord.Color.from_rgb(237, 91, 6),
-        )
-        dialog_embed.add_field(name="User", value=member.mention)
-        dialog_embed.add_field(name="User ID", value=member.id)
+        await member.remove_roles(trial_moderator, reason="Sersi command", atomic=True)
+        await member.add_roles(moderator, reason="Sersi command", atomic=True)
 
-        await ConfirmView(self.cb_makefullmod_proceed).send_as_reply(
-            ctx, embed=dialog_embed
+        await interaction.followup.send(
+            f"{self.sersisuccess} {member.mention} was given the {moderator.name} role.\n"
+            "Remember: You're not truly a moderator until your first ban. ;)",
+        )
+
+        # logging
+        log_embed = SersiEmbed(
+            title="Trial Moderator matured into a full Moderator.",
+            fields={
+                "Responsible Moderator:": interaction.user.mention,
+                "New Moderator:": member.mention,
+            },
+            footer="Sersi Add Trial Mod",
+        ).set_author(
+            name=interaction.user, icon_url=interaction.user.display_avatar.url
+        )
+
+        await interaction.guild.get_channel(self.config.channels.logging).send(
+            embed=log_embed
+        )
+
+        await interaction.guild.get_channel(self.config.channels.mod_logs).send(
+            embed=log_embed
         )
 
     @nextcord.slash_command(
@@ -186,16 +173,7 @@ class Staff(commands.Cog):
         )
         async def execute(*args, confirming_moderator: nextcord.Member, **kwargs):
             # remove staff/permission roles
-            for role in vars(self.config.permission_roles):
-                role_object: nextcord.Role = interaction.guild.get_role(
-                    vars(self.config.permission_roles)[role]
-                )
-                if role_object is None:
-                    continue
-                try:
-                    await member.remove_roles(role_object, reason=reason, atomic=True)
-                except nextcord.errors.HTTPException:
-                    continue
+            await self.remove_all_permission_roles(member)
 
             embed_fields = {
                 "Discharged Member:": member.mention,
@@ -237,7 +215,7 @@ class Staff(commands.Cog):
     ):
         if member is None:
             member = interaction.user
-        print(member)
+
         if member == interaction.user:
             if not await permcheck(interaction, is_staff):
                 return
@@ -245,35 +223,19 @@ class Staff(commands.Cog):
             if not await permcheck(interaction, is_slt):
                 return
 
-        await interaction.response.defer(ephemeral=True)
+        await interaction.response.defer()
 
-        print("remove any permission roles")
-        # remove any permission roles
-        for role in vars(self.config.permission_roles):
-            role_object: nextcord.Role = interaction.guild.get_role(
-                vars(self.config.permission_roles)[role]
-            )
-            if role_object is None:
-                continue
-            try:
-                await member.remove_roles(role_object)
-            except nextcord.errors.HTTPException:
-                continue
+        await self.remove_all_permission_roles(member)
 
-        honourable_member: nextcord.Role = interaction.guild.get_role(
-            self.config.roles.honourable_member
-        )
-        if honourable_member is None:
-            await interaction.followup.send(
-                f"{self.sersifail} Honourable Member role not found. Please contact an admin."
+        try:
+            await member.add_roles(
+                interaction.guild.get_role(self.config.roles.honourable_member)
             )
-        else:
-            await member.add_roles(honourable_member)
+        except (nextcord.Forbidden, nextcord.HTTPException):
+            pass
 
         await interaction.followup.send(
-            f"{self.sersisuccess} {member.mention} has retired from the mod team. Thank you for your service!",
-            embed=None,
-            view=None,
+            f"{self.sersisuccess} {member.mention} has retired from the mod team. Thank you for your service!"
         )
 
         # logging
@@ -285,15 +247,13 @@ class Staff(commands.Cog):
             },
         )
 
-        channel: nextcord.TextChannel = interaction.guild.get_channel(
-            self.config.channels.logging
+        await interaction.guild.get_channel(self.config.channels.logging).send(
+            embed=log_embed
         )
-        await channel.send(embed=log_embed)
 
-        channel: nextcord.TextChannel = interaction.guild.get_channel(
-            self.config.channels.mod_logs
+        await interaction.guild.get_channel(self.config.channels.mod_logs).send(
+            embed=log_embed
         )
-        await channel.send(embed=log_embed)
 
 
 def setup(bot: commands.Bot, **kwargs):
