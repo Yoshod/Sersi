@@ -335,6 +335,23 @@ def create_warn_case_embed(
         case_embed.add_field(name="Offender:", value=f"{offender.mention}", inline=True)
         case_embed.set_thumbnail(url=offender.display_avatar.url)
 
+    if sersi_case["Approved"]:
+        approved_emote = Configuration.from_yaml_file(
+            "./persistent_data/config.yaml"
+        ).emotes.success
+
+    elif sersi_case["Approved"] is False:
+        approved_emote = Configuration.from_yaml_file(
+            "./persistent_data/config.yaml"
+        ).emotes.fail
+
+    else:
+        approved_emote = Configuration.from_yaml_file(
+            "./persistent_data/config.yaml"
+        ).emotes.inherit
+
+    case_embed.add_field(name="Approved:", value=approved_emote, inline=True)
+
     case_embed.add_field(name="Offence:", value=sersi_case["Offence"], inline=False)
 
     case_embed.add_field(

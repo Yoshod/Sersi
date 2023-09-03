@@ -13,7 +13,7 @@ def highest_mod_role(moderator: nextcord.Member, config: Configuration):
         config.permission_roles.trial_moderator,
     ]
 
-    for role in moderator.roles:
+    for role in moderator.roles[::-1]:
         if role.id in role_list:
             return role.id
 

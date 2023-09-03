@@ -139,6 +139,7 @@ class Database(commands.Cog):
             offence TEXT,
             details TEXT,
             active BOOLEAN,
+            approved BOOLEAN,
             timestamp INTEGER,
             adjusted BOOLEAN,
             deactive_reason TEXT)"""
@@ -169,6 +170,7 @@ class Database(commands.Cog):
             details TEXT,
             planned_end INTEGER,
             actual_end INTEGER,
+            approved BOOLEAN,
             adjusted BOOLEAN,
             timestamp INTEGER)"""
         )
@@ -196,6 +198,7 @@ class Database(commands.Cog):
             offender INTEGER,
             moderator INTEGER,
             reason TEXT,
+            approved BOOLEAN,
             adjusted BOOLEAN,
             timestamp INTEGER)"""
         )
@@ -225,6 +228,7 @@ class Database(commands.Cog):
             review_outcome TEXT,
             review_comment TEXT,
             active BOOLEAN,
+            approved BOOLEAN,
             adjusted BOOLEAN,
             unban_reason TEXT)"""
         )

@@ -100,6 +100,10 @@ def is_full_mod(member: nextcord.Member) -> bool:
     return is_allowed(member, [config.permission_roles.moderator])
 
 
+def is_compliance(member: nextcord.Member) -> bool:
+    return is_allowed(member, [config.permission_roles.compliance])
+
+
 def is_dark_mod(member: nextcord.Member) -> bool:
     return is_allowed(member, [config.permission_roles.dark_moderator])
 
@@ -193,6 +197,10 @@ async def cb_is_mod(interaction) -> bool:
 
 async def cb_is_dark_mod(interaction) -> bool:
     return await permcheck(interaction, is_dark_mod)
+
+
+async def cb_is_compliance(interaction) -> bool:
+    return await permcheck(interaction, is_compliance)
 
 
 async def cb_is_cet(interaction) -> bool:
