@@ -468,6 +468,23 @@ def create_timeout_case_embed(
         case_embed.add_field(name="Offender:", value=f"{offender.mention}", inline=True)
         case_embed.set_thumbnail(url=offender.display_avatar.url)
 
+    if sersi_case["Approved"]:
+        approved_emote = Configuration.from_yaml_file(
+            "./persistent_data/config.yaml"
+        ).emotes.success
+
+    elif sersi_case["Approved"] is None:
+        approved_emote = Configuration.from_yaml_file(
+            "./persistent_data/config.yaml"
+        ).emotes.inherit
+
+    else:
+        approved_emote = Configuration.from_yaml_file(
+            "./persistent_data/config.yaml"
+        ).emotes.fail
+
+    case_embed.add_field(name="Approved:", value=approved_emote, inline=True)
+
     case_embed.add_field(
         name="Offence:", value=sersi_case["Offence"], inline=False
     ).add_field(
@@ -475,6 +492,7 @@ def create_timeout_case_embed(
     ).add_field(
         name="Timestamp:",
         value=f"<t:{sersi_case['Timestamp']}:R>",
+        inline=True,
     ).add_field(
         name="Muted until:", value=f"<t:{sersi_case['Planned End']}:R>"
     ).set_footer(

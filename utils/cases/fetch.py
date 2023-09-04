@@ -63,7 +63,8 @@ def get_case_by_id(
                 "Moderator ID": row[2],
                 "Planned End": row[5],
                 "Actual End": row[6],
-                "Timestamp": row[8],
+                "Approved": row[7],
+                "Timestamp": row[9],
             }
 
         case "Slur Usage":
