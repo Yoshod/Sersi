@@ -13,7 +13,7 @@ from utils.cases.mend import deactivate_warn
 from utils.cases.misc import offence_validity_check, deletion_validity_check
 from utils.config import Configuration
 from utils.cases.fetch import get_case_by_id
-from utils.cases.approval import update_approval
+from utils.cases.approval import update_approved, update_objected
 from utils.perms import (
     permcheck,
     is_mod,
@@ -42,7 +42,7 @@ class WarningSystem(commands.Cog):
         new_embed.colour = nextcord.Colour.brand_green()
         await interaction.message.edit(embed=new_embed, view=None)
 
-        case_id = new_embed.fields[0].value
+        update_approved(new_embed.fields[0].value, self.config)
 
         # Logging
         logging_embed = SersiEmbed(
@@ -71,6 +71,8 @@ class WarningSystem(commands.Cog):
         )
         new_embed.colour = nextcord.Colour.brand_red()
         await interaction.message.edit(embed=new_embed, view=None)
+
+        update_objected(new_embed.fields[0].value, self.config)
 
         # Logging
         logging_embed = SersiEmbed(

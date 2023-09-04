@@ -3,6 +3,10 @@ import datetime
 import nextcord
 
 from nextcord.ext import commands
+from pytz import timezone
+from utils import logs
+from utils.cases.approval import update_approved, update_objected
+from nextcord.ui import Button, View
 
 from utils.cases.autocomplete import fetch_offences_by_partial_name
 from utils.cases.embed_factory import create_timeout_case_embed
@@ -10,7 +14,15 @@ from utils.cases.fetch import get_case_by_id
 from utils.cases.misc import offence_validity_check
 from utils.cases.create import create_timeout_case
 from utils.config import Configuration
-from utils.perms import permcheck, is_mod, is_dark_mod, is_immune, target_eligibility
+from utils.perms import (
+    cb_is_compliance,
+    permcheck,
+    is_mod,
+    is_dark_mod,
+    is_immune,
+    target_eligibility,
+)
+from utils.review import create_alert
 from utils.sersi_embed import SersiEmbed
 
 
@@ -38,6 +50,66 @@ class TimeoutSystem(commands.Cog):
     def __init__(self, bot, config: Configuration):
         self.bot = bot
         self.config = config
+
+    async def cb_approve(self, interaction: nextcord.Interaction):
+        new_embed: nextcord.Embed = interaction.message.embeds[0]
+        new_embed.add_field(
+            name="Moderation Action Approved",
+            value=interaction.user.mention,
+            inline=True,
+        )
+        new_embed.colour = nextcord.Colour.brand_green()
+        await interaction.message.edit(embed=new_embed, view=None)
+
+        update_approved(new_embed.fields[0].value, self.config)
+
+        # Logging
+        logging_embed = SersiEmbed(
+            title="Moderation Action Approved",
+            description="A Moderator Action has been approved by a moderator in response to a report.",
+            fields={
+                "Report:": interaction.message.jump_url,
+                "Moderator:": f"{interaction.user.mention} ({interaction.user.id})",
+            },
+            footer="Sersi Moderation Peer Review",
+        )
+
+        channel = self.bot.get_channel(self.config.channels.logging)
+        await channel.send(embed=logging_embed)
+
+        await logs.update_response(
+            self.config, interaction.message, datetime.now(timezone.utc)
+        )
+
+    async def cb_objection(self, interaction: nextcord.Interaction):
+        new_embed = interaction.message.embeds[0]
+        new_embed.add_field(
+            name="Moderation Action Objected To",
+            value=interaction.user.mention,
+            inline=True,
+        )
+        new_embed.colour = nextcord.Colour.brand_red()
+        await interaction.message.edit(embed=new_embed, view=None)
+
+        update_objected(new_embed.fields[0].value, self.config)
+
+        # Logging
+        logging_embed = SersiEmbed(
+            title="Moderation Action Objected To",
+            description="A Moderator Action has been objected to by a moderator in response to a report.",
+            fields={
+                "Report:": interaction.message.jump_url,
+                "Moderator:": f"{interaction.user.mention} ({interaction.user.id})",
+            },
+            footer="Sersi Moderation Peer Review",
+        )
+
+        channel = self.bot.get_channel(self.config.channels.logging)
+        await channel.send(embed=logging_embed)
+
+        await logs.update_response(
+            self.config, interaction.message, datetime.now(timezone.utc)
+        )
 
     @nextcord.slash_command(
         dm_permission=False,
@@ -156,8 +228,10 @@ class TimeoutSystem(commands.Cog):
         except (nextcord.Forbidden, nextcord.HTTPException):
             not_sent = True
 
+        sersi_case = get_case_by_id(self.config, uuid, False)
+
         logging_embed: SersiEmbed = create_timeout_case_embed(
-            sersi_case=get_case_by_id(self.config, uuid, scrubbed=False),
+            sersi_case,
             interaction=interaction,
         )
 
@@ -172,7 +246,7 @@ class TimeoutSystem(commands.Cog):
             planned_end, reason=f"[{offence}: {detail}] - {interaction.user}"
         )
 
-        await interaction.followup.send(
+        result: nextcord.WebhookMessage = await interaction.followup.send(
             embed=SersiEmbed(
                 title="Timeout Result:",
                 fields={
@@ -185,7 +259,31 @@ class TimeoutSystem(commands.Cog):
                     else self.config.emotes.success,
                 },
                 footer="Sersi Timeout",
-            )
+            ),
+            wait=True,
+        )
+
+        reviewer_role, reviewed_role, review_embed, review_channel = create_alert(
+            interaction.user, self.config, logging_embed, sersi_case, result.jump_url
+        )
+
+        approve = Button(label="Approve", style=nextcord.ButtonStyle.green)
+        approve.callback = self.cb_approve
+
+        objection = Button(label="Object", style=nextcord.ButtonStyle.red)
+        objection.callback = self.cb_objection
+
+        button_view = View(timeout=None)
+        button_view.add_item(approve)
+        button_view.add_item(objection)
+
+        if reviewer_role.id == self.config.permission_roles.compliance:
+            button_view.interaction_check = cb_is_compliance
+
+        await review_channel.send(
+            f"{reviewer_role.mention} a warning by a {reviewed_role.mention} has been taken and should now be reviewed.",
+            embed=review_embed,
+            view=button_view,
         )
 
     @timeout.subcommand(description="Used to remove a user's timeout")

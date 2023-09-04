@@ -1,4 +1,5 @@
 from nextcord.ext import commands
+import nextcord
 
 from utils.base import PageView
 from utils.cases.autocomplete import fetch_cases_by_partial_id

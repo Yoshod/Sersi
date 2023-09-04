@@ -6,6 +6,7 @@ from nextcord.ui import Button, View
 from chat_exporter import export
 
 from utils.base import ConfirmView, SersiEmbed, ban
+from utils.cases.create import create_reformation_case
 from utils.config import Configuration
 from utils.perms import permcheck, is_mod, cb_is_mod
 
@@ -128,7 +129,14 @@ class Reformation(commands.Cog):
 
             # ------------------------------- CREATING THE CASEFILE ENTRY
 
-            # TODO: implement new case system
+            create_reformation_case(
+                self.config,
+                case_num,
+                member,
+                interaction.user,
+                case_channel.name,
+                reason,
+            )
 
             # ------------------------------- LOGGING
 
