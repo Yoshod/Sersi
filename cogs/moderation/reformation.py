@@ -8,8 +8,8 @@ from chat_exporter import export
 from utils.base import ConfirmView, SersiEmbed, ban
 from utils.cases.create import create_reformation_case
 from utils.config import Configuration
-from utils.perms import permcheck, is_mod, cb_is_mod
-
+from utils.perms import permcheck, is_mod, cb_is_mod, is_senior_mod
+from utils.roles import give_role, remove_role
 
 class Reformation(commands.Cog):
     def __init__(self, bot: commands.Bot, config: Configuration):
@@ -74,15 +74,21 @@ class Reformation(commands.Cog):
             await member.add_roles(reformation_role, reason=reason, atomic=True)
 
             # remove civil engineering initiate
-            role_obj = interaction.guild.get_role(
-                self.config.roles.civil_engineering_initiate
+            await remove_role(
+                member,
+                self.config.roles.civil_engineering_initiate, 
+                interaction.guild,
+                reason,
             )
-            await member.remove_roles(role_obj, reason=reason, atomic=True)
 
             # remove opt-ins
             for role in vars(self.config.opt_in_roles):
-                role_obj = interaction.guild.get_role(vars(self.config.opt_in_roles)[role])
-                await member.remove_roles(role_obj, reason=reason, atomic=True)
+                await remove_role(
+                    member, 
+                    vars(self.config.opt_in_roles)[role],
+                    interaction.guild,
+                    reason,
+                )
             
             # ------------------------------- CREATING THE CASE CHANNEL
             # updating the case number in the iter file
@@ -559,6 +565,84 @@ class Reformation(commands.Cog):
         channel = self.bot.get_channel(self.config.channels.alert)
         await channel.send(embed=embedVar, view=button_view)
 
+    @reformation.subcommand(name="release", description="Release a user from reformation centre.")
+    async def reformation_release(
+        self,
+        interaction: nextcord.Interaction,
+        member: nextcord.Member = nextcord.SlashOption(
+            description="Member to release", required=True
+        ),
+        reason: str = nextcord.SlashOption(
+            description="Reason for releasing member",
+            required=True,
+            min_length=8,
+            max_length=1024,
+        ),
+    ):
+        if not await permcheck(interaction, is_senior_mod):
+            return
+        
+        # member have reformation role check
+        is_in_reformation = False
+        for role in member.roles:
+            if role.id == self.config.roles.reformation:
+                is_in_reformation = True
+        if not is_in_reformation:
+            await interaction.send("Member is not in reformation.")
+            return
+        
+        await interaction.response.defer()
+
+        @ConfirmView.query(
+            title="Release Member from reformation",
+            prompt="Following member will be released from reformation:",
+            embed_args={
+                "User": member.mention,
+                "Reason": reason,
+            },
+        )
+        async def execute(*args, **kwargs):
+            # remove reformation role
+            await remove_role(
+                member,
+                self.config.roles.reformation,
+                interaction.guild,
+                reason
+            )
+
+            # add civil engineering initiate role
+            await give_role(
+                member,
+                self.config.roles.civil_engineering_initiate,
+                interaction.guild,
+                reason
+            )
+
+            # logging
+
+            embed = SersiEmbed(
+                title="User Has Been Released from Reformation",
+                description=f"Senior Moderator {interaction.user.mention} ({interaction.user.id}) has released user {member.mention}"
+                f" ({member.id}) from reformation.\n\n" + f"**__Reason:__**\n{reason}",
+                color=nextcord.Color.from_rgb(237, 91, 6),
+            )
+
+            channel = interaction.guild.get_channel(self.config.channels.logging)
+            await channel.send(embed=embed)
+
+            channel = interaction.guild.get_channel(self.config.channels.mod_logs)
+            await channel.send(embed=embed)
+
+            channel = interaction.guild.get_channel(self.config.channels.teachers_lounge)
+            await channel.send(embed=embed)
+
+            channel = interaction.guild.get_channel(self.config.channels.reform_public_log)
+            await channel.send(embed=embed)
+
+            await interaction.send(f"**{member.name}** ({member.id}) has been released from reformation.")
+        
+        await execute(self.bot, self.config, interaction)
+
     @commands.Cog.listener()
     async def on_member_remove(self, member: nextcord.Member):
         reformation_role = member.get_role(self.config.roles.reformation)
@@ -570,7 +654,7 @@ class Reformation(commands.Cog):
                         title=f"Reformation inmate **{member}** ({member.id}) banned!",
                         colour=nextcord.Color.from_rgb(237, 91, 6),
                     )
-                    ban_embed.add_field(name="Reason:", value=ban.reason)
+                    ban_embed.add_field(name="Reason:", value=ban_entry.reason)
                     channel = self.bot.get_channel(self.config.channels.mod_logs)
                     await channel.send(embed=ban_embed)
 
