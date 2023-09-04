@@ -71,7 +71,9 @@ class KickSystem(commands.Cog):
         await offender.send(
             embed=SersiEmbed(
                 title=f"Kicked from {interaction.guild.name}",
-                description=f"You have been kicked from {interaction.guild.name}. As this is not a ban you do not have to appeal this decision and can rejoin at your leisure. If you believe this was in error please rejoin and open an Administrator ticket.",
+                description=f"You have been kicked from {interaction.guild.name}. "
+                "As this is not a ban you do not have to appeal this decision and can rejoin at your leisure. "
+                "If you believe this was in error please rejoin and open an Administrator ticket.",
                 fields={"Reason:": reason},
                 footer="Sersi Moderation",
             )

@@ -222,13 +222,11 @@ class Database(commands.Cog):
             offence TEXT,
             details TEXT,
             ban_type TEXT,
-            end_date INTEGER,
             timestamp INTEGER,
             reviewer TEXT,
             review_outcome TEXT,
             review_comment TEXT,
             active BOOLEAN,
-            approved BOOLEAN,
             adjusted BOOLEAN,
             unban_reason TEXT)"""
         )

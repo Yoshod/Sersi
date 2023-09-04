@@ -5,7 +5,14 @@ from nextcord.ext import commands
 from utils.sersi_embed import SersiEmbed
 from utils.base import ConfirmView, DualCustodyView
 from utils.config import Configuration
-from utils.perms import permcheck, is_staff, is_senior_mod, is_slt, is_dark_mod
+from utils.perms import (
+    permcheck,
+    is_staff,
+    is_senior_mod,
+    is_slt,
+    is_dark_mod,
+    is_cet_lead,
+)
 
 
 class Staff(commands.Cog):
@@ -30,14 +37,18 @@ class Staff(commands.Cog):
     @nextcord.slash_command(
         dm_permission=False, guild_ids=[977377117895536640, 856262303795380224]
     )
-    async def moderator(self, interaction: nextcord.Interaction):
+    async def staff(self, interaction: nextcord.Interaction):
         pass
 
-    @moderator.subcommand()
-    async def add(self, interaction: nextcord.Interaction):
+    @staff.subcommand(name="add")
+    async def add_to_staff(self, interaction: nextcord.Interaction):
         pass
 
-    @add.subcommand(
+    @staff.subcommand(name="remove")
+    async def remove_from_staff(self, interaction: nextcord.Interaction):
+        pass
+
+    @add_to_staff.subcommand(
         description="Adds a server member as a trial mod",
     )
     async def trial_moderator(
@@ -75,12 +86,10 @@ class Staff(commands.Cog):
             embed=log_embed
         )
 
-    @add.subcommand(
+    @add_to_staff.subcommand(
         description="Turns a trial moderator into a moderator",
     )
-    async def moderator(
-        self, interaction: nextcord.Interaction, member: nextcord.Member
-    ):
+    async def staff(self, interaction: nextcord.Interaction, member: nextcord.Member):
         if not permcheck(interaction, is_senior_mod):
             return
 
@@ -127,9 +136,39 @@ class Staff(commands.Cog):
             embed=log_embed
         )
 
-    @nextcord.slash_command(
-        dm_permission=False,
-        guild_ids=[977377117895536640, 856262303795380224],
+    @add_to_staff.subcommand(description="Adds a new member to the CE-Team")
+    async def community_engagement(
+        self, interaction: nextcord.Interaction, member: nextcord.Member
+    ):
+        if not permcheck(interaction, is_cet_lead):
+            return
+
+        cet: nextcord.Role = interaction.guild.get_role(
+            self.config.permission_roles.cet
+        )
+        await member.add_roles(cet, reason="Sersi command", atomic=True)
+
+        await interaction.send(
+            f"{self.sersisuccess} {member.mention} was given the {cet.name} role."
+        )
+
+        # logging
+        log_embed = SersiEmbed(
+            title="New CE-Team Member added.",
+            fields={
+                "Responsible CETL:": interaction.user.mention,
+                f"New {cet.name}:": member.mention,
+            },
+            footer="Sersi Add CET Mod",
+        ).set_author(
+            name=interaction.user, icon_url=interaction.user.display_avatar.url
+        )
+
+        await interaction.guild.get_channel(self.config.channels.logging).send(
+            embed=log_embed
+        )
+
+    @remove_from_staff.subcommand(
         description="Remove user from server staff in bad standing.",
     )
     async def discharge(
@@ -200,9 +239,7 @@ class Staff(commands.Cog):
 
         await execute(self.bot, self.config, interaction)
 
-    @nextcord.slash_command(
-        dm_permission=False,
-        guild_ids=[977377117895536640, 856262303795380224],
+    @remove_from_staff.subcommand(
         description="Used to retire staff members from their post",
     )
     async def retire(

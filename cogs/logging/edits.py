@@ -14,7 +14,11 @@ class Edits(commands.Cog):
     async def on_message_edit(self, before: nextcord.Message, after: nextcord.Message):
         if before.guild is None:
             return
-        elif before.content == "" or after.content == "":
+        elif (
+            before.content == ""
+            or after.content == ""
+            or before.content == after.content
+        ):
             return
 
         if before.pinned is False and after.pinned is True:
