@@ -25,13 +25,15 @@ class Reformation(commands.Cog):
     async def reformation(self, interaction: nextcord.Interaction):
         pass
 
-    @reformation.subcommand(name="add", description="Send a user to reformation centre.")
+    @reformation.subcommand(
+        name="add", description="Send a user to reformation centre."
+    )
     async def reformation_needed(
         self,
         interaction: nextcord.Interaction,
         member: nextcord.Member = nextcord.SlashOption(
             description="Member to send to reformation", required=True
-        ), 
+        ),
         reason: str = nextcord.SlashOption(
             description="Reason for sending to reformation",
             required=True,
@@ -56,7 +58,7 @@ class Reformation(commands.Cog):
                 f"{self.sersifail} member is already in reformation", ephemeral=True
             )
             return
-        
+
         await interaction.response.defer()
 
         @ConfirmView.query(
@@ -80,9 +82,11 @@ class Reformation(commands.Cog):
 
             # remove opt-ins
             for role in vars(self.config.opt_in_roles):
-                role_obj = interaction.guild.get_role(vars(self.config.opt_in_roles)[role])
+                role_obj = interaction.guild.get_role(
+                    vars(self.config.opt_in_roles)[role]
+                )
                 await member.remove_roles(role_obj, reason=reason, atomic=True)
-            
+
             # ------------------------------- CREATING THE CASE CHANNEL
             # updating the case number in the iter file
             with open(self.config.datafiles.reform_iter, "r") as file:
@@ -91,7 +95,7 @@ class Reformation(commands.Cog):
 
             with open(self.config.datafiles.reform_iter, "w") as file:
                 file.write(str(case_num))
-            
+
             case_name = f"reformation-case-{str(case_num).zfill(4)}"
             overwrites = {
                 interaction.guild.default_role: nextcord.PermissionOverwrite(
@@ -153,10 +157,14 @@ class Reformation(commands.Cog):
             channel = interaction.guild.get_channel(self.config.channels.mod_logs)
             await channel.send(embed=embed)
 
-            channel = interaction.guild.get_channel(self.config.channels.teachers_lounge)
+            channel = interaction.guild.get_channel(
+                self.config.channels.teachers_lounge
+            )
             await channel.send(embed=embed)
 
-            channel = interaction.guild.get_channel(self.config.channels.reform_public_log)
+            channel = interaction.guild.get_channel(
+                self.config.channels.reform_public_log
+            )
             await channel.send(embed=embed)
 
         await execute(self.bot, self.config, interaction)
@@ -436,7 +444,10 @@ class Reformation(commands.Cog):
             ReasonModal("Reason for voting Maybe", self.cb_maybe)
         )
 
-    @reformation.subcommand(name="query_release", description="Query releasing a user from reformation centre.")
+    @reformation.subcommand(
+        name="query_release",
+        description="Query releasing a user from reformation centre.",
+    )
     async def reformation_query(
         self,
         interaction: nextcord.Interaction,
@@ -452,7 +463,7 @@ class Reformation(commands.Cog):
     ):
         if not await permcheck(interaction, is_mod):
             return
-        
+
         # member have reformation role check
         is_in_reformation = False
         for role in member.roles:
@@ -461,7 +472,7 @@ class Reformation(commands.Cog):
         if not is_in_reformation:
             await interaction.send("Member is not in reformation.")
             return
-        
+
         await interaction.response.defer()
 
         embedVar = SersiEmbed(
@@ -493,7 +504,9 @@ class Reformation(commands.Cog):
         channel = self.bot.get_channel(self.config.channels.alert)
         await channel.send(embed=embedVar, view=button_view)
 
-    @reformation.subcommand(name="query_failed", description="Query a ban of failed reformation inmate.")
+    @reformation.subcommand(
+        name="query_failed", description="Query a ban of failed reformation inmate."
+    )
     async def reformation_failed(
         self,
         interaction: nextcord.Interaction,
@@ -509,7 +522,7 @@ class Reformation(commands.Cog):
     ):
         if not await permcheck(interaction, is_mod):
             return
-        
+
         # member have reformation role check
         is_in_reformation = False
         for role in member.roles:
@@ -518,7 +531,7 @@ class Reformation(commands.Cog):
         if not is_in_reformation:
             await interaction.send("Member is not in reformation.")
             return
-        
+
         await interaction.response.defer()
 
         embedVar = SersiEmbed(
@@ -547,7 +560,7 @@ class Reformation(commands.Cog):
         button_view.add_item(no)
         button_view.add_item(maybe)
         button_view.interaction_check = cb_is_mod
-        
+
         channel = self.bot.get_channel(self.config.channels.alert)
         await channel.send(embed=embedVar, view=button_view)
 

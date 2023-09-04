@@ -292,7 +292,12 @@ class Applications(commands.Cog):
 
         test_embed = SersiEmbed(
             title="Moderator Invite",
-            description="Hey there! You've received this DM because a Moderator on Adam Something Central thinks you'd be a great fit on our moderation team.\n\nIf this interests you then all you have to do is press the Open Form button below and submit an application. If you're not interested in the role then that's okay too. In that case you can simply ignore this DM and you won't receive another one.",
+            description=""
+            "Hey there! You've received this DM because a Moderator on Adam Something Central thinks "
+            "you'd be a great fit on our moderation team.\n\n"
+            "If this interests you then all you have to do is press the Open Form button below and "
+            "submit an application. If you're not interested in the role then that's okay too. "
+            "In that case you can simply ignore this DM and you won't receive another one.",
         )
         open_modal = Button(
             custom_id="mod-application-start",
