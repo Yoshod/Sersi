@@ -63,6 +63,16 @@ class GetResources(commands.Cog):
                     data,
                 )
 
+            for sticker in message.stickers:
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(sticker.url) as response:
+                        if response.status != 200:
+                            continue
+
+                        file.writestr(
+                            f"stickers/{sticker.name}.png", await response.read()
+                        )
+
         file_buffer.seek(0)  # be kind, rewind
 
         await interaction.followup.send(
@@ -95,21 +105,16 @@ class GetResources(commands.Cog):
                     file.writestr(f"emotes/{emote.name}.png", data)
 
             for sticker in interaction.guild.stickers:
-                uri: str = f"https://media.discordapp.net/stickers/{sticker.id}.webp"
+                uri: str = f"https://media.discordapp.net/stickers/{sticker.id}"
 
                 async with aiohttp.ClientSession() as session:
                     async with session.get(uri) as response:
                         if response.status != 200:
                             continue
 
-                        if sticker.format == nextcord.StickerFormatType.png:
-                            file.writestr(
-                                f"stickers/{sticker.name}.webp", await response.read()
-                            )
-                        else:
-                            file.writestr(
-                                f"stickers/{sticker.name}.png", await response.read()
-                            )
+                        file.writestr(
+                            f"stickers/{sticker.name}.png", await response.read()
+                        )
 
             for role in interaction.guild.roles:
                 if not role.icon:
