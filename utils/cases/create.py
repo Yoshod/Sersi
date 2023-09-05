@@ -251,7 +251,7 @@ def create_timeout_case(
 
 def create_ban_case(
     config: Configuration,
-    vote_url: str,
+    vote_url: str | None,
     offender: nextcord.Member,
     moderator: nextcord.Member,
     offence: str,
@@ -270,6 +270,7 @@ def create_ban_case(
         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         (
             uuid,
+            vote_url,
             offender.id,
             moderator.id,
             offence,

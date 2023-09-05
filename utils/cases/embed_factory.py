@@ -500,3 +500,7 @@ def create_timeout_case_embed(
     )
 
     return case_embed
+
+
+def create_ban_case_embed(sersi_case: dict, interaction: nextcord.Interaction):
+    pass
