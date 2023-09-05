@@ -7,17 +7,17 @@ from chat_exporter import export
 
 from utils.base import ConfirmView, SersiEmbed, ban
 from utils.cases.create import create_reformation_case
+from utils.cases.misc import get_reformation_next_case_number
 from utils.config import Configuration
 from utils.perms import permcheck, is_mod, cb_is_mod, is_senior_mod
 from utils.roles import give_role, remove_role
 
 class Reformation(commands.Cog):
+    # TODO: replace file operations with database operations
     def __init__(self, bot: commands.Bot, config: Configuration):
         self.bot = bot
         self.config = config
         self.sersifail = config.emotes.fail
-        self.case_history_file = config.datafiles.casehistory
-        self.case_details_file = config.datafiles.casedetails
 
     @nextcord.slash_command(
         dm_permission=False,
@@ -86,22 +86,16 @@ class Reformation(commands.Cog):
             # remove opt-ins
             for role in vars(self.config.opt_in_roles):
                 await remove_role(
-                    member, 
-                    
-                    vars(self.config.opt_in_roles)[role]
-                ,
+                    member,
+                    vars(self.config.opt_in_roles)[role],
                     interaction.guild,
                     reason,
                 )
 
             # ------------------------------- CREATING THE CASE CHANNEL
-            # updating the case number in the iter file
-            with open(self.config.datafiles.reform_iter, "r") as file:
-                case_num = file.readline()
-                case_num = int(case_num) + 1
+            # get case number
 
-            with open(self.config.datafiles.reform_iter, "w") as file:
-                file.write(str(case_num))
+            case_num = get_reformation_next_case_number(self.config)
 
             case_name = f"reformation-case-{str(case_num).zfill(4)}"
             overwrites = {
@@ -180,6 +174,8 @@ class Reformation(commands.Cog):
                 self.config.channels.reform_public_log
             )
             await channel.send(embed=embed)
+
+            return embed
 
         await execute(self.bot, self.config, interaction)
 
@@ -652,7 +648,7 @@ class Reformation(commands.Cog):
             channel = interaction.guild.get_channel(self.config.channels.reform_public_log)
             await channel.send(embed=embed)
 
-            await interaction.send(f"**{member.name}** ({member.id}) has been released from reformation.")
+            return embed
         
         await execute(self.bot, self.config, interaction)
 

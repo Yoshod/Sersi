@@ -157,9 +157,10 @@ class ConfirmView(nextcord.ui.View):
                 )
 
                 async def cb_proceed(interaction: nextcord.Interaction):
-                    print("confirm view proceed")
                     await interaction.message.edit(view=None)
-                    await func(bot, config, interaction)
+                    new_embed = await func(bot, config, interaction)
+                    if new_embed is not None:
+                        await interaction.message.edit(embed=new_embed)
 
                 view = ConfirmView(cb_proceed)
                 await view.send_as_followup_response(interaction, embed=dialog_embed)

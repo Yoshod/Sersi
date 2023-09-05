@@ -76,3 +76,24 @@ def deletion_validity_check(config: Configuration, case_id: str):
 
     else:
         return False
+
+
+def get_reformation_next_case_number(config: Configuration):
+    conn = sqlite3.connect(config.datafiles.sersi_db)
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "SELECT case_number FROM reformation_cases ORDER BY case_number DESC LIMIT 1"
+    )
+
+    last_case_number = cursor.fetchone()
+
+    if last_case_number:
+        next_case_number = last_case_number[0] + 1
+    else:
+        next_case_number = 1
+    
+    conn.close()
+
+    return next_case_number
+
