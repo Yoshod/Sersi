@@ -5,7 +5,13 @@ import nextcord
 from utils import logs
 from utils.cases.approval import update_approved, update_objected
 from utils.config import Configuration
-from utils.perms import permcheck, is_compliance, is_dark_mod, is_senior_mod, is_full_mod
+from utils.perms import (
+    permcheck,
+    is_compliance,
+    is_dark_mod,
+    is_senior_mod,
+    is_full_mod,
+)
 from utils.sersi_embed import SersiEmbed
 
 
