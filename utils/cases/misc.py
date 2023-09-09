@@ -92,8 +92,7 @@ def get_reformation_next_case_number(config: Configuration):
         next_case_number = last_case_number[0] + 1
     else:
         next_case_number = 1
-    
+
     conn.close()
 
     return next_case_number
-

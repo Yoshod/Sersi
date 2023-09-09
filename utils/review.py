@@ -1,12 +1,10 @@
 import nextcord
 
-from utils.sersi_embed import SersiEmbed
 from utils.config import Configuration
-from nextcord.ui import Button, View
 
 
 def highest_mod_role(moderator: nextcord.Member, config: Configuration):
-    role_list = [
+    role_list: list[int] = [
         config.permission_roles.dark_moderator,
         config.permission_roles.senior_moderator,
         config.permission_roles.moderator,
@@ -21,7 +19,7 @@ def highest_mod_role(moderator: nextcord.Member, config: Configuration):
 
 
 def determine_reviewer(moderator: nextcord.Member, config: Configuration):
-    review_relations = {
+    review_relations: dict[int:int] = {
         config.permission_roles.trial_moderator: config.permission_roles.moderator,
         config.permission_roles.moderator: config.permission_roles.senior_moderator,
         config.permission_roles.senior_moderator: config.permission_roles.dark_moderator,

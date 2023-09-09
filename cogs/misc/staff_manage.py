@@ -32,9 +32,6 @@ class Staff(commands.Cog):
             except nextcord.errors.HTTPException:
                 continue
 
-
-
-
     @nextcord.slash_command(
         dm_permission=False, guild_ids=[977377117895536640, 856262303795380224]
     )

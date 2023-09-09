@@ -12,6 +12,7 @@ from utils.config import Configuration
 from utils.perms import permcheck, is_mod, cb_is_mod, is_senior_mod
 from utils.roles import give_role, remove_role
 
+
 class Reformation(commands.Cog):
     # TODO: replace file operations with database operations
     def __init__(self, bot: commands.Bot, config: Configuration):
@@ -78,7 +79,7 @@ class Reformation(commands.Cog):
             # remove civil engineering initiate
             await remove_role(
                 member,
-                self.config.roles.civil_engineering_initiate, 
+                self.config.roles.civil_engineering_initiate,
                 interaction.guild,
                 reason,
             )
@@ -574,7 +575,9 @@ class Reformation(commands.Cog):
         channel = self.bot.get_channel(self.config.channels.alert)
         await channel.send(embed=embedVar, view=button_view)
 
-    @reformation.subcommand(name="release", description="Release a user from reformation centre.")
+    @reformation.subcommand(
+        name="release", description="Release a user from reformation centre."
+    )
     async def reformation_release(
         self,
         interaction: nextcord.Interaction,
@@ -590,7 +593,7 @@ class Reformation(commands.Cog):
     ):
         if not await permcheck(interaction, is_senior_mod):
             return
-        
+
         # member have reformation role check
         is_in_reformation = False
         for role in member.roles:
@@ -599,7 +602,7 @@ class Reformation(commands.Cog):
         if not is_in_reformation:
             await interaction.send("Member is not in reformation.")
             return
-        
+
         await interaction.response.defer()
 
         @ConfirmView.query(
@@ -613,10 +616,7 @@ class Reformation(commands.Cog):
         async def execute(*args, **kwargs):
             # remove reformation role
             await remove_role(
-                member,
-                self.config.roles.reformation,
-                interaction.guild,
-                reason
+                member, self.config.roles.reformation, interaction.guild, reason
             )
 
             # add civil engineering initiate role
@@ -624,7 +624,7 @@ class Reformation(commands.Cog):
                 member,
                 self.config.roles.civil_engineering_initiate,
                 interaction.guild,
-                reason
+                reason,
             )
 
             # logging
@@ -642,14 +642,18 @@ class Reformation(commands.Cog):
             channel = interaction.guild.get_channel(self.config.channels.mod_logs)
             await channel.send(embed=embed)
 
-            channel = interaction.guild.get_channel(self.config.channels.teachers_lounge)
+            channel = interaction.guild.get_channel(
+                self.config.channels.teachers_lounge
+            )
             await channel.send(embed=embed)
 
-            channel = interaction.guild.get_channel(self.config.channels.reform_public_log)
+            channel = interaction.guild.get_channel(
+                self.config.channels.reform_public_log
+            )
             await channel.send(embed=embed)
 
             return embed
-        
+
         await execute(self.bot, self.config, interaction)
 
     @commands.Cog.listener()

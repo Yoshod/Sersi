@@ -115,7 +115,7 @@ def scrub_case(
         return False
 
 
-def deactivate_warn(config: Configuration, case_id: str):
+def deactivate_warn(config: Configuration, case_id: str) -> (bool, int | None):
     conn = sqlite3.connect(config.datafiles.sersi_db)
     cursor = conn.cursor()
 
