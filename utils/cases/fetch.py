@@ -194,6 +194,36 @@ def get_case_by_id(
                 "Timestamp": row[4],
             }
 
+        case "Ban":
+            cursor.execute("SELECT * FROM ban_cases WHERE id=?", (case_id,))
+
+            try:
+                row = cursor.fetchone()
+                cursor.close()
+
+            except TypeError:
+                cursor.close()
+                return "Exists Not Found"
+
+            return {
+                "ID": f"{row[0]}",
+                "Case Type": case_type,
+                "Vote URL": row[1],
+                "Offender ID": row[2],
+                "Moderator ID": row[3],
+                "Offence": row[4],
+                "Offence Details": row[5],
+                "Ban Type": row[6],
+                "Timestamp": row[7],
+                "Reviewer": row[8],
+                "Review Outcome": row[9],
+                "Review Comment": row[10],
+                "Active": row[11],
+                "Approved": row[12],
+                "Adjusted": row[13],
+                "Unban Reason": row[14],
+            }
+
 
 def fetch_all_cases(
     config: Configuration,
