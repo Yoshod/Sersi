@@ -10,7 +10,7 @@ from utils.cases.create import create_reformation_case
 from utils.cases.misc import get_reformation_next_case_number
 from utils.config import Configuration
 from utils.perms import permcheck, is_mod, cb_is_mod, is_senior_mod
-from utils.roles import give_role, remove_role
+from utils.roles import parse_roles
 
 
 class Reformation(commands.Cog):
@@ -74,24 +74,25 @@ class Reformation(commands.Cog):
         async def execute(*args, **kwargs):
             # ------------------------------- ROLES
             # give reformation role
-            await member.add_roles(reformation_role, reason=reason, atomic=True)
+            await member.add_roles(reformation_role, reason=reason)
 
             # remove civil engineering initiate
-            await remove_role(
-                member,
-                self.config.roles.civil_engineering_initiate,
-                interaction.guild,
-                reason,
+            await member.remove_roles(
+                *parse_roles(
+                    interaction.guild,
+                    self.config.roles.civil_engineering_initiate,
+                ),
+                reason=reason,
             )
 
             # remove opt-ins
-            for role in vars(self.config.opt_in_roles):
-                await remove_role(
-                    member,
-                    vars(self.config.opt_in_roles)[role],
+            await member.remove_roles(
+                *parse_roles(
                     interaction.guild,
-                    reason,
-                )
+                    *vars(self.config.opt_in_roles).values()
+                ),
+                reason=reason,
+            )
 
             # ------------------------------- CREATING THE CASE CHANNEL
             # get case number
@@ -576,7 +577,7 @@ class Reformation(commands.Cog):
         await channel.send(embed=embedVar, view=button_view)
 
     @reformation.subcommand(
-        name="release", description="Release a user from reformation centre."
+        name="release", description="Release a user from reformation centre. (manual)"
     )
     async def reformation_release(
         self,
@@ -615,16 +616,18 @@ class Reformation(commands.Cog):
         )
         async def execute(*args, **kwargs):
             # remove reformation role
-            await remove_role(
-                member, self.config.roles.reformation, interaction.guild, reason
+            await member.remove_roles(
+                *parse_roles(interaction.guild, self.config.roles.reformation),
+                reason=reason,
             )
 
             # add civil engineering initiate role
-            await give_role(
-                member,
-                self.config.roles.civil_engineering_initiate,
-                interaction.guild,
-                reason,
+            await member.add_roles(
+                *parse_roles(
+                    interaction.guild,
+                    self.config.roles.civil_engineering_initiate
+                ),
+                reason=reason,
             )
 
             # logging
