@@ -1,38 +1,75 @@
-from datetime import datetime
+import datetime
+
 import nextcord
-
 from nextcord.ext import commands
-from nextcord.ui import Button, View
-from pytz import timezone
 
+from utils import logs
+from utils.cases.approval import update_approved, update_objected
 from utils.cases.autocomplete import fetch_offences_by_partial_name
 from utils.cases.create import create_warn_case
 from utils.cases.delete import delete_warn
 from utils.cases.embed_factory import create_warn_case_embed
+from utils.cases.fetch import get_case_by_id
 from utils.cases.mend import deactivate_warn
 from utils.cases.misc import offence_validity_check, deletion_validity_check
 from utils.config import Configuration
-from utils.cases.fetch import get_case_by_id
-from utils.cases.approval import update_approved, update_objected
 from utils.perms import (
     permcheck,
     is_mod,
     is_dark_mod,
     is_immune,
     target_eligibility,
-    cb_is_compliance,
+    is_compliance,
+    is_senior_mod,
 )
-from utils.sersi_embed import SersiEmbed
 from utils.review import create_alert
-from utils import logs
+from utils.sersi_embed import SersiEmbed
 
 
-class WarningSystem(commands.Cog):
-    def __init__(self, bot, config: Configuration):
-        self.bot = bot
+class ObjectionButton(nextcord.ui.Button):
+    def __init__(self, config: Configuration):
+        super().__init__(label="Object", style=nextcord.ButtonStyle.red)
         self.config = config
 
-    async def cb_approve(self, interaction: nextcord.Interaction):
+    async def callback(self, interaction: nextcord.Interaction) -> None:
+        new_embed = interaction.message.embeds[0]
+        new_embed.add_field(
+            name="Moderation Action Objected To",
+            value=interaction.user.mention,
+            inline=True,
+        )
+        new_embed.colour = nextcord.Colour.brand_red()
+        await interaction.message.edit(embed=new_embed, view=None)
+
+        # Database
+        update_objected(new_embed.fields[0].value, self.config)
+
+        # Logging
+        await interaction.guild.get_channel(self.config.channels.logging).send(
+            embed=SersiEmbed(
+                title="Moderation Action Objected To",
+                description="A Moderator Action has been objected to by a moderator in response to a report.",
+                fields={
+                    "Report:": interaction.message.jump_url,
+                    "Moderator:": f"{interaction.user.mention} ({interaction.user.id})",
+                },
+                footer="Sersi Moderation Peer Review",
+            )
+        )
+
+        await logs.update_response(
+            self.config,
+            interaction.message,
+            datetime.datetime.now(datetime.timezone.utc),
+        )
+
+
+class ApprovalButton(nextcord.ui.Button):
+    def __init__(self, config: Configuration):
+        super().__init__(label="Object", style=nextcord.ButtonStyle.green)
+        self.config = config
+
+    async def callback(self, interaction: nextcord.Interaction) -> None:
         new_embed: nextcord.Embed = interaction.message.embeds[0]
         new_embed.add_field(
             name="Moderation Action Approved",
@@ -45,52 +82,49 @@ class WarningSystem(commands.Cog):
         update_approved(new_embed.fields[0].value, self.config)
 
         # Logging
-        logging_embed = SersiEmbed(
-            title="Moderation Action Approved",
-            description="A Moderator Action has been approved by a moderator in response to a report.",
-            fields={
-                "Report:": interaction.message.jump_url,
-                "Moderator:": f"{interaction.user.mention} ({interaction.user.id})",
-            },
-            footer="Sersi Moderation Peer Review",
+        await interaction.guild.get_channel(self.config.channels.logging).send(
+            embed=SersiEmbed(
+                title="Moderation Action Approved",
+                description="A Moderator Action has been approved by a moderator in response to a report.",
+                fields={
+                    "Report:": interaction.message.jump_url,
+                    "Moderator:": f"{interaction.user.mention} ({interaction.user.id})",
+                },
+                footer="Sersi Moderation Peer Review",
+            )
         )
-
-        channel = self.bot.get_channel(self.config.channels.logging)
-        await channel.send(embed=logging_embed)
 
         await logs.update_response(
-            self.config, interaction.message, datetime.now(timezone.utc)
+            self.config,
+            interaction.message,
+            datetime.datetime.now(datetime.timezone.utc),
         )
 
-    async def cb_objection(self, interaction: nextcord.Interaction):
-        new_embed = interaction.message.embeds[0]
-        new_embed.add_field(
-            name="Moderation Action Objected To",
-            value=interaction.user.mention,
-            inline=True,
-        )
-        new_embed.colour = nextcord.Colour.brand_red()
-        await interaction.message.edit(embed=new_embed, view=None)
 
-        update_objected(new_embed.fields[0].value, self.config)
+class AlertView(nextcord.ui.View):
+    def __init__(self, config: Configuration, reviewer: nextcord.Role):
+        super().__init__(timeout=None)
+        self.config = config
+        self.reviewer = reviewer
+        self.add_item(ApprovalButton(config))
+        self.add_item(ObjectionButton(config))
 
-        # Logging
-        logging_embed = SersiEmbed(
-            title="Moderation Action Objected To",
-            description="A Moderator Action has been objected to by a moderator in response to a report.",
-            fields={
-                "Report:": interaction.message.jump_url,
-                "Moderator:": f"{interaction.user.mention} ({interaction.user.id})",
-            },
-            footer="Sersi Moderation Peer Review",
-        )
+    async def interaction_check(self, interaction: nextcord.Interaction) -> bool:
+        match self.reviewer:
+            case self.config.permission_roles.compliance:
+                return await permcheck(interaction, is_compliance)
+            case self.config.permission_roles.dark_moderator:
+                return await permcheck(interaction, is_dark_mod)
+            case self.config.permission_roles.senior_moderator:
+                return await permcheck(interaction, is_senior_mod)
+            case self.config.permission_roles.moderator:
+                return await permcheck(interaction, is_mod)
 
-        channel = self.bot.get_channel(self.config.channels.logging)
-        await channel.send(embed=logging_embed)
 
-        await logs.update_response(
-            self.config, interaction.message, datetime.now(timezone.utc)
-        )
+class WarningSystem(commands.Cog):
+    def __init__(self, bot, config: Configuration):
+        self.bot = bot
+        self.config = config
 
     @nextcord.slash_command(
         dm_permission=False,
@@ -127,19 +161,13 @@ class WarningSystem(commands.Cog):
         if not target_eligibility(interaction.user, offender):
             warning_alert = SersiEmbed(
                 title="Unauthorised Moderation Target",
-                description=f"{interaction.user.mention} ({interaction.user.id}) attempted to warn {offender.mention} ({offender.id}) despite being outranked!",
+                description=f"{interaction.user.mention} ({interaction.user.id}) attempted to warn "
+                "{offender.mention} ({offender.id}) despite being outranked!",
             )
 
-            logging_channel = interaction.guild.get_channel(
-                self.config.channels.logging
-            )
-
-            mega_admin_role = interaction.guild.get_role(
-                self.config.permission_roles.dark_moderator
-            )
-
-            await logging_channel.send(
-                content=f"**ALERT:** {mega_admin_role.mention}", embed=warning_alert
+            await interaction.guild.get_channel(self.config.channels.logging).send(
+                content=f"**ALERT:** {interaction.guild.get_role(self.config.permission_roles.dark_moderator).mention}",
+                embed=warning_alert,
             )
 
             await interaction.send(
@@ -157,12 +185,13 @@ class WarningSystem(commands.Cog):
 
         if not offence_validity_check(self.config, offence):
             await interaction.send(
-                f"{self.config.emotes.fail} {offence} is not in the list of offences. Try again or consider using the 'Other' offence.",
+                f"{self.config.emotes.fail} {offence} is not in the list of offences. "
+                "Try again or consider using the 'Other' offence.",
                 ephemeral=True,
             )
             return
 
-        uuid = create_warn_case(
+        uuid: str = create_warn_case(
             self.config, offender, interaction.user, offence, detail
         )
 
@@ -174,10 +203,10 @@ class WarningSystem(commands.Cog):
                     footer="Sersi Warning",
                 ).set_thumbnail(interaction.guild.icon.url)
             )
-            not_sent = False
+            not_sent: bool = False
 
         except (nextcord.Forbidden, nextcord.HTTPException):
-            not_sent = True
+            not_sent: bool = True
 
         sersi_case = get_case_by_id(self.config, uuid, False)
 
@@ -214,23 +243,10 @@ class WarningSystem(commands.Cog):
             interaction.user, self.config, logging_embed, sersi_case, result.jump_url
         )
 
-        approve = Button(label="Approve", style=nextcord.ButtonStyle.green)
-        approve.callback = self.cb_approve
-
-        objection = Button(label="Object", style=nextcord.ButtonStyle.red)
-        objection.callback = self.cb_objection
-
-        button_view = View(timeout=None)
-        button_view.add_item(approve)
-        button_view.add_item(objection)
-
-        if reviewer_role.id == self.config.permission_roles.compliance:
-            button_view.interaction_check = cb_is_compliance
-
         await review_channel.send(
             f"{reviewer_role.mention} a warning by a {reviewed_role.mention} has been taken and should now be reviewed.",
             embed=review_embed,
-            view=button_view,
+            view=AlertView(self.config, reviewer_role),
         )
 
     @warn.subcommand(description="Deactivate a warn")
@@ -257,43 +273,42 @@ class WarningSystem(commands.Cog):
 
         deactivated, offender_id = deactivate_warn(self.config, case_id)
 
-        if deactivated:
-            logging_embed = SersiEmbed(
-                title="Warn Deactivated",
-                fields={
-                    "Warn ID:": case_id,
-                    "Moderator:": f"{interaction.user.mention} ({interaction.user.id})",
-                    "Reason:": reason,
-                },
-            )
-
-            offender = interaction.guild.get_member(offender_id)
-            try:
-                await offender.send(
-                    embed=SersiEmbed(
-                        title=f"Warn Deactivated in {interaction.guild.name}",
-                        description=f"Your warn in {interaction.guild.name} has been deactivated. "
-                        "It is still visible to moderators.",
-                    )
-                )
-            except nextcord.HTTPException:
-                pass
-
-            await interaction.guild.get_channel(self.config.channels.mod_logs).send(
-                embed=logging_embed
-            )
-            await interaction.guild.get_channel(self.config.channels.logging).send(
-                embed=logging_embed
-            )
-
-            await interaction.followup.send(
-                f"{self.config.emotes.success} Warn {case_id} has been deactivated!"
-            )
-
-        else:
+        if not deactivated:
             await interaction.followup.send(
                 f"{self.config.emotes.fail} Warn {case_id} could not be deactivated."
             )
+            return
+
+        logging_embed = SersiEmbed(
+            title="Warn Deactivated",
+            fields={
+                "Warn ID:": case_id,
+                "Moderator:": f"{interaction.user.mention} ({interaction.user.id})",
+                "Reason:": reason,
+            },
+        )
+
+        try:
+            await interaction.guild.get_member(offender_id).send(
+                embed=SersiEmbed(
+                    title=f"Warn Deactivated in {interaction.guild.name}",
+                    description=f"Your warn in {interaction.guild.name} has been deactivated. "
+                    "It is still visible to moderators.",
+                )
+            )
+        except nextcord.HTTPException:
+            pass
+
+        await interaction.guild.get_channel(self.config.channels.mod_logs).send(
+            embed=logging_embed
+        )
+        await interaction.guild.get_channel(self.config.channels.logging).send(
+            embed=logging_embed
+        )
+
+        await interaction.followup.send(
+            f"{self.config.emotes.success} Warn {case_id} has been deactivated!"
+        )
 
     @warn.subcommand(description="Used to delete a deactivated warn")
     async def delete(
