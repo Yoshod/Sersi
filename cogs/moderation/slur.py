@@ -384,6 +384,9 @@ class Slur(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_update(self, before: nextcord.Member, after: nextcord.Member):
+        if not after.nick:
+            return
+
         slurs: list[str] = detect_slur(after.nick)
         if slurs:
             alert: nextcord.Message = await self.bot.get_channel(
