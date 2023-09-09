@@ -19,8 +19,6 @@ class Staff(commands.Cog):
     def __init__(self, bot, config: Configuration):
         self.bot = bot
         self.config = config
-        self.sersisuccess = config.emotes.success
-        self.sersifail = config.emotes.fail
 
     async def remove_all_permission_roles(self, member: nextcord.Member):
         for role in vars(self.config.permission_roles):
@@ -33,6 +31,9 @@ class Staff(commands.Cog):
                 await member.remove_roles(role_object)
             except nextcord.errors.HTTPException:
                 continue
+
+
+
 
     @nextcord.slash_command(
         dm_permission=False, guild_ids=[977377117895536640, 856262303795380224]
@@ -63,7 +64,7 @@ class Staff(commands.Cog):
         await member.add_roles(trial_moderator, reason="Sersi command", atomic=True)
 
         await interaction.send(
-            f"{self.sersisuccess} {member.mention} was given the {trial_moderator.name} role."
+            f"{self.config.emotes.success} {member.mention} was given the {trial_moderator.name} role."
         )
 
         # logging
@@ -89,7 +90,7 @@ class Staff(commands.Cog):
     @add_to_staff.subcommand(
         description="Turns a trial moderator into a moderator",
     )
-    async def staff(self, interaction: nextcord.Interaction, member: nextcord.Member):
+    async def promote(self, interaction: nextcord.Interaction, member: nextcord.Member):
         if not permcheck(interaction, is_senior_mod):
             return
 
@@ -112,7 +113,7 @@ class Staff(commands.Cog):
         await member.add_roles(moderator, reason="Sersi command", atomic=True)
 
         await interaction.followup.send(
-            f"{self.sersisuccess} {member.mention} was given the {moderator.name} role.\n"
+            f"{self.config.emotes.success} {member.mention} was given the {moderator.name} role.\n"
             "Remember: You're not truly a moderator until your first ban. ;)",
         )
 
@@ -149,7 +150,7 @@ class Staff(commands.Cog):
         await member.add_roles(cet, reason="Sersi command", atomic=True)
 
         await interaction.send(
-            f"{self.sersisuccess} {member.mention} was given the {cet.name} role."
+            f"{self.config.emotes.success} {member.mention} was given the {cet.name} role."
         )
 
         # logging
@@ -185,7 +186,7 @@ class Staff(commands.Cog):
             max_length=1024,
         ),
         bypass_reason: str = nextcord.SlashOption(
-            description="(Mega Administrator only!) Reason to bypass dual custody",
+            description="MEGA ADMINISTRATOR ONLY! Reason to bypass dual custody",
             min_length=8,
             max_length=1024,
             required=False,
@@ -268,11 +269,11 @@ class Staff(commands.Cog):
             await member.add_roles(
                 interaction.guild.get_role(self.config.roles.honourable_member)
             )
-        except (nextcord.Forbidden, nextcord.HTTPException):
+        except (nextcord.Forbidden, nextcord.HTTPException, AttributeError):
             pass
 
         await interaction.followup.send(
-            f"{self.sersisuccess} {member.mention} has retired from the mod team. Thank you for your service!"
+            f"{self.config.emotes.success} {member.mention} has retired from the mod team. Thank you for your service!"
         )
 
         # logging

@@ -43,7 +43,7 @@ class SlurCommands(nextcord.ext.commands.Cog):
         """Add a new slur to the list of slurs."""
         if not await permcheck(interaction, is_mod):
             return
-        
+
         await interaction.response.defer(ephemeral=False)
 
         slur = "".join(slur)
@@ -53,14 +53,14 @@ class SlurCommands(nextcord.ext.commands.Cog):
         for s in get_slurs_leet():
             if s in slur:
                 existing_slur = s
-        
+
         if existing_slur is not None:
             await interaction.followup.send(
                 f"{self.config.emotes.fail} `{slur}` is in conflict with existing slur `{existing_slur}`; "
                 "cannot be added."
             )
             return
-        
+
         await interaction.followup.send(f"Slur to be added: {slur}")
         with open(self.config.datafiles.slurfile, "a") as file:
             file.write(slur)
