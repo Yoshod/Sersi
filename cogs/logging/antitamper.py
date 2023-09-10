@@ -23,22 +23,22 @@ class Antitamper(commands.Cog):
         if message.channel.category.id != self.config.channels.logging_category:
             return
 
-        warning_embed = SersiEmbed(
-            title="Logs have been tampered with.",
-            description="A message in a logging channel has been deleted. Please investigate at "
-            "nearest convenience.",
-            footer="Antitamper Alert",
-            fields={
-                "Perpetrator:": f"{log.user.mention} ({log.user.id})",
-                "Target:": f"{log.target.mention} ({log.target.id})",
-                "Channel": log.extra.channel.mention,
-                "Message Content": message.content,
-            },
-        )
-
         channel = message.guild.get_channel(self.config.channels.tamper_logs)
-        mega_admin = message.guild.get_role(self.config.permission_roles.dark_moderator)
-        await channel.send(mega_admin.mention, embed=warning_embed)
+        await channel.send(
+            message.guild.get_role(self.config.permission_roles.dark_moderator).mention,
+            embed=SersiEmbed(
+                title="Logs have been tampered with.",
+                description="A message in a logging channel has been deleted. "
+                "Please investigate at nearest convenience.",
+                footer="Antitamper Alert",
+                fields={
+                    "Perpetrator:": f"{log.user.mention} ({log.user.id})",
+                    "Target:": f"{log.target.mention} ({log.target.id})",
+                    "Channel": log.extra.channel.mention,
+                    "Message Content": message.content,
+                },
+            ),
+        )
         if message.embeds:
             await channel.send(
                 content="deleted embeds:", embeds=[embed for embed in message.embeds]

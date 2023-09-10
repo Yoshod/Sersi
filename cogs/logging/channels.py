@@ -114,7 +114,7 @@ class Channels(commands.Cog):
         ).flatten()
         log: nextcord.AuditLogEntry = entries[0]
 
-        logging_embed: nextcord.Embed = SersiEmbed(
+        logging_embed: SersiEmbed = SersiEmbed(
             description=f"{type(channel).__name__} deleted",
             fields={
                 "Name": channel.name,
@@ -139,6 +139,8 @@ class Channels(commands.Cog):
                 inline=False,
             )
 
+        logging_embed.add_id_field({"Channel": channel.id, "User": log.user.id})
+
         await channel.guild.get_channel(self.config.channels.channel_logs).send(
             embed=logging_embed
         )
@@ -150,7 +152,7 @@ class Channels(commands.Cog):
         ).flatten()
         log: nextcord.AuditLogEntry = entries[0]
 
-        logging_embed: nextcord.Embed = SersiEmbed(
+        logging_embed: SersiEmbed = SersiEmbed(
             description=f"{type(channel).__name__} Created",
             fields={
                 "Name": f"{channel.mention} {channel.name} (`{channel.id}`)",
@@ -174,6 +176,8 @@ class Channels(commands.Cog):
                 value=f"__Type__: {type_of_overwrite}\n__Permissions__: {', '.join(permissions)}",
                 inline=False,
             )
+
+        logging_embed.add_id_field({"Channel": channel.id, "User": log.user.id})
 
         await channel.guild.get_channel(self.config.channels.channel_logs).send(
             embed=logging_embed
@@ -213,7 +217,7 @@ class Channels(commands.Cog):
                         "After": f"Position {after.position}",
                     },
                     footer="Sersi Channel Logs",
-                )
+                ).add_id_field({"Channel": after.id})
             )
             return
 
@@ -238,7 +242,9 @@ class Channels(commands.Cog):
                             "After": after_values,
                         },
                         footer="Sersi Channel Logs",
-                    ).set_author(name=log.user, icon_url=log.user.display_avatar.url)
+                    )
+                    .set_author(name=log.user, icon_url=log.user.display_avatar.url)
+                    .add_id_field({"Channel": after.id, "User": log.user.id})
                 )
 
             case nextcord.AuditLogAction.overwrite_create:
@@ -297,7 +303,9 @@ class Channels(commands.Cog):
                             "After": after_values,
                         },
                         footer="Sersi Channel Logs",
-                    ).set_author(name=log.user, icon_url=log.user.display_avatar.url)
+                    )
+                    .set_author(name=log.user, icon_url=log.user.display_avatar.url)
+                    .add_id_field({"Channel": after.id, "User": log.user.id})
                 )
 
             case nextcord.AuditLogAction.overwrite_delete:
@@ -322,7 +330,9 @@ class Channels(commands.Cog):
                             "Was": before_values,
                         },
                         footer="Sersi Channel Logs",
-                    ).set_author(name=log.user, icon_url=log.user.display_avatar.url)
+                    )
+                    .set_author(name=log.user, icon_url=log.user.display_avatar.url)
+                    .add_id_field({"Channel": after.id, "User": log.user.id})
                 )
 
 

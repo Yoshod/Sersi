@@ -26,3 +26,11 @@ class SersiEmbed(nextcord.Embed):
         if fields:
             for field in fields:
                 self.add_field(name=field, value=fields[field], inline=False)
+
+    def add_id_field(self, ids: dict):
+        id_string: str = f"```ini"
+        for key in ids:
+            id_string += f"\n{key} = {ids[key]}"
+        id_string += "```"
+        self.add_field(name="IDs", value=id_string, inline=False)
+        return self
