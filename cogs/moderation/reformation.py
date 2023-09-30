@@ -88,8 +88,7 @@ class Reformation(commands.Cog):
             # remove opt-ins
             await member.remove_roles(
                 *parse_roles(
-                    interaction.guild,
-                    *vars(self.config.opt_in_roles).values()
+                    interaction.guild, *vars(self.config.opt_in_roles).values()
                 ),
                 reason=reason,
             )
@@ -633,8 +632,7 @@ class Reformation(commands.Cog):
             # add civil engineering initiate role
             await member.add_roles(
                 *parse_roles(
-                    interaction.guild,
-                    self.config.roles.civil_engineering_initiate
+                    interaction.guild, self.config.roles.civil_engineering_initiate
                 ),
                 reason=reason,
             )

@@ -19,7 +19,7 @@ class AuditLogs(commands.Cog):
 
         message: str = ""
         async for entry in interaction.guild.audit_logs(limit=10):
-            message += f"{entry.user} did {entry.action.name} to {entry.target}\n"
+            message += f"`{entry.user}` did `{entry.action.name}` to `{entry.target}`\n"
         await interaction.send(message, ephemeral=True)
 
 

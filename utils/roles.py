@@ -1,10 +1,10 @@
 import nextcord
 
 
-def parse_roles(guild: nextcord.Guild, *roles: nextcord.Role|int):
+def parse_roles(guild: nextcord.Guild, *roles: nextcord.Role | int):
     """Parses roles for use in role assignment/removal on member."""
     for role in roles:
-        match (role):
+        match role:
             case nextcord.Role():
                 yield role
             case int():

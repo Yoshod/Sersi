@@ -10,6 +10,10 @@ from utils.base import get_discord_timestamp
 from utils.config import Configuration
 
 
+def is_older_than_five_seconds(created_at: datetime.datetime):
+    return (datetime.datetime.now(datetime.timezone.utc) - created_at).seconds > 5
+
+
 class Deletions(commands.Cog):
     def __init__(self, bot, config: Configuration):
         self.bot = bot
@@ -31,7 +35,7 @@ class Deletions(commands.Cog):
         if log is None:
             return
 
-        if message.author != log.target:
+        if message.author != log.target and is_older_than_five_seconds(log.created_at):
             self_delete: bool = True
         else:
             self_delete: bool = False
@@ -48,9 +52,15 @@ class Deletions(commands.Cog):
                         datetime.datetime.now(datetime.timezone.utc)
                     ),
                     "Deleted By": f"{log.user.mention} ({log.user.id})",
-                    "IDs": f"```ini\nAuthor = {message.author.id}\nPerpetrator = {log.user.id}```",
                 },
                 footer="Sersi Deletion Logging",
+                url="http://217.160.153.216/",
+            ).add_id_field(
+                {
+                    "Author": message.author.id,
+                    "Message": message.id,
+                    "Perpetrator": log.user.id,
+                }
             )
         else:
             logging_embed: nextcord.Embed = SersiEmbed(
@@ -65,7 +75,7 @@ class Deletions(commands.Cog):
                 },
                 footer="Sersi Deletion Logging",
                 url="http://217.160.153.216/",
-            )
+            ).add_id_field({"Author": message.author.id, "Message": message.id})
         logging_embed.set_author(
             name=message.author, icon_url=message.author.display_avatar.url
         )
