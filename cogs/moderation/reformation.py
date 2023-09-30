@@ -7,6 +7,7 @@ from chat_exporter import export
 
 from utils.base import ConfirmView, SersiEmbed, ban
 from utils.cases.misc import get_reformation_next_case_number
+from utils.channels import make_transcript
 from utils.config import Configuration
 from utils.database import db_session, ReformationCase
 from utils.perms import permcheck, is_mod, cb_is_mod, is_senior_mod
@@ -14,7 +15,6 @@ from utils.roles import parse_roles
 
 
 class Reformation(commands.Cog):
-    # TODO: replace file operations with database operations
     def __init__(self, bot: commands.Bot, config: Configuration):
         self.bot = bot
         self.config = config
@@ -252,12 +252,7 @@ class Reformation(commands.Cog):
             await channel.send(embed=log_embed)
 
             channel = interaction.guild.get_channel(self.config.channels.mod_logs)
-            await channel.send(embed=log_embed)
-
-            channel = interaction.guild.get_channel(
-                self.config.channels.teachers_lounge
-            )
-            await channel.send(embed=log_embed)
+            await channel.send(embed=log_embed)            
 
             # await interaction.send(f"**{member.name}** ({member.id}) will now be considered reformed.")
 
@@ -272,28 +267,18 @@ class Reformation(commands.Cog):
                 case.state = "reformed"
                 session.commit()
 
-            channel = interaction.guild.get_channel(case.cell_channel)
-
-            transcript = await export(channel, military_time=True)
-
-            if transcript is None:
-                await channel.delete()
-                channel = interaction.guild.get_channel(
-                    self.config.channels.teachers_lounge
-                )
-                await channel.send(f"{self.sersifail} Failed to Generate Transcript!")
-
-            else:
-                transcript_file = nextcord.File(
-                    io.BytesIO(transcript.encode()),
-                    filename=f"transcript-{channel.name}.html",
-                )
-
-            await channel.delete()
+            # transcript
             channel = interaction.guild.get_channel(
                 self.config.channels.teachers_lounge
             )
-            await channel.send(embed=log_embed, file=transcript_file)
+            cell_channel = interaction.guild.get_channel(case.cell_channel)
+
+            transcript = await make_transcript(cell_channel, channel, log_embed)
+            if transcript is None:
+                await channel.send(embed=log_embed)
+                await channel.send(f"{self.sersifail} Failed to Generate Transcript!")
+
+            await cell_channel.delete()
 
     async def cb_rq_yes_open_modal(self, interaction: nextcord.Interaction):
         # check if user has already voted
@@ -360,7 +345,7 @@ class Reformation(commands.Cog):
             # await member.ban(reason=f"Reformation Failed: {reason}", delete_message_days=0)
             await ban(self.config, member, "rf", reason=f"Reformation Failed: {reason}")
 
-            # transript
+            # close case
             with db_session(interaction.user) as session:
                 case: ReformationCase = session.query(ReformationCase).filter_by(
                     offender=member.id, state="open"
@@ -368,11 +353,7 @@ class Reformation(commands.Cog):
                 case.state = "failed"
                 session.commit()
 
-            room_channel = interaction.guild.get_channel(case.cell_channel)
-
-            transcript = await export(room_channel, military_time=True)
-            await room_channel.delete()
-
+            # logging
             yes_list = "\n• ".join(yes_men)
 
             embed = nextcord.Embed(
@@ -381,17 +362,6 @@ class Reformation(commands.Cog):
                 f"\nInitial reason for Reformation was: `{reason}`. They have been banned automatically.",
                 color=nextcord.Color.from_rgb(0, 0, 0),
             )
-
-            if transcript is None:
-                channel = interaction.guild.get_channel(
-                    self.config.channels.teachers_lounge
-                )
-                await channel.send(f"{self.sersifail} Failed to Generate Transcript!")
-            else:
-                transcript_file = nextcord.File(
-                    io.BytesIO(transcript.encode()),
-                    filename=f"transcript-{room_channel.name}.html",
-                )
 
             channel = self.bot.get_channel(self.config.channels.alert)
             await channel.send(embed=embed)
@@ -402,10 +372,19 @@ class Reformation(commands.Cog):
             channel = self.bot.get_channel(self.config.channels.mod_logs)
             await channel.send(embed=embed)
 
+            # transcript
             channel = interaction.guild.get_channel(
                 self.config.channels.teachers_lounge
             )
-            await channel.send(embed=embed, file=transcript_file)
+            cell_channel = interaction.guild.get_channel(case.cell_channel)
+
+            transcript = await make_transcript(cell_channel, channel, embed)
+            if transcript is None:
+                await channel.send(embed=embed)
+                await channel.send(f"{self.sersifail} Failed to Generate Transcript!")
+            
+            await cell_channel.delete()
+
 
     async def cb_rf_yes_open_modal(self, interaction: nextcord.Interaction):
         # check if user has already voted
@@ -644,31 +623,8 @@ class Reformation(commands.Cog):
                 ).first()
                 case.state = "released"
                 session.commit()
-            
-            room_channel = interaction.guild.get_channel(case.cell_channel)
-
-            transcript = await export(room_channel, military_time=True)
-
-            if transcript is None:
-                await room_channel.delete()
-                channel = interaction.guild.get_channel(
-                    self.config.channels.teachers_lounge
-                )
-                await channel.send(f"{self.sersifail} Failed to Generate Transcript!")
-            else:
-                transcript_file = nextcord.File(
-                    io.BytesIO(transcript.encode()),
-                    filename=f"transcript-{room_channel.name}.html",
-                )
-            
-            await room_channel.delete()
-            channel = interaction.guild.get_channel(
-                self.config.channels.teachers_lounge
-            )
-            await channel.send(file=transcript_file)
 
             # logging
-
             embed = SersiEmbed(
                 title="User Has Been Released from Reformation",
                 description=f"Senior Moderator {interaction.user.mention} ({interaction.user.id}) has released user {member.mention}"
@@ -692,6 +648,19 @@ class Reformation(commands.Cog):
             )
             await channel.send(embed=embed)
 
+            # transcript
+            channel = interaction.guild.get_channel(
+                self.config.channels.teachers_lounge
+            )
+            cell_channel = interaction.guild.get_channel(case.cell_channel)
+
+            transcript = await make_transcript(cell_channel, interaction.channel, embed)
+            if transcript is None:
+                await channel.send(embed=embed)
+                await channel.send(f"{self.sersifail} Failed to Generate Transcript!")
+            
+            await cell_channel.delete()
+
             return embed
 
         await execute(self.bot, self.config, interaction)
@@ -711,7 +680,7 @@ class Reformation(commands.Cog):
                     channel = self.bot.get_channel(self.config.channels.mod_logs)
                     await channel.send(embed=ban_embed)
 
-                    # transript
+                    # close case
                     with db_session() as session:
                         case: ReformationCase = session.query(ReformationCase).filter_by(
                             offender=member.id, state="open"
@@ -719,28 +688,20 @@ class Reformation(commands.Cog):
                         case.state = "failed"
                         session.commit()
                     
-                    room_channel = member.guild.get_channel(case.cell_channel)
-
-                    transcript = await export(room_channel, military_time=True)
-
-                    if transcript is None:
-                        channel = member.guild.get_channel(
-                            self.config.channels.teachers_lounge
-                        )
-                        await channel.send(
-                            f"{self.sersifail} Failed to Generate Transcript!"
-                        )
-                    else:
-                        transcript_file = nextcord.File(
-                            io.BytesIO(transcript.encode()),
-                            filename=f"transcript-{room_channel.name}.html",
-                        )
-
-                    await room_channel.delete()
+                    # transcript
                     channel = member.guild.get_channel(
                         self.config.channels.teachers_lounge
                     )
-                    await channel.send(embed=ban_embed, file=transcript_file)
+                    cell_channel = member.guild.get_channel(case.cell_channel)
+
+                    transcript = await make_transcript(cell_channel, channel, ban_embed)
+                    if transcript is None:
+                        await channel.send(embed=ban_embed)
+                        await channel.send(
+                            f"{self.sersifail} Failed to Generate Transcript!"
+                        )
+                    
+                    await cell_channel.delete()
 
                     return
 
@@ -758,7 +719,7 @@ class Reformation(commands.Cog):
                 colour=nextcord.Color.from_rgb(237, 91, 6),
             )
 
-            # transript
+            # close case
             with db_session() as session:
                 case: ReformationCase = session.query(ReformationCase).filter_by(
                     offender=member.id, state="open"
@@ -766,22 +727,20 @@ class Reformation(commands.Cog):
                 case.state = "failed"
                 session.commit()
             
-            room_channel = member.guild.get_channel(case.cell_channel)
+            # transcript
+            channel = member.guild.get_channel(
+                self.config.channels.teachers_lounge
+            )
+            cell_channel = member.guild.get_channel(case.cell_channel)
 
-            transcript = await export(room_channel, military_time=True)
-
+            transcript = await make_transcript(cell_channel, channel, embed)
             if transcript is None:
-                channel = member.guild.get_channel(self.config.channels.teachers_lounge)
-                await channel.send(f"{self.sersifail} Failed to Generate Transcript!")
-            else:
-                transcript_file = nextcord.File(
-                    io.BytesIO(transcript.encode()),
-                    filename=f"transcript-{room_channel.name}.html",
+                await channel.send(embed=embed)
+                await channel.send(
+                    f"{self.sersifail} Failed to Generate Transcript!"
                 )
-
-            await room_channel.delete()
-            channel = member.guild.get_channel(self.config.channels.teachers_lounge)
-            await channel.send(embed=embed, file=transcript_file)
+            
+            await cell_channel.delete()
 
 
 class ReasonModal(nextcord.ui.Modal):
