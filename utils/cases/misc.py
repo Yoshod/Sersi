@@ -2,6 +2,7 @@ import sqlite3
 
 import nextcord
 
+from utils.database import ReformationCase, db_session
 from utils.config import Configuration
 
 
@@ -78,21 +79,14 @@ def deletion_validity_check(config: Configuration, case_id: str):
         return False
 
 
-def get_reformation_next_case_number(config: Configuration):
-    conn = sqlite3.connect(config.datafiles.sersi_db)
-    cursor = conn.cursor()
+def get_reformation_next_case_number():
+    with db_session() as session:
+        last_case: ReformationCase = session                \
+            .query(ReformationCase)                         \
+            .order_by(ReformationCase.case_number.desc())   \
+            .first()
 
-    cursor.execute(
-        "SELECT case_number FROM reformation_cases ORDER BY case_number DESC LIMIT 1"
-    )
-
-    last_case_number = cursor.fetchone()
-
-    if last_case_number:
-        next_case_number = last_case_number[0] + 1
-    else:
-        next_case_number = 1
-
-    conn.close()
-
-    return next_case_number
+    if last_case is None:
+        return 1
+    
+    return last_case.case_number + 1

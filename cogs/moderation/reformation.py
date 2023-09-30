@@ -6,9 +6,9 @@ from nextcord.ui import Button, View
 from chat_exporter import export
 
 from utils.base import ConfirmView, SersiEmbed, ban
-from utils.cases.create import create_reformation_case
 from utils.cases.misc import get_reformation_next_case_number
 from utils.config import Configuration
+from utils.database import db_session, ReformationCase
 from utils.perms import permcheck, is_mod, cb_is_mod, is_senior_mod
 from utils.roles import parse_roles
 
@@ -97,7 +97,7 @@ class Reformation(commands.Cog):
             # ------------------------------- CREATING THE CASE CHANNEL
             # get case number
 
-            case_num = get_reformation_next_case_number(self.config)
+            case_num = get_reformation_next_case_number()
 
             case_name = f"reformation-case-{str(case_num).zfill(4)}"
             overwrites = {
@@ -129,16 +129,20 @@ class Reformation(commands.Cog):
                 case_name, overwrites=overwrites, category=category
             )
 
-            # ------------------------------- CREATING THE CASEFILE ENTRY
+            # ------------------------------- INSERT CASE INTO DATABASE
 
-            create_reformation_case(
-                self.config,
-                case_num,
-                member,
-                interaction.user,
-                case_channel.name,
-                reason,
-            )
+            with db_session() as session:
+                session.add(
+                    ReformationCase(
+                        case_number=case_num,
+                        offender=member.id,
+                        moderator=interaction.user.id,
+                        reason=reason,
+                        cell_channel=case_channel.id,
+                        state="open",
+                    )
+                )
+                session.commit()
 
             # ------------------------------- LOGGING
 
@@ -262,11 +266,14 @@ class Reformation(commands.Cog):
             await interaction.message.edit(embed=new_embed, view=None)
 
             # close case
-            with open(self.config.datafiles.reformation_cases, "rb") as file:
-                reformation_list = pickle.load(file)
+            with db_session(interaction.user) as session:
+                case: ReformationCase = session.query(ReformationCase).filter_by(
+                    offender=member.id, state="open"
+                ).first()
+                case.state = "reformed"
+                session.commit()
 
-            channel_name = reformation_list[member.id][0]
-            channel = nextcord.utils.get(interaction.guild.channels, name=channel_name)
+            channel = interaction.guild.get_channel(case.cell_channel)
 
             transcript = await export(channel, military_time=True)
 
@@ -280,7 +287,7 @@ class Reformation(commands.Cog):
             else:
                 transcript_file = nextcord.File(
                     io.BytesIO(transcript.encode()),
-                    filename=f"transcript-{channel_name}.html",
+                    filename=f"transcript-{channel.name}.html",
                 )
 
             await channel.delete()
@@ -355,12 +362,14 @@ class Reformation(commands.Cog):
             await ban(self.config, member, "rf", reason=f"Reformation Failed: {reason}")
 
             # transript
-            with open(self.config.datafiles.reformation_cases, "rb") as file:
-                reformation_list = pickle.load(file)
-            room_channel_name = reformation_list[member.id][0]
-            room_channel = nextcord.utils.get(
-                interaction.guild.channels, name=room_channel_name
-            )
+            with db_session(interaction.user) as session:
+                case: ReformationCase = session.query(ReformationCase).filter_by(
+                    offender=member.id, state="open"
+                ).first()
+                case.state = "failed"
+                session.commit()
+
+            room_channel = interaction.guild.get_channel(case.cell_channel)
 
             transcript = await export(room_channel, military_time=True)
             await room_channel.delete()
@@ -382,7 +391,7 @@ class Reformation(commands.Cog):
             else:
                 transcript_file = nextcord.File(
                     io.BytesIO(transcript.encode()),
-                    filename=f"transcript-{room_channel_name}.html",
+                    filename=f"transcript-{room_channel.name}.html",
                 )
 
             channel = self.bot.get_channel(self.config.channels.alert)
@@ -630,6 +639,36 @@ class Reformation(commands.Cog):
                 reason=reason,
             )
 
+            # close case
+            with db_session(interaction.user) as session:
+                case: ReformationCase = session.query(ReformationCase).filter_by(
+                    offender=member.id, state="open"
+                ).first()
+                case.state = "released"
+                session.commit()
+            
+            room_channel = interaction.guild.get_channel(case.cell_channel)
+
+            transcript = await export(room_channel, military_time=True)
+
+            if transcript is None:
+                await room_channel.delete()
+                channel = interaction.guild.get_channel(
+                    self.config.channels.teachers_lounge
+                )
+                await channel.send(f"{self.sersifail} Failed to Generate Transcript!")
+            else:
+                transcript_file = nextcord.File(
+                    io.BytesIO(transcript.encode()),
+                    filename=f"transcript-{room_channel.name}.html",
+                )
+            
+            await room_channel.delete()
+            channel = interaction.guild.get_channel(
+                self.config.channels.teachers_lounge
+            )
+            await channel.send(file=transcript_file)
+
             # logging
 
             embed = SersiEmbed(
@@ -675,12 +714,14 @@ class Reformation(commands.Cog):
                     await channel.send(embed=ban_embed)
 
                     # transript
-                    with open(self.config.datafiles.reformation_cases, "rb") as file:
-                        reformation_list = pickle.load(file)
-                    room_channel_name = reformation_list[member.id][0]
-                    room_channel = nextcord.utils.get(
-                        member.guild.channels, name=room_channel_name
-                    )
+                    with db_session() as session:
+                        case: ReformationCase = session.query(ReformationCase).filter_by(
+                            offender=member.id, state="open"
+                        ).first()
+                        case.state = "failed"
+                        session.commit()
+                    
+                    room_channel = member.guild.get_channel(case.cell_channel)
 
                     transcript = await export(room_channel, military_time=True)
 
@@ -694,7 +735,7 @@ class Reformation(commands.Cog):
                     else:
                         transcript_file = nextcord.File(
                             io.BytesIO(transcript.encode()),
-                            filename=f"transcript-{room_channel_name}.html",
+                            filename=f"transcript-{room_channel.name}.html",
                         )
 
                     await room_channel.delete()
@@ -720,12 +761,14 @@ class Reformation(commands.Cog):
             )
 
             # transript
-            with open(self.config.datafiles.reformation_cases, "rb") as file:
-                reformation_list = pickle.load(file)
-            room_channel_name = reformation_list[member.id][0]
-            room_channel = nextcord.utils.get(
-                member.guild.channels, name=room_channel_name
-            )
+            with db_session() as session:
+                case: ReformationCase = session.query(ReformationCase).filter_by(
+                    offender=member.id, state="open"
+                ).first()
+                case.state = "failed"
+                session.commit()
+            
+            room_channel = member.guild.get_channel(case.cell_channel)
 
             transcript = await export(room_channel, military_time=True)
 
@@ -735,7 +778,7 @@ class Reformation(commands.Cog):
             else:
                 transcript_file = nextcord.File(
                     io.BytesIO(transcript.encode()),
-                    filename=f"transcript-{room_channel_name}.html",
+                    filename=f"transcript-{room_channel.name}.html",
                 )
 
             await room_channel.delete()

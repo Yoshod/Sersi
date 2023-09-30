@@ -9,3 +9,4 @@ pycryptodome
 aiohttp
 pyyaml
 unidecode
+sqlalchemy

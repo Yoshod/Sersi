@@ -77,6 +77,7 @@ class Database(commands.Cog):
                    moderator INTEGER,
                    cell_id INTEGER,
                    reason TEXT,
+                   state TEXT,
                    timestamp INTEGER)"""
         )
 

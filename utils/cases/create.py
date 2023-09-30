@@ -85,45 +85,6 @@ def create_probation_case(
     conn.close()
 
 
-def create_reformation_case(
-    config: Configuration,
-    case_number: int,
-    offender: nextcord.Member,
-    moderator: nextcord.Member,
-    reformation_cell: nextcord.TextChannel,
-    reason: str,
-):
-    uuid = create_unique_id(config)
-
-    timestamp = int(time.time())
-
-    conn = sqlite3.connect(config.datafiles.sersi_db)
-    cursor = conn.cursor()
-
-    cursor.execute(
-        """
-        INSERT INTO reformation_cases (id, case_number, offender, moderator, cell_id, reason, timestamp)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-        """,
-        (
-            uuid,
-            case_number,
-            offender.id,
-            moderator.id,
-            reformation_cell.id,
-            reason,
-            timestamp,
-        ),
-    )
-    cursor.execute(
-        "INSERT INTO cases (id, type, timestamp) VALUES (?, ?, ?)",
-        (uuid, "Reformation", timestamp),
-    )
-
-    conn.commit()
-    conn.close()
-
-
 def create_bad_faith_ping_case(
     config: Configuration,
     report_url: str,
