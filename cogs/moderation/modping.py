@@ -12,8 +12,8 @@ from utils.base import (
     convert_mention_to_id,
     ignored_message,
 )
-from utils.cases.create import create_bad_faith_ping_case
 from utils.config import Configuration
+from utils.database import db_session, BadFaithPingCase
 from utils.perms import cb_is_mod
 
 
@@ -105,9 +105,15 @@ class ModPing(commands.Cog):
                     convert_mention_to_id(field.value)
                 )
 
-        create_bad_faith_ping_case(
-            self.config, interaction.message.jump_url, offender, interaction.user
-        )
+        with db_session(interaction.user) as session:
+            session.add(
+                BadFaithPingCase(
+                    offender=offender.id,
+                    moderator=interaction.user.id,
+                    report_url=interaction.message.jump_url,
+                )
+            )
+            session.commit()
 
         await logs.update_response(
             self.config, interaction.message, datetime.now(timezone.utc)

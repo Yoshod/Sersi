@@ -12,8 +12,8 @@ from utils.cases.autocomplete import fetch_offences_by_partial_name
 from utils.cases.embed_factory import create_timeout_case_embed
 from utils.cases.fetch import get_case_by_id
 from utils.cases.misc import offence_validity_check
-from utils.cases.create import create_timeout_case
 from utils.config import Configuration
+from utils.database import db_session, TimeoutCase
 from utils.perms import (
     cb_is_compliance,
     permcheck,
@@ -199,14 +199,18 @@ class TimeoutSystem(commands.Cog):
             )
             return
 
-        uuid: str = create_timeout_case(
-            self.config,
-            offender,
-            interaction.user,
-            offence,
-            detail,
-            int((datetime.datetime.now() + planned_end).timestamp()),
+        case = TimeoutCase(
+            offender=offender.id,
+            moderator=interaction.user.id,
+            offence=offence,
+            details=detail,
+            duration=duration,
+            planned_end=datetime.datetime.now(timezone.utc) + planned_end,
         )
+
+        with db_session(interaction.user) as session:
+            session.add(case)
+            session.commit()
 
         try:
             await offender.send(
@@ -228,10 +232,10 @@ class TimeoutSystem(commands.Cog):
         except (nextcord.Forbidden, nextcord.HTTPException):
             not_sent = True
 
-        sersi_case = get_case_by_id(self.config, uuid, False)
+        sersi_case = get_case_by_id(self.config, case.id, False)
 
         logging_embed: SersiEmbed = create_timeout_case_embed(
-            sersi_case,
+            sersi_case.__dict__,
             interaction=interaction,
         )
 
@@ -245,6 +249,7 @@ class TimeoutSystem(commands.Cog):
         await offender.timeout(
             planned_end, reason=f"[{offence}: {detail}] - {interaction.user}"
         )
+
 
         result: nextcord.WebhookMessage = await interaction.followup.send(
             embed=SersiEmbed(

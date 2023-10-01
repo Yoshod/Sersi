@@ -52,6 +52,14 @@ async def ban(
             "If you wish to appeal your ban, please join the ban appeal server:\n"
             f"{config.invites.ban_appeal_server}"
         )
+    else:
+        goodbye_embed.description = (
+            f"You have been banned from {member.guild.name}\n"
+            "\n"
+            "If you wish to appeal your ban, please join the ban appeal server:\n"
+            f"{config.invites.ban_appeal_server}"
+        )
+        goodbye_embed.add_field(name="Reason:", value=reason)
 
     try:
         await member.send(embed=goodbye_embed)

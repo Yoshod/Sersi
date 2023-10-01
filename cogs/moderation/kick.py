@@ -2,10 +2,10 @@ import nextcord
 
 from nextcord.ext import commands
 
-from utils.cases.create import create_kick_case
 from utils.cases.embed_factory import create_kick_case_embed
 from utils.cases.fetch import get_case_by_id
 from utils.config import Configuration
+from utils.database import db_session, KickCase
 from utils.perms import permcheck, is_mod, is_dark_mod, is_immune, target_eligibility
 from utils.sersi_embed import SersiEmbed
 
@@ -66,8 +66,6 @@ class KickSystem(commands.Cog):
                 )
                 return
 
-        case_id = create_kick_case(self.config, offender, interaction.user, reason)
-
         await offender.send(
             embed=SersiEmbed(
                 title=f"Kicked from {interaction.guild.name}",
@@ -83,8 +81,17 @@ class KickSystem(commands.Cog):
             await interaction.guild.kick(
                 offender, reason=f"[{reason}] -{interaction.user.name}"
             )
+            case = KickCase(
+                offender=offender.id,
+                moderator=interaction.user.id,
+                reason=reason,
+            )
+            with db_session(interaction.user) as session:
+                session.add(case)
+                session.commit()
+
             logging_embed = create_kick_case_embed(
-                get_case_by_id(self.config, case_id, False), interaction
+                get_case_by_id(self.config, case.id, False), interaction
             )
             await interaction.guild.get_channel(self.config.channels.logging).send(
                 embed=logging_embed
@@ -99,7 +106,7 @@ class KickSystem(commands.Cog):
                     "Member:": f"{offender.mention} ({offender.id})",
                     "Moderator:": f"{interaction.user.mention} ({interaction.user.id})",
                     "Successful:": self.config.emotes.success,
-                    "Case ID:": case_id,
+                    "Case ID:": case.id,
                 },
             )
 

@@ -13,10 +13,10 @@ from utils.base import (
     convert_mention_to_id,
     ignored_message,
 )
-from utils.cases.create import create_slur_case
 from utils.cases.fetch import fetch_offender_cases
 from utils.cases.misc import slur_history, slur_virgin
 from utils.config import Configuration
+from utils.database import db_session, SlurUsageCase
 from utils.notes import get_note_by_user
 from utils.perms import cb_is_mod
 from slurdetector import (
@@ -59,13 +59,16 @@ class ActionTakenButton(nextcord.ui.Button):
 
         timestamp = datetime.now(timezone.utc)
 
-        create_slur_case(
-            self.config,
-            case_data[1],
-            interaction.message.jump_url,
-            member,
-            interaction.user,
-        )
+        with db_session(interaction.user) as session:
+            session.add(
+                SlurUsageCase(
+                    offender=member.id,
+                    moderator=interaction.user.id,
+                    reason=case_data[1],
+                    timestamp=timestamp,
+                )
+            )
+            session.commit()
 
         await utils.logs.update_response(self.config, interaction.message, timestamp)
 

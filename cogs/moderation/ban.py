@@ -6,7 +6,6 @@ from pytz import timezone
 import datetime
 
 from utils.cases.autocomplete import fetch_offences_by_partial_name
-from utils.cases.create import create_ban_case
 from utils.cases.delete import delete_warn
 from utils.cases.embed_factory import create_ban_case_embed
 from utils.cases.mend import deactivate_warn
@@ -14,6 +13,7 @@ from utils.cases.misc import offence_validity_check, deletion_validity_check
 from utils.config import Configuration
 from utils.cases.fetch import get_case_by_id
 from utils.cases.approval import update_approved, update_objected
+from utils.database import db_session, BanCase
 from utils.perms import (
     is_full_mod,
     permcheck,
@@ -178,6 +178,14 @@ class BanSystem(commands.Cog):
             )
             return
 
+        case = BanCase(
+            offender=offender.id,
+            moderator=interaction.user.id,
+            offence=offence,
+            details=detail,
+            type=ban_type,
+        )
+
         match ban_type:
             case "non urgent":
                 vote_embed = SersiEmbed(
@@ -224,18 +232,8 @@ class BanSystem(commands.Cog):
 
                 vote_message.edit(embed=vote_embed, view=button_view)
 
-                uuid = create_ban_case(
-                    self.config,
-                    vote_message.jump_url,
-                    offender,
-                    interaction.user,
-                    offence,
-                    detail,
-                    "Non Urgent",
-                )
-
                 await interaction.followup.send(
-                    f"{self.config.emotes.success} The Non-Urgent Ban Vote has been created and can be voted on in {alert_channel.mention}. The unique identifier for this case is `{uuid}`."
+                    f"{self.config.emotes.success} The Non-Urgent Ban Vote has been created and can be voted on in {alert_channel.mention}. The unique identifier for this case is `{case.id}`."
                 )
 
             case "urgent":
@@ -258,32 +256,22 @@ class BanSystem(commands.Cog):
                     embed=vote_embed
                 )
 
-                uuid = create_ban_case(
-                    self.config,
-                    vote_message.jump_url,
-                    offender,
-                    interaction.user,
-                    offence,
-                    detail,
-                    "Urgent",
-                )
-
                 approve = Button(
                     label="Approve",
                     style=nextcord.ButtonStyle.grey,
-                    custom_id=f"urgent-ban-approve:{uuid}",
+                    custom_id=f"urgent-ban-approve:{case.id}",
                 )
 
                 object = Button(
                     label="Object",
                     style=nextcord.ButtonStyle.grey,
-                    custom_id=f"urgent-ban-object:{uuid}",
+                    custom_id=f"urgent-ban-object:{case.id}",
                 )
 
                 override = Button(
                     label="Admin Override",
                     style=nextcord.ButtonStyle.red,
-                    custom_id=f"urgent-ban-override:{uuid}",
+                    custom_id=f"urgent-ban-override:{case.id}",
                 )
 
                 button_view = View(timeout=10800)
@@ -299,11 +287,15 @@ class BanSystem(commands.Cog):
                 )
 
                 await interaction.followup.send(
-                    f"{self.config.emotes.success} The Urgent Ban Vote has been created and can be voted on in {alert_channel.mention}. The unique identifier for this case is `{uuid}`."
+                    f"{self.config.emotes.success} The Urgent Ban Vote has been created and can be voted on in {alert_channel.mention}. The unique identifier for this case is `{case.id}`."
                 )
 
             case "emergency":
                 pass
+        
+        with db_session(interaction.user) as session:
+            session.add(case)
+            session.commit()
 
     @commands.Cog.listener()
     async def on_interaction(self, interaction: nextcord.Interaction):

@@ -2,7 +2,7 @@ import nextcord
 from nextcord.ext import commands
 
 from utils.base import ConfirmView, DualCustodyView
-from utils.cases.create import create_probation_case
+from utils.database import db_session, ProbationCase, DualCustody
 from utils.sersi_embed import SersiEmbed
 from utils.config import Configuration
 from utils.perms import permcheck, is_mod, is_full_mod, is_dark_mod
@@ -79,13 +79,22 @@ class Probation(commands.Cog):
         async def execute(*args, confirming_moderator: nextcord.Member, **kwargs):
             await member.add_roles(probation_role, reason=reason, atomic=True)
 
-            create_probation_case(
-                self.config,
-                member,
-                interaction.user,
-                confirming_moderator,
-                reason,
-            )
+            with db_session(interaction.user) as session:
+                session.add(
+                    ProbationCase(
+                        offender=member.id,
+                        moderator=interaction.user.id,
+                        reason=reason,
+                    )
+                )
+                if not bypass_reason:
+                    session.add(
+                        DualCustody(
+                            case_id=ProbationCase.get_last_case_id(session),
+                            moderator=confirming_moderator.id,
+                        )
+                    )
+                session.commit()
 
             embed_fields = {
                 "User": member.mention,

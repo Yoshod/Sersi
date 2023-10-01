@@ -4,6 +4,14 @@ import pickle
 
 from nextcord.ext import commands
 
+from utils.database import (
+    db_session,
+    BadFaithPingCase,
+    DualCustody,
+    ProbationCase,
+    ReformationCase,
+    SlurUsageCase,
+)
 from utils.config import Configuration
 from utils.perms import is_dark_mod, permcheck
 
@@ -32,54 +40,6 @@ class Database(commands.Cog):
 
         conn = sqlite3.connect(self.config.datafiles.sersi_db)
         cursor = conn.cursor()
-
-        cursor.execute(
-            """CREATE TABLE IF NOT EXISTS cases
-                  (id TEXT PRIMARY KEY,
-                   type TEXT,
-                   timestamp INTEGER)"""
-        )
-
-        cursor.execute(
-            """CREATE TABLE IF NOT EXISTS slur_cases
-                  (id TEXT PRIMARY KEY,
-                   slur_used TEXT,
-                   report_url TEXT,
-                   offender INTEGER,
-                   moderator INTEGER,
-                   timestamp INTEGER)"""
-        )
-
-        cursor.execute(
-            """CREATE TABLE IF NOT EXISTS "bad_faith_ping_cases"
-                  (id TEXT PRIMARY KEY,
-                   report_url TEXT,
-                   offender INTEGER,
-                   moderator INTEGER,
-                   timestamp INTEGER)"""
-        )
-
-        cursor.execute(
-            """CREATE TABLE IF NOT EXISTS probation_cases
-                  (id TEXT PRIMARY KEY,
-                   offender INTEGER,
-                   initial_moderator INTEGER,
-                   approving_moderator INTEGER,
-                   reason TEXT,
-                   timestamp INTEGER)"""
-        )
-
-        cursor.execute(
-            """CREATE TABLE IF NOT EXISTS reformation_cases
-                  (id TEXT PRIMARY KEY,
-                   case_number INTEGER,
-                   offender INTEGER,
-                   moderator INTEGER,
-                   cell_id INTEGER,
-                   reason TEXT,
-                   state TEXT,
-                   timestamp INTEGER)"""
-        )
 
         cursor.execute(
             """CREATE TABLE IF NOT EXISTS tickets
@@ -130,132 +90,6 @@ class Database(commands.Cog):
             noter INTEGER,
             note TEXT,
             timestamp INTEGER)"""
-        )
-
-        cursor.execute(
-            """CREATE TABLE IF NOT EXISTS warn_cases
-            (id TEXT PRIMARY KEY,
-            offender INTEGER,
-            moderator INTEGER,
-            offence TEXT,
-            details TEXT,
-            active BOOLEAN,
-            approved BOOLEAN,
-            timestamp INTEGER,
-            adjusted BOOLEAN,
-            deactive_reason TEXT)"""
-        )
-
-        cursor.execute(
-            """CREATE TABLE IF NOT EXISTS warn_adjustments
-            (id TEXT PRIMARY KEY,
-            adjustor INTEGER,
-            original_offence TEXT,
-            new_offence TEXT,
-            offence_adjusted TEXT,
-            original_details TEXT,
-            new_details TEXT,
-            details_adjusted BOOLEAN,
-            original_deactive_reason TEXT,
-            new_deactive_reason TEXT,
-            reason TEXT,
-            timestamp INTEGER)"""
-        )
-
-        cursor.execute(
-            """CREATE TABLE IF NOT EXISTS timeout_cases
-            (id TEXT PRIMARY KEY,
-            offender INTEGER,
-            moderator INTEGER,
-            offence TEXT,
-            details TEXT,
-            planned_end INTEGER,
-            actual_end INTEGER,
-            approved BOOLEAN,
-            adjusted BOOLEAN,
-            timestamp INTEGER)"""
-        )
-
-        cursor.execute(
-            """CREATE TABLE IF NOT EXISTS timeout_adjustments
-            (id TEXT PRIMARY KEY,
-            adjustor INTEGER,
-            original_planned_end INTEGER,
-            new_planned_end INTEGER,
-            end_adjusted BOOLEAN,
-            original_offence TEXT,
-            new_offence TEXT,
-            offence_adjusted BOOLEAN,
-            original_offence_details TEXT,
-            new_offence_details TEXT,
-            offence_details_adjusted BOOLEAN
-            adjustment_reason TEXT,
-            timestamp INTEGER)"""
-        )
-
-        cursor.execute(
-            """CREATE TABLE IF NOT EXISTS kick_cases
-            (id TEXT PRIMARY KEY,
-            offender INTEGER,
-            moderator INTEGER,
-            reason TEXT,
-            approved BOOLEAN,
-            adjusted BOOLEAN,
-            timestamp INTEGER)"""
-        )
-
-        cursor.execute(
-            """CREATE TABLE IF NOT EXISTS kick_adjustments
-            (id TEXT PRIMARY KEY,
-            adjustor INTEGER,
-            original_reason TEXT,
-            new_reason TEXT,
-            reason TEXT,
-            timestamp INTEGER)"""
-        )
-
-        cursor.execute(
-            """CREATE TABLE IF NOT EXISTS ban_cases
-            (id TEXT PRIMARY KEY,
-            vote_url TEXT,
-            offender INTEGER,
-            moderator INTEGER,
-            offence TEXT,
-            details TEXT,
-            ban_type TEXT,
-            timestamp INTEGER,
-            reviewer TEXT,
-            review_outcome TEXT,
-            review_comment TEXT,
-            active BOOLEAN,
-            adjusted BOOLEAN,
-            unban_reason TEXT)"""
-        )
-
-        cursor.execute(
-            """CREATE TABLE IF NOT EXISTS ban_adjustments
-            (id TEXT PRIMARY KEY,
-            adjustor INTEGER,
-            original_offence TEXT,
-            new_offence TEXT,
-            offence_adjusted BOOLEAN,
-            original_offence_details TEXT,
-            new_offence_details TEXT,
-            offence_details_adjusted BOOLEAN,
-            original_unban_reason TEXT,
-            new_unban_reason TEXT,
-            unban_reason_adjusted BOOLEAN,
-            adjustment_reason TEXT,
-            timestamp INTEGER)"""
-        )
-
-        cursor.execute(
-            """CREATE TABLE IF NOT EXISTS offences
-            (offence TEXT PRIMARY KEY,
-            first_instance TEXT,
-            second_instance TEXT,
-            third_instance TEXT,
-            detail TEXT)"""
         )
 
         conn.commit()
@@ -425,9 +259,6 @@ class Database(commands.Cog):
 
         await interaction.response.defer(ephemeral=True)
 
-        conn = sqlite3.connect(self.config.datafiles.sersi_db)
-        cursor = conn.cursor()
-
         # Load the first pickle file containing the case data
         with open(self.config.datafiles.casehistory, "rb") as f:
             cases_dict = pickle.load(f)
@@ -436,91 +267,87 @@ class Database(commands.Cog):
         with open(self.config.datafiles.casedetails, "rb") as f:
             details_dict = pickle.load(f)
 
-        for __, case_list in cases_dict.items():
-            for case in case_list:
-                case_id, case_type, timestamp = case
-                # Ignore Anonymous Message Mute cases
-                if case_type == "Anonymous Message Mute":
-                    continue
-                # Insert the case into the cases table
-                cursor.execute(
-                    "INSERT INTO cases VALUES (?, ?, ?)",
-                    (case_id, case_type, timestamp),
-                )
-                # Process the case details
-                if case_id in details_dict:
-                    details_list = details_dict[case_id]
-                    case_type = details_list[0]
-                    if case_type == "Bad Faith Ping":
-                        report_url, offender_id, moderator_id, timestamp = details_list[
-                            1:
-                        ]
-                        cursor.execute(
-                            "INSERT INTO bad_faith_ping_cases VALUES (?, ?, ?, ?, ?)",
-                            (case_id, offender_id, report_url, moderator_id, timestamp),
-                        )
-                    elif case_type == "Probation":
-                        (
-                            offender_id,
-                            primary_moderator_id,
-                            secondary_moderator_id,
-                            reason,
-                            timestamp,
-                        ) = details_list[1:]
-                        cursor.execute(
-                            "INSERT INTO probation_cases VALUES (?, ?, ?, ?, ?, ?)",
+        with db_session() as session:
+            for __, case_list in cases_dict.items():
+                for case in case_list:
+                    case_id, case_type, timestamp = case
+                    # Ignore Anonymous Message Mute cases
+                    if case_type == "Anonymous Message Mute":
+                        continue
+                    # Process the case details
+                    if case_id in details_dict:
+                        details_list = details_dict[case_id]
+                        case_type = details_list[0]
+                        if case_type == "Bad Faith Ping":
                             (
-                                case_id,
+                                report_url,
+                                offender_id,
+                                moderator_id,
+                                timestamp
+                            ) = details_list[1:]
+                            session.add(BadFaithPingCase(
+                                id=case_id,
+                                report_url=report_url,
+                                offender=offender_id,
+                                moderator=moderator_id,
+                                created=timestamp,
+                            ))
+                        elif case_type == "Probation":
+                            (
                                 offender_id,
                                 primary_moderator_id,
                                 secondary_moderator_id,
                                 reason,
                                 timestamp,
-                            ),
-                        )
-                    elif case_type == "Reformation":
-                        (
-                            case_number,
-                            offender_id,
-                            moderator_id,
-                            channel_id,
-                            reason,
-                            timestamp,
-                        ) = details_list[1:]
-                        cursor.execute(
-                            "INSERT INTO reformation_cases VALUES (?, ?, ?, ?, ?, ?, ?)",
+                            ) = details_list[1:]
+                            session.add(ProbationCase(
+                                id=case_id,
+                                offender=offender_id,
+                                moderator=primary_moderator_id,
+                                reason=reason,
+                                created=timestamp,
+                            ))
+                            if (secondary_moderator_id):
+                                session.add(DualCustody(
+                                    case_id=case_id,
+                                    moderator=secondary_moderator_id,
+                                ))
+                        elif case_type == "Reformation":
                             (
-                                case_id,
                                 case_number,
                                 offender_id,
                                 moderator_id,
                                 channel_id,
                                 reason,
                                 timestamp,
-                            ),
-                        )
-                    elif case_type == "Slur Usage":
-                        (
-                            slur_used,
-                            report_url,
-                            offender_id,
-                            moderator_id,
-                            timestamp,
-                        ) = details_list[1:]
-                        cursor.execute(
-                            "INSERT INTO slur_cases VALUES (?, ?, ?, ?, ?, ?)",
+                            ) = details_list[1:]
+                            session.add(ReformationCase(
+                                id=case_id,
+                                case_number=case_number,
+                                offender=offender_id,
+                                moderator=moderator_id,
+                                cell_channel=channel_id,
+                                details=reason,
+                                created=timestamp,
+                            ))
+                        elif case_type == "Slur Usage":
                             (
-                                case_id,
                                 slur_used,
                                 report_url,
                                 offender_id,
                                 moderator_id,
                                 timestamp,
-                            ),
-                        )
+                            ) = details_list[1:]
+                            session.add(SlurUsageCase(
+                                id=case_id,
+                                slur_used=slur_used,
+                                report_url=report_url,
+                                offender=offender_id,
+                                moderator=moderator_id,
+                                created=timestamp,
+                            ))
 
-        conn.commit()
-        conn.close()
+            session.commit()
 
         await interaction.followup.send(f"{self.config.emotes.success} Complete")
 

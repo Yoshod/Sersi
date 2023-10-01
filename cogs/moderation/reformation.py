@@ -1,9 +1,7 @@
 import nextcord
 import pickle
-import io
 from nextcord.ext import commands
 from nextcord.ui import Button, View
-from chat_exporter import export
 
 from utils.base import ConfirmView, SersiEmbed, ban
 from utils.cases.misc import get_reformation_next_case_number
@@ -36,8 +34,12 @@ class Reformation(commands.Cog):
         member: nextcord.Member = nextcord.SlashOption(
             description="Member to send to reformation", required=True
         ),
-        reason: str = nextcord.SlashOption(
-            description="Reason for sending to reformation",
+        offence: str = nextcord.SlashOption(
+            description="Offence committed by member",
+            required=True,
+        ),
+        details: str = nextcord.SlashOption(
+            description="Additional details about offence",
             required=True,
             min_length=8,
             max_length=1024,
@@ -68,12 +70,15 @@ class Reformation(commands.Cog):
             prompt="Following member will be sent to reformation:",
             embed_args={
                 "User": member.mention,
-                "Reason": reason,
+                "Offence": offence,
+                "Details": details,
             },
         )
         async def execute(*args, **kwargs):
             # ------------------------------- ROLES
             # give reformation role
+            reason = f"{offence} - {details}"
+
             await member.add_roles(reformation_role, reason=reason)
 
             # remove civil engineering initiate
@@ -136,7 +141,8 @@ class Reformation(commands.Cog):
                         case_number=case_num,
                         offender=member.id,
                         moderator=interaction.user.id,
-                        reason=reason,
+                        offence=offence,
+                        details=details,
                         cell_channel=case_channel.id,
                         state="open",
                     )

@@ -2,13 +2,13 @@ import nextcord
 from nextcord.ext import commands
 
 from utils.cases.autocomplete import fetch_offences_by_partial_name
-from utils.cases.create import create_warn_case
 from utils.cases.delete import delete_warn
 from utils.cases.embed_factory import create_warn_case_embed
 from utils.cases.fetch import get_case_by_id
 from utils.cases.mend import deactivate_warn
 from utils.cases.misc import offence_validity_check, deletion_validity_check
 from utils.config import Configuration
+from utils.database import db_session, WarningCase
 from utils.objection import AlertView
 from utils.perms import (
     permcheck,
@@ -91,9 +91,17 @@ class WarningSystem(commands.Cog):
             )
             return
 
-        uuid: str = create_warn_case(
-            self.config, offender, interaction.user, offence, detail
-        )
+        case = None
+        with db_session(interaction.user) as session:
+            session.add(WarningCase(
+                offender=offender.id,
+                moderator=interaction.user.id,
+                offence=offence,
+                details=detail,
+            ))
+            session.commit()
+
+            case = session.query(WarningCase).filter_by(id=case.id).first()
 
         try:
             await offender.send(
@@ -108,10 +116,8 @@ class WarningSystem(commands.Cog):
         except (nextcord.Forbidden, nextcord.HTTPException):
             not_sent: bool = True
 
-        sersi_case = get_case_by_id(self.config, uuid, False)
-
         logging_embed: SersiEmbed = create_warn_case_embed(
-            sersi_case, interaction=interaction
+            case.__dict__, interaction=interaction
         )
 
         await interaction.guild.get_channel(self.config.channels.mod_logs).send(
@@ -140,7 +146,7 @@ class WarningSystem(commands.Cog):
         )
 
         reviewer_role, reviewed_role, review_embed, review_channel = create_alert(
-            interaction.user, self.config, logging_embed, sersi_case, result.jump_url
+            interaction.user, self.config, logging_embed, case.__dict__, result.jump_url
         )
 
         await review_channel.send(
