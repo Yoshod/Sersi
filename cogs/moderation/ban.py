@@ -9,7 +9,7 @@ from utils.cases.autocomplete import fetch_offences_by_partial_name
 from utils.cases.delete import delete_warn
 from utils.cases.embed_factory import create_ban_case_embed
 from utils.cases.mend import deactivate_warn
-from utils.cases.misc import offence_validity_check, deletion_validity_check
+from utils.cases.misc import offence_validity_check
 from utils.config import Configuration
 from utils.cases.fetch import get_case_by_id
 from utils.cases.approval import update_approved, update_objected
@@ -171,7 +171,7 @@ class BanSystem(commands.Cog):
             )
             return
 
-        if not offence_validity_check(self.config, offence):
+        if not offence_validity_check(offence):
             await interaction.send(
                 f"{self.config.emotes.fail} {offence} is not in the list of offences. Try again or consider using the 'Other' offence.",
                 ephemeral=True,

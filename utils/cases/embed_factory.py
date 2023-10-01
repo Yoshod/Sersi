@@ -1,506 +1,90 @@
-import time
+from typing import Type
 
 import nextcord
 
 from utils.sersi_embed import SersiEmbed
 from utils.config import Configuration
+from utils.database import (
+    Case,
+    BanCase,
+    BadFaithPingCase,
+    KickCase,
+    ProbationCase,
+    ReformationCase,
+    SlurUsageCase,
+    TimeoutCase,
+    WarningCase,
+)
 
 
-def create_scrubbed_case_embed(
-    sersi_case: dict, interaction: nextcord.Interaction
+def create_case_embed(
+        case: Type[Case],
+        interaction: nextcord.Interaction,
+        config: Configuration,
 ) -> SersiEmbed:
-    case_embed = SersiEmbed()
-    case_embed.add_field(name="Case:", value=f"`{sersi_case['ID']}`", inline=True)
-    case_embed.add_field(
-        name="Type:", value=f"`{sersi_case['Case Type']}`", inline=True
+    fields = {
+        "Case": f"`{case.id}`",
+        "Type": f"`{case.type}`",
+        "Moderator": f"<@{case.moderator}> `{case.moderator}`",
+        "Offender": f"<@{case.offender}> `{case.offender}`",
+    }
+
+    match case:
+        case BanCase():
+            fields.update({
+                "Offence": f"`{case.offence}`",
+                "Details": f"`{case.details}`",
+                "Ban Type": f"`{case.ban_type}`",
+                "Active": config.emotes.success if case.active else config.emotes.fail
+            })
+            if not case.active:
+                fields["Unban Reason"] = f"`{case.unban_reason}`"
+        case BadFaithPingCase():
+            fields["Report URL"] = case.report_url
+        case KickCase():
+            fields.update({
+                "Offence": f"`{case.offence}`",
+                "Details": f"`{case.details}`",
+            })
+        case ProbationCase():
+            fields.update({
+                "Reason": f"`{case.reason}`",
+                "Active": config.emotes.success if case.active else config.emotes.fail
+            })
+        case ReformationCase():
+            fields.update({
+                "Offence": f"`{case.offence}`",
+                "Details": f"`{case.details}`",
+                "Case Number": f"`{case.case_number}`",
+                "Cell Channel": f"<#{case.cell_channel}>",
+                "State": f"`{case.state}`"
+            })
+        case SlurUsageCase():
+            fields.update({
+                "Slur Used": f"`{case.slur_used}`",
+                "Report URL": case.report_url
+            })
+        case TimeoutCase():
+            fields.update({
+                "Offence": f"`{case.offence}`",
+                "Details": f"`{case.details}`",
+                "Muted Until": f"<t:{case.planned_end}:R>"
+            })
+        case WarningCase():
+            fields.update({
+                "Offence": f"`{case.offence}`",
+                "Details": f"`{case.details}`",
+                "Active": config.emotes.success if case.active else config.emotes.fail,
+                "Deactivate Reason": f"`{case.deactivate_reason}`",
+            })
+        
+    
+    fields["Timestamp"] = f"<t:{case.created}:R>"
+
+    offender = interaction.guild.get_member(case.offender)
+
+    return SersiEmbed(
+        fields=fields,
+        thumbnail_url=offender.display_avatar.url if offender else None,
+        footer_text="Sersi Case Tracking"
     )
-
-    scrubber = interaction.guild.get_member(sersi_case["Scrubber ID"])
-
-    if not scrubber:
-        case_embed.add_field(
-            name="Scrubber:",
-            value=f"`{sersi_case['Scrubber ID']}`",
-            inline=True,
-        )
-
-    else:
-        case_embed.add_field(
-            name="Scrubber ID:",
-            value=f"{scrubber.mention}",
-            inline=True,
-        )
-
-    offender = interaction.guild.get_member(sersi_case["Offender ID"])
-
-    if not offender:
-        case_embed.add_field(
-            name="Offender:",
-            value=f"`{sersi_case['Offender ID']}`",
-            inline=False,
-        )
-
-    else:
-        case_embed.add_field(
-            name="Offender:", value=f"{offender.mention}", inline=False
-        )
-        case_embed.set_thumbnail(url=offender.display_avatar.url)
-
-    case_embed.add_field(name="Reason:", value=sersi_case["Scrub Reason"], inline=False)
-
-    case_embed.add_field(
-        name="Timestamp:",
-        value=f"<t:{sersi_case['Timestamp']}:R>",
-        inline=True,
-    )
-
-    case_embed.set_footer(text="Sersi Case Tracking")
-
-    return case_embed
-
-
-def create_slur_case_embed(
-    sersi_case: dict, interaction: nextcord.Interaction
-) -> SersiEmbed:
-    case_embed = SersiEmbed()
-    case_embed.add_field(name="Case:", value=f"`{sersi_case['ID']}`", inline=True)
-    case_embed.add_field(name="Type:", value="`Slur Usage`", inline=True)
-
-    moderator = interaction.guild.get_member(sersi_case["Moderator ID"])
-
-    if not moderator:
-        case_embed.add_field(
-            name="Moderator:",
-            value=f"`{sersi_case['Moderator ID']}`",
-            inline=True,
-        )
-
-    else:
-        case_embed.add_field(
-            name="Moderator:", value=f"{moderator.mention}", inline=True
-        )
-
-    offender = interaction.guild.get_member(sersi_case["Offender ID"])
-
-    if not offender:
-        case_embed.add_field(
-            name="Offender:",
-            value=f"`{sersi_case['Offender ID']}`",
-            inline=True,
-        )
-
-    else:
-        case_embed.add_field(name="Offender:", value=f"{offender.mention}", inline=True)
-        case_embed.set_thumbnail(url=offender.display_avatar.url)
-
-    case_embed.add_field(name="Slur Used:", value=sersi_case["Slur Used"], inline=False)
-
-    case_embed.add_field(
-        name="Report URL:", value=sersi_case["Report URL"], inline=False
-    )
-
-    case_embed.add_field(
-        name="Timestamp:",
-        value=f"<t:{sersi_case['Timestamp']}:R>",
-        inline=True,
-    )
-
-    case_embed.set_footer(text="Sersi Case Tracking")
-
-    return case_embed
-
-
-def create_reformation_case_embed(
-    sersi_case: dict, interaction: nextcord.Interaction
-) -> SersiEmbed:
-    case_embed = SersiEmbed()
-    case_embed.add_field(name="Case:", value=f"`{sersi_case['ID']}`", inline=True)
-    case_embed.add_field(name="Type:", value="`Reformation`", inline=True)
-
-    moderator = interaction.guild.get_member(sersi_case["Moderator ID"])
-
-    if not moderator:
-        case_embed.add_field(
-            name="Moderator:",
-            value=f"`{sersi_case['Moderator ID']}`",
-            inline=True,
-        )
-
-    else:
-        case_embed.add_field(
-            name="Moderator:", value=f"{moderator.mention}", inline=True
-        )
-
-    offender = interaction.guild.get_member(sersi_case["Offender ID"])
-
-    if not offender:
-        case_embed.add_field(
-            name="Offender:",
-            value=f"`{sersi_case['Offender ID']}`",
-            inline=True,
-        )
-
-    else:
-        case_embed.add_field(name="Offender:", value=f"{offender.mention}", inline=True)
-        case_embed.set_thumbnail(url=offender.display_avatar.url)
-
-    case_embed.add_field(name="Reason:", value=sersi_case["Reason"], inline=False)
-    reformation_channel = interaction.client.get_channel(sersi_case["Channel ID"])
-
-    if not reformation_channel:
-        case_embed.add_field(
-            name="Reformation Channel:",
-            value="Channel No Longer Exists",
-            inline=False,
-        )
-    else:
-        case_embed.add_field(
-            name="Reformation Channel:",
-            value=reformation_channel.mention,
-            inline=False,
-        )
-
-    case_embed.add_field(
-        name="Timestamp:",
-        value=f"<t:{sersi_case['Timestamp']}:R>",
-        inline=True,
-    )
-
-    case_embed.set_footer(text="Sersi Case Tracking")
-
-    return case_embed
-
-
-def create_probation_case_embed(
-    sersi_case: dict, interaction: nextcord.Interaction
-) -> SersiEmbed:
-    case_embed = SersiEmbed()
-    case_embed.add_field(name="Case:", value=f"`{sersi_case['ID']}`", inline=True)
-    case_embed.add_field(name="Type:", value="`Probation`", inline=True)
-
-    initial_moderator = interaction.guild.get_member(sersi_case["Initial Moderator ID"])
-
-    if not initial_moderator:
-        case_embed.add_field(
-            name="Initial Moderator:",
-            value=f"`{sersi_case['Initial Moderator ID']}`",
-            inline=True,
-        )
-
-    else:
-        case_embed.add_field(
-            name="Initial Moderator:",
-            value=f"{initial_moderator.mention}",
-            inline=True,
-        )
-
-    approving_moderator = interaction.guild.get_member(
-        sersi_case["Approving Moderator ID"]
-    )
-
-    if not approving_moderator:
-        case_embed.add_field(
-            name="Approving Moderator:",
-            value=f"`{sersi_case['Approving Moderator ID']}`",
-            inline=True,
-        )
-
-    else:
-        case_embed.add_field(
-            name="Approving Moderator:",
-            value=f"{approving_moderator.mention}",
-            inline=True,
-        )
-
-    offender = interaction.guild.get_member(sersi_case["Offender ID"])
-
-    if not offender:
-        case_embed.add_field(
-            name="Offender:",
-            value=f"`{sersi_case['Offender ID']}`",
-            inline=False,
-        )
-
-    else:
-        case_embed.add_field(
-            name="Offender:", value=f"{offender.mention}", inline=False
-        )
-        case_embed.set_thumbnail(url=offender.display_avatar.url)
-
-    case_embed.add_field(name="Reason:", value=sersi_case["Reason"], inline=False)
-
-    case_embed.add_field(
-        name="Timestamp:",
-        value=f"<t:{sersi_case['Timestamp']}:R>",
-        inline=True,
-    )
-
-    case_embed.set_footer(text="Sersi Case Tracking")
-
-    return case_embed
-
-
-def create_bad_faith_ping_case_embed(
-    sersi_case: dict, interaction: nextcord.Interaction
-) -> SersiEmbed:
-    case_embed = SersiEmbed()
-    case_embed.add_field(name="Case:", value=f"`{sersi_case['ID']}`", inline=True)
-    case_embed.add_field(name="Type:", value="`Bad Faith Ping`", inline=True)
-
-    moderator = interaction.guild.get_member(sersi_case["Moderator ID"])
-
-    if not moderator:
-        case_embed.add_field(
-            name="Moderator:",
-            value=f"`{sersi_case['Moderator ID']}`",
-            inline=True,
-        )
-
-    else:
-        case_embed.add_field(
-            name="Moderator:", value=f"{moderator.mention}", inline=True
-        )
-
-    offender = interaction.guild.get_member(sersi_case["Offender ID"])
-
-    if not offender:
-        case_embed.add_field(
-            name="Offender:",
-            value=f"`{sersi_case['Offender ID']}`",
-            inline=True,
-        )
-
-    else:
-        case_embed.add_field(name="Offender:", value=f"{offender.mention}", inline=True)
-        case_embed.set_thumbnail(url=offender.display_avatar.url)
-
-    case_embed.add_field(
-        name="Report URL:", value=sersi_case["Report URL"], inline=False
-    )
-
-    case_embed.add_field(
-        name="Timestamp:",
-        value=f"<t:{sersi_case['Timestamp']}:R>",
-        inline=True,
-    )
-
-    case_embed.set_footer(text="Sersi Case Tracking")
-
-    return case_embed
-
-
-def create_warn_case_embed(
-    sersi_case: dict, interaction: nextcord.Interaction
-) -> SersiEmbed:
-    case_embed = SersiEmbed()
-    case_embed.add_field(name="Case:", value=f"`{sersi_case['ID']}`", inline=True)
-    case_embed.add_field(name="Type:", value="`Warn`", inline=True)
-
-    if sersi_case["Active"]:
-        active_emote = Configuration.from_yaml_file(
-            "./persistent_data/config.yaml"
-        ).emotes.success
-
-    else:
-        active_emote = Configuration.from_yaml_file(
-            "./persistent_data/config.yaml"
-        ).emotes.fail
-
-    case_embed.add_field(name="Active:", value=active_emote, inline=True)
-
-    moderator = interaction.guild.get_member(sersi_case["Moderator ID"])
-
-    if not moderator:
-        case_embed.add_field(
-            name="Moderator:",
-            value=f"`{sersi_case['Moderator ID']}`",
-            inline=True,
-        )
-
-    else:
-        case_embed.add_field(
-            name="Moderator:", value=f"{moderator.mention}", inline=True
-        )
-
-    offender = interaction.guild.get_member(sersi_case["Offender ID"])
-
-    if not offender:
-        case_embed.add_field(
-            name="Offender:",
-            value=f"`{sersi_case['Offender ID']}`",
-            inline=True,
-        )
-
-    else:
-        case_embed.add_field(name="Offender:", value=f"{offender.mention}", inline=True)
-        case_embed.set_thumbnail(url=offender.display_avatar.url)
-
-    if sersi_case["Approved"]:
-        approved_emote = Configuration.from_yaml_file(
-            "./persistent_data/config.yaml"
-        ).emotes.success
-
-    elif sersi_case["Approved"] is None:
-        approved_emote = Configuration.from_yaml_file(
-            "./persistent_data/config.yaml"
-        ).emotes.inherit
-
-    else:
-        approved_emote = Configuration.from_yaml_file(
-            "./persistent_data/config.yaml"
-        ).emotes.fail
-
-    case_embed.add_field(name="Approved:", value=approved_emote, inline=True)
-
-    case_embed.add_field(name="Offence:", value=sersi_case["Offence"], inline=False)
-
-    case_embed.add_field(
-        name="Offence Details:", value=sersi_case["Offence Details"], inline=False
-    )
-
-    case_embed.add_field(
-        name="Timestamp:",
-        value=f"<t:{sersi_case['Timestamp']}:R>",
-        inline=True,
-    )
-
-    case_embed.set_footer(text="Sersi Case Tracking")
-
-    return case_embed
-
-
-def create_kick_case_embed(
-    sersi_case: dict, interaction: nextcord.Interaction
-) -> SersiEmbed:
-    case_embed = SersiEmbed()
-    case_embed.add_field(name="Case:", value=f"`{sersi_case['ID']}`", inline=True)
-    case_embed.add_field(name="Type:", value="`Kick`", inline=True)
-
-    moderator = interaction.guild.get_member(sersi_case["Moderator ID"])
-
-    if not moderator:
-        case_embed.add_field(
-            name="Moderator:",
-            value=f"`{sersi_case['Moderator ID']}`",
-            inline=True,
-        )
-
-    else:
-        case_embed.add_field(
-            name="Moderator:", value=f"{moderator.mention}", inline=True
-        )
-
-    offender = interaction.guild.get_member(sersi_case["Offender ID"])
-
-    if not offender:
-        case_embed.add_field(
-            name="Offender:",
-            value=f"`{sersi_case['Offender ID']}`",
-            inline=True,
-        )
-
-    else:
-        case_embed.add_field(name="Offender:", value=f"{offender.mention}", inline=True)
-        case_embed.set_thumbnail(url=offender.display_avatar.url)
-
-    case_embed.add_field(name="Reason:", value=sersi_case["Reason"], inline=False)
-
-    case_embed.add_field(
-        name="Timestamp:",
-        value=f"<t:{sersi_case['Timestamp']}:R>",
-        inline=True,
-    )
-
-    case_embed.set_footer(text="Sersi Case Tracking")
-
-    return case_embed
-
-
-def create_timeout_case_embed(
-    sersi_case: dict, interaction: nextcord.Interaction
-) -> SersiEmbed:
-    case_embed: SersiEmbed = (
-        SersiEmbed()
-        .add_field(name="Case:", value=f"`{sersi_case['ID']}`", inline=True)
-        .add_field(name="Type:", value="`Timeout`", inline=True)
-    )
-
-    if not sersi_case["Actual End"] and sersi_case["Planned End"] > int(time.time()):
-        case_embed.add_field(
-            name="Ongoing:",
-            value=Configuration.from_yaml_file(
-                "./persistent_data/config.yaml"
-            ).emotes.success,
-            inline=True,
-        )
-
-    else:
-        case_embed.add_field(
-            name="Ongoing:",
-            value=Configuration.from_yaml_file(
-                "./persistent_data/config.yaml"
-            ).emotes.fail,
-            inline=True,
-        )
-
-    moderator = interaction.guild.get_member(sersi_case["Moderator ID"])
-
-    if not moderator:
-        case_embed.add_field(
-            name="Moderator:",
-            value=f"`{sersi_case['Moderator ID']}`",
-            inline=True,
-        )
-
-    else:
-        case_embed.add_field(name="Moderator:", value=moderator.mention, inline=True)
-
-    offender: nextcord.Member = interaction.guild.get_member(sersi_case["Offender ID"])
-
-    if not offender:
-        case_embed.add_field(
-            name="Offender:",
-            value=f"`{sersi_case['Offender ID']}`",
-            inline=True,
-        )
-
-    else:
-        case_embed.add_field(name="Offender:", value=f"{offender.mention}", inline=True)
-        case_embed.set_thumbnail(url=offender.display_avatar.url)
-
-    if sersi_case["Approved"]:
-        approved_emote = Configuration.from_yaml_file(
-            "./persistent_data/config.yaml"
-        ).emotes.success
-
-    elif sersi_case["Approved"] is None:
-        approved_emote = Configuration.from_yaml_file(
-            "./persistent_data/config.yaml"
-        ).emotes.inherit
-
-    else:
-        approved_emote = Configuration.from_yaml_file(
-            "./persistent_data/config.yaml"
-        ).emotes.fail
-
-    case_embed.add_field(name="Approved:", value=approved_emote, inline=True)
-
-    case_embed.add_field(
-        name="Offence:", value=sersi_case["Offence"], inline=False
-    ).add_field(
-        name="Offence Details:", value=sersi_case["Details"], inline=False
-    ).add_field(
-        name="Timestamp:",
-        value=f"<t:{sersi_case['Timestamp']}:R>",
-        inline=True,
-    ).add_field(
-        name="Muted until:", value=f"<t:{sersi_case['Planned End']}:R>"
-    ).set_footer(
-        text="Sersi Case Tracking"
-    )
-
-    return case_embed
-
-
-def create_ban_case_embed(sersi_case: dict, interaction: nextcord.Interaction):
-    pass

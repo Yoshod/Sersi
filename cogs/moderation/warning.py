@@ -6,7 +6,7 @@ from utils.cases.delete import delete_warn
 from utils.cases.embed_factory import create_warn_case_embed
 from utils.cases.fetch import get_case_by_id
 from utils.cases.mend import deactivate_warn
-from utils.cases.misc import offence_validity_check, deletion_validity_check
+from utils.cases.misc import offence_validity_check
 from utils.config import Configuration
 from utils.database import db_session, WarningCase
 from utils.objection import AlertView
@@ -83,7 +83,7 @@ class WarningSystem(commands.Cog):
             )
             return
 
-        if not offence_validity_check(self.config, offence):
+        if not offence_validity_check(offence):
             await interaction.send(
                 f"{self.config.emotes.fail} {offence} is not in the list of offences. "
                 "Try again or consider using the 'Other' offence.",
@@ -238,7 +238,15 @@ class WarningSystem(commands.Cog):
 
         await interaction.response.defer(ephemeral=False)
 
-        if deletion_validity_check(self.config, case_id):
+        with db_session(interaction.user) as session:
+            case = session.query(WarningCase).filter_by(id=case_id).first()
+
+            if not case:
+                await interaction.followup.send(
+                    f"{self.config.emotes.fail} {case_id} is not a valid warn case."
+                )
+                return
+
             if delete_warn(self.config, case_id):
                 await interaction.guild.get_channel(self.config.channels.logging).send(
                     embed=SersiEmbed(
@@ -277,17 +285,12 @@ class WarningSystem(commands.Cog):
                     f"{self.config.emotes.fail} Warning {case_id} has not been deleted."
                 )
 
-        else:
-            await interaction.followup.send(
-                f"{self.config.emotes.fail} {case_id} is not a valid warn case."
-            )
-
     @add.on_autocomplete("offence")
     async def search_offences(self, interaction: nextcord.Interaction, offence: str):
         if not is_mod(interaction.user):
             await interaction.response.send_autocomplete([])
 
-        offences: list[str] = fetch_offences_by_partial_name(self.config, offence)
+        offences: list[str] = fetch_offences_by_partial_name(offence)
         await interaction.response.send_autocomplete(sorted(offences))
 
 

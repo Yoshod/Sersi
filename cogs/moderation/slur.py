@@ -257,11 +257,11 @@ class Slur(commands.Cog):
     def _get_previous_cases(
         self, user: nextcord.User | nextcord.Member, slurs: list[str]
     ) -> str:
-        if slur_virgin(self.config, user):
+        if slur_virgin(user):
             return f"{self.config.emotes.fail} The user is a first time offender."
 
         else:
-            cases = slur_history(self.config, user, slurs)
+            cases = slur_history(user, slurs)
 
             if not cases:
                 return (

@@ -34,12 +34,12 @@ class Case(_Base):
 
     id = Column(String, primary_key=True)
     type = Column(String, nullable=False)
+    scrubbed = Column(Boolean, default=False)
 
     offender = Column(Integer, nullable=False)
     moderator = Column(Integer, nullable=False)
     offence = Column(String, ForeignKey('offences.offence'))
 
-    scrubbed = Column(Boolean, default=False)
     created = Column(DateTime, default=datetime.utcnow)
     modified = Column(DateTime, default=datetime.utcnow)
 
@@ -168,11 +168,21 @@ class WarningCase(Case):
 
     id = Column(String, ForeignKey('cases.id'), primary_key=True)
 
-    details = Column(String)
     active = Column(Boolean, default=True)
+    details = Column(String)
     deactivate_reason = Column(String)
 
     __mapper_args__ = {"polymorphic_identity": "Warning"}
+
+
+class ScrubbedCase(_Base):
+    __tablename__ = "scrubbed_cases"
+
+    case_id = Column(String, ForeignKey('cases.id'), primary_key=True)
+
+    scrubber = Column(Integer, nullable=False)
+    reason = Column(String, nullable=False)
+    timestamp = Column(DateTime, default=datetime.utcnow)
 
 
 class PeerReview(_Base):

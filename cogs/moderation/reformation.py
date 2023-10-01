@@ -4,6 +4,7 @@ from nextcord.ext import commands
 from nextcord.ui import Button, View
 
 from utils.base import ConfirmView, SersiEmbed, ban
+from utils.cases.autocomplete import fetch_offences_by_partial_name
 from utils.cases.misc import get_reformation_next_case_number
 from utils.channels import make_transcript
 from utils.config import Configuration
@@ -189,6 +190,13 @@ class Reformation(commands.Cog):
             return embed
 
         await execute(self.bot, self.config, interaction)
+    
+    @reformation_needed.on_autocomplete("offence")
+    async def offence_by_name(self, interaction: nextcord.Interaction, string: str):
+        if not await permcheck(interaction, is_mod):
+            return
+
+        return fetch_offences_by_partial_name(string)
 
     async def cb_rq_yes(self, interaction: nextcord.Interaction):
         new_embed = interaction.message.embeds[0]

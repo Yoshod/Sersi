@@ -192,7 +192,7 @@ class TimeoutSystem(commands.Cog):
                 )
                 return
 
-        if not offence_validity_check(self.config, offence):
+        if not offence_validity_check(offence):
             await interaction.followup.send(
                 f"{self.config.emotes.fail} {offence} is not in the list of offences. Try again or consider using the "
                 f"'Other' offence."
@@ -322,7 +322,7 @@ class TimeoutSystem(commands.Cog):
         if not is_mod(interaction.user):
             await interaction.response.send_autocomplete([])
 
-        offences: list[str] = fetch_offences_by_partial_name(self.config, offence)
+        offences: list[str] = fetch_offences_by_partial_name(offence)
         await interaction.response.send_autocomplete(sorted(offences))
 
 

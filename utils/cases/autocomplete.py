@@ -1,48 +1,26 @@
-import sqlite3
-
-from utils.config import Configuration
+from utils.database import db_session, Case, Offence
 
 
-def fetch_cases_by_partial_id(config: Configuration, case_id: str):
-    conn = sqlite3.connect(config.datafiles.sersi_db)
-    cursor = conn.cursor()
-
-    if case_id == "":
-        cursor.execute("SELECT * FROM cases ORDER BY timestamp DESC LIMIT 10")
-    else:
-        cursor.execute(
-            "SELECT * FROM cases WHERE id LIKE ? LIMIT 10 ", (f"{case_id}%",)
+def fetch_cases_by_partial_id(case_id: str):
+    with db_session() as session:
+        cases: list[str] = (
+            session.query(Case.id)
+            .filter(Case.id.like(f"%{case_id}%"))
+            .order_by(Case.created.desc())
+            .limit(25)
+            .all()
         )
 
-    rows = cursor.fetchall()
+    return cases
 
-    conn.close()
-
-    id_list = [row[0] for row in rows]
-
-    return id_list
-
-
-def fetch_offences_by_partial_name(config: Configuration, offence: str) -> list[str]:
-    conn = sqlite3.connect(config.datafiles.sersi_db)
-    cursor = conn.cursor()
-
-    if offence == "":
-        cursor.execute(
-            """
-            SELECT * FROM offences o
-            ORDER BY (SELECT COUNT(*) FROM warn_cases wc WHERE wc.offence = o.offence)
-            DESC LIMIT 25
-        """
-        )
-    else:
-        cursor.execute(
-            "SELECT * FROM offences WHERE LOWER(offence) LIKE ? LIMIT 25 ",
-            (f"%{offence.lower()}%",),
+def fetch_offences_by_partial_name(offence: str) -> list[str]:
+    with db_session() as session:
+        offences: list[str] = (
+            session.query(Offence.offence)
+            .filter(Offence.offence.like(f"%{offence}%"))
+            .order_by(Offence.offence.asc())
+            .limit(25)
+            .all()
         )
 
-    rows = cursor.fetchall()
-
-    conn.close()
-
-    return [row[0] for row in rows]
+    return offences
