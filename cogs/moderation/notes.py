@@ -1,19 +1,14 @@
 import nextcord
-import time
 from nextcord.ext import commands
 
 from utils.sersi_embed import SersiEmbed
 from utils.base import PageView
 from utils.notes import (
-    create_note,
-    get_note_by_id,
+    fetch_notes,
     fetch_notes_by_partial_id,
     create_note_embed,
-    get_note_by_user,
-    get_note_by_moderator,
-    delete_note,
-    wipe_user_notes,
 )
+from utils.database import db_session, Note
 from utils.config import Configuration
 from utils.perms import permcheck, is_mod, is_senior_mod, is_dark_mod
 
@@ -55,21 +50,20 @@ class Notes(commands.Cog):
 
         await interaction.response.defer(ephemeral=False)
 
-        note_id = create_note(
-            self.config, noted, interaction.user, note, int(time.time())
-        )
+        with db_session(interaction.user) as session:
+            session.add(
+                Note(
+                    author=interaction.user.id,
+                    member=noted.id,
+                    content=note,
+                )
+            )
+
+            session.commit()
 
         await interaction.followup.send(
             f"{self.config.emotes.success} The note on {noted.mention} has been successfully created."
         )
-
-        sersi_note = get_note_by_id(self.config, note_id)
-
-        note_embed = create_note_embed(sersi_note, interaction)
-
-        logging_channel = interaction.guild.get_channel(self.config.channels.mod_logs)
-
-        await logging_channel.send(embed=note_embed)
 
     @notes.subcommand(description="Used to get a note by its ID")
     async def by_id(
@@ -87,7 +81,8 @@ class Notes(commands.Cog):
 
         await interaction.response.defer(ephemeral=False)
 
-        sersi_note = get_note_by_id(self.config, note_id)
+        with db_session(interaction.user) as session:
+            sersi_note: Note = session.query(Note).filter_by(id=note_id).first()
 
         note_embed = create_note_embed(sersi_note, interaction)
 
@@ -102,10 +97,19 @@ class Notes(commands.Cog):
         await interaction.response.send_autocomplete(notes)
 
     @notes.subcommand(description="Used to get a note by its user")
-    async def by_user(
+    async def list(
         self,
         interaction: nextcord.Interaction,
-        user: nextcord.Member = nextcord.SlashOption,
+        user: nextcord.Member = nextcord.SlashOption(
+            name="user",
+            description="The user you want to view notes on",
+            required=False,
+        ),
+        author: nextcord.Member = nextcord.SlashOption(
+            name="author",
+            description="The author of the notes you want to view",
+            required=False,
+        ),
         page: int = nextcord.SlashOption(
             name="page",
             description="The page you want to view",
@@ -125,7 +129,7 @@ class Notes(commands.Cog):
         view = PageView(
             config=self.config,
             base_embed=note_embed,
-            fetch_function=get_note_by_user,
+            fetch_function=fetch_notes,
             author=interaction.user,
             entry_form=format_entry,
             field_title="{entries[0][0]}",
@@ -133,44 +137,8 @@ class Notes(commands.Cog):
             cols=10,
             per_col=1,
             init_page=int(page),
-            user_id=str(user.id),
-        )
-
-        await view.send_followup(interaction)
-
-    @notes.subcommand(description="Used to get a note by its user")
-    async def by_moderator(
-        self,
-        interaction: nextcord.Interaction,
-        moderator: nextcord.Member = nextcord.SlashOption,
-        page: int = nextcord.SlashOption(
-            name="page",
-            description="The page you want to view",
-            min_value=1,
-            default=1,
-            required=False,
-        ),
-    ):
-        if not await permcheck(interaction, is_mod):
-            return
-
-        await interaction.response.defer(ephemeral=False)
-
-        note_embed = SersiEmbed(title=f"{moderator.name}'s Moderator Notes")
-        note_embed.set_thumbnail(moderator.display_avatar.url)
-
-        view = PageView(
-            config=self.config,
-            base_embed=note_embed,
-            fetch_function=get_note_by_moderator,
-            author=interaction.user,
-            entry_form=format_entry,
-            field_title="{entries[0][0]}",
-            inline_fields=False,
-            cols=10,
-            per_col=1,
-            init_page=int(page),
-            moderator_id=str(moderator.id),
+            member_id=str(user.id),
+            author_id=str(author.id),
         )
 
         await view.send_followup(interaction)
@@ -221,123 +189,78 @@ class Notes(commands.Cog):
             if not await permcheck(interaction, is_dark_mod):
                 return
 
-            outcome = wipe_user_notes(self.config, user)
+            with db_session(interaction.user) as session:
+                session.query(Note).filter_by(member=user.id).delete()
+                session.commit()
 
-            if outcome:
-                logging_embed = SersiEmbed(
-                    title="Notes Wiped",
-                )
+            logging_embed = SersiEmbed(
+                title="Notes Wiped",
+            )
 
-                logging_embed.add_field(name="User", value=user.mention, inline=True)
-                logging_embed.add_field(
-                    name="Mega Administrator",
-                    value=f"{interaction.user.mention}",
-                    inline=True,
-                )
-                logging_embed.add_field(
-                    name="Reason", value=f"`{reason}`", inline=False
-                )
+            logging_embed.add_field(name="User", value=user.mention, inline=True)
+            logging_embed.add_field(
+                name="Mega Administrator",
+                value=f"{interaction.user.mention}",
+                inline=True,
+            )
+            logging_embed.add_field(
+                name="Reason", value=f"`{reason}`", inline=False
+            )
 
-                logging_embed.set_thumbnail(user.display_avatar.url)
+            logging_embed.set_thumbnail(user.display_avatar.url)
 
-                logging_channel = interaction.guild.get_channel(
-                    self.config.channels.logging
-                )
+            logging_channel = interaction.guild.get_channel(
+                self.config.channels.logging
+            )
 
-                await logging_channel.send(embed=logging_embed)
+            await logging_channel.send(embed=logging_embed)
 
-                await interaction.followup.send(
-                    f"{self.config.emotes.success} All notes on user {user.mention} successfully deleted."
-                )
+            await interaction.followup.send(
+                f"{self.config.emotes.success} All notes on user {user.mention} successfully deleted."
+            )
 
-            else:
-                logging_embed = SersiEmbed(
-                    title="User Notes Deletion Attempted",
-                )
-
-                logging_embed.add_field(name="User", value=user.mention, inline=True)
-                logging_embed.add_field(
-                    name="Mega Administrator",
-                    value=f"{interaction.user.mention}",
-                    inline=True,
-                )
-                logging_embed.add_field(
-                    name="Reason", value=f"`{reason}`", inline=False
-                )
-
-                logging_embed.set_thumbnail(user.display_avatar.url)
-
-                logging_channel = interaction.guild.get_channel(
-                    self.config.channels.logging
-                )
-
-                await logging_channel.send(embed=logging_embed)
-
-                await interaction.followup.send(
-                    f"{self.config.emotes.fail} All notes on user {user.mention} has not been deleted."
-                )
 
         else:
-            outcome = delete_note(self.config, note_id)
+            with db_session(interaction.user) as session:
+                note: Note = session.query(Note).filter_by(id=note_id).first()
 
-            if outcome:
-                logging_embed = SersiEmbed(
-                    title="Note Deleted",
-                )
+                if not note:
+                    await interaction.followup.send(
+                        f"{self.config.emotes.fail} Note {note_id} does not exist."
+                    )
+                    return
 
-                logging_embed.add_field(
-                    name="Note ID", value=f"`{note_id}`", inline=True
-                )
-                logging_embed.add_field(
-                    name="Moderator",
-                    value=f"{interaction.user.mention}",
-                    inline=True,
-                )
-                logging_embed.add_field(
-                    name="Reason", value=f"`{reason}`", inline=False
-                )
+                session.delete(note)
+                session.commit()
 
-                logging_embed.set_thumbnail(interaction.user.display_avatar.url)
+            logging_embed = SersiEmbed(
+                title="Note Deleted",
+            )
 
-                logging_channel = interaction.guild.get_channel(
-                    self.config.channels.logging
-                )
+            logging_embed.add_field(
+                name="Note ID", value=f"`{note_id}`", inline=True
+            )
+            logging_embed.add_field(
+                name="Moderator",
+                value=f"{interaction.user.mention}",
+                inline=True,
+            )
+            logging_embed.add_field(
+                name="Reason", value=f"`{reason}`", inline=False
+            )
 
-                await logging_channel.send(embed=logging_embed)
+            logging_embed.set_thumbnail(interaction.user.display_avatar.url)
 
-                await interaction.followup.send(
-                    f"{self.config.emotes.success} Note {note_id} successfully deleted."
-                )
+            logging_channel = interaction.guild.get_channel(
+                self.config.channels.logging
+            )
 
-            else:
-                logging_embed = SersiEmbed(
-                    title="Note Deletion Attempted",
-                )
+            await logging_channel.send(embed=logging_embed)
 
-                logging_embed.add_field(
-                    name="Note ID", value=f"`{note_id}`", inline=True
-                )
-                logging_embed.add_field(
-                    name="Moderator",
-                    value=f"{interaction.user.mention}",
-                    inline=True,
-                )
-                logging_embed.add_field(
-                    name="Reason", value=f"`{reason}`", inline=False
-                )
-
-                logging_embed.set_thumbnail(interaction.user.display_avatar.url)
-
-                logging_channel = interaction.guild.get_channel(
-                    self.config.channels.logging
-                )
-
-                await logging_channel.send(embed=logging_embed)
-
-                await interaction.followup.send(
-                    f"{self.config.emotes.fail} Note {note_id} has not been deleted."
-                )
+            await interaction.followup.send(
+                f"{self.config.emotes.success} Note {note_id} successfully deleted."
+            )
 
 
-def setup(bot, **kwargs):
+def setup(bot: commands.Bot, **kwargs):
     bot.add_cog(Notes(bot, kwargs["config"]))

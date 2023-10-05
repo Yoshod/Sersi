@@ -27,6 +27,19 @@ def db_session(owner: int|nextcord.User|nextcord.Member = None):
 
     return session
 
+
+class Note(_Base):
+    __tablename__ = "notes"
+
+    id = Column(String, primary_key=True, default=shortuuid.uuid)
+    author = Column(Integer, nullable=False)
+    member = Column(Integer, nullable=False)
+    content = Column(String, nullable=False)
+
+    created = Column(DateTime, default=datetime.utcnow)
+    modified = Column(DateTime, default=datetime.utcnow)
+
+
 ### Case Models ###
 
 class Case(_Base):

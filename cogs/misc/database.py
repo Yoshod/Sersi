@@ -73,15 +73,6 @@ class Database(commands.Cog):
             subcategory TEXT)"""
         )
 
-        cursor.execute(
-            """CREATE TABLE IF NOT EXISTS notes
-            (id TEXT PRIMARY KEY,
-            noted INTEGER,
-            noter INTEGER,
-            note TEXT,
-            timestamp INTEGER)"""
-        )
-
         conn.commit()
 
         conn.close()

@@ -1,214 +1,70 @@
-import sqlite3
 
 import nextcord
 
 from utils.config import Configuration
-from utils.base import SersiEmbed, get_page, create_unique_id
+from utils.base import SersiEmbed, get_page
+from utils.database import db_session, Note
 
 
-def create_note(
-    config: Configuration,
-    noted: nextcord.Member,
-    noter: nextcord.Member,
-    note: str,
-    timestamp: int,
-):
-    conn = sqlite3.connect(config.datafiles.sersi_db)
-    cursor = conn.cursor()
-
-    unique_id = create_unique_id(config)
-
-    cursor.execute(
-        """INSERT INTO notes (id, noted, noter, note, timestamp) VALUES (?, ?, ?, ?, ?)""",
-        (str(unique_id), noted.id, noter.id, note, timestamp),
-    )
-
-    conn.commit()
-    conn.close()
-
-    return unique_id
-
-
-def get_note_by_id(
-    config: Configuration,
-    note_id: str,
-) -> dict[str:str] | str:
-    conn = sqlite3.connect(config.datafiles.sersi_db)
-    cursor = conn.cursor()
-
-    cursor.execute("SELECT * FROM notes WHERE id=?", (note_id,))
-
-    try:
-        row = cursor.fetchone()
-
-    except TypeError:
-        cursor.close()
-        return "No Note"
-
-    conn.close()
-
-    return {
-        "ID": f"{row[0]}",
-        "Target ID": row[1],
-        "Moderator ID": row[2],
-        "Note": row[3],
-        "Timestamp": row[4],
-    }
-
-
-def get_note_by_user(
+def fetch_notes(
     config: Configuration,
     page: int,
     per_page: int,
-    user_id: str,
+    member_id: int = None,
+    author_id: int = None,
 ) -> str | tuple[list, int, int]:
-    conn = sqlite3.connect(config.datafiles.sersi_db)
-    cursor = conn.cursor()
+    with db_session() as session:
+        _query = session.query(Note)
 
-    cursor.execute(
-        "SELECT * FROM notes WHERE noted=? ORDER BY timestamp DESC", (user_id,)
-    )
+        if member_id:
+            _query = _query.filter_by(member=member_id)
 
-    try:
-        notes = cursor.fetchall()
+        if author_id:
+            _query = _query.filter_by(author=author_id)
 
-    except TypeError:
-        cursor.close()
-        return "No Note"
+        notes = _query.order_by(Note.created.desc()).all()
 
-    conn.close()
+        if not notes:
+            return None, 0, 0
 
-    notes_list = [list(note) for note in notes]
-    return get_page(notes_list, page, per_page)
+        return get_page(notes, page, per_page)
 
 
-def get_note_by_moderator(
-    config: Configuration,
-    moderator_id: str,
-    page: int,
-    per_page: int,
-) -> str | tuple[list, int, int]:
-    conn = sqlite3.connect(config.datafiles.sersi_db)
-    cursor = conn.cursor()
-
-    cursor.execute(
-        "SELECT * FROM notes WHERE noter=? ORDER BY timestamp DESC", (moderator_id,)
-    )
-
-    try:
-        notes = cursor.fetchall()
-
-    except TypeError:
-        cursor.close()
-        return "No Note"
-
-    conn.close()
-
-    notes_list = [list(note) for note in notes]
-    return get_page(notes_list, page, per_page)
-
-
-def fetch_notes_by_partial_id(config: Configuration, note_id: str):
-    conn = sqlite3.connect(config.datafiles.sersi_db)
-    cursor = conn.cursor()
-
-    if note_id == "":
-        cursor.execute("SELECT * FROM notes ORDER BY timestamp DESC LIMIT 10")
-    else:
-        cursor.execute(
-            "SELECT * FROM notes WHERE id LIKE ? LIMIT 10 ", (f"{note_id}%",)
-        )
-
-    rows = cursor.fetchall()
-
-    conn.close()
-
-    id_list = [row[0] for row in rows]
-
-    return id_list
+def fetch_notes_by_partial_id(note_id: str):
+    with db_session() as session:
+        return session.query(Note).filter(Note.id.like(f"{note_id}%")).limit(25).all()
 
 
 def create_note_embed(
-    sersi_note: dict, interaction: nextcord.Interaction
+    note: Note, interaction: nextcord.Interaction
 ) -> SersiEmbed:
     note_embed = SersiEmbed()
-    note_embed.add_field(name="Note ID:", value=f"`{sersi_note['ID']}`", inline=True)
+    note_embed.add_field(name="Note ID:", value=f"`{note.id}`", inline=True)
 
-    moderator = interaction.guild.get_member(sersi_note["Moderator ID"])
+    note_embed.add_field(
+        name="Author:",
+        value=f"<@{note.author}> `{note.author}`",
+        inline=True,
+    )
 
-    if not moderator:
-        note_embed.add_field(
-            name="Moderator:",
-            value=f"`{sersi_note['Moderator ID']}`",
-            inline=True,
-        )
+    note_embed.add_field(
+        name="Member:",
+        value=f"<@{note.member}> `{note.member}`",
+        inline=True,
+    )
 
-    else:
-        note_embed.add_field(
-            name="Moderator:", value=f"{moderator.mention}", inline=True
-        )
-
-    noted = interaction.guild.get_member(sersi_note["Target ID"])
-
-    if not noted:
-        note_embed.add_field(
-            name="User:",
-            value=f"`{sersi_note['Target ID']}`",
-            inline=True,
-        )
-
-    else:
-        note_embed.add_field(name="User:", value=f"{noted.mention}", inline=True)
+    noted = interaction.guild.get_member(note.member)
+    if noted:
         note_embed.set_thumbnail(url=noted.display_avatar.url)
 
-    note_embed.add_field(name="Note:", value=sersi_note["Note"], inline=False)
+    note_embed.add_field(name="Note:", value=note.content, inline=False)
 
     note_embed.add_field(
         name="Timestamp:",
-        value=(f"<t:{sersi_note['Timestamp']}:R>"),
+        value=(f"<t:{note.created}:R>"),
         inline=True,
     )
 
     note_embed.set_footer(text="Sersi Notes")
 
     return note_embed
-
-
-def delete_note(config: Configuration, note_id: str):
-    conn = sqlite3.connect(config.datafiles.sersi_db)
-    cursor = conn.cursor()
-
-    cursor.execute("SELECT * FROM notes WHERE id=?", (note_id,))
-
-    case = cursor.fetchone()
-
-    if case:
-        cursor.execute("DELETE FROM notes WHERE id=?", (note_id,))
-
-        conn.commit()
-        conn.close()
-        return True
-
-    else:
-        conn.close()
-        return False
-
-
-def wipe_user_notes(config: Configuration, user: nextcord.Member):
-    conn = sqlite3.connect(config.datafiles.sersi_db)
-    cursor = conn.cursor()
-
-    cursor.execute("SELECT * FROM notes WHERE noted=?", (user.id,))
-
-    case = cursor.fetchall()
-
-    if case:
-        cursor.execute("DELETE FROM notes WHERE noted=?", (user.id,))
-
-        conn.commit()
-        conn.close()
-        return True
-
-    else:
-        conn.close()
-        return False
