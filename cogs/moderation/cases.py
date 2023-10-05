@@ -153,12 +153,7 @@ class Cases(commands.Cog):
 
         await interaction.response.defer(ephemeral=False)
 
-        outcome = scrub_case(
-            self.config,
-            case_id,
-            interaction.user,
-            reason,
-        )
+        outcome = scrub_case(case_id, interaction.user, reason)
 
         if outcome:
             logging_embed = SersiEmbed(
@@ -232,7 +227,7 @@ class Cases(commands.Cog):
 
         await interaction.response.defer(ephemeral=False)
 
-        outcome = delete_case(self.config, case_id)
+        outcome = delete_case(case_id)
 
         if outcome:
             logging_embed = SersiEmbed(

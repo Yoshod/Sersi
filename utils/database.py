@@ -72,7 +72,7 @@ class CaseAudit(_Base):
     __tablename__ = "cases_audit"
 
     id = Column(String, primary_key=True)
-    case_id = Column(String, ForeignKey('cases.id'), nullable=False)
+    case_id = Column(String, ForeignKey('cases.id', ondelete="CASCADE"), nullable=False)
 
     field = Column(String, nullable=False)
     old_value = Column(String, nullable=False)
@@ -178,7 +178,7 @@ class WarningCase(Case):
 class ScrubbedCase(_Base):
     __tablename__ = "scrubbed_cases"
 
-    case_id = Column(String, ForeignKey('cases.id'), primary_key=True)
+    case_id = Column(String, ForeignKey('cases.id', ondelete="CASCADE"), primary_key=True)
 
     scrubber = Column(Integer, nullable=False)
     reason = Column(String, nullable=False)
@@ -188,8 +188,8 @@ class ScrubbedCase(_Base):
 class PeerReview(_Base):
     __tablename__ = "peer_reviews"
 
-    id = Column(String, primary_key=True)
-    case_id = Column(String, ForeignKey('cases.id'), nullable=False)
+    id = Column(String, primary_key=True, default=shortuuid.uuid)
+    case_id = Column(String, ForeignKey('cases.id', ondelete="CASCADE"), nullable=False)
 
     reviewer = Column(Integer, nullable=False)
     review_outcome = Column(String, nullable=False)
@@ -201,7 +201,8 @@ class PeerReview(_Base):
 class DualCustody(_Base):
     __tablename__ = "dual_custody"
 
-    case_id = Column(String, ForeignKey('cases.id'), primary_key=True)
+    id = Column(String, primary_key=True, default=shortuuid.uuid)
+    case_id = Column(String, ForeignKey('cases.id', ondelete="CASCADE"), primary_key=True)
     moderator = Column(Integer, nullable=False)
     timestamp = Column(DateTime, default=datetime.utcnow)
 

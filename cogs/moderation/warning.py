@@ -177,7 +177,7 @@ class WarningSystem(commands.Cog):
 
         await interaction.response.defer(ephemeral=False)
 
-        deactivated, offender_id = deactivate_warn(self.config, case_id)
+        deactivated, offender_id = deactivate_warn(case_id, interaction.user, reason)
 
         if not deactivated:
             await interaction.followup.send(
@@ -247,7 +247,7 @@ class WarningSystem(commands.Cog):
                 )
                 return
 
-            if delete_warn(self.config, case_id):
+            if delete_warn(case_id):
                 await interaction.guild.get_channel(self.config.channels.logging).send(
                     embed=SersiEmbed(
                         title="Warning Deleted",

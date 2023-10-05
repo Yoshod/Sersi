@@ -1,141 +1,44 @@
-import sqlite3
-import time
-
 import nextcord
 
-from utils.config import Configuration
+from utils.database import db_session, Case, WarningCase, ScrubbedCase
 
 
-def scrub_case(
-    config: Configuration, case_id: str, scrubber: nextcord.Member, reason: str
-):
-    timestamp = int(time.time())
+def scrub_case(case_id: str, scrubber: nextcord.Member, reason: str) -> Case|False|None:
+    with db_session(scrubber) as session:
+        case: Case = session.query(Case).filter(Case.id == case_id).first()
+        if not case:
+            return None
 
-    conn = sqlite3.connect(config.datafiles.sersi_db)
-    cursor = conn.cursor()
+        if case.scrubbed:
+            return False
 
-    cursor.execute("SELECT * FROM cases WHERE id=?", (case_id,))
-
-    case = cursor.fetchone()
-
-    if case:
-        case_type = case[1]
-
-        match case_type:
-            case "Slur Usage":
-                cursor.execute("SELECT * FROM slur_cases WHERE id=?", (case_id,))
-
-                try:
-                    row = cursor.fetchone()
-
-                except TypeError:
-                    cursor.close()
-                    return False
-
-                offender_id = row[3]
-
-            case "Reformation":
-                cursor.execute("SELECT * FROM reformation_cases WHERE id=?", (case_id,))
-
-                try:
-                    row = cursor.fetchone()
-
-                except TypeError:
-                    cursor.close()
-                    return False
-
-                offender_id = row[2]
-
-            case "Probation":
-                cursor.execute("SELECT * FROM probation_cases WHERE id=?", (case_id,))
-
-                try:
-                    row = cursor.fetchone()
-
-                except TypeError:
-                    return False
-
-                offender_id = row[1]
-
-            case "Bad Faith Ping":
-                cursor.execute(
-                    "SELECT * FROM bad_faith_ping_cases WHERE id=?", (case_id,)
-                )
-
-                try:
-                    row = cursor.fetchone()
-
-                except TypeError:
-                    cursor.close()
-                    return False
-
-                offender_id = row[2]
-
-            case "Warn":
-                cursor.execute("SELECT * FROM warn_cases WHERE id=?", (case_id,))
-
-                try:
-                    row = cursor.fetchone()
-
-                except TypeError:
-                    return False
-
-                offender_id = row[1]
-
-            case _:
-                offender_id = ""
-
-        # print(case_id, case_type, offender_id, scrubber.id, reason, timestamp)
-
-        cursor.execute(
-            "INSERT INTO scrubbed_cases (id, type, offender, scrubber, reason, timestamp) VALUES (?, ?, ?, ?, ?, ?)",
-            (
-                case_id,
-                case_type,
-                int(offender_id),
-                int(scrubber.id),
-                reason,
-                int(timestamp),
-            ),
+        case.scrubbed = True
+        session.add(
+            ScrubbedCase(
+                case_id=case_id,
+                scrubber=scrubber.id,
+                reason=reason
+            )
         )
 
-        cursor.execute("DELETE FROM cases WHERE id=?", (case_id,))
-        cursor.execute("DELETE FROM probation_cases WHERE id=?", (case_id,))
-        cursor.execute("DELETE FROM slur_cases WHERE id=?", (case_id,))
-        cursor.execute("DELETE FROM reformation_cases WHERE id=?", (case_id,))
-        cursor.execute("DELETE FROM bad_faith_ping_cases WHERE id=?", (case_id,))
-        cursor.execute("DELETE FROM warn_cases WHERE id=?", (case_id,))
+        session.commit()
 
-        conn.commit()
-        conn.close()
-        return True
-
-    else:
-        conn.close()
-        return False
+    return case
 
 
-def deactivate_warn(config: Configuration, case_id: str) -> (bool, int | None):
-    conn = sqlite3.connect(config.datafiles.sersi_db)
-    cursor = conn.cursor()
+def deactivate_warn(case_id: str, user: nextcord.Member, reason: str) -> WarningCase|False|None:
+    with db_session(user) as session:
+        case: WarningCase =\
+            session.query(WarningCase).filter(WarningCase.id == case_id).first()
 
-    cursor.execute("SELECT * FROM warn_cases WHERE id=?", (case_id,))
+        if not case:
+            return None
 
-    case = cursor.fetchone()
+        if not case.active:
+            return False
 
-    if case:
-        offender_id = case[1]
-        cursor.execute(
-            """
-            UPDATE warn_cases
-            SET active = False
-            WHERE id =?""",
-            (case_id,),
-        )
-        conn.commit()
-        conn.close()
-        return True, offender_id
-
-    else:
-        conn.close()
-        return False, None
+        case.active = False
+        case.deactivate_reason = reason
+        session.commit()
+    
+    return case

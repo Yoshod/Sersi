@@ -74,16 +74,6 @@ class Database(commands.Cog):
         )
 
         cursor.execute(
-            """CREATE TABLE IF NOT EXISTS scrubbed_cases
-            (id TEXT PRIMARY KEY,
-            type TEXT,
-            offender INTEGER,
-            scrubber INTEGER,
-            reason TEXT,
-            timestamp INTEGER)"""
-        )
-
-        cursor.execute(
             """CREATE TABLE IF NOT EXISTS notes
             (id TEXT PRIMARY KEY,
             noted INTEGER,

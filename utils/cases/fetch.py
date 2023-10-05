@@ -16,7 +16,7 @@ from utils.database import (
 )
 
 
-def get_case_by_id(case_id: str) -> dict[str : typing.Any] | str | None:
+def get_case_by_id(case_id: str) -> typing.Type[Case] | None:
 
     with db_session() as session:
         case: Case = session.query(Case).filter(Case.id == case_id).first()

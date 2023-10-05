@@ -1,45 +1,27 @@
-import sqlite3
-
-from utils.config import Configuration
+from utils.database import db_session, Case, WarningCase
 
 
-def delete_case(config: Configuration, case_id: str):
-    conn = sqlite3.connect(config.datafiles.sersi_db)
-    cursor = conn.cursor()
+def delete_case(case_id: str):
+    with db_session() as session:
+        case: Case = session.query(Case).filter(Case.id == case_id).first()
+        if not case:
+            return False
 
-    cursor.execute("SELECT * FROM scrubbed_cases WHERE id=?", (case_id,))
+        session.delete(case)
+        session.commit()
 
-    case = cursor.fetchone()
-
-    if case:
-        cursor.execute("DELETE FROM scrubbed_cases WHERE id=?", (case_id,))
-
-        conn.commit()
-        conn.close()
-        return True
-
-    else:
-        conn.close()
-        return False
+    return True
 
 
-def delete_warn(config: Configuration, case_id: str):
-    conn = sqlite3.connect(config.datafiles.sersi_db)
-    cursor = conn.cursor()
+def delete_warn(case_id: str):
+    with db_session() as session:
+        case: WarningCase =\
+            session.query(WarningCase).filter(WarningCase.id == case_id).first()
 
-    cursor.execute("SELECT * FROM warn_cases WHERE id=?", (case_id,))
+        if not case:
+            return False
 
-    case = cursor.fetchone()
-
-    if case:
-        cursor.execute("DELETE FROM warn_cases WHERE id=?", (case_id,))
-
-        cursor.execute("DELETE FROM cases WHERE id=?", (case_id,))
-
-        conn.commit()
-        conn.close()
-        return True
-
-    else:
-        conn.close()
-        return False
+        session.delete(case)
+        session.commit()
+    
+    return True
