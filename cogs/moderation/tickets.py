@@ -44,7 +44,7 @@ class TicketingSystem(commands.Cog):
             )
             return
 
-        if ticket_check(self.config, interaction.user, ticket_type):
+        if ticket_check(interaction.user, ticket_type):
             interaction.response.send_message(
                 f"{self.config.emotes.fail} You already have the maximum amount of {ticket_type} tickets. One must be closed before another can be opened."
             )

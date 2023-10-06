@@ -28,18 +28,6 @@ def db_session(owner: int|nextcord.User|nextcord.Member = None):
     return session
 
 
-class Note(_Base):
-    __tablename__ = "notes"
-
-    id = Column(String, primary_key=True, default=shortuuid.uuid)
-    author = Column(Integer, nullable=False)
-    member = Column(Integer, nullable=False)
-    content = Column(String, nullable=False)
-
-    created = Column(DateTime, default=datetime.utcnow)
-    modified = Column(DateTime, default=datetime.utcnow)
-
-
 ### Case Models ###
 
 class Case(_Base):
@@ -230,6 +218,92 @@ class Offence(_Base):
     third_instance = Column(String)
 
     detail = Column(String)
+
+
+### Note Models ###
+
+class Note(_Base):
+    __tablename__ = "notes"
+
+    id = Column(String, primary_key=True, default=shortuuid.uuid)
+    author = Column(Integer, nullable=False)
+    member = Column(Integer, nullable=False)
+    content = Column(String, nullable=False)
+
+    created = Column(DateTime, default=datetime.utcnow)
+    modified = Column(DateTime, default=datetime.utcnow)
+
+
+### Ticket Models ###
+
+class Ticket(_Base):
+    __tablename__ = "tickets"
+
+    id = Column(String, primary_key=True, default=shortuuid.uuid)
+    active = Column(Boolean, default=True)
+    escalation_level = Column(String, nullable=False)
+
+    creator = Column(Integer, nullable=False)
+    channel = Column(Integer, nullable=False)
+    category = Column(String, ForeignKey('ticket_categories.category'))
+    subcategory = Column(String, ForeignKey('ticket_categories.subcategory'))
+    
+    opening_comment = Column(String)
+    closing_comment = Column(String)
+
+    created = Column(DateTime, default=datetime.utcnow)
+    modified = Column(DateTime, default=datetime.utcnow)
+    closed = Column(DateTime)
+
+    def __setattr__(self, __name: str, __value: Any):
+        old_value = self.__dict__.get(__name)
+        super().__setattr__(__name, __value)
+        session: Session = Session.object_session(self)
+        if (session and old_value != __value):
+            self.modified = datetime.utcnow()
+            session.add(TicketAudit(
+                id=shortuuid.uuid(),
+                ticket_id=self.id,
+                field=__name,
+                old_value=old_value,
+                new_value=__value,
+                author=session.owner_id,
+                timestamp=self.modified
+            ))
+
+
+class TicketAudit(_Base):
+    __tablename__ = "tickets_audit"
+
+    id = Column(String, primary_key=True, default=shortuuid.uuid)
+    ticket_id = Column(String, ForeignKey('tickets.id', ondelete="CASCADE"), nullable=False)
+
+    field = Column(String, nullable=False)
+    old_value = Column(String, nullable=False)
+    new_value = Column(String, nullable=False)
+
+    author = Column(Integer)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+
+
+class TicketSurvey(_Base):
+    __tablename__ = "ticket_surveys"
+
+    ticket_id = Column(String, ForeignKey('tickets.id', ondelete="CASCADE"), primary_key=True)
+    member = Column(Integer, primary_key=True)
+
+    rating = Column(Integer)
+    comment = Column(String)
+
+    created = Column(DateTime, default=datetime.utcnow)
+    received = Column(DateTime)
+
+
+class TicketCategories(_Base):
+    __tablename__ = "ticket_categories"
+
+    category = Column(String, primary_key=True)
+    subcategory = Column(String, primary_key=True)
 
 
 def create_db_tables():

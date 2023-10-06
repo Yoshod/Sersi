@@ -1,35 +1,23 @@
 import nextcord
-import sqlite3
+
 from utils.base import create_unique_id
 from utils.config import Configuration
+from utils.database import db_session, Ticket
 
 
-def ticket_check(
-    config: Configuration, proposed_ticketer: nextcord.Member, ticket_type: str
-):
-    conn = sqlite3.connect(config.datafiles.sersi_db)
-    cursor = conn.cursor()
+def ticket_check(proposed_ticketer: nextcord.Member, ticket_type: str):
+    with db_session(proposed_ticketer) as session:
+        tickets = (
+            session.query(Ticket)
+            .filter_by(
+                creator=proposed_ticketer.id,
+                active=True,
+                escalation_level=ticket_type
+            )
+            .all()
+        )
 
-    cursor.execute(
-        """
-        SELECT * FROM tickets
-        WHERE ticket_creator_id = ?
-         AND ticket_escalation_initial = ?
-         AND ticket_active = 1
-        """,
-        (proposed_ticketer.id, ticket_type),
-    )
-
-    tickets = cursor.fetchall()
-
-    cursor.close()
-    conn.close()
-
-    if len(tickets) > 2:
-        return True
-
-    else:
-        return False
+        return len(tickets) < 3
 
 
 async def ticket_create(
@@ -37,6 +25,9 @@ async def ticket_create(
     interaction: nextcord.Interaction,
     ticket_creator: nextcord.Member,
     ticket_type,
+    ticket_category,
+    ticket_subcategory,
+    opening_remarks,
     test=True,
 ):
     if test:
@@ -107,13 +98,16 @@ async def ticket_create(
 
     channel = await interaction.guild.create_text_channel(ticket_id)
 
-    conn = sqlite3.connect(config.datafiles.sersi_db)
-    cursor = conn.cursor()
-
-    cursor.execute(
-        "INSERT INTO tickets (ticket_id, ticket_escalation_initial, ticket_channel_id, ticket_creator_id, ticket_active, timestamp_opened, priority_initial, survey_sent) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-        (
-            ticket_id,
-            ticket_type,
-        ),
-    )
+    with db_session(ticket_creator) as session:
+        session.add(
+            Ticket(
+                id=ticket_id,
+                creator=ticket_creator.id,
+                channel=channel.id,
+                escalation_level=ticket_type,
+                category=ticket_category,
+                subcategory=ticket_subcategory,
+                opening_comment=opening_remarks,
+            )
+        )
+        session.commit()

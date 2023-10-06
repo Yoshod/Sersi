@@ -11,6 +11,7 @@ from utils.database import (
     ProbationCase,
     ReformationCase,
     SlurUsageCase,
+    create_db_tables,
 )
 from utils.config import Configuration
 from utils.perms import is_dark_mod, permcheck
@@ -38,44 +39,7 @@ class Database(commands.Cog):
 
         await interaction.response.defer(ephemeral=True)
 
-        conn = sqlite3.connect(self.config.datafiles.sersi_db)
-        cursor = conn.cursor()
-
-        cursor.execute(
-            """CREATE TABLE IF NOT EXISTS tickets
-                (ticket_id TEXT PRIMARY KEY,
-                ticket_escalation_initial TEXT,
-                ticket_escalation_final TEXT,
-                ticket_channel_id INTEGER,
-                ticket_creator_id INTEGER,
-                ticket_active BOOLEAN,
-                ticket_closer_id INTEGER,
-                timestamp_opened INTEGER,
-                timestamp_closed INTEGER,
-                priority_initial TEXT,
-                priority_final TEXT,
-                main_category TEXT,
-                sub_category TEXT,
-                related_tickets TEXT
-                survey_sent BOOLEAN
-                survey_score INTEGER
-                survery_response TEXT)"""
-        )
-
-        cursor.execute(
-            """CREATE TABLE IF NOT EXISTS ticket_categories
-            (category TEXT PRIMARY KEY)"""
-        )
-
-        cursor.execute(
-            """CREATE TABLE IF NOT EXISTS ticket_subcategories
-            (category TEXT,
-            subcategory TEXT)"""
-        )
-
-        conn.commit()
-
-        conn.close()
+        create_db_tables()
 
         await interaction.followup.send(f"{self.config.emotes.success} Complete")
 
@@ -92,11 +56,7 @@ class Database(commands.Cog):
         cursor = conn.cursor()
 
         cursor.execute(
-            """INSERT INTO ticket_categories (category) VALUES ('technical'), ('policy'), ('report'), ('complaint'), ('appeal'), ('other');"""
-        )
-
-        cursor.execute(
-            """INSERT INTO ticket_subcategories (category, subcategory)
+            """INSERT INTO ticket_categories (category, subcategory)
                 VALUES
                 ('Technical', 'Altdentifier Verification'),
                 ('Technical', 'Bot Not Working'),
