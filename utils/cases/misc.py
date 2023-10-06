@@ -1,6 +1,6 @@
 import nextcord
 
-from utils.database import db_session, ReformationCase, SlurUsageCase, Offence, WarningCase
+from utils.database import db_session, ReformationCase, SlurUsageCase, Offence
 
 
 def slur_virgin(user: nextcord.User) -> bool:

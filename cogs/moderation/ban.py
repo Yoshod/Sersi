@@ -6,9 +6,7 @@ from pytz import timezone
 import datetime
 
 from utils.cases.autocomplete import fetch_offences_by_partial_name
-from utils.cases.delete import delete_warn
-from utils.cases.embed_factory import create_ban_case_embed
-from utils.cases.mend import deactivate_warn
+from utils.cases.embed_factory import create_case_embed
 from utils.cases.misc import offence_validity_check
 from utils.config import Configuration
 from utils.cases.fetch import get_case_by_id
@@ -343,7 +341,7 @@ class BanSystem(commands.Cog):
                         sersi_case["Offender ID"]
                     )
 
-                    ban_embed = create_ban_case_embed(sersi_case, interaction)
+                    ban_embed = create_case_embed(sersi_case, interaction)
 
                     try:
                         await offender.send(

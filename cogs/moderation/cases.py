@@ -3,7 +3,6 @@ import nextcord
 
 from utils.base import PageView
 from utils.cases.autocomplete import fetch_cases_by_partial_id
-from utils.cases.delete import delete_case
 from utils.cases.embed_factory import create_case_embed
 from utils.cases.fetch import (
     fetch_all_cases,
@@ -11,7 +10,7 @@ from utils.cases.fetch import (
 )
 from utils.cases.mend import scrub_case
 from utils.config import Configuration
-from utils.database import db_session
+from utils.database import db_session, Case
 from utils.perms import permcheck, is_mod, is_senior_mod, is_dark_mod
 from utils.offences import add_offence_to_database
 from utils.sersi_embed import SersiEmbed
@@ -227,9 +226,13 @@ class Cases(commands.Cog):
 
         await interaction.response.defer(ephemeral=False)
 
-        outcome = delete_case(case_id)
+        with db_session() as session:
+            case: Case = session.query(Case).filter(Case.id == case_id).first()
 
-        if outcome:
+            session.delete(case)
+            session.commit()
+
+        if case:
             logging_embed = SersiEmbed(
                 title="Case Deleted",
             )

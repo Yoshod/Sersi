@@ -2,10 +2,7 @@ import nextcord
 from nextcord.ext import commands
 
 from utils.cases.autocomplete import fetch_offences_by_partial_name
-from utils.cases.delete import delete_warn
-from utils.cases.embed_factory import create_warn_case_embed
-from utils.cases.fetch import get_case_by_id
-from utils.cases.mend import deactivate_warn
+from utils.cases.embed_factory import create_case_embed
 from utils.cases.misc import offence_validity_check
 from utils.config import Configuration
 from utils.database import db_session, WarningCase
@@ -116,9 +113,7 @@ class WarningSystem(commands.Cog):
         except (nextcord.Forbidden, nextcord.HTTPException):
             not_sent: bool = True
 
-        logging_embed: SersiEmbed = create_warn_case_embed(
-            case.__dict__, interaction=interaction
-        )
+        logging_embed: SersiEmbed = create_case_embed(case, interaction=interaction)
 
         await interaction.guild.get_channel(self.config.channels.mod_logs).send(
             embed=logging_embed
@@ -177,13 +172,24 @@ class WarningSystem(commands.Cog):
 
         await interaction.response.defer(ephemeral=False)
 
-        deactivated, offender_id = deactivate_warn(case_id, interaction.user, reason)
+        with db_session(interaction.user) as session:
+            case: WarningCase =\
+                session.query(WarningCase).filter(WarningCase.id == case_id).first()
 
-        if not deactivated:
-            await interaction.followup.send(
-                f"{self.config.emotes.fail} Warn {case_id} could not be deactivated."
-            )
-            return
+            if not case:
+                await interaction.followup.send(
+                    f"{self.config.emotes.fail} {case_id} is not a valid warn case."
+                )
+
+            if not case.active:
+                await interaction.followup.send(
+                    f"{self.config.emotes.fail} {case_id} is already deactivated."
+                )
+                return
+
+            case.active = False
+            case.deactivate_reason = reason
+            session.commit()
 
         logging_embed = SersiEmbed(
             title="Warn Deactivated",
@@ -195,7 +201,7 @@ class WarningSystem(commands.Cog):
         )
 
         try:
-            await interaction.guild.get_member(offender_id).send(
+            await interaction.guild.get_member(case.offender).send(
                 embed=SersiEmbed(
                     title=f"Warn Deactivated in {interaction.guild.name}",
                     description=f"Your warn in {interaction.guild.name} has been deactivated. "
@@ -239,7 +245,7 @@ class WarningSystem(commands.Cog):
         await interaction.response.defer(ephemeral=False)
 
         with db_session(interaction.user) as session:
-            case = session.query(WarningCase).filter_by(id=case_id).first()
+            case: WarningCase = session.query(WarningCase).filter_by(id=case_id).first()
 
             if not case:
                 await interaction.followup.send(
@@ -247,7 +253,8 @@ class WarningSystem(commands.Cog):
                 )
                 return
 
-            if delete_warn(case_id):
+            if case:
+                session.delete(case)
                 await interaction.guild.get_channel(self.config.channels.logging).send(
                     embed=SersiEmbed(
                         title="Warning Deleted",
