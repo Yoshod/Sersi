@@ -5,13 +5,14 @@ import nextcord
 from nextcord.ext import commands
 from pytz import timezone
 from utils import logs
-from utils.cases.approval import update_approved, update_objected
 from nextcord.ui import Button, View
 
-from utils.cases.autocomplete import fetch_offences_by_partial_name
-from utils.cases.embed_factory import create_timeout_case_embed
-from utils.cases.fetch import get_case_by_id
-from utils.cases.misc import offence_validity_check
+from utils.cases import (
+    fetch_offences_by_partial_name,
+    create_case_embed,
+    get_case_by_id,
+    offence_validity_check,
+)
 from utils.config import Configuration
 from utils.database import db_session, TimeoutCase
 from utils.perms import (
@@ -61,7 +62,7 @@ class TimeoutSystem(commands.Cog):
         new_embed.colour = nextcord.Colour.brand_green()
         await interaction.message.edit(embed=new_embed, view=None)
 
-        update_approved(new_embed.fields[0].value, self.config)
+        # update_approved(new_embed.fields[0].value, self.config)
 
         # Logging
         logging_embed = SersiEmbed(
@@ -91,7 +92,7 @@ class TimeoutSystem(commands.Cog):
         new_embed.colour = nextcord.Colour.brand_red()
         await interaction.message.edit(embed=new_embed, view=None)
 
-        update_objected(new_embed.fields[0].value, self.config)
+        # update_objected(new_embed.fields[0].value, self.config)
 
         # Logging
         logging_embed = SersiEmbed(
@@ -234,8 +235,8 @@ class TimeoutSystem(commands.Cog):
 
         sersi_case = get_case_by_id(self.config, case.id, False)
 
-        logging_embed: SersiEmbed = create_timeout_case_embed(
-            sersi_case.__dict__,
+        logging_embed: SersiEmbed = create_case_embed(
+            sersi_case,
             interaction=interaction,
         )
 

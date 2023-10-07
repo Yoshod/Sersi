@@ -2,8 +2,7 @@ import nextcord
 
 from nextcord.ext import commands
 
-from utils.cases.embed_factory import create_kick_case_embed
-from utils.cases.fetch import get_case_by_id
+from utils.cases import create_case_embed, get_case_by_id
 from utils.config import Configuration
 from utils.database import db_session, KickCase
 from utils.perms import permcheck, is_mod, is_dark_mod, is_immune, target_eligibility
@@ -90,8 +89,8 @@ class KickSystem(commands.Cog):
                 session.add(case)
                 session.commit()
 
-            logging_embed = create_kick_case_embed(
-                get_case_by_id(self.config, case.id, False), interaction
+            logging_embed = create_case_embed(
+                get_case_by_id(self.config, case.id, False), interaction, self.config
             )
             await interaction.guild.get_channel(self.config.channels.logging).send(
                 embed=logging_embed

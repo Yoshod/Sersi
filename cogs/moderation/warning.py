@@ -1,9 +1,11 @@
 import nextcord
 from nextcord.ext import commands
 
-from utils.cases.autocomplete import fetch_offences_by_partial_name
-from utils.cases.embed_factory import create_case_embed
-from utils.cases.misc import offence_validity_check
+from utils.cases import (
+    fetch_offences_by_partial_name,
+    create_case_embed,
+    offence_validity_check,
+)
 from utils.config import Configuration
 from utils.database import db_session, WarningCase
 from utils.objection import AlertView

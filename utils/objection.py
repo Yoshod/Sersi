@@ -3,7 +3,6 @@ import datetime
 import nextcord
 
 from utils import logs
-from utils.cases.approval import update_approved, update_objected
 from utils.config import Configuration
 from utils.perms import (
     permcheck,
@@ -31,7 +30,7 @@ class ObjectionButton(nextcord.ui.Button):
         await interaction.message.edit(embed=new_embed, view=None)
 
         # Database
-        update_objected(new_embed.fields[0].value, self.config)
+        # update_objected(new_embed.fields[0].value, self.config)
 
         # Logging
         await interaction.guild.get_channel(self.config.channels.logging).send(
@@ -68,7 +67,7 @@ class ApprovalButton(nextcord.ui.Button):
         new_embed.colour = nextcord.Colour.brand_green()
         await interaction.message.edit(embed=new_embed, view=None)
 
-        update_approved(new_embed.fields[0].value, self.config)
+        # update_approved(new_embed.fields[0].value, self.config)
 
         # Logging
         await interaction.guild.get_channel(self.config.channels.logging).send(

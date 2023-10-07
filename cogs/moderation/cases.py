@@ -2,15 +2,14 @@ from nextcord.ext import commands
 import nextcord
 
 from utils.base import PageView
-from utils.cases.autocomplete import fetch_cases_by_partial_id
-from utils.cases.embed_factory import create_case_embed
-from utils.cases.fetch import (
+from utils.cases import fetch_cases_by_partial_id
+from utils.cases import create_case_embed
+from utils.cases import (
     fetch_all_cases,
     get_case_by_id,
 )
-from utils.cases.mend import scrub_case
 from utils.config import Configuration
-from utils.database import db_session, Case
+from utils.database import db_session, Case, ScrubbedCase
 from utils.perms import permcheck, is_mod, is_senior_mod, is_dark_mod
 from utils.offences import add_offence_to_database
 from utils.sersi_embed import SersiEmbed
@@ -152,57 +151,54 @@ class Cases(commands.Cog):
 
         await interaction.response.defer(ephemeral=False)
 
-        outcome = scrub_case(case_id, interaction.user, reason)
+        with db_session(interaction.user) as session:
+            case: Case = session.query(Case).filter(Case.id == case_id).first()
 
-        if outcome:
-            logging_embed = SersiEmbed(
-                title="Case Scrubbed",
+            if not case:
+                await interaction.followup.send(
+                    f"{self.config.emotes.fail} Case {case_id} does not exist."
+                )
+                return
+            
+            if case.scrubbed:
+                await interaction.followup.send(
+                    f"{self.config.emotes.fail} Case {case_id} has already been scrubbed."
+                )
+                return
+            
+            case.scrubbed = True
+            session.add(
+                ScrubbedCase(
+                    case_id=case_id,
+                    scrubber=interaction.user.id,
+                    reason=reason
+                )
             )
 
-            logging_embed.add_field(name="Case ID", value=f"`{case_id}`", inline=True)
-            logging_embed.add_field(
-                name="Senior Moderator",
-                value=f"{interaction.user.mention}",
-                inline=True,
-            )
-            logging_embed.add_field(name="Reason", value=f"`{reason}`", inline=False)
+        logging_embed = SersiEmbed(
+            title="Case Scrubbed",
+        )
 
-            logging_embed.set_thumbnail(interaction.user.display_avatar.url)
+        logging_embed.add_field(name="Case ID", value=f"`{case_id}`", inline=True)
+        logging_embed.add_field(
+            name="Senior Moderator",
+            value=f"{interaction.user.mention}",
+            inline=True,
+        )
+        logging_embed.add_field(name="Reason", value=f"`{reason}`", inline=False)
 
-            logging_channel = interaction.guild.get_channel(
-                self.config.channels.logging
-            )
+        logging_embed.set_thumbnail(interaction.user.display_avatar.url)
 
-            await logging_channel.send(embed=logging_embed)
+        logging_channel = interaction.guild.get_channel(
+            self.config.channels.logging
+        )
 
-            await interaction.followup.send(
-                f"{self.config.emotes.success} Case {case_id} successfully scrubbed."
-            )
+        await logging_channel.send(embed=logging_embed)
 
-        else:
-            logging_embed = SersiEmbed(
-                name="Case Scrub Attempted",
-            )
+        await interaction.followup.send(
+            f"{self.config.emotes.success} Case {case_id} successfully scrubbed."
+        )
 
-            logging_embed.add_field(name="Case ID", value=f"`{case_id}`", inline=True)
-            logging_embed.add_field(
-                name="Scrubber",
-                value=f"{interaction.user.mention}",
-                inline=True,
-            )
-            logging_embed.add_field(name="Reason", value=f"`{reason}`", inline=False)
-
-            logging_embed.set_thumbnail(interaction.user.display_avatar.url)
-
-            logging_channel = interaction.guild.get_channel(
-                self.config.channels.logging
-            )
-
-            await logging_channel.send(embed=logging_embed)
-
-            await interaction.followup.send(
-                f"{self.config.emotes.fail} Case {case_id} has not been scrubbed. Please contact Sèitheach."
-            )
 
     @cases.subcommand(description="Used to delete a scrubbed Sersi Case")
     async def delete(

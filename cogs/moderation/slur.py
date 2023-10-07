@@ -13,11 +13,10 @@ from utils.base import (
     convert_mention_to_id,
     ignored_message,
 )
-from utils.cases.fetch import fetch_offender_cases
-from utils.cases.misc import slur_history, slur_virgin
+from utils.cases import fetch_all_cases, slur_history, slur_virgin
 from utils.config import Configuration
 from utils.database import db_session, SlurUsageCase
-from utils.notes import get_note_by_user
+from utils.notes import fetch_notes
 from utils.perms import cb_is_mod
 from slurdetector import (
     load_slurdetector,
@@ -180,15 +179,15 @@ class ViewCasesButton(nextcord.ui.Button):
         view = PageView(
             config=self.config,
             base_embed=cases_embed,
-            fetch_function=fetch_offender_cases,
+            fetch_function=fetch_all_cases,
             author=interaction.user,
             entry_form="{entry[1]} <t:{entry[2]}:R>",
             field_title="{entries[0][0]}",
             inline_fields=False,
             cols=10,
             per_col=1,
-            offender=offender,
-            case_type="slur_cases",
+            offender_id=offender,
+            case_type="Slur Usage",
         )
 
         await view.send_followup(interaction)
@@ -221,7 +220,7 @@ class ViewNotesButton(nextcord.ui.Button):
         view = PageView(
             config=self.config,
             base_embed=note_embed,
-            fetch_function=get_note_by_user,
+            fetch_function=fetch_notes,
             author=interaction.user,
             entry_form=format_entry,
             field_title="{entries[0][0]}",
@@ -229,7 +228,7 @@ class ViewNotesButton(nextcord.ui.Button):
             cols=10,
             per_col=1,
             init_page=0,
-            user_id=str(user.id),
+            member_id=str(user.id),
         )
 
         await view.send_followup(interaction)
