@@ -10,9 +10,13 @@ class SersiEmbed(nextcord.Embed):
         fields: dict[str, str] = None,
         footer: str = nextcord.embeds.EmptyEmbed,
         footer_icon: str = nextcord.embeds.EmptyEmbed,
+        thumbnail_url: str = nextcord.embeds.EmptyEmbed,
         **kwargs,
     ):
         super().__init__(**kwargs)
+
+        # Configure Embed Thumbnail
+        self.set_thumbnail(url=thumbnail_url)
 
         # Configure Embed Footer
         self.set_footer(text=footer, icon_url=footer_icon)

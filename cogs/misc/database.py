@@ -1,6 +1,7 @@
 import nextcord
 import sqlite3
 import pickle
+from datetime import datetime
 
 from nextcord.ext import commands
 
@@ -231,7 +232,7 @@ class Database(commands.Cog):
                                 report_url=report_url,
                                 offender=offender_id,
                                 moderator=moderator_id,
-                                created=timestamp,
+                                created=datetime.fromtimestamp(timestamp),
                             ))
                         elif case_type == "Probation":
                             (
@@ -246,7 +247,7 @@ class Database(commands.Cog):
                                 offender=offender_id,
                                 moderator=primary_moderator_id,
                                 reason=reason,
-                                created=timestamp,
+                                created=datetime.fromtimestamp(timestamp),
                             ))
                             if (secondary_moderator_id):
                                 session.add(DualCustody(
@@ -269,7 +270,7 @@ class Database(commands.Cog):
                                 moderator=moderator_id,
                                 cell_channel=channel_id,
                                 details=reason,
-                                created=timestamp,
+                                created=datetime.fromtimestamp(timestamp),
                             ))
                         elif case_type == "Slur Usage":
                             (
@@ -285,7 +286,7 @@ class Database(commands.Cog):
                                 report_url=report_url,
                                 offender=offender_id,
                                 moderator=moderator_id,
-                                created=timestamp,
+                                created=datetime.fromtimestamp(timestamp),
                             ))
 
             session.commit()

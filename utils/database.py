@@ -69,6 +69,10 @@ class Case(_Base):
             ))
 
 
+    def __repr__(self):
+        return f"{self.type} <t:{int(self.created.timestamp())}:R>"
+
+
 class CaseAudit(_Base):
     __tablename__ = "cases_audit"
 

@@ -88,7 +88,7 @@ class Cases(commands.Cog):
             base_embed=cases_embed,
             fetch_function=fetch_all_cases,
             author=interaction.user,
-            entry_form="{entry.type} <t:{int(entry.created)}:R>",
+            entry_form="{entry}",
             field_title="{entries[0].id}",
             inline_fields=False,
             cols=10,

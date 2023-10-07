@@ -25,9 +25,9 @@ def get_case_audit_logs(session: Session, case_id: str):
     return session.query(CaseAudit).filter_by(case_id=case_id).all()
 
 
-def fetch_cases_by_partial_id(case_id: str):
+def fetch_cases_by_partial_id(case_id: str) -> list[str]:
     with db_session() as session:
-        cases: list[str] = (
+        cases: list[tuple[str]] = (
             session.query(Case.id)
             .filter(Case.id.like(f"%{case_id}%"))
             .order_by(Case.created.desc())
@@ -35,7 +35,7 @@ def fetch_cases_by_partial_id(case_id: str):
             .all()
         )
 
-    return cases
+    return [case[0] for case in cases]
 
 
 def fetch_offences_by_partial_name(offence: str) -> list[str]:
@@ -113,41 +113,41 @@ def create_case_embed(
             })
         
     
-    fields["Timestamp"] = f"<t:{case.created}:R>"
+    fields["Timestamp"] = f"<t:{int(case.created.timestamp())}:R>"
 
     offender = interaction.guild.get_member(case.offender)
 
     return SersiEmbed(
         fields=fields,
         thumbnail_url=offender.display_avatar.url if offender else None,
-        footer_text="Sersi Case Tracking"
+        footer="Sersi Case Tracking"
     )
 
 
 def get_case_by_id(case_id: str) -> typing.Type[Case] | None:
 
     with db_session() as session:
-        case: Case = session.query(Case).filter(Case.id == case_id).first()
+        case: Case = session.query(Case).filter_by(id=case_id).first()
         if not case:
             return None
         
         match case.type:
             case "Ban":
-                return session.query(BanCase).filter(id=case_id).first()
+                return session.query(BanCase).filter_by(id=case_id).first()
             case "Bad Faith Ping":
-                return session.query(BadFaithPingCase).filter(id=case_id).first()
+                return session.query(BadFaithPingCase).filter_by(id=case_id).first()
             case "Kick":
-                return session.query(KickCase).filter(id=case_id).first()
+                return session.query(KickCase).filter_by(id=case_id).first()
             case "Probation":
-                return session.query(ProbationCase).filter(id=case_id).first()
+                return session.query(ProbationCase).filter_by(id=case_id).first()
             case "Reformation":
-                return session.query(ReformationCase).filter(id=case_id).first()
+                return session.query(ReformationCase).filter_by(id=case_id).first()
             case "Slur Usage":
-                return session.query(SlurUsageCase).filter(id=case_id).first()
+                return session.query(SlurUsageCase).filter_by(id=case_id).first()
             case "Timeout":
-                return session.query(TimeoutCase).filter(id=case_id).first()
+                return session.query(TimeoutCase).filter_by(id=case_id).first()
             case "Warn":
-                return session.query(WarningCase).filter(id=case_id).first()
+                return session.query(WarningCase).filter_by(id=case_id).first()
             case _:
                 return None
 
@@ -165,16 +165,16 @@ def fetch_all_cases(
     with db_session() as session:
         _query = session.query(Case)
         if case_type:
-            _query = _query.filter(type=case_type)
+            _query = _query.filter_by(type=case_type)
         if moderator_id:
-            _query = _query.filter(moderator=moderator_id)
+            _query = _query.filter_by(moderator=moderator_id)
         if offender_id:
-            _query = _query.filter(offender=offender_id)
+            _query = _query.filter_by(offender=offender_id)
         if offence:
-            _query = _query.filter(offence=offence)
+            _query = _query.filter_by(offence=offence)
 
         if not scrubbed:
-            _query = _query.filter(scrubbed=False)
+            _query = _query.filter_by(scrubbed=False)
         
         cases = _query.all()
 
