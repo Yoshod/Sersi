@@ -113,7 +113,7 @@ class Database(commands.Cog):
         cursor.execute(
             """INSERT INTO offences (offence, punishments, severity, detail)
             VALUES
-            ('Intentional Bigotry', 'Priority Ban', 'Intentional bigotry refers to acts of discrimination, prejudice, or intolerance that are committed purposefully and with the intent to harm or marginalise a particular group of people. This can include hate speech, racial slurs, or other forms of derogatory language, as well as actions that exclude or discriminate against individuals based on their race, ethnicity, gender, sexual orientation, religion, or other personal characteristics.'),
+            ('Intentional Bigotry', 'Priority Ban', NULL, 'Intentional bigotry refers to acts of discrimination, prejudice, or intolerance that are committed purposefully and with the intent to harm or marginalise a particular group of people. This can include hate speech, racial slurs, or other forms of derogatory language, as well as actions that exclude or discriminate against individuals based on their race, ethnicity, gender, sexual orientation, religion, or other personal characteristics.'),
 
             ('Unintentional Bigotry', 'Informal Warning|Warning|Reformation Centre', 1, 'Unintentional bigotry refers to instances of discrimination, prejudice, or intolerance that are committed without the intent to harm or marginalise a particular group of people. It can occur when individuals make assumptions or use language that is insensitive or unaware of the experiences and perspectives of marginalised groups. This can include making jokes or comments that perpetuate stereotypes, or failing to recognise the impact of systemic discrimination on certain individuals or communities.'),
 

@@ -103,7 +103,7 @@ class Cases(commands.Cog):
         await view.send_followup(interaction)
 
     @cases.subcommand(description="Used to get a case by its ID")
-    async def by_id(
+    async def detail(
         self,
         interaction: nextcord.Interaction,
         case_id: str = nextcord.SlashOption(
@@ -375,7 +375,7 @@ class Cases(commands.Cog):
 
         await interaction.followup.send(embed=offence_added_log)
 
-    @by_id.on_autocomplete("case_id")
+    @detail.on_autocomplete("case_id")
     @scrub.on_autocomplete("case_id")
     async def cases_by_id(self, interaction: nextcord.Interaction, case: str):
         if not is_mod(interaction.user):

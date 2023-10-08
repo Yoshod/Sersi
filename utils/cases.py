@@ -27,7 +27,7 @@ def get_case_audit_logs(session: Session, case_id: str):
 
 def fetch_cases_by_partial_id(case_id: str) -> list[str]:
     with db_session() as session:
-        cases: list[tuple[str]] = (
+        cases: list[typing.Tuple(str)] = (
             session.query(Case.id)
             .filter(Case.id.like(f"%{case_id}%"))
             .order_by(Case.created.desc())
@@ -40,7 +40,7 @@ def fetch_cases_by_partial_id(case_id: str) -> list[str]:
 
 def fetch_offences_by_partial_name(offence: str) -> list[str]:
     with db_session() as session:
-        offences: list[str] = (
+        offences: list[typing.Tuple(str)] = (
             session.query(Offence.offence)
             .filter(Offence.offence.like(f"%{offence}%"))
             .order_by(Offence.offence.asc())
@@ -48,7 +48,7 @@ def fetch_offences_by_partial_name(offence: str) -> list[str]:
             .all()
         )
 
-    return offences
+    return [offence[0] for offence in offences]
 
 
 def create_case_embed(
@@ -177,7 +177,7 @@ def fetch_all_cases(
         if not scrubbed:
             _query = _query.filter_by(scrubbed=False)
         
-        cases = _query.all()
+        cases = _query.order_by(Case.created.desc()).all()
 
     if not cases:
         return None, 0, 0

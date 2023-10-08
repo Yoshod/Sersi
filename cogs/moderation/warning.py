@@ -90,14 +90,14 @@ class WarningSystem(commands.Cog):
             )
             return
 
-        case = None
+        case = WarningCase(
+            offender=offender.id,
+            moderator=interaction.user.id,
+            offence=offence,
+            details=detail,
+        )
         with db_session(interaction.user) as session:
-            session.add(WarningCase(
-                offender=offender.id,
-                moderator=interaction.user.id,
-                offence=offence,
-                details=detail,
-            ))
+            session.add(case)
             session.commit()
 
             case = session.query(WarningCase).filter_by(id=case.id).first()
@@ -115,7 +115,7 @@ class WarningSystem(commands.Cog):
         except (nextcord.Forbidden, nextcord.HTTPException):
             not_sent: bool = True
 
-        logging_embed: SersiEmbed = create_case_embed(case, interaction=interaction)
+        logging_embed: SersiEmbed = create_case_embed(case, interaction, self.config)
 
         await interaction.guild.get_channel(self.config.channels.mod_logs).send(
             embed=logging_embed
