@@ -2,7 +2,7 @@ import nextcord
 from nextcord.ext import commands
 
 from utils.base import ConfirmView, DualCustodyView
-from utils.database import db_session, ProbationCase, DualCustody
+from utils.database import db_session, ProbationCase, CaseApproval
 from utils.sersi_embed import SersiEmbed
 from utils.config import Configuration
 from utils.perms import permcheck, is_mod, is_full_mod, is_dark_mod
@@ -78,22 +78,22 @@ class Probation(commands.Cog):
         )
         async def execute(*args, confirming_moderator: nextcord.Member, **kwargs):
             await member.add_roles(probation_role, reason=reason, atomic=True)
-
+            case = ProbationCase(
+                offender=member.id,
+                moderator=interaction.user.id,
+                reason=reason,
+            )
             with db_session(interaction.user) as session:
+                session.add(case)
                 session.add(
-                    ProbationCase(
-                        offender=member.id,
-                        moderator=interaction.user.id,
-                        reason=reason,
+                    CaseApproval(
+                        case_id=case.id,
+                        action="Add",
+                        approval_type="Bypassed" if bypass_reason else "Dual Custody",
+                        approver=confirming_moderator.id,
+                        comment=bypass_reason,
                     )
                 )
-                if not bypass_reason:
-                    session.add(
-                        DualCustody(
-                            case_id=ProbationCase.get_last_case_id(session),
-                            moderator=confirming_moderator.id,
-                        )
-                    )
                 session.commit()
 
             embed_fields = {
@@ -200,6 +200,25 @@ class Probation(commands.Cog):
         )
         async def execute(*args, confirming_moderator: nextcord.Member, **kwargs):
             await member.remove_roles(probation_role, reason=reason, atomic=True)
+
+            with db_session(interaction.user) as session:
+                case: ProbationCase = (
+                    session.query(ProbationCase)
+                    .filter_by(offender=member.id, active=True)
+                    .first()
+                )
+                case.active = False
+                case.removal_reason = reason
+                session.add(
+                    CaseApproval(
+                        case_id=case.id,
+                        action="Remove",
+                        approval_type="Bypassed" if bypass_reason else "Dual Custody",
+                        approver=confirming_moderator.id,
+                        comment=bypass_reason,
+                    )
+                )
+                session.commit()
 
             embed_fields = {
                 "User": member.mention,

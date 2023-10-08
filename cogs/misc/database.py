@@ -8,10 +8,10 @@ from nextcord.ext import commands
 from utils.database import (
     db_session,
     BadFaithPingCase,
-    DualCustody,
     ProbationCase,
     ReformationCase,
     SlurUsageCase,
+    CaseApproval,
     create_db_tables,
 )
 from utils.config import Configuration
@@ -111,79 +111,79 @@ class Database(commands.Cog):
         cursor = conn.cursor()
 
         cursor.execute(
-            """INSERT INTO offences (offence, first_instance, second_instance, third_instance, detail)
+            """INSERT INTO offences (offence, punishments, severity, detail)
             VALUES
-            ('Intentional Bigotry', 'Priority Ban', 'Priority Ban', 'Priority Ban', 'Intentional bigotry refers to acts of discrimination, prejudice, or intolerance that are committed purposefully and with the intent to harm or marginalise a particular group of people. This can include hate speech, racial slurs, or other forms of derogatory language, as well as actions that exclude or discriminate against individuals based on their race, ethnicity, gender, sexual orientation, religion, or other personal characteristics.'),
+            ('Intentional Bigotry', 'Priority Ban', 'Intentional bigotry refers to acts of discrimination, prejudice, or intolerance that are committed purposefully and with the intent to harm or marginalise a particular group of people. This can include hate speech, racial slurs, or other forms of derogatory language, as well as actions that exclude or discriminate against individuals based on their race, ethnicity, gender, sexual orientation, religion, or other personal characteristics.'),
 
-            ('Unintentional Bigotry', 'Informal Warning', 'Warning', 'Reformation Centre', 'Unintentional bigotry refers to instances of discrimination, prejudice, or intolerance that are committed without the intent to harm or marginalise a particular group of people. It can occur when individuals make assumptions or use language that is insensitive or unaware of the experiences and perspectives of marginalised groups. This can include making jokes or comments that perpetuate stereotypes, or failing to recognise the impact of systemic discrimination on certain individuals or communities.'),
+            ('Unintentional Bigotry', 'Informal Warning|Warning|Reformation Centre', 1, 'Unintentional bigotry refers to instances of discrimination, prejudice, or intolerance that are committed without the intent to harm or marginalise a particular group of people. It can occur when individuals make assumptions or use language that is insensitive or unaware of the experiences and perspectives of marginalised groups. This can include making jokes or comments that perpetuate stereotypes, or failing to recognise the impact of systemic discrimination on certain individuals or communities.'),
 
-            ('Tier 1 NSFW', 'Informal Warning', 'Warning', 'Warning', 'The lowest tier of NSFW Content is content which is suggestive in nature. It may not show anything explicit, but it is so heavily suggested that you would have to be incredibly dense to not notice it.'),
+            ('Tier 1 NSFW', 'Informal Warning|Warning', 1, 'The lowest tier of NSFW Content is content which is suggestive in nature. It may not show anything explicit, but it is so heavily suggested that you would have to be incredibly dense to not notice it.'),
 
-            ('Tier 2 NSFW', 'Informal Warning', 'Warning', 'Warning', 'The second tier of NSFW content, this is content which is explicit in nature, but not pornographic. This could be images in which genitals are clearly visible, or referring to sex acts.'),
+            ('Tier 2 NSFW', 'Warning', 2, 'The second tier of NSFW content, this is content which is explicit in nature, but not pornographic. This could be images in which genitals are clearly visible, or referring to sex acts.'),
 
-            ('Tier 3 NSFW', 'Warning', 'Warning', 'Temporary Ban', 'This is porn. Content generally made for the purposes of arousing others. There is no excuse for posting this type of content.'),
+            ('Tier 3 NSFW', 'Warning|Temporary Ban', 5, 'This is porn. Content generally made for the purposes of arousing others. There is no excuse for posting this type of content.'),
 
-            ('Tier 4 NSFW', 'Emergency Ban & TnS Report', 'Emergency Ban & TnS Report', 'Emergency Ban & TnS Report', 'This is child sexual abuse material.'),
+            ('Tier 4 NSFW', 'Emergency Ban & TnS Report', NULL, 'This is child sexual abuse material.'),
 
-            ('Tier 1 NSFL', 'Warning', 'Warning', 'Warning', 'This is mild gore or violence that is not too disturbing. This can be posted with a spoiler tag and appropriate warnings.'),
+            ('Tier 1 NSFL', 'Informal Warning|Warning', 1, 'This is mild gore or violence that is not too disturbing. This can be posted with a spoiler tag and appropriate warnings.'),
 
-            ('Tier 2 NSFL', 'Warning', 'Warning', 'Warning', 'This is moderate gore or violence that is somewhat disturbing. Still within the range of a person of average firmness. This can be posted with a spoiler tag, appropriate warnings, and in a channel specified as NSFW.'),
+            ('Tier 2 NSFL', 'Warning', 3, 'This is moderate gore or violence that is somewhat disturbing. Still within the range of a person of average firmness. This can be posted with a spoiler tag, appropriate warnings, and in a channel specified as NSFW.'),
 
-            ('Tier 3 NSFL', 'Warning', 'Temporary Ban', 'Priority Ban', 'This is severe gore or violence and includes depictions of severely graphic injuries, or death. This may also be content that is extremely violent or disturbing. This does not belong on ASC.'),
+            ('Tier 3 NSFL', 'Warning|Temporary Ban|Priority Ban', 5, 'This is severe gore or violence and includes depictions of severely graphic injuries, or death. This may also be content that is extremely violent or disturbing. This does not belong on ASC.'),
 
-            ('Tier 4 NSFL', 'Emergency Ban & TnS Report', 'Emergency Ban & TnS Report', 'Emergency Ban & TnS Report', 'This is extreme gore or violence that is so graphic or disturbing it could cause trauma to those who see it. This may include torture, mutilation, decapitation, or dismemberment. This should be reported to Discord Trust and Safety.'),
+            ('Tier 4 NSFL', 'Emergency Ban & TnS Report', NULL, 'This is extreme gore or violence that is so graphic or disturbing it could cause trauma to those who see it. This may include torture, mutilation, decapitation, or dismemberment. This should be reported to Discord Trust and Safety.'),
 
-            ('Regressive/Hateful/Harmful Message', 'Reformation Centre', 'Reformation Centre', 'Reformation Centre', 'This is any message that promotes or supports ideas, beliefs, or behaviours that are discriminatory, prejudiced, or harmful to individuals or groups. This can include messages that are offensive derogatory, or threatening towards others, or that seek to incite or justify hate speech or violence'),
+            ('Regressive/Hateful/Harmful Message', 'Reformation Centre', NULL, 'This is any message that promotes or supports ideas, beliefs, or behaviours that are discriminatory, prejudiced, or harmful to individuals or groups. This can include messages that are offensive derogatory, or threatening towards others, or that seek to incite or justify hate speech or violence'),
 
-            ('Channel/Bot Misuse', 'Informal Warning', 'Warning', 'Warning', 'This is using a bot or channel for any purpose other than it was intended to be used for.'),
+            ('Channel/Bot Misuse', 'Informal Warning|Warning', 1, 'This is using a bot or channel for any purpose other than it was intended to be used for.'),
 
-            ('Discussion in Foreign Language', 'Informal Warning', 'Warning', 'Warning', 'This is engaging in a series of messages back and forth in any language other than English.'),
+            ('Discussion in Foreign Language', 'Informal Warning|Warning', 1, 'This is engaging in a series of messages back and forth in any language other than English.'),
 
-            ('Spamming', 'Informal Warning', 'Warning', 'Warning', 'This is any kind of unwanted or repetitive message that is not related to the current conversation or topic at hand. This can include flooding the chat with repetitive messages, posting the same message multiple times, or sending unsolicited advertisements or links. '),
+            ('Spamming', 'Informal Warning|Warning', 1, 'This is any kind of unwanted or repetitive message that is not related to the current conversation or topic at hand. This can include flooding the chat with repetitive messages, posting the same message multiple times, or sending unsolicited advertisements or links. '),
 
-            ('Harassment/Bullying', 'Warning', 'Reformation Centre', 'Priority Ban', 'This is any repeated behaviour that is intended to cause harm, humiliation, or distress to an individual'),
+            ('Harassment/Bullying', 'Warning|Reformation Centre|Priority Ban', 3, 'This is any repeated behaviour that is intended to cause harm, humiliation, or distress to an individual'),
 
-            ('Disclosing Personally Identifying Information', 'Priority Ban', 'Priority Ban', 'Priority Ban', 'Personally Identifying Information is any information relating to a person who can be identified or who are identifiable, directly from the information in question or who can be indirectly identified from that information in combination with other information.'),
+            ('Disclosing Personally Identifying Information', Priority Ban', NULL, 'Personally Identifying Information is any information relating to a person who can be identified or who are identifiable, directly from the information in question or who can be indirectly identified from that information in combination with other information.'),
 
-            ('Impersonating Adam Something', 'Warning', 'Emergency Ban', 'Emergency Ban', 'This is when a user pretends to be Adam Something.'),
+            ('Impersonating Adam Something', 'Warning|Emergency Ban', 4, 'This is when a user pretends to be Adam Something.'),
 
-            ('Impersonating Server Staff', 'Warning', 'Emergency Ban', 'Emergency Ban', 'This is when a user pretends to be a staff member on Adam Something Central. They may either be impersonating a specific staff member, or just pretending to have permissions they do not have.'),
+            ('Impersonating Server Staff', 'Warning|Emergency Ban', 3, 'This is when a user pretends to be a staff member on Adam Something Central. They may either be impersonating a specific staff member, or just pretending to have permissions they do not have.'),
 
-            ('Impersonating Discord Staff', 'Emergency Ban & TnS Report', 'Emergency Ban & TnS Report', 'Emergency Ban & TnS Report', 'This is when a user pretends to be a member of Discord Staff. This should be reported to Discord Trust and Safety.'),
+            ('Impersonating Discord Staff', 'Emergency Ban & TnS Report', NULL, 'This is when a user pretends to be a member of Discord Staff. This should be reported to Discord Trust and Safety.'),
 
-            ('Scamming', 'Emergency Ban & TnS Report', 'Emergency Ban & TnS Report', 'Emergency Ban & TnS Report', 'This is when a user attempts to deceive or defraud an individual for their own gain.'),
+            ('Scamming', 'Emergency Ban & TnS Report', NULL, 'This is when a user attempts to deceive or defraud an individual for their own gain.'),
 
-            ('Advertising Outside Shillposting', 'Warning', 'Warning', 'Priority Ban', 'When a user shillposts outside of shillposting.'),
+            ('Advertising Outside Shillposting', 'Warning|Priority Ban', 2, 'When a user shillposts outside of shillposting.'),
 
-            ('Failure to Disclose in Shillposting', 'Warning', 'Warning', 'Priority Ban', 'When a user does not disclose that they benefit directly from what they are shilling.'),
+            ('Failure to Disclose in Shillposting', 'Warning|Priority Ban', 3, 'When a user does not disclose that they benefit directly from what they are shilling.'),
 
-            ('Bad Faith Engagement', 'Informal Warning', 'Warning', 'Reformation Centre', 'When a user debates or argues in bad faith, they do not care about what is right or wrong but about winning the argument.'),
+            ('Bad Faith Engagement', 'Informal Warning|Warning|Reformation Centre', 2, 'When a user debates or argues in bad faith, they do not care about what is right or wrong but about winning the argument.'),
 
-            ('Posting Classified Material', 'Priority Ban', 'Priority Ban', 'Priority Ban', 'This is posting any information that is legally classified by a national government. Even if this information is leaked, if it remains legally classified it should not be posted.'),
+            ('Posting Classified Material', 'Priority Ban', NULL, 'This is posting any information that is legally classified by a national government. Even if this information is leaked, if it remains legally classified it should not be posted.'),
 
-            ('Posting Copyrighted Material', 'Warning', 'Warning', 'Priority Ban', 'This is when a user posts materials they do not have the rights to and the usage does not qualify under fair usage.'),
+            ('Posting Copyrighted Material', 'Warning|Priority Ban', 5, 'This is when a user posts materials they do not have the rights to and the usage does not qualify under fair usage.'),
 
-            ('Begging', 'Informal Warning', 'Warning', 'Warning', 'This is when a user requests or begs for nitro, money, or something else.'),
+            ('Begging', 'Informal Warning|Warning', 1, 'This is when a user requests or begs for nitro, money, or something else.'),
 
-            ('Auto-Moderation Circumvention', 'Informal Warning', 'Warning', 'Warning', 'This is when a user attemps to bypass auto-moderation features on the server.'),
+            ('Auto-Moderation Circumvention', 'Informal Warning|Warning', 1, 'This is when a user attemps to bypass auto-moderation features on the server.'),
 
-            ('Unauthorised Access', 'Emergency Ban', 'Emergency Ban', 'Emergency Ban', 'This is when a user attempts to gain access to a bot on ASC they do not have permission to access. This includes running commands they do not have permission to run.'),
+            ('Unauthorised Access', 'Emergency Ban', NULL, 'This is when a user attempts to gain access to a bot on ASC they do not have permission to access. This includes running commands they do not have permission to run.'),
 
-            ('Threatening Behaviour', 'Emergency Ban & TnS Report', 'Emergency Ban & TnS Report', 'Emergency Ban & TnS Report', 'This is when a user makes a credible threat against another user. This should always be reported to Discord Trust and Safety.'),
+            ('Threatening Behaviour', 'Emergency Ban & TnS Report', NULL, 'This is when a user makes a credible threat against another user. This should always be reported to Discord Trust and Safety.'),
 
-            ('Acting Contrary to Moderator Commands', 'Informal Warning', 'Warning', 'Warning', 'This is when a user fails to listen to the commands of a moderator.'),
+            ('Acting Contrary to Moderator Commands', 'Informal Warning|Warning', 2, 'This is when a user fails to listen to the commands of a moderator.'),
 
-            ('Nuisance in VC', 'Informal Warning', 'Warning', 'Warning', 'This is when somebody is being annoying in VC either by using a soundboard, making noises, joining and leaving constantly, or any other behaviour.'),
+            ('Nuisance in VC', 'Informal Warning|Warning', 1, 'This is when somebody is being annoying in VC either by using a soundboard, making noises, joining and leaving constantly, or any other behaviour.'),
 
-            ('Riling Up', 'Warning', 'Warning', 'Reformation Centre', 'This is when a user attempts to foment anger or resentment against the ASC moderation team.'),
+            ('Riling Up', 'Warning|Reformation Centre', 3, 'This is when a user attempts to foment anger or resentment against the ASC moderation team.'),
 
-            ('Complaining About Moderator Action', 'Informal Warning', 'Warning', 'Warning', 'This is when a user publicly complains about a moderation action taken against them rather than appealing it via a ticket.'),
+            ('Complaining About Moderator Action', 'Informal Warning|Warning', 1, 'This is when a user publicly complains about a moderation action taken against them rather than appealing it via a ticket.'),
 
-            ('Moderator Decision Circumvention', 'Warning', 'Warning', 'Warning', 'This is when a user attempts to circumvent a decision, such as moderator shopping.'),
+            ('Moderator Decision Circumvention', 'Warning', 2, 'This is when a user attempts to circumvent a decision, such as moderator shopping.'),
 
-            ('Posting Seizure Enducing Content', 'Emergency Ban', 'Emergency Ban', 'Emergency Ban', 'This when a user posts content that is designed to enduce a seizure to those with photosensitive epilepsy.'),
+            ('Posting Seizure Enducing Content', 'Emergency Ban', NULL, 'This when a user posts content that is designed to enduce a seizure to those with photosensitive epilepsy.'),
 
-            ('Other', NULL, NULL, NULL, 'For any offence currently not covered by the existing list of offences.');"""
+            ('Other', 'Timeout|Reformation|Ban', NULL, 'For any offence currently not covered by the existing list of offences.');"""
         )
 
         conn.commit()
@@ -250,9 +250,10 @@ class Database(commands.Cog):
                                 created=datetime.fromtimestamp(timestamp),
                             ))
                             if (secondary_moderator_id):
-                                session.add(DualCustody(
+                                session.add(CaseApproval(
                                     case_id=case_id,
-                                    moderator=secondary_moderator_id,
+                                    approval_type="Dual Custody",
+                                    approver=secondary_moderator_id,
                                 ))
                         elif case_type == "Reformation":
                             (

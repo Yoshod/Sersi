@@ -105,6 +105,7 @@ class BanCase(Case):
     active = Column(Boolean, default=True)
     details = Column(String)
     ban_type = Column(String)
+    unbanned_by = Column(Integer)
     unban_reason = Column(String)
 
     __mapper_args__ = {"polymorphic_identity": "Ban"}
@@ -127,6 +128,7 @@ class ProbationCase(Case):
 
     reason = Column(String)
     active = Column(Boolean, default=True)
+    removal_reason = Column(String)
 
     __mapper_args__ = {"polymorphic_identity": "Probation"}
 
@@ -175,6 +177,7 @@ class WarningCase(Case):
 
     active = Column(Boolean, default=True)
     details = Column(String)
+    deactivator = Column(Integer)
     deactivate_reason = Column(String)
 
     __mapper_args__ = {"polymorphic_identity": "Warning"}
@@ -203,12 +206,17 @@ class PeerReview(_Base):
     timestamp = Column(DateTime, default=datetime.utcnow)
 
 
-class DualCustody(_Base):
-    __tablename__ = "dual_custody"
+class CaseApproval(_Base):
+    __tablename__ = "case_approvals"
 
     id = Column(String, primary_key=True, default=shortuuid.uuid)
     case_id = Column(String, ForeignKey('cases.id', ondelete="CASCADE"), primary_key=True)
-    moderator = Column(Integer, nullable=False)
+
+    action = Column(String, nullable=False)
+    approval_type = Column(String)
+    approver = Column(Integer, nullable=False)
+    comment = Column(String)
+
     timestamp = Column(DateTime, default=datetime.utcnow)
 
 
@@ -216,12 +224,20 @@ class Offence(_Base):
     __tablename__ = "offences"
 
     offence = Column(String, primary_key=True)
-
-    first_instance = Column(String)
-    second_instance = Column(String)
-    third_instance = Column(String)
-
+    punishments = Column(String)
+    warn_severity = Column(Integer)
     detail = Column(String)
+    group = Column(String)
+
+    def __getattr__(self, __name: str) -> Any:
+        if __name == "punishment_list":
+            return self.punishments.split("|")
+        return super().__getattr__(__name)
+
+    def __setattr__(self, __name: str, __value: Any) -> None:
+        if __name == "punishments" and isinstance(__value, list):
+            __value = "|".join(__value)
+        return super().__setattr__(__name, __value)
 
 
 ### Note Models ###
@@ -236,6 +252,33 @@ class Note(_Base):
 
     created = Column(DateTime, default=datetime.utcnow)
     modified = Column(DateTime, default=datetime.utcnow)
+
+    def __setattr__(self, __name: str, __value: Any) -> None:
+        old_value = self.__dict__.get(__name)
+        super().__setattr__(__name, __value)
+        session: Session = Session.object_session(self)
+        if (session and old_value != __value):
+            self.modified = datetime.utcnow()
+            session.add(NoteEdits(
+                note_id=self.id,
+                old_content=old_value,
+                new_content=__value,
+                author=session.owner_id,
+                timestamp=self.modified
+            ))
+
+
+class NoteEdits(_Base):
+    __tablename__ = "note_edits"
+
+    id = Column(String, primary_key=True, default=shortuuid.uuid)
+    note_id = Column(String, ForeignKey('notes.id', ondelete="CASCADE"), nullable=False)
+
+    old_content = Column(String, nullable=False)
+    new_content = Column(String, nullable=False)
+
+    author = Column(Integer, nullable=False)
+    timestamp = Column(DateTime, default=datetime.utcnow)
 
 
 ### Ticket Models ###
@@ -308,6 +351,36 @@ class TicketCategories(_Base):
 
     category = Column(String, primary_key=True)
     subcategory = Column(String, primary_key=True)
+
+
+### Alert models ###
+class Alert(_Base):
+    __tablename__ = "alerts"
+
+    id = Column(String, primary_key=True, default=shortuuid.uuid)
+
+    alert_type = Column(String, nullable=False)
+    report_url = Column(String, nullable=False)
+
+    creation_time = Column(DateTime, default=datetime.utcnow)
+    response_time = Column(DateTime)
+    
+
+class Slur(_Base):
+    __tablename__ = "slurs"
+
+    slur = Column(String, primary_key=True)
+    added = Column(DateTime, default=datetime.utcnow)
+    added_by = Column(Integer, nullable=False)
+
+
+class Goodword(_Base):
+    __tablename__ = "goodwords"
+
+    goodword = Column(String, primary_key=True)
+    slur = Column(String, ForeignKey('slurs.slur'))
+    added = Column(DateTime, default=datetime.utcnow)
+    added_by = Column(Integer, nullable=False)
 
 
 def create_db_tables():

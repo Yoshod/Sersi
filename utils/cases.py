@@ -109,8 +109,9 @@ def create_case_embed(
                 "Offence": f"`{case.offence}`",
                 "Details": f"`{case.details}`",
                 "Active": config.emotes.success if case.active else config.emotes.fail,
-                "Deactivate Reason": f"`{case.deactivate_reason}`",
             })
+            if not case.active:
+                fields["Deactivate Reason"] = f"`{case.deactivate_reason}`"
         
     
     fields["Timestamp"] = f"<t:{int(case.created.timestamp())}:R>"
