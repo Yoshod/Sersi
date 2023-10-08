@@ -128,6 +128,7 @@ class ProbationCase(Case):
 
     reason = Column(String)
     active = Column(Boolean, default=True)
+    removed_by = Column(Integer)
     removal_reason = Column(String)
 
     __mapper_args__ = {"polymorphic_identity": "Probation"}
@@ -177,7 +178,7 @@ class WarningCase(Case):
 
     active = Column(Boolean, default=True)
     details = Column(String)
-    deactivator = Column(Integer)
+    deactivated_by = Column(Integer)
     deactivate_reason = Column(String)
 
     __mapper_args__ = {"polymorphic_identity": "Warning"}
@@ -232,7 +233,7 @@ class Offence(_Base):
     def __getattr__(self, __name: str) -> Any:
         if __name == "punishment_list":
             return self.punishments.split("|")
-        return super().__getattr__(__name)
+        raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{__name}'")
 
     def __setattr__(self, __name: str, __value: Any) -> None:
         if __name == "punishments" and isinstance(__value, list):

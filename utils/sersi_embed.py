@@ -7,7 +7,7 @@ class SersiEmbed(nextcord.Embed):
     def __init__(
         self,
         *,
-        fields: dict[str, str] = None,
+        fields: dict[str, str] | list[dict[str, str]] = None,
         footer: str = nextcord.embeds.EmptyEmbed,
         footer_icon: str = nextcord.embeds.EmptyEmbed,
         thumbnail_url: str = nextcord.embeds.EmptyEmbed,
@@ -28,8 +28,8 @@ class SersiEmbed(nextcord.Embed):
 
         # Configure Fields
         if fields:
-            for field in fields:
-                self.add_field(name=field, value=fields[field], inline=False)
+            self.parse_fields(fields)
+            print(self.fields)
 
     def add_id_field(self, ids: dict):
         id_string: str = f"```ini"
@@ -38,3 +38,19 @@ class SersiEmbed(nextcord.Embed):
         id_string += "```"
         self.add_field(name="IDs", value=id_string, inline=False)
         return self
+    
+    def parse_fields(self, fields, inline=False):
+        match fields:
+            case list():
+                for row in fields:
+                    self.parse_fields(row, inline=True)
+            case dict():
+                for field in fields:
+                    self.add_field(
+                        name=field,
+                        value=fields[field],
+                        inline=inline if len(fields) > 1 else False,
+                    )
+                if inline and len(fields) == 2:
+                    self.add_field(name="\u200b", value="\u200b", inline=True)
+

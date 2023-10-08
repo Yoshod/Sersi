@@ -56,65 +56,68 @@ def create_case_embed(
         interaction: nextcord.Interaction,
         config: Configuration,
 ) -> SersiEmbed:
-    fields = {
+    fields = [{
         "Case": f"`{case.id}`",
         "Type": f"`{case.type}`",
+    },{
         "Moderator": f"<@{case.moderator}> `{case.moderator}`",
         "Offender": f"<@{case.offender}> `{case.offender}`",
-    }
+    }]
 
     match case:
         case BanCase():
-            fields.update({
-                "Offence": f"`{case.offence}`",
-                "Details": f"`{case.details}`",
-                "Ban Type": f"`{case.ban_type}`",
-                "Active": config.emotes.success if case.active else config.emotes.fail
-            })
+            fields[0]["Active"] = config.emotes.success if case.active else config.emotes.fail
+            fields[1]["Ban Type"] = f"`{case.ban_type}`"
+            fields.append({"Offence": f"`{case.offence}`"})
+            fields.append({"Details": f"{case.details}"})
             if not case.active:
-                fields["Unban Reason"] = f"`{case.unban_reason}`"
+                fields.append({
+                    "Unbanned By": f"<@{case.unbanned_by}> `{case.unbanned_by}`",
+                    "Unban Reason": f"{case.unban_reason}",
+                })
         case BadFaithPingCase():
-            fields["Report URL"] = case.report_url
+            fields.append({"Report URL": case.report_url})
         case KickCase():
-            fields.update({
-                "Offence": f"`{case.offence}`",
-                "Details": f"`{case.details}`",
-            })
+            fields.append({"Offence": f"`{case.offence}`"})
+            fields.append({"Details": f"{case.details}"})
         case ProbationCase():
-            fields.update({
-                "Reason": f"`{case.reason}`",
-                "Active": config.emotes.success if case.active else config.emotes.fail
-            })
+            fields[0]["Active"] = config.emotes.success if case.active else config.emotes.fail
+            fields.append({"Reason": f"{case.reason}"})
+            if not case.active:
+                fields.append({
+                    "Removed By": f"<@{case.removed_by}> `{case.removed_by}`",
+                    "Removal Reason": f"{case.removal_reason}"
+                })
         case ReformationCase():
-            fields.update({
-                "Offence": f"`{case.offence}`",
-                "Details": f"`{case.details}`",
+            fields[0]["State"] = f"`{case.state}`"
+            fields.append({
                 "Case Number": f"`{case.case_number}`",
-                "Cell Channel": f"<#{case.cell_channel}>",
-                "State": f"`{case.state}`"
+                "Cell Channel": f"<#{case.cell_channel}>"
             })
+            fields.append({"Offence": f"`{case.offence}`"})
+            fields.append({"Details": f"{case.details}"})
         case SlurUsageCase():
-            fields.update({
+            fields.append({
                 "Slur Used": f"`{case.slur_used}`",
                 "Report URL": case.report_url
             })
         case TimeoutCase():
-            fields.update({
-                "Offence": f"`{case.offence}`",
-                "Details": f"`{case.details}`",
-                "Muted Until": f"<t:{case.planned_end}:R>"
-            })
+            fields.append({"Offence": f"`{case.offence}`"})
+            fields.append({"Details": f"{case.details}"})
+            fields.append({"Muted Until": f"<t:{int(case.planned_end.timestamp())}:R>"})
         case WarningCase():
-            fields.update({
-                "Offence": f"`{case.offence}`",
-                "Details": f"`{case.details}`",
-                "Active": config.emotes.success if case.active else config.emotes.fail,
-            })
+            fields.append({"Offence": f"`{case.offence}`"})
+            fields.append({"Details": f"{case.details}"})
+            fields[0]["Active"] = config.emotes.success if case.active else config.emotes.fail
             if not case.active:
-                fields["Deactivate Reason"] = f"`{case.deactivate_reason}`"
-        
+                fields.append({
+                    "Deactivated By": f"<@{case.deactivated_by}> `{case.deactivated_by}`",
+                    "Deactivate Reason": f"{case.deactivate_reason}",
+                })
     
-    fields["Timestamp"] = f"<t:{int(case.created.timestamp())}:R>"
+    fields.append({"Timestamp": f"<t:{int(case.created.timestamp())}:R>"})
+    if int(case.created.timestamp()) != int(case.modified.timestamp()):
+        fields[-1]["Last Modified"] = f"<t:{int(case.modified.timestamp())}:R>"
 
     offender = interaction.guild.get_member(case.offender)
 
@@ -126,12 +129,11 @@ def create_case_embed(
 
 
 def get_case_by_id(case_id: str) -> typing.Type[Case] | None:
-
     with db_session() as session:
         case: Case = session.query(Case).filter_by(id=case_id).first()
         if not case:
             return None
-        
+
         match case.type:
             case "Ban":
                 return session.query(BanCase).filter_by(id=case_id).first()
@@ -147,7 +149,7 @@ def get_case_by_id(case_id: str) -> typing.Type[Case] | None:
                 return session.query(SlurUsageCase).filter_by(id=case_id).first()
             case "Timeout":
                 return session.query(TimeoutCase).filter_by(id=case_id).first()
-            case "Warn":
+            case "Warning":
                 return session.query(WarningCase).filter_by(id=case_id).first()
             case _:
                 return None
