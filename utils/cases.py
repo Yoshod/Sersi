@@ -19,11 +19,7 @@ from utils.database import (
     TimeoutCase,
     WarningCase,
     ScrubbedCase,
-)
-
-def get_case_audit_logs(case_id: str) -> list[CaseAudit]:
-    with db_session() as session:
-        return session.query(CaseAudit).filter_by(case_id=case_id).all()
+) 
 
 
 def fetch_cases_by_partial_id(case_id: str) -> list[str]:
@@ -202,9 +198,23 @@ def fetch_all_cases(
     if not cases:
         return None, 0, 0
 
-    else:
-        return get_page(cases, page, per_page)
+    get_page(cases, page, per_page)
 
+
+def get_case_audit_logs(
+    config: Configuration,
+    page: int,
+    per_page: int,
+    case_id: str
+) -> typing.Tuple[typing.Optional[list[CaseAudit|None]], int, int]:
+    with db_session() as session:
+        logs: list[CaseAudit] = session.query(CaseAudit).filter_by(case_id=case_id).all()
+    
+    if not logs:
+        return None, 0, 0
+    
+    return get_page(logs, page, per_page)
+   
 
 def slur_virgin(user: nextcord.User) -> bool:
     with db_session() as session:

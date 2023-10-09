@@ -2,14 +2,15 @@ from nextcord.ext import commands
 import nextcord
 
 from utils.base import PageView
-from utils.cases import fetch_cases_by_partial_id
-from utils.cases import create_case_embed
 from utils.cases import (
+    fetch_cases_by_partial_id,
+    create_case_embed,
     fetch_all_cases,
     get_case_by_id,
+    get_case_audit_logs,
 )
 from utils.config import Configuration
-from utils.database import db_session, Case, ScrubbedCase, Offence
+from utils.database import db_session, Case, CaseAudit, ScrubbedCase, Offence
 from utils.perms import permcheck, is_mod, is_senior_mod, is_dark_mod
 from utils.sersi_embed import SersiEmbed
 
@@ -127,6 +128,50 @@ class Cases(commands.Cog):
         await interaction.followup.send(
             embed=create_case_embed(sersi_case, interaction, self.config)
         )
+    
+
+    @cases.subcommand(description="Get audit logs for a case")
+    async def audit(
+        self,
+        interaction: nextcord.Interaction,
+        case_id: str = nextcord.SlashOption(
+            name="case_id",
+            description="Case ID",
+            min_length=22,
+            max_length=22,
+        ),
+    ):
+        if not await permcheck(interaction, is_mod):
+            return
+
+        await interaction.response.defer(ephemeral=False)
+
+        with db_session() as session:
+            if not session.query(Case).filter(Case.id == case_id).first():
+                await interaction.followup.send(
+                    f"{self.config.emotes.fail} Case {case_id} does not exist."
+                )
+                return
+
+        audit_embed = SersiEmbed(title=f"Case {case_id} Audit Logs")
+        audit_embed.set_thumbnail(interaction.guild.icon.url)
+
+        view = PageView(
+            config=self.config,
+            base_embed=audit_embed,
+            fetch_function=get_case_audit_logs,
+            author=interaction.user,
+            entry_form="{entry.old_value} => {entry.new_value}",
+            field_title="{entries[0]}",
+            inline_fields=False,
+            cols=10,
+            per_col=1,
+            init_page=1,
+            case_id=case_id,
+        )
+
+        await view.send_followup(interaction)
+
 
     @cases.subcommand(description="Used to scrub a Sersi Case")
     async def scrub(
@@ -173,6 +218,7 @@ class Cases(commands.Cog):
                     reason=reason
                 )
             )
+            session.commit()
 
         logging_embed = SersiEmbed(
             title="Case Scrubbed",
@@ -277,6 +323,7 @@ class Cases(commands.Cog):
                 f"{self.config.emotes.fail} Case {case_id} has not been deleted."
             )
 
+    # TODO: its own cog perhaps?
     @nextcord.slash_command(
         dm_permission=False,
         guild_ids=[977377117895536640, 856262303795380224],
@@ -301,7 +348,7 @@ class Cases(commands.Cog):
             min_length=32,
             max_length=1024,
         ),
-        offence_severity: str = nextcord.SlashOption(
+        offence_severity: int = nextcord.SlashOption(
             name="severity",
             description="The severity of the new offence",
             min_value=1,
@@ -397,7 +444,9 @@ class Cases(commands.Cog):
         await interaction.followup.send(embed=offence_added_log)
 
     @detail.on_autocomplete("case_id")
+    @audit.on_autocomplete("case_id")
     @scrub.on_autocomplete("case_id")
+    @delete.on_autocomplete("case_id")
     async def cases_by_id(self, interaction: nextcord.Interaction, case: str):
         if not is_mod(interaction.user):
             await interaction.response.send_autocomplete([])

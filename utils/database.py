@@ -86,6 +86,8 @@ class CaseAudit(_Base):
     author = Column(Integer)
     timestamp = Column(DateTime, default=datetime.utcnow)
 
+    def __repr__(self):
+        return f"{self.field} <t:{int(self.timestamp.timestamp())}:R>"
 
 class BadFaithPingCase(Case):
     __tablename__ = "bad_faith_ping_cases"
