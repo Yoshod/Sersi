@@ -4,10 +4,11 @@ from nextcord.ext import commands
 from nextcord.ui import Button, View
 
 from utils.base import ConfirmView, SersiEmbed, ban
-from utils.cases import fetch_offences_by_partial_name, get_reformation_next_case_number
+from utils.cases import get_reformation_next_case_number
 from utils.channels import make_transcript
 from utils.config import Configuration
 from utils.database import db_session, ReformationCase
+from utils.offences import fetch_offences_by_partial_name
 from utils.perms import permcheck, is_mod, cb_is_mod, is_senior_mod
 from utils.roles import parse_roles
 

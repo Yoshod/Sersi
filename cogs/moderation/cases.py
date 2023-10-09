@@ -9,9 +9,8 @@ from utils.cases import (
     get_case_by_id,
 )
 from utils.config import Configuration
-from utils.database import db_session, Case, ScrubbedCase
+from utils.database import db_session, Case, ScrubbedCase, Offence
 from utils.perms import permcheck, is_mod, is_senior_mod, is_dark_mod
-from utils.offences import add_offence_to_database
 from utils.sersi_embed import SersiEmbed
 
 
@@ -302,6 +301,20 @@ class Cases(commands.Cog):
             min_length=32,
             max_length=1024,
         ),
+        offence_severity: str = nextcord.SlashOption(
+            name="severity",
+            description="The severity of the new offence",
+            min_value=1,
+            max_value=5,
+            required=False,
+        ),
+        offence_group: str = nextcord.SlashOption(
+            name="group",
+            description="The group of the new offence",
+            min_length=4,
+            max_length=64,
+            required=False,
+        ),
         first_punishment: str = nextcord.SlashOption(
             name="first_punishment",
             description="This is the punishment for the first instance of the offence",
@@ -314,6 +327,7 @@ class Cases(commands.Cog):
                 "Emergency Ban": "Emergency Ban",
                 "Emergency Ban & Trust and Safety": "Emergency Ban & TnS Report",
             },
+            required=False,
         ),
         second_punishment: str = nextcord.SlashOption(
             name="second_punishment",
@@ -327,6 +341,7 @@ class Cases(commands.Cog):
                 "Emergency Ban": "Emergency Ban",
                 "Emergency Ban & Trust and Safety": "Emergency Ban & TnS Report",
             },
+            required=False,
         ),
         third_punishment: str = nextcord.SlashOption(
             name="third_punishment",
@@ -340,6 +355,7 @@ class Cases(commands.Cog):
                 "Emergency Ban": "Emergency Ban",
                 "Emergency Ban & Trust and Safety": "Emergency Ban & TnS Report",
             },
+            required=False,
         ),
     ):
         if not await permcheck(interaction, is_senior_mod):
@@ -347,13 +363,18 @@ class Cases(commands.Cog):
 
         await interaction.response.defer(ephemeral=False)
 
-        add_offence_to_database(
-            offence_name,
-            offence_description,
-            first_punishment,
-            second_punishment,
-            third_punishment,
-        )
+        punishments = [first_punishment, second_punishment, third_punishment]
+
+        with db_session(interaction.user) as session:
+            session.add(
+                Offence(
+                    offence=offence_name,
+                    detail=offence_description,
+                    warn_severity=offence_severity,
+                    group=offence_group,
+                    punishments="|".join([p for p in punishments if p]),
+                )
+            )
 
         offence_added_log = SersiEmbed(
             title="New Offence Added",

@@ -19,11 +19,11 @@ from utils.database import (
     TimeoutCase,
     WarningCase,
     ScrubbedCase,
-    Offence,
 )
 
-def get_case_audit_logs(session: Session, case_id: str):
-    return session.query(CaseAudit).filter_by(case_id=case_id).all()
+def get_case_audit_logs(case_id: str) -> list[CaseAudit]:
+    with db_session() as session:
+        return session.query(CaseAudit).filter_by(case_id=case_id).all()
 
 
 def fetch_cases_by_partial_id(case_id: str) -> list[str]:
@@ -37,19 +37,6 @@ def fetch_cases_by_partial_id(case_id: str) -> list[str]:
         )
 
     return [case[0] for case in cases]
-
-
-def fetch_offences_by_partial_name(offence: str) -> list[str]:
-    with db_session() as session:
-        offences: list[typing.Tuple(str)] = (
-            session.query(Offence.offence)
-            .filter(Offence.offence.like(f"%{offence}%"))
-            .order_by(Offence.offence.asc())
-            .limit(25)
-            .all()
-        )
-
-    return [offence[0] for offence in offences]
 
 
 def create_case_embed(
@@ -239,16 +226,6 @@ def slur_history(user: nextcord.User, slur: list):
         )
 
     return slur_cases
-
-
-def offence_validity_check(offence: str):
-    with db_session() as session:
-        offence_exists = session.query(Offence).filter_by(offence=offence).first()
-
-    if offence_exists:
-        return True
-    else:
-        return False
 
 
 def get_reformation_next_case_number():

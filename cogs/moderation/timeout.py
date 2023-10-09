@@ -7,14 +7,10 @@ from pytz import timezone
 from utils import logs
 from nextcord.ui import Button, View
 
-from utils.cases import (
-    fetch_offences_by_partial_name,
-    create_case_embed,
-    get_case_by_id,
-    offence_validity_check,
-)
+from utils.cases import create_case_embed, get_case_by_id
 from utils.config import Configuration
 from utils.database import db_session, TimeoutCase
+from utils.offences import fetch_offences_by_partial_name, offence_validity_check
 from utils.perms import (
     cb_is_compliance,
     permcheck,

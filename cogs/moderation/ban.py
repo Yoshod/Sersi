@@ -6,13 +6,12 @@ from pytz import timezone
 import datetime
 
 from utils.cases import (
-    fetch_offences_by_partial_name,
     create_case_embed,
-    offence_validity_check,
     get_case_by_id,
 )
 from utils.config import Configuration
 from utils.database import db_session, BanCase
+from utils.offences import fetch_offences_by_partial_name, offence_validity_check
 from utils.perms import (
     is_full_mod,
     permcheck,
