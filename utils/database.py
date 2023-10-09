@@ -349,7 +349,7 @@ class TicketSurvey(_Base):
     received = Column(DateTime)
 
 
-class TicketCategories(_Base):
+class TicketCategory(_Base):
     __tablename__ = "ticket_categories"
 
     category = Column(String, primary_key=True)
