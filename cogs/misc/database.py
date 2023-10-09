@@ -85,7 +85,7 @@ class Database(commands.Cog):
                     offence=offence["offence"],
                     detail=offence["detail"],
                     warn_severity=offence["severity"],
-                    punishment_list=offence["punishments"],
+                    punishments="|".join(offence["punishments"]),
                 ))
             session.commit()
 
@@ -151,6 +151,7 @@ class Database(commands.Cog):
                             if (secondary_moderator_id):
                                 session.add(CaseApproval(
                                     case_id=case_id,
+                                    action="Add",
                                     approval_type="Dual Custody",
                                     approver=secondary_moderator_id,
                                 ))
