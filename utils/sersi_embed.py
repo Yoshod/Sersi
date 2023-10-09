@@ -51,6 +51,4 @@ class SersiEmbed(nextcord.Embed):
                         value=fields[field],
                         inline=inline if len(fields) > 1 else False,
                     )
-                if inline and len(fields) == 2:
-                    self.add_field(name="\u200b", value="\u200b", inline=True)
 

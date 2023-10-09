@@ -164,9 +164,11 @@ class TimeoutCase(Case):
     id = Column(String, ForeignKey('cases.id'), primary_key=True)
 
     details = Column(String)
-    duration = Column(Integer)
-    planned_end = Column(DateTime)
+    duration = Column(Integer, nullable=False)
+    planned_end = Column(DateTime, nullable=False)
     actual_end = Column(DateTime)
+    removed_by = Column(Integer)
+    removal_reason = Column(String)
 
     __mapper_args__ = {"polymorphic_identity": "Timeout"}
 
