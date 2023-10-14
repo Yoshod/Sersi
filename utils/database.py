@@ -14,11 +14,11 @@ _engine = sqlalchemy.create_engine("sqlite:///persistent_data/sersi.db", echo=Tr
 _Base = declarative_base()
 
 
-def db_session(owner: int|nextcord.User|nextcord.Member = None):
+def db_session(owner: int | nextcord.User | nextcord.Member = None):
     session = Session(_engine)
 
     match owner:
-        case nextcord.User()|nextcord.Member():
+        case nextcord.User() | nextcord.Member():
             session.owner_id = owner.id
         case int():
             session.owner_id = owner
@@ -30,6 +30,7 @@ def db_session(owner: int|nextcord.User|nextcord.Member = None):
 
 ### Case Models ###
 
+
 class Case(_Base):
     __tablename__ = "cases"
 
@@ -39,7 +40,7 @@ class Case(_Base):
 
     offender = Column(Integer, nullable=False)
     moderator = Column(Integer, nullable=False)
-    offence = Column(String, ForeignKey('offences.offence'))
+    offence = Column(String, ForeignKey("offences.offence"))
 
     created = Column(DateTime, default=datetime.utcnow)
     modified = Column(DateTime, default=datetime.utcnow)
@@ -51,23 +52,23 @@ class Case(_Base):
         if self.id is None:
             self.id = shortuuid.uuid()
 
-
     def __setattr__(self, __name: str, __value: Any):
         old_value = self.__dict__.get(__name)
         super().__setattr__(__name, __value)
         session: Session = Session.object_session(self)
-        if (session and old_value != __value):
+        if session and old_value != __value:
             self.modified = datetime.utcnow()
-            session.add(CaseAudit(
-                id=shortuuid.uuid(),
-                case_id=self.id,
-                field=__name,
-                old_value=old_value,
-                new_value=__value,
-                author=session.owner_id,
-                timestamp=self.modified
-            ))
-
+            session.add(
+                CaseAudit(
+                    id=shortuuid.uuid(),
+                    case_id=self.id,
+                    field=__name,
+                    old_value=old_value,
+                    new_value=__value,
+                    author=session.owner_id,
+                    timestamp=self.modified,
+                )
+            )
 
     def __repr__(self):
         return f"{self.type} <t:{int(self.created.timestamp())}:R>"
@@ -77,7 +78,7 @@ class CaseAudit(_Base):
     __tablename__ = "cases_audit"
 
     id = Column(String, primary_key=True)
-    case_id = Column(String, ForeignKey('cases.id', ondelete="CASCADE"), nullable=False)
+    case_id = Column(String, ForeignKey("cases.id", ondelete="CASCADE"), nullable=False)
 
     field = Column(String, nullable=False)
     old_value = Column(String, nullable=False)
@@ -89,10 +90,11 @@ class CaseAudit(_Base):
     def __repr__(self):
         return f"{self.field} <t:{int(self.timestamp.timestamp())}:R>"
 
+
 class BadFaithPingCase(Case):
     __tablename__ = "bad_faith_ping_cases"
 
-    id = Column(String, ForeignKey('cases.id'), primary_key=True)
+    id = Column(String, ForeignKey("cases.id"), primary_key=True)
 
     report_url = Column(String)
 
@@ -102,11 +104,13 @@ class BadFaithPingCase(Case):
 class BanCase(Case):
     __tablename__ = "ban_cases"
 
-    id = Column(String, ForeignKey('cases.id'), primary_key=True)
+    id = Column(String, ForeignKey("cases.id"), primary_key=True)
 
     active = Column(Boolean, default=True)
     details = Column(String)
     ban_type = Column(String)
+    yes_voters = Column(String)
+    no_voters = Column(String)
     unbanned_by = Column(Integer)
     unban_reason = Column(String)
 
@@ -116,7 +120,7 @@ class BanCase(Case):
 class KickCase(Case):
     __tablename__ = "kick_cases"
 
-    id = Column(String, ForeignKey('cases.id'), primary_key=True)
+    id = Column(String, ForeignKey("cases.id"), primary_key=True)
 
     details = Column(String)
 
@@ -126,7 +130,7 @@ class KickCase(Case):
 class ProbationCase(Case):
     __tablename__ = "probation_cases"
 
-    id = Column(String, ForeignKey('cases.id'), primary_key=True)
+    id = Column(String, ForeignKey("cases.id"), primary_key=True)
 
     reason = Column(String)
     active = Column(Boolean, default=True)
@@ -139,7 +143,7 @@ class ProbationCase(Case):
 class ReformationCase(Case):
     __tablename__ = "reformation_cases"
 
-    id = Column(String, ForeignKey('cases.id'), primary_key=True)
+    id = Column(String, ForeignKey("cases.id"), primary_key=True)
 
     details = Column(String)
     case_number = Column(Integer, nullable=False)
@@ -152,7 +156,7 @@ class ReformationCase(Case):
 class SlurUsageCase(Case):
     __tablename__ = "slur_usage_cases"
 
-    id = Column(String, ForeignKey('cases.id'), primary_key=True)
+    id = Column(String, ForeignKey("cases.id"), primary_key=True)
 
     slur_used = Column(String)
     report_url = Column(String)
@@ -163,7 +167,7 @@ class SlurUsageCase(Case):
 class TimeoutCase(Case):
     __tablename__ = "timeout_cases"
 
-    id = Column(String, ForeignKey('cases.id'), primary_key=True)
+    id = Column(String, ForeignKey("cases.id"), primary_key=True)
 
     details = Column(String)
     duration = Column(Integer, nullable=False)
@@ -178,7 +182,7 @@ class TimeoutCase(Case):
 class WarningCase(Case):
     __tablename__ = "warning_cases"
 
-    id = Column(String, ForeignKey('cases.id'), primary_key=True)
+    id = Column(String, ForeignKey("cases.id"), primary_key=True)
 
     active = Column(Boolean, default=True)
     details = Column(String)
@@ -191,7 +195,9 @@ class WarningCase(Case):
 class ScrubbedCase(_Base):
     __tablename__ = "scrubbed_cases"
 
-    case_id = Column(String, ForeignKey('cases.id', ondelete="CASCADE"), primary_key=True)
+    case_id = Column(
+        String, ForeignKey("cases.id", ondelete="CASCADE"), primary_key=True
+    )
 
     scrubber = Column(Integer, nullable=False)
     reason = Column(String, nullable=False)
@@ -202,7 +208,7 @@ class PeerReview(_Base):
     __tablename__ = "peer_reviews"
 
     id = Column(String, primary_key=True, default=shortuuid.uuid)
-    case_id = Column(String, ForeignKey('cases.id', ondelete="CASCADE"), nullable=False)
+    case_id = Column(String, ForeignKey("cases.id", ondelete="CASCADE"), nullable=False)
 
     reviewer = Column(Integer, nullable=False)
     review_outcome = Column(String, nullable=False)
@@ -215,7 +221,9 @@ class CaseApproval(_Base):
     __tablename__ = "case_approvals"
 
     id = Column(String, primary_key=True, default=shortuuid.uuid)
-    case_id = Column(String, ForeignKey('cases.id', ondelete="CASCADE"), primary_key=True)
+    case_id = Column(
+        String, ForeignKey("cases.id", ondelete="CASCADE"), primary_key=True
+    )
 
     action = Column(String, nullable=False)
     approval_type = Column(String)
@@ -237,7 +245,9 @@ class Offence(_Base):
     def __getattr__(self, __name: str) -> Any:
         if __name == "punishment_list":
             return self.punishments.split("|")
-        raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{__name}'")
+        raise AttributeError(
+            f"'{self.__class__.__name__}' object has no attribute '{__name}'"
+        )
 
     def __setattr__(self, __name: str, __value: Any) -> None:
         if __name == "punishments" and isinstance(__value, list):
@@ -246,6 +256,7 @@ class Offence(_Base):
 
 
 ### Note Models ###
+
 
 class Note(_Base):
     __tablename__ = "notes"
@@ -262,22 +273,24 @@ class Note(_Base):
         old_value = self.__dict__.get(__name)
         super().__setattr__(__name, __value)
         session: Session = Session.object_session(self)
-        if (session and old_value != __value):
+        if session and old_value != __value:
             self.modified = datetime.utcnow()
-            session.add(NoteEdits(
-                note_id=self.id,
-                old_content=old_value,
-                new_content=__value,
-                author=session.owner_id,
-                timestamp=self.modified
-            ))
+            session.add(
+                NoteEdits(
+                    note_id=self.id,
+                    old_content=old_value,
+                    new_content=__value,
+                    author=session.owner_id,
+                    timestamp=self.modified,
+                )
+            )
 
 
 class NoteEdits(_Base):
     __tablename__ = "note_edits"
 
     id = Column(String, primary_key=True, default=shortuuid.uuid)
-    note_id = Column(String, ForeignKey('notes.id', ondelete="CASCADE"), nullable=False)
+    note_id = Column(String, ForeignKey("notes.id", ondelete="CASCADE"), nullable=False)
 
     old_content = Column(String, nullable=False)
     new_content = Column(String, nullable=False)
@@ -288,6 +301,7 @@ class NoteEdits(_Base):
 
 ### Ticket Models ###
 
+
 class Ticket(_Base):
     __tablename__ = "tickets"
 
@@ -297,9 +311,9 @@ class Ticket(_Base):
 
     creator = Column(Integer, nullable=False)
     channel = Column(Integer, nullable=False)
-    category = Column(String, ForeignKey('ticket_categories.category'))
-    subcategory = Column(String, ForeignKey('ticket_categories.subcategory'))
-    
+    category = Column(String, ForeignKey("ticket_categories.category"))
+    subcategory = Column(String, ForeignKey("ticket_categories.subcategory"))
+
     opening_comment = Column(String)
     closing_comment = Column(String)
 
@@ -311,24 +325,28 @@ class Ticket(_Base):
         old_value = self.__dict__.get(__name)
         super().__setattr__(__name, __value)
         session: Session = Session.object_session(self)
-        if (session and old_value != __value):
+        if session and old_value != __value:
             self.modified = datetime.utcnow()
-            session.add(TicketAudit(
-                id=shortuuid.uuid(),
-                ticket_id=self.id,
-                field=__name,
-                old_value=old_value,
-                new_value=__value,
-                author=session.owner_id,
-                timestamp=self.modified
-            ))
+            session.add(
+                TicketAudit(
+                    id=shortuuid.uuid(),
+                    ticket_id=self.id,
+                    field=__name,
+                    old_value=old_value,
+                    new_value=__value,
+                    author=session.owner_id,
+                    timestamp=self.modified,
+                )
+            )
 
 
 class TicketAudit(_Base):
     __tablename__ = "tickets_audit"
 
     id = Column(String, primary_key=True, default=shortuuid.uuid)
-    ticket_id = Column(String, ForeignKey('tickets.id', ondelete="CASCADE"), nullable=False)
+    ticket_id = Column(
+        String, ForeignKey("tickets.id", ondelete="CASCADE"), nullable=False
+    )
 
     field = Column(String, nullable=False)
     old_value = Column(String, nullable=False)
@@ -341,7 +359,9 @@ class TicketAudit(_Base):
 class TicketSurvey(_Base):
     __tablename__ = "ticket_surveys"
 
-    ticket_id = Column(String, ForeignKey('tickets.id', ondelete="CASCADE"), primary_key=True)
+    ticket_id = Column(
+        String, ForeignKey("tickets.id", ondelete="CASCADE"), primary_key=True
+    )
     member = Column(Integer, primary_key=True)
 
     rating = Column(Integer)
@@ -369,7 +389,7 @@ class Alert(_Base):
 
     creation_time = Column(DateTime, default=datetime.utcnow)
     response_time = Column(DateTime)
-    
+
 
 class Slur(_Base):
     __tablename__ = "slurs"
@@ -383,7 +403,7 @@ class Goodword(_Base):
     __tablename__ = "goodwords"
 
     goodword = Column(String, primary_key=True)
-    slur = Column(String, ForeignKey('slurs.slur'))
+    slur = Column(String, ForeignKey("slurs.slur"))
     added = Column(DateTime, default=datetime.utcnow)
     added_by = Column(Integer, nullable=False)
 
@@ -394,7 +414,7 @@ def create_db_tables():
 
 def to_db_type(value):
     match value:
-        case nextcord.User()|nextcord.Member()|nextcord.Role()|GuildChannel():
+        case nextcord.User() | nextcord.Member() | nextcord.Role() | GuildChannel():
             return value.id
         case _:
             return value

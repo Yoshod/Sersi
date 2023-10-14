@@ -109,7 +109,7 @@ class BanSystem(commands.Cog):
         ),
         offence: str = nextcord.SlashOption(
             name="offence",
-            description="The offence for which the user is being warned.",
+            description="The offence for which the user is being banned.",
         ),
         detail: str = nextcord.SlashOption(
             name="detail",
@@ -290,7 +290,7 @@ class BanSystem(commands.Cog):
 
             case "emergency":
                 pass
-        
+
         with db_session(interaction.user) as session:
             session.add(case)
             session.commit()
@@ -362,9 +362,65 @@ class BanSystem(commands.Cog):
                     except (nextcord.Forbidden, nextcord.HTTPException):
                         not_sent = True
 
-                    # To do:
-                    # Create the embed that confirms the user has been banned
-                    # Log the ban
-                    # Idk I'm tired
+                    logging_embed: SersiEmbed = create_case_embed(
+                        sersi_case,
+                        interaction=interaction,
+                    )
 
-                    await offender.ban(reason="Lol get fucked")
+                    await interaction.guild.get_channel(
+                        self.config.channels.mod_logs
+                    ).send(embed=logging_embed)
+                    await interaction.guild.get_channel(
+                        self.config.channels.logging
+                    ).send(embed=logging_embed)
+
+                    await offender.ban(reason=f"Sersi Ban {sersi_case['Details']}")
+
+                    result: nextcord.WebhookMessage = await interaction.followup.send(
+                        embed=SersiEmbed(
+                            title="Ban Result:",
+                            fields={
+                                "Offence:": f"`{sersi_case['Offence']}`",
+                                "Detail:": f"`{sersi_case['Details']}`",
+                                "Member:": f"{offender.mention} ({offender.id})",
+                                "DM Sent:": self.config.emotes.fail
+                                if not_sent
+                                else self.config.emotes.success,
+                            },
+                            footer="Sersi Ban",
+                        ),
+                        wait=True,
+                    )
+
+                    with db_session(interaction.user) as session:
+                        session.add(case)
+                        session.commit()
+
+                else:
+                    await interaction.followup.send(
+                        "Your vote has been recorded as 'Approve'."
+                    )
+
+            case ["non-urgent-ban-object", uuid]:
+                for field in interaction.message.embeds[0].fields:
+                    if field.value.splitlines()[0] == interaction.user.mention:
+                        await interaction.followup.send(
+                            "You already voted", ephemeral=True
+                        )
+                        return
+
+                new_embed = interaction.message.embeds[0]
+                new_embed.add_field(
+                    name="Voted No:",
+                    value=f"{interaction.user.mention}\n*{interaction.data['components'][0]['components'][0]['value']}*",
+                    inline=True,
+                )
+                no_votes = new_embed.description[-1]
+                no_votes = int(no_votes) + 1
+
+                new_embed.description = f"{new_embed.description[:-1]}{no_votes}"
+                await interaction.message.edit(embed=new_embed)
+
+                await interaction.followup.send(
+                    "Your vote has been recorded as 'Object'."
+                )
