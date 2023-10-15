@@ -298,10 +298,10 @@ class PageView(View):
         entry_list = []
         if callable(self.entry_format):
             for entry in entries:
-                entry_list.append(self.entry_format(entry=entry))
+                entry_list.append(self.entry_format(config=self.config, entry=entry))
         elif isinstance(self.entry_format, str):
             for entry in entries:
-                entry_list.append(self.entry_format.format(entry=entry))
+                entry_list.append(self.entry_format.format(config=self.config, entry=entry))
         else:
             raise ValueError(
                 "Invalid entry_format type. Must be a function or a string."
@@ -320,13 +320,17 @@ class PageView(View):
             embed.description = self.no_entries.format(config=self.config)
             return embed
         cols = min(self.columns, 1 + (len(entries) - 1) // self.per_column)
+        offset = (self.page - 1) * self.columns * self.per_column
         for col in range(1, cols + 1):
             col_start = (col - 1) * self.per_column
             col_end = len(entries) if col == cols else col * self.per_column
             col_entries = entries[col_start:col_end]
             embed.add_field(
                 name=self.column_title.format(
-                    start=col_start + 1, end=col_end, entries=col_entries
+                    config=self.config,
+                    start=col_start + offset + 1,
+                    end=col_end + offset,
+                    entries=col_entries,
                 ),
                 value=self.make_column(col_entries),
                 inline=self.inline_fields,

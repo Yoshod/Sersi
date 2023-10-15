@@ -3,6 +3,7 @@ from nextcord.ext import commands
 
 from utils.sersi_embed import SersiEmbed
 from utils.base import PageView, DualCustodyView
+from utils.database import db_session, Slur, Goodword
 from utils.config import Configuration
 from utils.perms import permcheck, is_mod, is_full_mod, is_dark_mod
 from slurdetector import (
@@ -14,6 +15,7 @@ from slurdetector import (
     get_slurs_leet,
     clear_string,
     load_slurs,
+    leet,
 )
 
 
@@ -62,9 +64,10 @@ class SlurCommands(nextcord.ext.commands.Cog):
             return
 
         await interaction.followup.send(f"Slur to be added: {slur}")
-        with open(self.config.datafiles.slurfile, "a") as file:
-            file.write(slur)
-            file.write("\n")
+        with db_session() as session:
+            session.add(Slur(slur=slur, added_by=interaction.user.id))
+            session.commit()
+
         load_slurs()  # reloads updated list into memory
 
         # logging
@@ -109,12 +112,14 @@ class SlurCommands(nextcord.ext.commands.Cog):
             )
             return
 
-        word_contains_slur = False
-        for slur in get_slurs_leet():
-            if slur in word:
-                word_contains_slur = True
+        related_slur = None
+        for slur in get_slurs():
+            for slur_variant in leet(slur):
+                if slur_variant in word:
+                    related_slur = slur
+                    break
 
-        if not word_contains_slur:
+        if not related_slur:
             await interaction.followup.send(
                 f"{self.config.emotes.fail} `{word}` does not contain any slurs; cannot be added."
             )
@@ -136,9 +141,13 @@ class SlurCommands(nextcord.ext.commands.Cog):
 
         await interaction.followup.send(f"Goodword to be added: {word}")
 
-        with open(self.config.datafiles.goodwordfile, "a") as file:
-            file.write(word)
-            file.write("\n")
+        with db_session() as session:
+            session.add(Goodword(
+                goodword=word,
+                slur=related_slur,
+                added_by=interaction.user.id
+            ))
+            session.commit()
 
         load_goodwords()
 
@@ -293,6 +302,8 @@ class SlurCommands(nextcord.ext.commands.Cog):
         """List currently detected slurs."""
         if not await permcheck(interaction, is_mod):
             return
+        
+        await interaction.response.defer(ephemeral=False)
 
         embed = SersiEmbed(title="List of currently detected slurs")
 
@@ -302,9 +313,9 @@ class SlurCommands(nextcord.ext.commands.Cog):
             fetch_function=get_slurs,
             author=interaction.user,
             cols=2,
-            init_page=int(page),
+            init_page=page,
         )
-        await view.send_embed(interaction.channel)
+        await view.send_followup(interaction)
 
     @slur_detection.subcommand(description="List currently whitelisted goodwords.")
     async def list_goodwords(
@@ -319,6 +330,8 @@ class SlurCommands(nextcord.ext.commands.Cog):
         """List currently whitelisted goodwords."""
         if not await permcheck(interaction, is_mod):
             return
+        
+        await interaction.response.defer(ephemeral=False)
 
         embed = SersiEmbed(
             title="List of goodwords currently whitelisted from slur detection"
@@ -330,9 +343,9 @@ class SlurCommands(nextcord.ext.commands.Cog):
             fetch_function=get_goodwords,
             author=interaction.user,
             cols=2,
-            init_page=int(page),
+            init_page=page,
         )
-        await view.send_embed(interaction.channel)
+        await view.send_followup(interaction)
 
 
 def setup(bot: commands.Bot, **kwargs):

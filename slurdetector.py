@@ -1,14 +1,13 @@
 from itertools import product  # needed for slur obscurity permutations
 import unidecode  # needed for cleaning accents and diacritic marks
+import re
 
-import utils
 from utils.base import get_page
+from utils.database import db_session, Slur, Goodword
 
 slurs = []
 goodword = []
 slurs_list = []
-
-config = utils.config.Configuration.from_yaml_file("./persistent_data/config.yaml")
 
 
 def leet(word):
@@ -34,7 +33,7 @@ def leet(word):
     return ["".join(permutations) for permutations in product(*possibles)]
 
 
-def get_slurs(page=None, per_page=10):
+def get_slurs(*args, page=None, per_page=10):
     if page is None:
         return slurs_list
     else:
@@ -45,7 +44,7 @@ def get_slurs_leet():
     return slurs
 
 
-def get_goodwords(page=None, per_page=10):
+def get_goodwords(*args, page=None, per_page=10):
     if page is None:
         return goodword
     else:
@@ -65,50 +64,41 @@ def rm_slur(slur):
             slurs.extend(leet(item))
 
     slur_comb(slur)
-
-    with open(config.datafiles.slurfile, "r") as fp:
-        lines = fp.readlines()
-
-    with open(config.datafiles.slurfile, "w") as fp:
-        for line in lines:
-            if line.strip("\n") != slur:
-                fp.write(line)
+    with db_session() as session:
+        session.query(Slur).filter_by(slur=slur).delete()
+        session.commit()
 
 
 def slur_comb(slur):
     for word in goodword:
         if slur in word:
-            rm_goodword(word)
+            goodword.remove(word)
 
 
-def rm_goodword(word):
+def rm_goodword(word: str):
     if word in goodword:
         goodword.remove(word)
-    with open(config.datafiles.goodwordfile, "r") as fp:
-        lines = fp.readlines()
-
-    with open(config.datafiles.goodwordfile, "w") as fp:
-        for line in lines:
-            if line.strip("\n") != word:
-                fp.write(line)
+    with db_session() as session:
+        session.query(Goodword).filter_by(goodword=word).delete()
+        session.commit()
 
 
 def load_slurs():
     slurs.clear()
     slurs_list.clear()
-    with open(config.datafiles.slurfile, "r") as file:
-        for line in file:
-            line = line.replace("\n", "")
-            slurs_list.append(line)
-            slurs.extend(leet(line))
+    with db_session() as session:
+        slur_list: list[Slur] = session.query(Slur).all()
+        for slur in slur_list:
+            slurs_list.append(slur.slur)
+            slurs.extend(leet(slur.slur))
 
 
 def load_goodwords():
     goodword.clear()
-    with open(config.datafiles.goodwordfile, "r") as file:
-        for line in file:
-            line = line.replace("\n", "")
-            goodword.append(line)
+    with db_session() as session:
+        goodword_list: list[Goodword] = session.query(Goodword).all()
+        for word in goodword_list:
+            goodword.append(word.goodword)
 
 
 def clear_string(string: str) -> str:

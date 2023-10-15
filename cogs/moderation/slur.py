@@ -63,8 +63,7 @@ class ActionTakenButton(nextcord.ui.Button):
                 SlurUsageCase(
                     offender=member.id,
                     moderator=interaction.user.id,
-                    reason=case_data[1],
-                    timestamp=timestamp,
+                    slur_used=case_data[1],
                 )
             )
             session.commit()
@@ -181,12 +180,12 @@ class ViewCasesButton(nextcord.ui.Button):
             base_embed=cases_embed,
             fetch_function=fetch_all_cases,
             author=interaction.user,
-            entry_form="{entry[1]} <t:{entry[2]}:R>",
-            field_title="{entries[0][0]}",
+            entry_form="{entry}",
+            field_title="{entries[0].list_entry_header}",
             inline_fields=False,
             cols=10,
             per_col=1,
-            offender_id=offender,
+            offender_id=offender.id,
             case_type="Slur Usage",
         )
 
@@ -273,8 +272,8 @@ class Slur(commands.Cog):
                     f"{self.config.emotes.success} The user has a history of using a slur detected in "
                     "this message:"
                 )
-                for slur_cases in cases:
-                    prev_offences += f"\n`{slur_cases[0]}` {slur_cases[2]}"
+                for slur_case in cases:
+                    prev_offences += f"\n`{slur_case.id}` {slur_case.slur_used} <t:{int(slur_case.created.timestamp())}:R>"
 
                 return prev_offences
 

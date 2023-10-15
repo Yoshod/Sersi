@@ -256,11 +256,12 @@ def slur_virgin(user: nextcord.User) -> bool:
         return True
 
 
-def slur_history(user: nextcord.User, slur: list):
+def slur_history(user: nextcord.User, slurs: list[str]) -> list[SlurUsageCase]:
     with db_session() as session:
         slur_cases: SlurUsageCase = (
             session.query(SlurUsageCase)
-            .filter_by(offender=user.id, slur=slur)
+            .filter_by(offender=user.id)
+            .filter(SlurUsageCase.slur_used.in_(slurs))
             .limit(5)
             .all()
         )

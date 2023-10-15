@@ -413,7 +413,7 @@ class Goodword(_Base):
     __tablename__ = "goodwords"
 
     goodword = Column(String, primary_key=True)
-    slur = Column(String, ForeignKey("slurs.slur"))
+    slur = Column(String, ForeignKey("slurs.slur", ondelete="CASCADE"))
     added = Column(DateTime, default=datetime.utcnow)
     added_by = Column(Integer, nullable=False)
 

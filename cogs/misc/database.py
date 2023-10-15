@@ -1,9 +1,9 @@
-import nextcord
 import sqlite3
 import pickle
 import yaml
 from datetime import datetime
 
+import nextcord
 from nextcord.ext import commands
 
 from utils.database import (
@@ -15,10 +15,13 @@ from utils.database import (
     CaseApproval,
     Offence,
     TicketCategory,
+    Slur,
+    Goodword,
     create_db_tables,
 )
 from utils.config import Configuration
 from utils.perms import is_dark_mod, permcheck
+from slurdetector import leet
 
 
 class Database(commands.Cog):
@@ -193,6 +196,46 @@ class Database(commands.Cog):
             session.commit()
 
         await interaction.followup.send(f"{self.config.emotes.success} Complete")
+    
+    @database.subcommand(
+        description="Used to migrate the slur detection stuff",
+    )
+    async def migrate_slur_detection(self, interaction: nextcord.Interaction):
+        if not await permcheck(interaction, is_dark_mod):
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        with open(self.config.datafiles.slurfile, "r") as f:
+            slur_list = [slur.replace("\n", "") for slur in f]
+        
+        with open(self.config.datafiles.goodwordfile, "r") as f:
+            goodword_list = [goodword.replace("\n", "") for goodword in f]
+
+        with db_session() as session:
+            for slur in slur_list:
+                session.merge(Slur(
+                    slur=slur,
+                    added_by=interaction.user.id,
+                ))
+            
+            for goodword in goodword_list:
+                matched_slur = None
+                for slur in slur_list:
+                    for leet_slur in leet(slur):
+                        if leet_slur in goodword:
+                            matched_slur = slur
+                            break
+
+                session.merge(Goodword(
+                    goodword=goodword,
+                    slur=matched_slur,
+                    added_by=interaction.user.id,
+                ))
+
+            session.commit()
+
+        await interaction.followup.send(f"{self.config.emotes.success} Complete, imported {len(slur_list)} slurs and {len(goodword_list)} goodwords")
 
     @database.subcommand(
         description="Used to drop a table from the Sersi Database",
@@ -227,5 +270,5 @@ class Database(commands.Cog):
             conn.close()
 
 
-def setup(bot, **kwargs):
+def setup(bot: commands.Bot, **kwargs):
     bot.add_cog(Database(bot, kwargs["config"]))
