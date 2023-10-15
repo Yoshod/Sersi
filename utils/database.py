@@ -69,9 +69,16 @@ class Case(_Base):
                     timestamp=self.modified,
                 )
             )
+    
+    def __getattr__(self, __name: str) -> Any:
+        if __name == "list_entry_header":
+            return f"__{self.id}__ <t:{int(self.created.timestamp())}:R>"
+        raise AttributeError(
+            f"'{self.__class__.__name__}' object has no attribute '{__name}'"
+        )
 
     def __repr__(self):
-        return f"{self.type} <t:{int(self.created.timestamp())}:R>"
+        return f"*{self.type}* <@{self.offender}> `{self.offence or 'N/A'}`"
 
 
 class CaseAudit(_Base):
@@ -88,7 +95,7 @@ class CaseAudit(_Base):
     timestamp = Column(DateTime, default=datetime.utcnow)
 
     def __repr__(self):
-        return f"{self.field} <t:{int(self.timestamp.timestamp())}:R>"
+        return f"<t:{int(self.timestamp.timestamp())}:R> {self.field} <@{self.author}>"
 
 
 class BadFaithPingCase(Case):
@@ -162,6 +169,9 @@ class SlurUsageCase(Case):
     report_url = Column(String)
 
     __mapper_args__ = {"polymorphic_identity": "Slur Usage"}
+
+    def __repr__(self):
+        return f"*{self.type}* <@{self.offender}> ||{self.slur_used}||"
 
 
 class TimeoutCase(Case):

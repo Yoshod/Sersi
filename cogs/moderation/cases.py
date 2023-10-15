@@ -10,12 +10,22 @@ from utils.cases import (
     get_case_audit_logs,
 )
 from utils.config import Configuration
-from utils.database import db_session, Case, CaseAudit, ScrubbedCase, Offence
+from utils.database import db_session, Case, ScrubbedCase, Offence
 from utils.perms import permcheck, is_mod, is_senior_mod, is_dark_mod
 from utils.sersi_embed import SersiEmbed
 
 
 class Cases(commands.Cog):
+    punishment_choices={
+        "Informal Warning": "Informal Warning",
+        "Warning": "Warning",
+        "Reformation": "Reformation Centre",
+        "Temporary Ban": "Temporary Ban",
+        "Priority Ban": "Priority Ban",
+        "Emergency Ban": "Emergency Ban",
+        "Emergency Ban & Trust and Safety": "Emergency Ban & TnS Report",
+    }
+
     def __init__(self, bot: commands.Bot, config: Configuration):
         self.bot = bot
         self.config = config
@@ -89,7 +99,7 @@ class Cases(commands.Cog):
             fetch_function=fetch_all_cases,
             author=interaction.user,
             entry_form="{entry}",
-            field_title="{entries[0].id}",
+            field_title="{entries[0].list_entry_header}",
             inline_fields=False,
             cols=10,
             per_col=1,
@@ -153,7 +163,7 @@ class Cases(commands.Cog):
                 )
                 return
 
-        audit_embed = SersiEmbed(title=f"Case {case_id} Audit Logs")
+        audit_embed = SersiEmbed(title=f"Case `{case_id}` Audit Logs")
         audit_embed.set_thumbnail(interaction.guild.icon.url)
 
         view = PageView(
@@ -362,46 +372,40 @@ class Cases(commands.Cog):
             max_length=64,
             required=False,
         ),
-        first_punishment: str = nextcord.SlashOption(
+        p_0: str = nextcord.SlashOption(
             name="first_punishment",
             description="This is the punishment for the first instance of the offence",
-            choices={
-                "Informal Warning": "Informal Warning",
-                "Warning": "Warning",
-                "Reformation": "Reformation Centre",
-                "Temporary Ban": "Temporary Ban",
-                "Priority Ban": "Priority Ban",
-                "Emergency Ban": "Emergency Ban",
-                "Emergency Ban & Trust and Safety": "Emergency Ban & TnS Report",
-            },
+            choices=punishment_choices,
             required=False,
         ),
-        second_punishment: str = nextcord.SlashOption(
+        p_1: str = nextcord.SlashOption(
             name="second_punishment",
             description="This is the punishment for the second instance of the offence",
-            choices={
-                "Informal Warning": "Informal Warning",
-                "Warning": "Warning",
-                "Reformation": "Reformation Centre",
-                "Temporary Ban": "Temporary Ban",
-                "Priority Ban": "Priority Ban",
-                "Emergency Ban": "Emergency Ban",
-                "Emergency Ban & Trust and Safety": "Emergency Ban & TnS Report",
-            },
+            choices=punishment_choices,
             required=False,
         ),
-        third_punishment: str = nextcord.SlashOption(
+        p_2: str = nextcord.SlashOption(
             name="third_punishment",
             description="This is the punishment for the third instance of the offence",
-            choices={
-                "Informal Warning": "Informal Warning",
-                "Warning": "Warning",
-                "Reformation": "Reformation Centre",
-                "Temporary Ban": "Temporary Ban",
-                "Priority Ban": "Priority Ban",
-                "Emergency Ban": "Emergency Ban",
-                "Emergency Ban & Trust and Safety": "Emergency Ban & TnS Report",
-            },
+            choices=punishment_choices,
+            required=False,
+        ),
+        p_3: str = nextcord.SlashOption(
+            name="fourth_punishment",
+            description="This is the punishment for the fourth instance of the offence",
+            choices=punishment_choices,
+            required=False,
+        ),
+        p_4: str = nextcord.SlashOption(
+            name="fifth_punishment",
+            description="This is the punishment for the fifth instance of the offence",
+            choices=punishment_choices,
+            required=False,
+        ),
+        p_5: str = nextcord.SlashOption(
+            name="sixth_punishment",
+            description="This is the punishment for the sixth instance of the offence",
+            choices=punishment_choices,
             required=False,
         ),
     ):
@@ -410,7 +414,7 @@ class Cases(commands.Cog):
 
         await interaction.response.defer(ephemeral=False)
 
-        punishments = [first_punishment, second_punishment, third_punishment]
+        punishments = [p for p in [p_0, p_1, p_2, p_3, p_4, p_5] if p]
 
         with db_session(interaction.user) as session:
             session.add(
@@ -428,9 +432,9 @@ class Cases(commands.Cog):
             fields={
                 "Offence": f"`{offence_name}`",
                 "Description": f"`{offence_description}`",
-                "First Instance": f"`{first_punishment}`",
-                "Second Instance": f"`{second_punishment}`",
-                "Third Instance": f"`{third_punishment}`",
+                "Severity": f"`{offence_severity}`",
+                "Punishments": f"`{'`, `'.join(punishments)}`",
+                "Group": f"`{offence_group}`",
             },
         )
         offence_added_log.set_footer(text="Sersi Offences")
@@ -455,5 +459,5 @@ class Cases(commands.Cog):
         await interaction.response.send_autocomplete(cases)
 
 
-def setup(bot, **kwargs):
+def setup(bot: commands.Bot, **kwargs):
     bot.add_cog(Cases(bot, kwargs["config"]))

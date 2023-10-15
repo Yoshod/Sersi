@@ -222,10 +222,13 @@ def fetch_all_cases(
 
         cases = _query.order_by(Case.created.desc()).all()
 
-    if not cases:
-        return None, 0, 0
+        if not cases:
+            return None, 0, 0
 
-    get_page(cases, page, per_page)
+        page_cases, page, pages = get_page(cases, page, per_page)
+        for case in page_cases:
+            repr(case)  # load case type specific attributes if needed for list
+        return page_cases, page, pages
 
 
 def get_case_audit_logs(
