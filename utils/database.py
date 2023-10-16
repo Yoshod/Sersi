@@ -5,7 +5,7 @@ import nextcord
 from nextcord.abc import GuildChannel
 import sqlalchemy
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, relationship
 from sqlalchemy.ext.declarative import declarative_base
 import shortuuid
 
@@ -417,16 +417,27 @@ class Goodword(_Base):
 
 
 ### Vote Models ###
+
+
 class VoteDetails(_Base):
     __tablename__ = "vote_details"
 
     vote_id = Column(Integer, primary_key=True, autoincrement=True)
     case_id = Column(String, ForeignKey("cases.id"), nullable=False)
-    created = Column(DateTime, default=datetime.utcnow)
+
+    vote_type = Column(String, nullable=False)
+    vote_url = Column(String, nullable=False)
+
+    started_by = Column(Integer, nullable=False)
     planned_end = Column(DateTime, nullable=False)
     actual_end = Column(DateTime)
+    outcome = Column(String)
+
+    created = Column(DateTime, default=datetime.utcnow)
     modified = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    threshold = Column(Integer, nullable=False)
+
+    case = relationship("Case", backref="votes")
+    votes = relationship("VoteRecords", backref="vote_detail")
 
 
 class VoteRecords(_Base):
@@ -434,8 +445,11 @@ class VoteRecords(_Base):
 
     vote_id = Column(Integer, ForeignKey("vote_details.vote_id"), primary_key=True)
     voter = Column(Integer, primary_key=True)
+
     vote = Column(String, nullable=False)
     comment = Column(String)
+
+    timestamp = Column(DateTime, default=datetime.utcnow)
 
 
 def create_db_tables():
