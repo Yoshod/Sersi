@@ -19,7 +19,7 @@ from utils.perms import (
     is_dark_mod,
     is_immune,
     target_eligibility,
-    cb_is_compliance,
+    cb_is_mod,
 )
 from utils.sersi_embed import SersiEmbed
 from utils.review import create_alert
@@ -176,7 +176,7 @@ class BanSystem(commands.Cog):
             )
             return
 
-        case = BanCase(
+        sersi_case = BanCase(
             offender=offender.id,
             moderator=interaction.user.id,
             offence=offence,
@@ -231,7 +231,7 @@ class BanSystem(commands.Cog):
                 vote_message.edit(embed=vote_embed, view=button_view)
 
                 await interaction.followup.send(
-                    f"{self.config.emotes.success} The Non-Urgent Ban Vote has been created and can be voted on in {alert_channel.mention}. The unique identifier for this case is `{case.id}`."
+                    f"{self.config.emotes.success} The Non-Urgent Ban Vote has been created and can be voted on in {alert_channel.mention}. The unique identifier for this case is `{sersi_case.id}`."
                 )
 
             case "urgent":
@@ -257,42 +257,65 @@ class BanSystem(commands.Cog):
                 approve = Button(
                     label="Approve",
                     style=nextcord.ButtonStyle.grey,
-                    custom_id=f"urgent-ban-approve:{case.id}",
+                    custom_id=f"urgent-ban-approve:{sersi_case.id}",
                 )
 
                 object = Button(
                     label="Object",
                     style=nextcord.ButtonStyle.grey,
-                    custom_id=f"urgent-ban-object:{case.id}",
+                    custom_id=f"urgent-ban-object:{sersi_case.id}",
                 )
 
                 override = Button(
                     label="Admin Override",
                     style=nextcord.ButtonStyle.red,
-                    custom_id=f"urgent-ban-override:{case.id}",
+                    custom_id=f"urgent-ban-override:{sersi_case.id}",
                 )
 
                 button_view = View(timeout=10800)
                 button_view.add_item(approve)
                 button_view.add_item(object)
                 button_view.add_item(override)
+                button_view.interaction_check = cb_is_mod
 
                 vote_message.edit(embed=vote_embed, view=button_view)
 
-                await offender.timeout(
-                    datetime.timedelta(minutes=720),
-                    reason=f"[{offence}: {detail}] - {interaction.user}",
-                )
-
                 await interaction.followup.send(
-                    f"{self.config.emotes.success} The Urgent Ban Vote has been created and can be voted on in {alert_channel.mention}. The unique identifier for this case is `{case.id}`."
+                    f"{self.config.emotes.success} The Urgent Ban Vote has been created and can be voted on in {alert_channel.mention}. The unique identifier for this case is `{sersi_case.id}`."
                 )
 
             case "emergency":
-                pass
+                ban_confirmation = SersiEmbed(
+                    title=f"Confirm Ban of **{offender.name}** ({offender.id})",
+                    description="Are you sure that you wish to proceed?",
+                    fields={
+                        "Moderator": interaction.user.mention,
+                        "Offender": offender.mention,
+                        "Offence": offence,
+                        "Offence Details": detail,
+                    },
+                )
+
+                approve = Button(
+                    label="Yes",
+                    style=nextcord.ButtonStyle.red,
+                    custom_id=f"ban-confirm:{sersi_case.id}",
+                )
+
+                object = Button(
+                    label="No",
+                    style=nextcord.ButtonStyle.blurple,
+                    custom_id=f"ban-no:{sersi_case.id}",
+                )
+
+                button_view = View(timeout=10800)
+                button_view.add_item(approve)
+                button_view.add_item(object)
+
+                interaction.followup.send(embed=ban_confirmation, view=button_view)
 
         with db_session(interaction.user) as session:
-            session.add(case)
+            session.add(sersi_case)
             session.commit()
 
     @commands.Cog.listener()
@@ -341,8 +364,6 @@ class BanSystem(commands.Cog):
                         sersi_case["Offender ID"]
                     )
 
-                    ban_embed = create_case_embed(sersi_case, interaction)
-
                     try:
                         await offender.send(
                             embed=SersiEmbed(
@@ -376,7 +397,7 @@ class BanSystem(commands.Cog):
 
                     await offender.ban(reason=f"Sersi Ban {sersi_case['Details']}")
 
-                    result: nextcord.WebhookMessage = await interaction.followup.send(
+                    await interaction.followup.send(
                         embed=SersiEmbed(
                             title="Ban Result:",
                             fields={
@@ -393,7 +414,7 @@ class BanSystem(commands.Cog):
                     )
 
                     with db_session(interaction.user) as session:
-                        session.add(case)
+                        session.add(sersi_case)
                         session.commit()
 
                 else:
@@ -423,4 +444,59 @@ class BanSystem(commands.Cog):
 
                 await interaction.followup.send(
                     "Your vote has been recorded as 'Object'."
+                )
+
+            case ["ban-confirm", uuid]:
+                sersi_case = get_case_by_id(self.config, uuid, False)
+                offender: nextcord.Member = interaction.guild.get_member(
+                    sersi_case["Offender ID"]
+                )
+
+                try:
+                    await offender.send(
+                        embed=SersiEmbed(
+                            title=f"You have been banned in {interaction.guild.name}!",
+                            description=f"You have been banned in {interaction.guild.name}. The details about the ban are "
+                            "below. If you would like to appeal your ban you can do so:\n"
+                            "https://appeals.wickbot.com",
+                            fields={
+                                "Offence:": f"`{sersi_case['Offence']}`",
+                                "Detail:": f"`{sersi_case['Details']}`",
+                            },
+                            footer="Sersi Ban",
+                        ).set_thumbnail(interaction.guild.icon.url)
+                    )
+                    not_sent = False
+
+                except (nextcord.Forbidden, nextcord.HTTPException):
+                    not_sent = True
+
+                logging_embed: SersiEmbed = create_case_embed(
+                    sersi_case,
+                    interaction=interaction,
+                )
+
+                await interaction.guild.get_channel(self.config.channels.mod_logs).send(
+                    embed=logging_embed
+                )
+                await interaction.guild.get_channel(self.config.channels.logging).send(
+                    embed=logging_embed
+                )
+
+                await offender.ban(reason=f"Sersi Ban {sersi_case['Details']}")
+
+                await interaction.followup.send(
+                    embed=SersiEmbed(
+                        title="Ban Result:",
+                        fields={
+                            "Offence:": f"`{sersi_case['Offence']}`",
+                            "Detail:": f"`{sersi_case['Details']}`",
+                            "Member:": f"{offender.mention} ({offender.id})",
+                            "DM Sent:": self.config.emotes.fail
+                            if not_sent
+                            else self.config.emotes.success,
+                        },
+                        footer="Sersi Ban",
+                    ),
+                    wait=True,
                 )
