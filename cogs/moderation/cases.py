@@ -91,7 +91,8 @@ class Cases(commands.Cog):
         await interaction.response.defer(ephemeral=False)
 
         cases_embed = SersiEmbed(title=f"{interaction.guild.name} Cases")
-        cases_embed.set_thumbnail(interaction.guild.icon.url)
+        if not interaction.user.is_on_mobile():
+            cases_embed.set_thumbnail(interaction.guild.icon.url)
 
         view = PageView(
             config=self.config,
