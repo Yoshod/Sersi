@@ -69,7 +69,7 @@ class Case(_Base):
                     timestamp=self.modified,
                 )
             )
-    
+
     def __getattr__(self, __name: str) -> Any:
         if __name == "list_entry_header":
             return f"__{self.id}__ <t:{int(self.created.timestamp())}:R>"
@@ -116,8 +116,6 @@ class BanCase(Case):
     active = Column(Boolean, default=True)
     details = Column(String)
     ban_type = Column(String)
-    yes_voters = Column(String)
-    no_voters = Column(String)
     unbanned_by = Column(Integer)
     unban_reason = Column(String)
 
@@ -416,6 +414,28 @@ class Goodword(_Base):
     slur = Column(String, ForeignKey("slurs.slur", ondelete="CASCADE"))
     added = Column(DateTime, default=datetime.utcnow)
     added_by = Column(Integer, nullable=False)
+
+
+### Vote Models ###
+class VoteDetails(_Base):
+    __tablename__ = "vote_details"
+
+    vote_id = Column(Integer, primary_key=True, autoincrement=True)
+    case_id = Column(String, ForeignKey("cases.id"), nullable=False)
+    created = Column(DateTime, default=datetime.utcnow)
+    planned_end = Column(DateTime, nullable=False)
+    actual_end = Column(DateTime)
+    modified = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    threshold = Column(Integer, nullable=False)
+
+
+class VoteRecords(_Base):
+    __tablename__ = "vote_records"
+
+    vote_id = Column(Integer, ForeignKey("vote_details.vote_id"), primary_key=True)
+    voter = Column(Integer, primary_key=True)
+    vote = Column(String, nullable=False)
+    comment = Column(String)
 
 
 def create_db_tables():
