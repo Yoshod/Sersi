@@ -129,7 +129,7 @@ class BanCase(Case):
 
     id = Column(String, ForeignKey("cases.id"), primary_key=True)
 
-    active = Column(Boolean, default=True)
+    active = Column(Boolean, default=None)
     details = Column(String)
     ban_type = Column(String)
     unbanned_by = Column(Integer)
