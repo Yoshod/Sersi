@@ -130,7 +130,7 @@ class Database(commands.Cog):
                                 timestamp
                             ) = details_list[1:]
                             session.add(BadFaithPingCase(
-                                id=case_id,
+                                id=case_id[0:10],
                                 report_url=report_url,
                                 offender=offender_id,
                                 moderator=moderator_id,
@@ -145,7 +145,7 @@ class Database(commands.Cog):
                                 timestamp,
                             ) = details_list[1:]
                             session.add(ProbationCase(
-                                id=case_id,
+                                id=case_id[0:10],
                                 offender=offender_id,
                                 moderator=primary_moderator_id,
                                 reason=reason,
@@ -153,7 +153,7 @@ class Database(commands.Cog):
                             ))
                             if (secondary_moderator_id):
                                 session.add(CaseApproval(
-                                    case_id=case_id,
+                                    case_id=case_id[0:10],
                                     action="Add",
                                     approval_type="Dual Custody",
                                     approver=secondary_moderator_id,
@@ -168,7 +168,7 @@ class Database(commands.Cog):
                                 timestamp,
                             ) = details_list[1:]
                             session.add(ReformationCase(
-                                id=case_id,
+                                id=case_id[0:10],
                                 case_number=case_number,
                                 offender=offender_id,
                                 moderator=moderator_id,
@@ -185,7 +185,7 @@ class Database(commands.Cog):
                                 timestamp,
                             ) = details_list[1:]
                             session.add(SlurUsageCase(
-                                id=case_id,
+                                id=case_id[0:10],
                                 slur_used=slur_used,
                                 report_url=report_url,
                                 offender=offender_id,

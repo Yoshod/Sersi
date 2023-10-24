@@ -1,13 +1,29 @@
 from datetime import datetime
 from typing import Any
+import random
 
 import nextcord
-from nextcord.abc import GuildChannel
 import sqlalchemy
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import Session, relationship
 from sqlalchemy.ext.declarative import declarative_base
-import shortuuid
+from shortuuid.main import int_to_string, string_to_int
+
+
+# base on https://github.com/skorokithakis/shortuuid
+_alphabet = list("23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz")
+
+
+def encode_snowflake(snowflake: int) -> str:
+    return int_to_string(snowflake, _alphabet, padding=11)
+
+
+def decode_snowflake(string: str) -> int:
+    return string_to_int(string, _alphabet)
+
+
+def random_id() -> str:
+    return "".join(random.sample(_alphabet, 11))
 
 
 _engine = sqlalchemy.create_engine("sqlite:///persistent_data/sersi.db", echo=True)
@@ -50,7 +66,7 @@ class Case(_Base):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.id is None:
-            self.id = shortuuid.uuid()
+            self.id = random_id()
 
     def __setattr__(self, __name: str, __value: Any):
         old_value = self.__dict__.get(__name)
@@ -60,7 +76,7 @@ class Case(_Base):
             self.modified = datetime.utcnow()
             session.add(
                 CaseAudit(
-                    id=shortuuid.uuid(),
+                    id=random_id(),
                     case_id=self.id,
                     field=__name,
                     old_value=old_value,
@@ -215,7 +231,7 @@ class ScrubbedCase(_Base):
 class PeerReview(_Base):
     __tablename__ = "peer_reviews"
 
-    id = Column(String, primary_key=True, default=shortuuid.uuid)
+    id = Column(String, primary_key=True, default=random_id)
     case_id = Column(String, ForeignKey("cases.id", ondelete="CASCADE"), nullable=False)
 
     reviewer = Column(Integer, nullable=False)
@@ -228,7 +244,7 @@ class PeerReview(_Base):
 class CaseApproval(_Base):
     __tablename__ = "case_approvals"
 
-    id = Column(String, primary_key=True, default=shortuuid.uuid)
+    id = Column(String, primary_key=True, default=random_id)
     case_id = Column(
         String, ForeignKey("cases.id", ondelete="CASCADE"), primary_key=True
     )
@@ -269,7 +285,7 @@ class Offence(_Base):
 class Note(_Base):
     __tablename__ = "notes"
 
-    id = Column(String, primary_key=True, default=shortuuid.uuid)
+    id = Column(String, primary_key=True, default=random_id)
     author = Column(Integer, nullable=False)
     member = Column(Integer, nullable=False)
     content = Column(String, nullable=False)
@@ -297,7 +313,7 @@ class Note(_Base):
 class NoteEdits(_Base):
     __tablename__ = "note_edits"
 
-    id = Column(String, primary_key=True, default=shortuuid.uuid)
+    id = Column(String, primary_key=True, default=random_id)
     note_id = Column(String, ForeignKey("notes.id", ondelete="CASCADE"), nullable=False)
 
     old_content = Column(String, nullable=False)
@@ -313,7 +329,7 @@ class NoteEdits(_Base):
 class Ticket(_Base):
     __tablename__ = "tickets"
 
-    id = Column(String, primary_key=True, default=shortuuid.uuid)
+    id = Column(String, primary_key=True, default=random_id)
     active = Column(Boolean, default=True)
     escalation_level = Column(String, nullable=False)
 
@@ -337,7 +353,7 @@ class Ticket(_Base):
             self.modified = datetime.utcnow()
             session.add(
                 TicketAudit(
-                    id=shortuuid.uuid(),
+                    id=random_id(),
                     ticket_id=self.id,
                     field=__name,
                     old_value=old_value,
@@ -351,7 +367,7 @@ class Ticket(_Base):
 class TicketAudit(_Base):
     __tablename__ = "tickets_audit"
 
-    id = Column(String, primary_key=True, default=shortuuid.uuid)
+    id = Column(String, primary_key=True, default=random_id)
     ticket_id = Column(
         String, ForeignKey("tickets.id", ondelete="CASCADE"), nullable=False
     )
@@ -390,7 +406,7 @@ class TicketCategory(_Base):
 class Alert(_Base):
     __tablename__ = "alerts"
 
-    id = Column(String, primary_key=True, default=shortuuid.uuid)
+    id = Column(String, primary_key=True, default=random_id)
 
     alert_type = Column(String, nullable=False)
     report_url = Column(String, nullable=False)
@@ -437,10 +453,10 @@ class VoteDetails(_Base):
     modified = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     case = relationship("Case", backref="votes")
-    votes = relationship("VoteRecords", backref="vote_detail")
+    votes = relationship("VoteRecord", backref="vote_detail")
 
 
-class VoteRecords(_Base):
+class VoteRecord(_Base):
     __tablename__ = "vote_records"
 
     vote_id = Column(Integer, ForeignKey("vote_details.vote_id"), primary_key=True)
@@ -454,11 +470,3 @@ class VoteRecords(_Base):
 
 def create_db_tables():
     _Base.metadata.create_all(_engine)
-
-
-def to_db_type(value):
-    match value:
-        case nextcord.User() | nextcord.Member() | nextcord.Role() | GuildChannel():
-            return value.id
-        case _:
-            return value
