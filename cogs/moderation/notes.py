@@ -27,7 +27,7 @@ class Notes(commands.Cog):
 
     @nextcord.slash_command(
         dm_permission=False,
-        guild_ids=[977377117895536640, 856262303795380224],
+        guild_ids=[Configuration.guilds.main, Configuration.guilds.errors],
         description="Note base command",
     )
     async def notes(self, interaction: nextcord.Interaction):
@@ -203,9 +203,7 @@ class Notes(commands.Cog):
                 value=f"{interaction.user.mention}",
                 inline=True,
             )
-            logging_embed.add_field(
-                name="Reason", value=f"`{reason}`", inline=False
-            )
+            logging_embed.add_field(name="Reason", value=f"`{reason}`", inline=False)
 
             logging_embed.set_thumbnail(user.display_avatar.url)
 
@@ -218,7 +216,6 @@ class Notes(commands.Cog):
             await interaction.followup.send(
                 f"{self.config.emotes.success} All notes on user {user.mention} successfully deleted."
             )
-
 
         else:
             with db_session(interaction.user) as session:
@@ -237,17 +234,13 @@ class Notes(commands.Cog):
                 title="Note Deleted",
             )
 
-            logging_embed.add_field(
-                name="Note ID", value=f"`{note_id}`", inline=True
-            )
+            logging_embed.add_field(name="Note ID", value=f"`{note_id}`", inline=True)
             logging_embed.add_field(
                 name="Moderator",
                 value=f"{interaction.user.mention}",
                 inline=True,
             )
-            logging_embed.add_field(
-                name="Reason", value=f"`{reason}`", inline=False
-            )
+            logging_embed.add_field(name="Reason", value=f"`{reason}`", inline=False)
 
             logging_embed.set_thumbnail(interaction.user.display_avatar.url)
 

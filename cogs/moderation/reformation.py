@@ -21,7 +21,7 @@ class Reformation(commands.Cog):
 
     @nextcord.slash_command(
         dm_permission=False,
-        guild_ids=[977377117895536640, 856262303795380224],
+        guild_ids=[Configuration.guilds.main, Configuration.guilds.errors],
     )
     async def reformation(self, interaction: nextcord.Interaction):
         pass
@@ -190,7 +190,7 @@ class Reformation(commands.Cog):
             return embed
 
         await execute(self.bot, self.config, interaction)
-    
+
     @reformation_needed.on_autocomplete("offence")
     async def offence_by_name(self, interaction: nextcord.Interaction, string: str):
         if not await permcheck(interaction, is_mod):
@@ -266,7 +266,7 @@ class Reformation(commands.Cog):
             await channel.send(embed=log_embed)
 
             channel = interaction.guild.get_channel(self.config.channels.mod_logs)
-            await channel.send(embed=log_embed)            
+            await channel.send(embed=log_embed)
 
             # await interaction.send(f"**{member.name}** ({member.id}) will now be considered reformed.")
 
@@ -275,9 +275,11 @@ class Reformation(commands.Cog):
 
             # close case
             with db_session(interaction.user) as session:
-                case: ReformationCase = session.query(ReformationCase).filter_by(
-                    offender=member.id, state="open"
-                ).first()
+                case: ReformationCase = (
+                    session.query(ReformationCase)
+                    .filter_by(offender=member.id, state="open")
+                    .first()
+                )
                 case.state = "reformed"
                 session.commit()
 
@@ -361,9 +363,11 @@ class Reformation(commands.Cog):
 
             # close case
             with db_session(interaction.user) as session:
-                case: ReformationCase = session.query(ReformationCase).filter_by(
-                    offender=member.id, state="open"
-                ).first()
+                case: ReformationCase = (
+                    session.query(ReformationCase)
+                    .filter_by(offender=member.id, state="open")
+                    .first()
+                )
                 case.state = "failed"
                 session.commit()
 
@@ -396,9 +400,8 @@ class Reformation(commands.Cog):
             if transcript is None:
                 await channel.send(embed=embed)
                 await channel.send(f"{self.sersifail} Failed to Generate Transcript!")
-            
-            await cell_channel.delete()
 
+            await cell_channel.delete()
 
     async def cb_rf_yes_open_modal(self, interaction: nextcord.Interaction):
         # check if user has already voted
@@ -632,9 +635,11 @@ class Reformation(commands.Cog):
 
             # close case
             with db_session(interaction.user) as session:
-                case: ReformationCase = session.query(ReformationCase).filter_by(
-                    offender=member.id, state="open"
-                ).first()
+                case: ReformationCase = (
+                    session.query(ReformationCase)
+                    .filter_by(offender=member.id, state="open")
+                    .first()
+                )
                 case.state = "released"
                 session.commit()
 
@@ -672,7 +677,7 @@ class Reformation(commands.Cog):
             if transcript is None:
                 await channel.send(embed=embed)
                 await channel.send(f"{self.sersifail} Failed to Generate Transcript!")
-            
+
             await cell_channel.delete()
 
             return embed
@@ -696,12 +701,14 @@ class Reformation(commands.Cog):
 
                     # close case
                     with db_session() as session:
-                        case: ReformationCase = session.query(ReformationCase).filter_by(
-                            offender=member.id, state="open"
-                        ).first()
+                        case: ReformationCase = (
+                            session.query(ReformationCase)
+                            .filter_by(offender=member.id, state="open")
+                            .first()
+                        )
                         case.state = "failed"
                         session.commit()
-                    
+
                     # transcript
                     channel = member.guild.get_channel(
                         self.config.channels.teachers_lounge
@@ -714,7 +721,7 @@ class Reformation(commands.Cog):
                         await channel.send(
                             f"{self.sersifail} Failed to Generate Transcript!"
                         )
-                    
+
                     await cell_channel.delete()
 
                     return
@@ -735,25 +742,23 @@ class Reformation(commands.Cog):
 
             # close case
             with db_session() as session:
-                case: ReformationCase = session.query(ReformationCase).filter_by(
-                    offender=member.id, state="open"
-                ).first()
+                case: ReformationCase = (
+                    session.query(ReformationCase)
+                    .filter_by(offender=member.id, state="open")
+                    .first()
+                )
                 case.state = "failed"
                 session.commit()
-            
+
             # transcript
-            channel = member.guild.get_channel(
-                self.config.channels.teachers_lounge
-            )
+            channel = member.guild.get_channel(self.config.channels.teachers_lounge)
             cell_channel = member.guild.get_channel(case.cell_channel)
 
             transcript = await make_transcript(cell_channel, channel, embed)
             if transcript is None:
                 await channel.send(embed=embed)
-                await channel.send(
-                    f"{self.sersifail} Failed to Generate Transcript!"
-                )
-            
+                await channel.send(f"{self.sersifail} Failed to Generate Transcript!")
+
             await cell_channel.delete()
 
 

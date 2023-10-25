@@ -13,7 +13,8 @@ class Timer(nextcord.ext.commands.Cog):
         self.config = config
 
     @nextcord.slash_command(
-        dm_permission=False, guild_ids=[977377117895536640, 856262303795380224]
+        dm_permission=False,
+        guild_ids=[Configuration.guilds.main, Configuration.guilds.errors],
     )
     async def timer(self, interaction: nextcord.Interaction, time_minutes: int):
         await interaction.response.defer(ephemeral=False)

@@ -14,7 +14,7 @@ class Messages(commands.Cog):
 
     @nextcord.slash_command(
         dm_permission=False,
-        guild_ids=[977377117895536640, 856262303795380224],
+        guild_ids=[Configuration.guilds.main, Configuration.guilds.errors],
         description="Sends a specified recipient a DM",
     )
     async def dm(

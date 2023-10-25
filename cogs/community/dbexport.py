@@ -15,7 +15,7 @@ class DBExport(commands.Cog):
 
     @nextcord.slash_command(
         dm_permission=False,
-        guild_ids=[977377117895536640, 856262303795380224],
+        guild_ids=[Configuration.guilds.main, Configuration.guilds.errors],
         description="Exports the DB into an SQL Script",
     )
     async def export(self, interaction: nextcord.Interaction):
