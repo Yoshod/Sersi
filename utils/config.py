@@ -115,23 +115,6 @@ class ConfigurationRoles(YAMLWizard):
 
 
 @dataclass
-class ConfigurationOptInRoles(YAMLWizard):
-    # The opt-in roles IDs saved as integers.
-
-    gaming: int
-    tech_compsci: int
-    food_and_drink: int
-    education: int
-    art: int
-    anime: int
-    furry: int
-    shillposting: int
-    music: int
-    photography: int
-    environment: int
-
-
-@dataclass
 class ConfigurationPermissionRoles(YAMLWizard):
     # The permission roles IDs saved as integers.
 
@@ -185,7 +168,7 @@ class Configuration(YAMLWizard):
     ignored_channels: dict[str, int]
     ignored_categories: list[str]
     roles: ConfigurationRoles
-    opt_in_roles: ConfigurationOptInRoles
+    opt_in_roles: dict[str, int]
     permission_roles: ConfigurationPermissionRoles
     punishment_roles: dict[str, int]
     emotes: ConfigurationEmotes
