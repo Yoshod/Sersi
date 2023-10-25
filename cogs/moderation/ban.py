@@ -93,7 +93,7 @@ class BanSystem(commands.Cog):
 
     @nextcord.slash_command(
         dm_permission=False,
-        guild_ids=[Configuration.guilds.main, Configuration.guilds.errors],
+        guild_ids=[1166770860787515422, 977377117895536640],
         description="Used to do ban stuff",
     )
     async def ban(self, interaction: nextcord.Interaction):

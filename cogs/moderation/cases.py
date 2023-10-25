@@ -32,7 +32,7 @@ class Cases(commands.Cog):
 
     @nextcord.slash_command(
         dm_permission=False,
-        guild_ids=[Configuration.guilds.main, Configuration.guilds.errors],
+        guild_ids=[1166770860787515422, 977377117895536640],
         description="Used to get a case",
     )
     async def cases(self, interaction: nextcord.Interaction):
@@ -330,7 +330,7 @@ class Cases(commands.Cog):
     # TODO: its own cog perhaps?
     @nextcord.slash_command(
         dm_permission=False,
-        guild_ids=[Configuration.guilds.main, Configuration.guilds.errors],
+        guild_ids=[1166770860787515422, 977377117895536640],
         description="Used to do stuff with offences",
     )
     async def offence(self, interaction: nextcord.Interaction):

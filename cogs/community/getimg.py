@@ -17,7 +17,7 @@ class GetResources(commands.Cog):
         name="Get Emojis",
         name_localizations={nextcord.Locale.de: "Emojis Holen"},
         dm_permission=False,
-        guild_ids=[Configuration.guilds.main, Configuration.guilds.errors],
+        guild_ids=[1166770860787515422, 977377117895536640],
     )
     async def get_emotes(
         self, interaction: nextcord.Interaction, message: nextcord.Message
@@ -80,7 +80,7 @@ class GetResources(commands.Cog):
 
     @nextcord.slash_command(
         dm_permission=False,
-        guild_ids=[Configuration.guilds.main, Configuration.guilds.errors],
+        guild_ids=[1166770860787515422, 977377117895536640],
         description="Fetches all image resources of the server and sends them in a ZIP-File",
     )
     async def get_server_resources(self, interaction: nextcord.Interaction):
