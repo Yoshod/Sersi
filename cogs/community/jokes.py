@@ -328,6 +328,18 @@ class Jokes(commands.Cog):
                         f"PLACEHOLDER TEXT WUFF RESPONSE {message.author.mention}"
                     )
 
+            case "awoo":
+                if chance(10):
+                    await message.channel.send(
+                        f"PLACEHOLDER TEXT AWOO RESPONSE {message.author.mention}"
+                    )
+
+            case "grr":
+                if chance(10):
+                    await message.channel.send(
+                        f"PLACEHOLDER TEXT GRR RESPONSE {message.author.mention}"
+                    )
+
         # don't know what to do with this -mel
         """if message.author.is_on_mobile():
             randomValue = random.randint(1, 100000)
