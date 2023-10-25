@@ -98,6 +98,7 @@ class Roles(commands.Cog):
         interests_dropdown = Select(
             options=interests_options,
             placeholder="Interests",
+            custom_id="interests-selection",
         )
 
         button_view = View(auto_defer=False)
@@ -220,7 +221,10 @@ class Roles(commands.Cog):
         ]
 
         colour_dropdown = Select(
-            options=colour_options, placeholder="Colours", max_values=1
+            options=colour_options,
+            placeholder="Colours",
+            max_values=1,
+            custom_id="colour-selection",
         )
 
         button_view = View(auto_defer=False)
@@ -257,7 +261,11 @@ class Roles(commands.Cog):
             ),
         ]
 
-        ping_dropdown = Select(options=ping_options, placeholder="Notification Roles")
+        ping_dropdown = Select(
+            options=ping_options,
+            placeholder="Notification Roles",
+            custom_id="ping-selection",
+        )
 
         button_view = View(auto_defer=False)
         button_view.add_item(ping_dropdown)
@@ -310,7 +318,10 @@ class Roles(commands.Cog):
         ]
 
         pronoun_dropdown = Select(
-            options=pronoun_options, placeholder="Pronouns", max_values=1
+            options=pronoun_options,
+            placeholder="Pronouns",
+            max_values=1,
+            custom_id="pronoun-selection",
         )
 
         button_view = View(auto_defer=False)
@@ -348,7 +359,9 @@ class Roles(commands.Cog):
         ]
 
         terms_dropdown = Select(
-            options=terms_options, placeholder="Gendered Terms Roles"
+            options=terms_options,
+            placeholder="Gendered Terms Roles",
+            custom_id="gendered-terms-selection",
         )
 
         button_view = View(auto_defer=False)
