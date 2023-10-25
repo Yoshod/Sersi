@@ -131,7 +131,7 @@
   - Warning
   - Emergency Ban
   severity: 4
-- detail: This is when a user pretends to be a staff member on Adam Something Central.
+- detail: This is when a user pretends to be a staff member on European Urbanism.
     They may either be impersonating a specific staff member, or just pretending to
     have permissions they do not have.
   offence: Impersonating Server Staff

@@ -122,8 +122,8 @@ class Probation(commands.Cog):
                 await interaction.followup.send(embed=log_embed)
 
             dm_embed = SersiEmbed(
-                title="Adam Something Central Probation",
-                description="Your behaviour on Adam Something Central has resulted in being put into probation by a "
+                title="European Urbanism Probation",
+                description="Your behaviour on European Urbanism has resulted in being put into probation by a "
                 "moderator, continued rule breaking may result in a ban",
                 colour=nextcord.Colour.brand_red(),
                 fields={"Reason specified by moderator:": reason},
@@ -246,8 +246,8 @@ class Probation(commands.Cog):
                 await interaction.followup.send(embed=log_embed)
 
             dm_embed = SersiEmbed(
-                title="Adam Something Central Probation Over",
-                description="You were removed from probation on Adam Something Central",
+                title="European Urbanism Probation Over",
+                description="You were removed from probation on European Urbanism",
                 colour=nextcord.Colour.brand_red(),
                 fields={"Reason specified by moderator:": reason},
             )

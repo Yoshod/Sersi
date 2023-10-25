@@ -16,7 +16,7 @@ class Suggestions(commands.Cog):
     @nextcord.slash_command(
         dm_permission=False,
         guild_ids=[1166770860787515422, 977377117895536640],
-        description="Make a suggestion on Adam Something Central",
+        description="Make a suggestion on European Urbanism",
     )
     async def suggest(
         self,
