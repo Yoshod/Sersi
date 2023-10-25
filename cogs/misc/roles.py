@@ -358,6 +358,84 @@ class Roles(commands.Cog):
             if time_passed.days > 3:
                 await message.author.remove_roles(newbie_role)
 
+    @commands.Cog.listener()
+    async def on_interaction(self, interaction: nextcord.Interaction):
+        try:
+            dropdown_value = interaction.data["values"][0]
+        except KeyError:
+            return
+
+        print(dropdown_value)
+
+        match dropdown_value:
+            case ["gaming"]:
+                print("identified case")
+                print(self.config.opt_in_roles)
+                await interaction.user.add_roles(
+                    self.config.opt_in_roles["gaming"],
+                    reason="Sersi role self assignment",
+                )
+                print("role given")
+
+            case ["tech"]:
+                await interaction.user.add_roles(
+                    self.config.opt_in_roles["tech_compsci"],
+                    reason="Sersi role self assignment",
+                )
+
+            case ["food"]:
+                await interaction.user.add_roles(
+                    self.config.opt_in_roles["food_and_drink"],
+                    reason="Sersi role self assignment",
+                )
+
+            case ["history"]:
+                await interaction.user.add_roles(
+                    self.config.opt_in_roles["history"],
+                    reason="Sersi role self assignment",
+                )
+
+            case ["art"]:
+                await interaction.user.add_roles(
+                    self.config.opt_in_roles["art"],
+                    reason="Sersi role self assignment",
+                )
+            case ["anime"]:
+                await interaction.user.add_roles(
+                    self.config.opt_in_roles["anime"],
+                    reason="Sersi role self assignment",
+                )
+
+            case ["furry"]:
+                await interaction.user.add_roles(
+                    self.config.opt_in_roles["furry"],
+                    reason="Sersi role self assignment",
+                )
+
+            case ["models"]:
+                await interaction.user.add_roles(
+                    self.config.opt_in_roles["models"],
+                    reason="Sersi role self assignment",
+                )
+
+            case ["shillposting"]:
+                await interaction.user.add_roles(
+                    self.config.opt_in_roles["shillposting"],
+                    reason="Sersi role self assignment",
+                )
+
+            case ["photo"]:
+                await interaction.user.add_roles(
+                    self.config.opt_in_roles["photography"],
+                    reason="Sersi role self assignment",
+                )
+
+            case ["enviro"]:
+                await interaction.user.add_roles(
+                    self.config.opt_in_roles["environment"],
+                    reason="Sersi role self assignment",
+                )
+
 
 def setup(bot, **kwargs):
     bot.add_cog(Roles(bot, kwargs["config"]))
