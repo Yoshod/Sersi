@@ -59,7 +59,7 @@ class Case(_Base):
     offence = Column(String, ForeignKey("offences.offence"))
 
     created = Column(DateTime, default=datetime.utcnow)
-    modified = Column(DateTime, default=datetime.utcnow)
+    modified = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     __mapper_args__ = {"polymorphic_on": type}
 
@@ -73,7 +73,6 @@ class Case(_Base):
         super().__setattr__(__name, __value)
         session: Session = Session.object_session(self)
         if session and old_value != __value:
-            self.modified = datetime.utcnow()
             session.add(
                 CaseAudit(
                     id=random_id(),
@@ -82,7 +81,6 @@ class Case(_Base):
                     old_value=old_value,
                     new_value=__value,
                     author=session.owner_id,
-                    timestamp=self.modified,
                 )
             )
 

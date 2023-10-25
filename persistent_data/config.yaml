@@ -74,6 +74,7 @@ channels:
     dark_mod_review:         1141029001125691534
     senior_mod_review:       1141029068372983849
     moderator_review:        1141029132852019241
+    moderation_votes:                          0
 
 ignored_categories:
     - Important stuff
@@ -144,3 +145,11 @@ invites:
 guilds:
     main:   856262303795380224
     errors: 977377117895536640
+
+voting:
+    reform-free:
+        name: Reformation successful
+        action: reformation_release
+    reform-fail:
+        name: Reformation failed
+        action: reformation_ban

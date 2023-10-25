@@ -74,6 +74,7 @@ channels:
     dark_mod_review: 1147602489017892944
     senior_mod_review: 1147602514154377247
     moderator_review: 1147602548971278407
+    moderation_votes: 0
 
 ignored_categories:
     - alerts
@@ -144,3 +145,11 @@ punishment roles:
     ancap:                    1023986097002385408
     problem_child:            1023986949918314609
     role_lock:                1023986154393059429
+
+voting:
+    reform-fail:
+        name: Reformation successful
+        action: reformation_release
+    reform-ban:
+        name: Reformation failed
+        action: reformation_ban

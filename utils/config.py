@@ -53,6 +53,7 @@ class ConfigurationChannels(YAMLWizard):
     dark_mod_review: int
     senior_mod_review: int
     moderator_review: int
+    moderation_votes: int
 
     # debugging channels
     errors: int
@@ -160,6 +161,19 @@ class ConfigurationGuilds(YAMLWizard):
     errors: int
 
 
+@dataclass
+class VoteType:
+    name: str
+    action: str
+
+    duration: int = 72
+    threshold: int = 3
+    difference: int = 1
+
+    comment_required: bool = True
+    end_on_threshold: bool = True
+
+
 @dataclass(frozen=True)
 class Configuration(YAMLWizard):
     datafiles: ConfigurationDatafiles
@@ -174,3 +188,4 @@ class Configuration(YAMLWizard):
     emotes: ConfigurationEmotes
     invites: ConfigurationInvites
     guilds: ConfigurationGuilds
+    voting: dict[str, VoteType]

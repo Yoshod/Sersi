@@ -1,6 +1,7 @@
 import io
 
 import nextcord
+from nextcord.ext import commands
 from chat_exporter import export
 
 
@@ -24,3 +25,10 @@ async def make_transcript(
         await to_channel.send(file=transcript_file, embed=embed)
     
     return transcript
+
+
+async def get_message_from_url(bot: commands.Bot, url: str):
+    *_, guild_id, channel_id, message_id = url.split("/")
+    guild = bot.get_guild(int(guild_id))
+    channel = guild.get_channel(int(channel_id))
+    return await channel.fetch_message(int(message_id))

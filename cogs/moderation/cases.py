@@ -120,8 +120,8 @@ class Cases(commands.Cog):
         case_id: str = nextcord.SlashOption(
             name="case_id",
             description="Case ID",
-            min_length=22,
-            max_length=22,
+            # min_length=22,
+            # max_length=22,
         ),
         scrubbed: bool = nextcord.SlashOption(
             name="scrubbed",
@@ -148,8 +148,8 @@ class Cases(commands.Cog):
         case_id: str = nextcord.SlashOption(
             name="case_id",
             description="Case ID",
-            min_length=22,
-            max_length=22,
+            # min_length=22,
+            # max_length=22,
         ),
     ):
         if not await permcheck(interaction, is_mod):
@@ -191,8 +191,8 @@ class Cases(commands.Cog):
         case_id: str = nextcord.SlashOption(
             name="case_id",
             description="Case ID",
-            min_length=22,
-            max_length=22,
+            # min_length=22,
+            # max_length=22,
         ),
         reason: str = nextcord.SlashOption(
             name="reason",
@@ -263,8 +263,8 @@ class Cases(commands.Cog):
         case_id: str = nextcord.SlashOption(
             name="case_id",
             description="Case ID",
-            min_length=22,
-            max_length=22,
+            # min_length=22,
+            # max_length=22,
         ),
         reason: str = nextcord.SlashOption(
             name="reason",
