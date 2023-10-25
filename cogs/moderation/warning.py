@@ -24,7 +24,7 @@ class WarningSystem(commands.Cog):
 
     @nextcord.slash_command(
         dm_permission=False,
-        guild_ids=[977377117895536640, 856262303795380224],
+        guild_ids=[1166770860787515422, 977377117895536640],
         description="Used to do warn stuff",
     )
     async def warn(self, interaction: nextcord.Interaction):
@@ -172,8 +172,9 @@ class WarningSystem(commands.Cog):
         await interaction.response.defer(ephemeral=False)
 
         with db_session(interaction.user) as session:
-            case: WarningCase =\
+            case: WarningCase = (
                 session.query(WarningCase).filter(WarningCase.id == case_id).first()
+            )
 
             if not case:
                 await interaction.followup.send(

@@ -71,7 +71,6 @@ class MemberRoles(commands.Cog):
 
     @commands.Cog.listener()
     async def on_guild_role_update(self, before: nextcord.Role, after: nextcord.Role):
-
         log: nextcord.AuditLogEntry = (
             await after.guild.audit_logs(
                 action=nextcord.AuditLogAction.role_update, limit=1

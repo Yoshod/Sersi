@@ -93,7 +93,7 @@ class BanSystem(commands.Cog):
 
     @nextcord.slash_command(
         dm_permission=False,
-        guild_ids=[977377117895536640, 856262303795380224],
+        guild_ids=[1166770860787515422, 977377117895536640],
         description="Used to do ban stuff",
     )
     async def ban(self, interaction: nextcord.Interaction):
@@ -121,10 +121,18 @@ class BanSystem(commands.Cog):
             name="type",
             description="The type of ban",
             choices={
-                "Non-Urgent Ban": "non urgent",
-                "Urgent Ban": "urgent",
-                "Emergency Ban": "emergency",
+                "Vote Ban": "urgent",
+                "Immediate Ban": "emergency",
             },
+        ),
+        timeout: bool = nextcord.SlashOption(
+            name="timeout",
+            description="Should the user be timed out?",
+            choices={
+                "Yes": True,
+                "No": False,
+            },
+            required=False,
         ),
     ):
         if not await permcheck(interaction, is_mod):
@@ -133,8 +141,15 @@ class BanSystem(commands.Cog):
         if not await permcheck(interaction, is_full_mod) and ban_type == "emergency":
             return
 
-        if ban_type == "emergency":
+        if ban_type == "emergency" and timeout:
+            await interaction.response.send_message(
+                f"{self.config.emotes.fail} You cannot do an Immediate Ban with a Timeout",
+                ephemeral=True,
+            )
+
+        elif ban_type == "emergency":
             await interaction.response.defer()
+
         else:
             await interaction.response.defer(ephemeral=True)
 
@@ -184,67 +199,35 @@ class BanSystem(commands.Cog):
             type=ban_type,
         )
 
+        with db_session(interaction.user) as session:
+            session.add(sersi_case)
+            session.commit()
+
         match ban_type:
-            case "non urgent":
-                vote_embed = SersiEmbed(
-                    title=f"Non-Urgent Ban Vote: **{offender.name}** ({offender.id})",
-                    description=f"A Moderator has requested a Non-Urgent Ban Vote be held for {offender.mention}. As this is a Non-Urgent Ban Vote the user has not been timedout or banned and can still participate in {interaction.guild.name}. The user has **not** been informed of this. Please review the details below carefuly in order to make an accurate decision.",
-                    fields={
-                        "Moderator": interaction.user.mention,
-                        "Offender": offender.mention,
-                        "Offence": offence,
-                        "Offence Details": detail,
-                    },
-                )
-
-                alert_channel: nextcord.TextChannel = interaction.guild.get_channel(
-                    self.config.channels.alert
-                )
-
-                vote_message = nextcord.Message = await alert_channel.send(
-                    embed=vote_embed
-                )
-
-                approve = Button(
-                    label="Approve",
-                    style=nextcord.ButtonStyle.grey,
-                    custom_id=f"non-urgent-ban-approve:{vote_message.id}",
-                )
-
-                object = Button(
-                    label="Object",
-                    style=nextcord.ButtonStyle.grey,
-                    custom_id=f"non-urgent-ban-object:{vote_message.id}",
-                )
-
-                override = Button(
-                    label="Admin Override",
-                    style=nextcord.ButtonStyle.red,
-                    custom_id=f"non-urgent-ban-override:{vote_message.id}",
-                )
-
-                button_view = View(timeout=10800)
-                button_view.add_item(approve)
-                button_view.add_item(object)
-                button_view.add_item(override)
-
-                vote_message.edit(embed=vote_embed, view=button_view)
-
-                await interaction.followup.send(
-                    f"{self.config.emotes.success} The Non-Urgent Ban Vote has been created and can be voted on in {alert_channel.mention}. The unique identifier for this case is `{sersi_case.id}`."
-                )
-
             case "urgent":
-                vote_embed = SersiEmbed(
-                    title=f"Urgent Ban Vote: **{offender.name}** ({offender.id})",
-                    description=f"A Moderator has requested an Urgent Ban Vote be held for {offender.mention}. As this is an Urgent Ban Vote the user has been timedout and cannot participate in {interaction.guild.name}. The user has been informed they are timed out, but not why. Please review the details below carefuly in order to make an accurate decision.",
-                    fields={
-                        "Moderator": interaction.user.mention,
-                        "Offender": offender.mention,
-                        "Offence": offence,
-                        "Offence Details": detail,
-                    },
-                )
+                if timeout:
+                    vote_embed = SersiEmbed(
+                        title=f"Ban Vote: **{offender.name}** ({offender.id})",
+                        description=f"A Moderator has requested an Ban Vote be held for {offender.mention}. The moderator has decided that the user has should be timedout and cannot participate in {interaction.guild.name}. The user has been informed they are timed out, but not why. Please review the details below carefuly in order to make an accurate decision.",
+                        fields={
+                            "Moderator": interaction.user.mention,
+                            "Offender": offender.mention,
+                            "Offence": offence,
+                            "Offence Details": detail,
+                        },
+                    )
+
+                else:
+                    vote_embed = SersiEmbed(
+                        title=f"Ban Vote: **{offender.name}** ({offender.id})",
+                        description=f"A Moderator has requested an Urgent Ban Vote be held for {offender.mention}. The moderator has decided that the user should not be timedout and can still participate in {interaction.guild.name}. Please review the details below carefuly in order to make an accurate decision.",
+                        fields={
+                            "Moderator": interaction.user.mention,
+                            "Offender": offender.mention,
+                            "Offence": offence,
+                            "Offence Details": detail,
+                        },
+                    )
 
                 alert_channel: nextcord.TextChannel = interaction.guild.get_channel(
                     self.config.channels.alert
@@ -281,7 +264,7 @@ class BanSystem(commands.Cog):
                 vote_message.edit(embed=vote_embed, view=button_view)
 
                 await interaction.followup.send(
-                    f"{self.config.emotes.success} The Urgent Ban Vote has been created and can be voted on in {alert_channel.mention}. The unique identifier for this case is `{sersi_case.id}`."
+                    f"{self.config.emotes.success} The Ban Vote has been created and can be voted on in {alert_channel.mention}. The unique identifier for this case is `{sersi_case.id}`."
                 )
 
             case "emergency":
@@ -328,7 +311,7 @@ class BanSystem(commands.Cog):
         await interaction.response.defer(True)
 
         match btn_id.split(":", 1):
-            case ["non-urgent-ban-approve", uuid]:
+            case ["urgent-ban-approve", uuid]:
                 for field in interaction.message.embeds[0].fields:
                     if field.value.splitlines()[0] == interaction.user.mention:
                         await interaction.followup.send(
@@ -422,7 +405,7 @@ class BanSystem(commands.Cog):
                         "Your vote has been recorded as 'Approve'."
                     )
 
-            case ["non-urgent-ban-object", uuid]:
+            case ["urgent-ban-object", uuid]:
                 for field in interaction.message.embeds[0].fields:
                     if field.value.splitlines()[0] == interaction.user.mention:
                         await interaction.followup.send(
@@ -476,6 +459,8 @@ class BanSystem(commands.Cog):
                     interaction=interaction,
                 )
 
+                BanCase
+
                 await interaction.guild.get_channel(self.config.channels.mod_logs).send(
                     embed=logging_embed
                 )
@@ -495,6 +480,7 @@ class BanSystem(commands.Cog):
                             "DM Sent:": self.config.emotes.fail
                             if not_sent
                             else self.config.emotes.success,
+                            "Sent for Review:": self.config.emotes.success,
                         },
                         footer="Sersi Ban",
                     ),

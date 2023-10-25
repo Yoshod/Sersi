@@ -18,7 +18,7 @@ class Purge(commands.Cog):
 
     @nextcord.slash_command(
         dm_permission=False,
-        guild_ids=[977377117895536640, 856262303795380224],
+        guild_ids=[1166770860787515422, 977377117895536640],
         name="purge",
     )
     async def purge(self, interaction: nextcord.Interaction):
@@ -162,7 +162,7 @@ class Purge(commands.Cog):
     @nextcord.message_command(
         name="Purge After This Message",
         dm_permission=False,
-        guild_ids=[977377117895536640, 856262303795380224],
+        guild_ids=[1166770860787515422, 977377117895536640],
     )
     async def until(self, interaction: nextcord.Interaction, message: nextcord.Message):
         if not await permcheck(interaction, is_mod):

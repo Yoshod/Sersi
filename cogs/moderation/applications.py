@@ -208,7 +208,7 @@ class Applications(commands.Cog):
 
         test_embed = SersiEmbed(
             title="Moderator Application",
-            description="Press the button below to apply to become a moderator on Adam Something Central.",
+            description="Press the button below to apply to become a moderator on European Urbanism.",
         )
         open_modal = Button(
             custom_id="mod-application-start",
@@ -232,9 +232,9 @@ class Applications(commands.Cog):
         info_embed = SersiEmbed(
             title="Staff Application Information",
             description="Staff applications are open all year round! If you wish to be a moderator, member of CET, "
-            "or anything else on Adam Something Central, here are somethings to be aware of:",
+            "or anything else on European Urbanism, here are somethings to be aware of:",
             fields={
-                "Server Membership": "We want all of our staff to be members of the Adam Something Central community. "
+                "Server Membership": "We want all of our staff to be members of the European Urbanism community. "
                 "This means if you have been here for less than two months we will not be able "
                 "to consider you.",
                 "Moderation History": "Whilst having a moderation history on the server does not automatically "
@@ -277,7 +277,7 @@ class Applications(commands.Cog):
 
     @nextcord.slash_command(
         dm_permission=False,
-        guild_ids=[977377117895536640, 856262303795380224],
+        guild_ids=[1166770860787515422, 977377117895536640],
         description="Used to invite a user to apply to become a moderator",
     )
     async def moderator_invite(
@@ -293,7 +293,7 @@ class Applications(commands.Cog):
         test_embed = SersiEmbed(
             title="Moderator Invite",
             description=""
-            "Hey there! You've received this DM because a Moderator on Adam Something Central thinks "
+            "Hey there! You've received this DM because a Moderator on European Urbanism thinks "
             "you'd be a great fit on our moderation team.\n\n"
             "If this interests you then all you have to do is press the Open Form button below and "
             "submit an application. If you're not interested in the role then that's okay too. "
@@ -350,7 +350,7 @@ class Applications(commands.Cog):
                     advance_embed = nextcord.Embed(
                         title="Your Moderator Application",
                         description="Your moderator application has been advanced to the next steps. Please create a "
-                        "Senior Moderator Ticket on Adam Something Central.",
+                        "Senior Moderator Ticket on European Urbanism.",
                         colour=nextcord.Color.from_rgb(237, 91, 6),
                     )
                     await user.send(embed=advance_embed)
@@ -420,7 +420,7 @@ class Applications(commands.Cog):
                     advance_embed = nextcord.Embed(
                         title="Your Community Engagement Application",
                         description="Your community engagement application has been advanced to the next steps. "
-                        "Please contact the Community Engagement Team Lead on Adam Something Central.",
+                        "Please contact the Community Engagement Team Lead on European Urbanism.",
                         colour=nextcord.Color.from_rgb(237, 91, 6),
                     )
                     await user.send(embed=advance_embed)

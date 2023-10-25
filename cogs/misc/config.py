@@ -42,7 +42,8 @@ class Config(commands.Cog):
         await self.bot.change_presence(activity=nextcord.Game(self.config.bot.status))
 
     @nextcord.slash_command(
-        dm_permission=False, guild_ids=[977377117895536640, 856262303795380224]
+        dm_permission=False,
+        guild_ids=[1166770860787515422, 977377117895536640],
     )
     async def config(
         self,
@@ -71,7 +72,6 @@ class Config(commands.Cog):
                 )
 
                 for field in config[config_section]:
-
                     if "channels" in config_section.lower():
                         channel: nextcord.abc.GuildChannel = (
                             interaction.guild.get_channel(config[config_section][field])
@@ -168,7 +168,6 @@ class Config(commands.Cog):
             )
 
         else:
-
             await interaction.send(
                 embed=nextcord.Embed(
                     title="Setting not found.",

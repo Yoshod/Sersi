@@ -249,7 +249,7 @@ async def about(ctx: commands.Context):
     """Display basic information about the bot."""
     embed = SersiEmbed(
         title="About Sersi",
-        description="Sersi is the custom moderation help bot for Adam Something Central.",
+        description="Sersi is the custom moderation help bot for European Urbanism.",
         fields={
             "Version": config.bot.version,
             "Authors:": "\n".join(config.bot.authors),
@@ -292,14 +292,13 @@ async def on_ready():
 
 @bot.event
 async def on_message(message: nextcord.Message):
-
     if message.author == bot.user:  # ignores message if message is this bot
         return
 
     elif bot in message.mentions:
         channel = message.channel
         await channel.send(
-            f"Hey there {message.author.mention} I am Serversicherheit, or Sersi for short! My role is to help keep Adam Something Central a safe and enjoyable space."
+            f"Hey there {message.author.mention} I am Serversicherheit, or Sersi for short! My role is to help keep European Urbanism a safe and enjoyable space."
         )
 
     await bot.process_commands(message)

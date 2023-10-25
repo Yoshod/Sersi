@@ -167,7 +167,7 @@ class AdultAccess(commands.Cog):
 
     @nextcord.slash_command(
         dm_permission=False,
-        guild_ids=[977377117895536640, 856262303795380224],
+        guild_ids=[1166770860787515422, 977377117895536640],
         description="Used to bypass verification to the adult only channels",
     )
     async def adult_bypass(
@@ -217,7 +217,7 @@ class AdultAccess(commands.Cog):
 
     @nextcord.slash_command(
         dm_permission=False,
-        guild_ids=[977377117895536640, 856262303795380224],
+        guild_ids=[1166770860787515422, 977377117895536640],
         description="Used to revoke a user's access to the adult channels",
     )
     async def adult_revoke(
@@ -279,7 +279,7 @@ class AdultAccess(commands.Cog):
 
     @nextcord.slash_command(
         dm_permission=False,
-        guild_ids=[977377117895536640, 856262303795380224],
+        guild_ids=[1166770860787515422, 977377117895536640],
         description="Used to verify a user as an adult",
     )
     async def adult_verify(
@@ -450,7 +450,7 @@ class AdultAccess(commands.Cog):
                             "Mega Administrator ticket. You will be required to submit an image which "
                             "comprises of the following:\n"
                             "Paper which has your discord name and discriminator written on it\n"
-                            "Adam Something Central written on it\n"
+                            "European Urbanism written on it\n"
                             "The date in DD.MM.YYYY format\n"
                             "A photo ID placed on the paper. **Blank out everything except the date of birth. We do "
                             "not want or need to see anything other than the date of birth.** Ensure all four corners "
@@ -497,7 +497,7 @@ class AdultAccess(commands.Cog):
                         "Administrator ticket. You will be required to submit an image which comprises of "
                         "the following:\n"
                         "Paper which has your discord name and discriminator written on it\n"
-                        "Adam Something Central written on it\n"
+                        "European Urbanism written on it\n"
                         "The date in DD.MM.YYYY format\n"
                         "A photo ID placed on the paper. **Blank out everything except the date of birth. We do "
                         "not want or need to see anything other than the date of birth.** Ensure all four "

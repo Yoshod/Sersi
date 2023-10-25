@@ -23,7 +23,6 @@ class DropdownMenu(nextcord.ui.Select):
         self.max_values = max_values
 
     async def callback(self, interaction: nextcord.Interaction) -> None:
-
         self.state[interaction.user.id] = self.values
 
         result_embed: nextcord.Embed = interaction.message.embeds[0]
@@ -36,7 +35,6 @@ class DropdownMenu(nextcord.ui.Select):
 
         eval_bar_width: int = 20
         for option in self.choices:
-
             percentage: float = all_votes.count(option) / len(all_votes)
             bar_filled: int = round(percentage * eval_bar_width)
 
@@ -55,7 +53,8 @@ class Choose(commands.Cog):
         self.empty: str = "░"
 
     @nextcord.slash_command(
-        dm_permission=False, guild_ids=[977377117895536640, 856262303795380224]
+        dm_permission=False,
+        guild_ids=[1166770860787515422, 977377117895536640],
     )
     async def poll(self, interaction: nextcord.Interaction):
         pass
@@ -79,7 +78,6 @@ class Choose(commands.Cog):
         option9: str = nextcord.SlashOption(required=False),
         option10: str = nextcord.SlashOption(required=False),
     ):
-
         await interaction.response.defer()
 
         options: list[str | None] = [

@@ -26,7 +26,7 @@ class SlurCommands(nextcord.ext.commands.Cog):
 
     @nextcord.slash_command(
         dm_permission=False,
-        guild_ids=[977377117895536640, 856262303795380224],
+        guild_ids=[1166770860787515422, 977377117895536640],
     )
     async def slur_detection(self, interaction: nextcord.Interaction):
         pass
@@ -142,11 +142,9 @@ class SlurCommands(nextcord.ext.commands.Cog):
         await interaction.followup.send(f"Goodword to be added: {word}")
 
         with db_session() as session:
-            session.add(Goodword(
-                goodword=word,
-                slur=related_slur,
-                added_by=interaction.user.id
-            ))
+            session.add(
+                Goodword(goodword=word, slur=related_slur, added_by=interaction.user.id)
+            )
             session.commit()
 
         load_goodwords()
@@ -302,7 +300,7 @@ class SlurCommands(nextcord.ext.commands.Cog):
         """List currently detected slurs."""
         if not await permcheck(interaction, is_mod):
             return
-        
+
         await interaction.response.defer(ephemeral=False)
 
         embed = SersiEmbed(title="List of currently detected slurs")
@@ -330,7 +328,7 @@ class SlurCommands(nextcord.ext.commands.Cog):
         """List currently whitelisted goodwords."""
         if not await permcheck(interaction, is_mod):
             return
-        
+
         await interaction.response.defer(ephemeral=False)
 
         embed = SersiEmbed(

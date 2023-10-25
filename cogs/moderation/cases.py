@@ -16,7 +16,7 @@ from utils.sersi_embed import SersiEmbed
 
 
 class Cases(commands.Cog):
-    punishment_choices={
+    punishment_choices = {
         "Informal Warning": "Informal Warning",
         "Warning": "Warning",
         "Reformation": "Reformation Centre",
@@ -32,7 +32,7 @@ class Cases(commands.Cog):
 
     @nextcord.slash_command(
         dm_permission=False,
-        guild_ids=[977377117895536640, 856262303795380224],
+        guild_ids=[1166770860787515422, 977377117895536640],
         description="Used to get a case",
     )
     async def cases(self, interaction: nextcord.Interaction):
@@ -139,7 +139,6 @@ class Cases(commands.Cog):
         await interaction.followup.send(
             embed=create_case_embed(sersi_case, interaction, self.config)
         )
-    
 
     @cases.subcommand(description="Get audit logs for a case")
     async def audit(
@@ -183,7 +182,6 @@ class Cases(commands.Cog):
 
         await view.send_followup(interaction)
 
-
     @cases.subcommand(description="Used to scrub a Sersi Case")
     async def scrub(
         self,
@@ -214,19 +212,17 @@ class Cases(commands.Cog):
                     f"{self.config.emotes.fail} Case {case_id} does not exist."
                 )
                 return
-            
+
             if case.scrubbed:
                 await interaction.followup.send(
                     f"{self.config.emotes.fail} Case {case_id} has already been scrubbed."
                 )
                 return
-            
+
             case.scrubbed = True
             session.add(
                 ScrubbedCase(
-                    case_id=case_id,
-                    scrubber=interaction.user.id,
-                    reason=reason
+                    case_id=case_id, scrubber=interaction.user.id, reason=reason
                 )
             )
             session.commit()
@@ -245,16 +241,13 @@ class Cases(commands.Cog):
 
         logging_embed.set_thumbnail(interaction.user.display_avatar.url)
 
-        logging_channel = interaction.guild.get_channel(
-            self.config.channels.logging
-        )
+        logging_channel = interaction.guild.get_channel(self.config.channels.logging)
 
         await logging_channel.send(embed=logging_embed)
 
         await interaction.followup.send(
             f"{self.config.emotes.success} Case {case_id} successfully scrubbed."
         )
-
 
     @cases.subcommand(description="Used to delete a scrubbed Sersi Case")
     async def delete(
@@ -337,7 +330,7 @@ class Cases(commands.Cog):
     # TODO: its own cog perhaps?
     @nextcord.slash_command(
         dm_permission=False,
-        guild_ids=[977377117895536640, 856262303795380224],
+        guild_ids=[1166770860787515422, 977377117895536640],
         description="Used to do stuff with offences",
     )
     async def offence(self, interaction: nextcord.Interaction):

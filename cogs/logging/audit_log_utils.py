@@ -11,7 +11,8 @@ class AuditLogs(commands.Cog):
         self.config = config
 
     @nextcord.slash_command(
-        dm_permission=False, guild_ids=[977377117895536640, 856262303795380224]
+        dm_permission=False,
+        guild_ids=[1166770860787515422, 977377117895536640],
     )
     async def get_audit_logs(self, interaction: nextcord.Interaction):
         if not permcheck(interaction, is_sersi_contributor):

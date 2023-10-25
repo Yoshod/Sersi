@@ -31,7 +31,7 @@ class Database(commands.Cog):
 
     @nextcord.slash_command(
         dm_permission=False,
-        guild_ids=[977377117895536640, 856262303795380224],
+        guild_ids=[1166770860787515422, 977377117895536640],
         description="Used to create the Sersi Database",
     )
     async def database(self, interaction):
@@ -64,10 +64,12 @@ class Database(commands.Cog):
         with db_session(interaction.user) as session:
             for category in categories:
                 for subcategory in category["subcategories"]:
-                    session.merge(TicketCategory(
-                        category=category["category"],
-                        subcategory=subcategory,
-                    ))
+                    session.merge(
+                        TicketCategory(
+                            category=category["category"],
+                            subcategory=subcategory,
+                        )
+                    )
 
         await interaction.followup.send(f"{self.config.emotes.success} Complete")
 
@@ -84,12 +86,14 @@ class Database(commands.Cog):
             offences = yaml.safe_load(f)
         with db_session(interaction.user) as session:
             for offence in offences:
-                session.merge(Offence(
-                    offence=offence["offence"],
-                    detail=offence["detail"],
-                    warn_severity=offence["severity"],
-                    punishments="|".join(offence["punishments"]),
-                ))
+                session.merge(
+                    Offence(
+                        offence=offence["offence"],
+                        detail=offence["detail"],
+                        warn_severity=offence["severity"],
+                        punishments="|".join(offence["punishments"]),
+                    )
+                )
             session.commit()
 
         await interaction.followup.send(f"{self.config.emotes.success} Complete")
@@ -127,15 +131,17 @@ class Database(commands.Cog):
                                 report_url,
                                 offender_id,
                                 moderator_id,
-                                timestamp
+                                timestamp,
                             ) = details_list[1:]
-                            session.add(BadFaithPingCase(
-                                id=case_id[0:10],
-                                report_url=report_url,
-                                offender=offender_id,
-                                moderator=moderator_id,
-                                created=datetime.fromtimestamp(timestamp),
-                            ))
+                            session.add(
+                                BadFaithPingCase(
+                                    id=case_id[0:10],
+                                    report_url=report_url,
+                                    offender=offender_id,
+                                    moderator=moderator_id,
+                                    created=datetime.fromtimestamp(timestamp),
+                                )
+                            )
                         elif case_type == "Probation":
                             (
                                 offender_id,
@@ -144,20 +150,24 @@ class Database(commands.Cog):
                                 reason,
                                 timestamp,
                             ) = details_list[1:]
-                            session.add(ProbationCase(
-                                id=case_id[0:10],
-                                offender=offender_id,
-                                moderator=primary_moderator_id,
-                                reason=reason,
-                                created=datetime.fromtimestamp(timestamp),
-                            ))
-                            if (secondary_moderator_id):
-                                session.add(CaseApproval(
-                                    case_id=case_id[0:10],
-                                    action="Add",
-                                    approval_type="Dual Custody",
-                                    approver=secondary_moderator_id,
-                                ))
+                            session.add(
+                                ProbationCase(
+                                    id=case_id[0:10],
+                                    offender=offender_id,
+                                    moderator=primary_moderator_id,
+                                    reason=reason,
+                                    created=datetime.fromtimestamp(timestamp),
+                                )
+                            )
+                            if secondary_moderator_id:
+                                session.add(
+                                    CaseApproval(
+                                        case_id=case_id[0:10],
+                                        action="Add",
+                                        approval_type="Dual Custody",
+                                        approver=secondary_moderator_id,
+                                    )
+                                )
                         elif case_type == "Reformation":
                             (
                                 case_number,
@@ -167,15 +177,17 @@ class Database(commands.Cog):
                                 reason,
                                 timestamp,
                             ) = details_list[1:]
-                            session.add(ReformationCase(
-                                id=case_id[0:10],
-                                case_number=case_number,
-                                offender=offender_id,
-                                moderator=moderator_id,
-                                cell_channel=channel_id,
-                                details=reason,
-                                created=datetime.fromtimestamp(timestamp),
-                            ))
+                            session.add(
+                                ReformationCase(
+                                    id=case_id[0:10],
+                                    case_number=case_number,
+                                    offender=offender_id,
+                                    moderator=moderator_id,
+                                    cell_channel=channel_id,
+                                    details=reason,
+                                    created=datetime.fromtimestamp(timestamp),
+                                )
+                            )
                         elif case_type == "Slur Usage":
                             (
                                 slur_used,
@@ -184,19 +196,21 @@ class Database(commands.Cog):
                                 moderator_id,
                                 timestamp,
                             ) = details_list[1:]
-                            session.add(SlurUsageCase(
-                                id=case_id[0:10],
-                                slur_used=slur_used,
-                                report_url=report_url,
-                                offender=offender_id,
-                                moderator=moderator_id,
-                                created=datetime.fromtimestamp(timestamp),
-                            ))
+                            session.add(
+                                SlurUsageCase(
+                                    id=case_id[0:10],
+                                    slur_used=slur_used,
+                                    report_url=report_url,
+                                    offender=offender_id,
+                                    moderator=moderator_id,
+                                    created=datetime.fromtimestamp(timestamp),
+                                )
+                            )
 
             session.commit()
 
         await interaction.followup.send(f"{self.config.emotes.success} Complete")
-    
+
     @database.subcommand(
         description="Used to migrate the slur detection stuff",
     )
@@ -208,17 +222,19 @@ class Database(commands.Cog):
 
         with open(self.config.datafiles.slurfile, "r") as f:
             slur_list = [slur.replace("\n", "") for slur in f]
-        
+
         with open(self.config.datafiles.goodwordfile, "r") as f:
             goodword_list = [goodword.replace("\n", "") for goodword in f]
 
         with db_session() as session:
             for slur in slur_list:
-                session.merge(Slur(
-                    slur=slur,
-                    added_by=interaction.user.id,
-                ))
-            
+                session.merge(
+                    Slur(
+                        slur=slur,
+                        added_by=interaction.user.id,
+                    )
+                )
+
             for goodword in goodword_list:
                 matched_slur = None
                 for slur in slur_list:
@@ -227,15 +243,19 @@ class Database(commands.Cog):
                             matched_slur = slur
                             break
 
-                session.merge(Goodword(
-                    goodword=goodword,
-                    slur=matched_slur,
-                    added_by=interaction.user.id,
-                ))
+                session.merge(
+                    Goodword(
+                        goodword=goodword,
+                        slur=matched_slur,
+                        added_by=interaction.user.id,
+                    )
+                )
 
             session.commit()
 
-        await interaction.followup.send(f"{self.config.emotes.success} Complete, imported {len(slur_list)} slurs and {len(goodword_list)} goodwords")
+        await interaction.followup.send(
+            f"{self.config.emotes.success} Complete, imported {len(slur_list)} slurs and {len(goodword_list)} goodwords"
+        )
 
     @database.subcommand(
         description="Used to drop a table from the Sersi Database",

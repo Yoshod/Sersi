@@ -42,12 +42,9 @@ class ConfigurationChannels(YAMLWizard):
     logging: int
     false_positives: int
     mod_logs: int
-    ban_appeals: int
     dm_forward: int
     mod_applications: int
     cet_applications: int
-    internalfeedback: int
-    timeoutappeals: int
     ageverification: int
     compliance_review: int
     dark_mod_review: int
@@ -59,10 +56,7 @@ class ConfigurationChannels(YAMLWizard):
     errors: int
 
     # user sided channels
-    secret: int
     photography: int
-    youtube: int
-    video_discussion: int
 
     # reformation related channels
     reformation_info: int
@@ -75,7 +69,6 @@ class ConfigurationChannels(YAMLWizard):
     admin_ticket_logs: int
     senior_ticket_logs: int
     mod_ticket_logs: int
-    verification_ticket_logs: int
     deleted_messages: int
     role_logs: int
     deleted_messages: int
@@ -121,7 +114,6 @@ class ConfigurationPermissionRoles(YAMLWizard):
 
     staff: int
     reformist: int
-    ticket_support: int
     sersi_contributor: int
     cet: int
     cet_lead: int
@@ -143,15 +135,6 @@ class ConfigurationEmotes(YAMLWizard):
     fail: str
 
     inherit: str
-
-
-@dataclass
-class ConfigurationInvites(YAMLWizard):
-    # The reinvite for people unbanned from ASC
-    adam_something_ban_reinvite: str
-
-    # The invite link to the ban appealing server.
-    ban_appeal_server: str
 
 
 @dataclass
@@ -186,6 +169,5 @@ class Configuration(YAMLWizard):
     permission_roles: ConfigurationPermissionRoles
     punishment_roles: dict[str, int]
     emotes: ConfigurationEmotes
-    invites: ConfigurationInvites
     guilds: ConfigurationGuilds
     voting: dict[str, VoteType]

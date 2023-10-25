@@ -20,7 +20,7 @@ class Reformation(commands.Cog):
 
     @nextcord.slash_command(
         dm_permission=False,
-        guild_ids=[977377117895536640, 856262303795380224],
+        guild_ids=[1166770860787515422, 977377117895536640],
     )
     async def reformation(self, interaction: nextcord.Interaction):
         pass
@@ -189,7 +189,7 @@ class Reformation(commands.Cog):
             return embed
 
         await execute(self.bot, self.config, interaction)
-    
+
     @reformation_needed.on_autocomplete("offence")
     async def offence_by_name(self, interaction: nextcord.Interaction, string: str):
         if not await permcheck(interaction, is_mod):
@@ -402,9 +402,11 @@ class Reformation(commands.Cog):
 
             # close case
             with db_session(interaction.user) as session:
-                case: ReformationCase = session.query(ReformationCase).filter_by(
-                    offender=member.id, state="open"
-                ).first()
+                case: ReformationCase = (
+                    session.query(ReformationCase)
+                    .filter_by(offender=member.id, state="open")
+                    .first()
+                )
                 case.state = "released"
                 session.commit()
 
@@ -442,7 +444,7 @@ class Reformation(commands.Cog):
             if transcript is None:
                 await channel.send(embed=embed)
                 await channel.send(f"{self.sersifail} Failed to Generate Transcript!")
-            
+
             await cell_channel.delete()
 
             return embed
@@ -466,12 +468,14 @@ class Reformation(commands.Cog):
 
                     # close case
                     with db_session() as session:
-                        case: ReformationCase = session.query(ReformationCase).filter_by(
-                            offender=member.id, state="open"
-                        ).first()
+                        case: ReformationCase = (
+                            session.query(ReformationCase)
+                            .filter_by(offender=member.id, state="open")
+                            .first()
+                        )
                         case.state = "failed"
                         session.commit()
-                    
+
                     # transcript
                     channel = member.guild.get_channel(
                         self.config.channels.teachers_lounge
@@ -484,7 +488,7 @@ class Reformation(commands.Cog):
                         await channel.send(
                             f"{self.sersifail} Failed to Generate Transcript!"
                         )
-                    
+
                     await cell_channel.delete()
 
                     return
@@ -505,9 +509,11 @@ class Reformation(commands.Cog):
 
             # close case
             with db_session() as session:
-                case: ReformationCase = session.query(ReformationCase).filter_by(
-                    offender=member.id, state="open"
-                ).first()
+                case: ReformationCase = (
+                    session.query(ReformationCase)
+                    .filter_by(offender=member.id, state="open")
+                    .first()
+                )
                 case.state = "failed"
                 
                 session.add(
@@ -521,20 +527,16 @@ class Reformation(commands.Cog):
                     )
                 )
                 session.commit()
-            
+
             # transcript
-            channel = member.guild.get_channel(
-                self.config.channels.teachers_lounge
-            )
+            channel = member.guild.get_channel(self.config.channels.teachers_lounge)
             cell_channel = member.guild.get_channel(case.cell_channel)
 
             transcript = await make_transcript(cell_channel, channel, embed)
             if transcript is None:
                 await channel.send(embed=embed)
-                await channel.send(
-                    f"{self.sersifail} Failed to Generate Transcript!"
-                )
-            
+                await channel.send(f"{self.sersifail} Failed to Generate Transcript!")
+
             await cell_channel.delete()
     
     @commands.Cog.listener()
