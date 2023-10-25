@@ -113,7 +113,6 @@ class ConfigurationPermissionRoles(YAMLWizard):
 
     staff: int
     reformist: int
-    ticket_support: int
     sersi_contributor: int
     cet: int
     cet_lead: int
