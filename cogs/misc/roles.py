@@ -21,11 +21,6 @@ class Roles(commands.Cog):
 
         await ctx.message.delete()
 
-        interests_embed = SersiEmbed(
-            title="Channel Opt-Ins",
-            description="Select extra channels you wish to opt-in to seeing.",
-        )
-
         interests_options = [
             nextcord.SelectOption(
                 label="Gaming",
@@ -101,17 +96,7 @@ class Roles(commands.Cog):
             custom_id="interests-selection",
         )
 
-        button_view = View(auto_defer=False)
-        button_view.add_item(interests_dropdown)
-
-        await ctx.send(embed=interests_embed, view=button_view)
-
         # Colour Roles
-        colours_embed = SersiEmbed(
-            title="Colour Roles",
-            description="Select the colour you wish your username to show.",
-        )
-
         colour_options = [
             nextcord.SelectOption(
                 label="Light Red",
@@ -227,17 +212,7 @@ class Roles(commands.Cog):
             custom_id="colour-selection",
         )
 
-        button_view = View(auto_defer=False)
-        button_view.add_item(colour_dropdown)
-
-        await ctx.send(embed=colours_embed, view=button_view)
-
         # Ping Roles
-        ping_embed = SersiEmbed(
-            title="Notification Roles",
-            description="Select the pingable roles you want.",
-        )
-
         ping_options = [
             nextcord.SelectOption(
                 label="Server Updates",
@@ -265,17 +240,6 @@ class Roles(commands.Cog):
             options=ping_options,
             placeholder="Notification Roles",
             custom_id="ping-selection",
-        )
-
-        button_view = View(auto_defer=False)
-        button_view.add_item(ping_dropdown)
-
-        await ctx.send(embed=ping_embed, view=button_view)
-
-        # Pronoun Roles
-        pronouns_embed = SersiEmbed(
-            title="Pronoun Roles",
-            description="Select the pronouns which apply to you.",
         )
 
         pronoun_options = [
@@ -324,15 +288,10 @@ class Roles(commands.Cog):
             custom_id="pronoun-selection",
         )
 
-        button_view = View(auto_defer=False)
-        button_view.add_item(pronoun_dropdown)
-
-        await ctx.send(embed=pronouns_embed, view=button_view)
-
         # Gendered Terms Roles
-        gendered_terms_embed = SersiEmbed(
-            title="Gendered Terms Roles",
-            description="Select the gendered terms you are comfortable or not comfortable with.",
+        opt_in_embed = SersiEmbed(
+            title="Pick Your Roles",
+            description="You can pick a variety of roles to suit your needs!",
         )
 
         terms_options = [
@@ -365,9 +324,13 @@ class Roles(commands.Cog):
         )
 
         button_view = View(auto_defer=False)
+        button_view.add_item(interests_dropdown)
+        button_view.add_item(colour_dropdown)
+        button_view.add_item(ping_dropdown)
+        button_view.add_item(pronoun_dropdown)
         button_view.add_item(terms_dropdown)
 
-        await ctx.send(embed=gendered_terms_embed, view=button_view)
+        await ctx.send(embed=opt_in_embed, view=button_view)
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
