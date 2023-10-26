@@ -197,7 +197,7 @@ class BanSystem(commands.Cog):
             moderator=interaction.user.id,
             offence=offence,
             details=detail,
-            type=ban_type,
+            ban_type=ban_type,
         )
 
         with db_session(interaction.user) as session:
