@@ -509,5 +509,5 @@ class AdultAccess(commands.Cog):
                     await user.send(embed=referred_embed)
 
 
-def setup(bot, **kwargs):
+def setup(bot: commands.Bot, **kwargs):
     bot.add_cog(AdultAccess(bot, kwargs["config"]))

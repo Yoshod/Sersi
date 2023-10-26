@@ -24,5 +24,5 @@ class AuditLogs(commands.Cog):
         await interaction.send(message, ephemeral=True)
 
 
-def setup(bot, **kwargs):
+def setup(bot: commands.Bot, **kwargs):
     bot.add_cog(AuditLogs(bot, kwargs["config"]))

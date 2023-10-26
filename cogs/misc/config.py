@@ -186,5 +186,5 @@ class Config(commands.Cog):
         await interaction.followup.send(f"{self.config.emotes.success} Bot reloaded.")
 
 
-def setup(bot, **kwargs):
+def setup(bot: commands.Bot, **kwargs):
     bot.add_cog(Config(bot, kwargs["config"], kwargs["data_folder"]))

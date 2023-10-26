@@ -45,5 +45,5 @@ class Antitamper(commands.Cog):
             )
 
 
-def setup(bot, **kwargs):
+def setup(bot: commands.Bot, **kwargs):
     bot.add_cog(Antitamper(bot, kwargs["config"]))

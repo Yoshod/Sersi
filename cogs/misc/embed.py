@@ -161,5 +161,5 @@ class Embeds(commands.Cog):
         )
 
 
-def setup(bot, **kwargs):
+def setup(bot: commands.Bot, **kwargs):
     bot.add_cog(Embeds(bot, kwargs["config"]))

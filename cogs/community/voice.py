@@ -144,5 +144,5 @@ class Voice(commands.Cog):
                 requests.post(url, headers=headers, json=json)
 
 
-def setup(bot, **kwargs):
+def setup(bot: commands.Bot, **kwargs):
     bot.add_cog(Voice(bot, kwargs["config"]))

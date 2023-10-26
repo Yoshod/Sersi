@@ -322,5 +322,5 @@ class TimeoutSystem(commands.Cog):
         await interaction.response.send_autocomplete(sorted(offences))
 
 
-def setup(bot, **kwargs):
+def setup(bot: commands.Bot, **kwargs):
     bot.add_cog(TimeoutSystem(bot, kwargs["config"]))

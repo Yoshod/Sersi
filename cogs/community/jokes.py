@@ -352,5 +352,5 @@ class Jokes(commands.Cog):
                 await message.reply("Phone user detected, opinion rejected")"""
 
 
-def setup(bot, **kwargs):
+def setup(bot: commands.Bot, **kwargs):
     bot.add_cog(Jokes(bot, kwargs["config"]))

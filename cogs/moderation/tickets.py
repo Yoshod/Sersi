@@ -48,5 +48,5 @@ class TicketingSystem(commands.Cog):
             return
 
 
-def setup(bot, **kwargs):
+def setup(bot: commands.Bot, **kwargs):
     bot.add_cog(TicketingSystem(bot, kwargs["config"]))

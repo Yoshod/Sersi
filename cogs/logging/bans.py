@@ -51,5 +51,5 @@ class BanUnban(commands.Cog):
         )
 
 
-def setup(bot, **kwargs):
+def setup(bot: commands.Bot, **kwargs):
     bot.add_cog(BanUnban(bot, kwargs["config"]))

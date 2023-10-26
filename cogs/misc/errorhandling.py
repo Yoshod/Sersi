@@ -66,5 +66,5 @@ class ErrorHandling(commands.Cog):
         self.error_guild = self.bot.get_guild(self.config.guilds.errors)
 
 
-def setup(bot, **kwargs):
+def setup(bot: commands.Bot, **kwargs):
     bot.add_cog(ErrorHandling(bot, kwargs["config"]))

@@ -1,13 +1,14 @@
 import asyncio
 import datetime
 
-import nextcord.ext.commands
+import nextcord
+from nextcord.ext import commands
 
 from utils.base import get_discord_timestamp
 from utils.config import Configuration
 
 
-class Timer(nextcord.ext.commands.Cog):
+class Timer(commands.Cog):
     def __init__(self, bot, config: Configuration):
         self.bot = bot
         self.config = config
@@ -33,5 +34,5 @@ class Timer(nextcord.ext.commands.Cog):
         await message.delete()
 
 
-def setup(bot, **kwargs):
+def setup(bot: commands.Bot, **kwargs):
     bot.add_cog(Timer(bot, kwargs["config"]))

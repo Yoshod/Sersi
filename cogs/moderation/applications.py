@@ -329,7 +329,7 @@ class Applications(commands.Cog):
             )
 
     @commands.Cog.listener()
-    async def on_interaction(self, interaction):
+    async def on_interaction(self, interaction: nextcord.Interaction):
         try:
             btn_id = interaction.data["custom_id"]
         except KeyError:
@@ -477,5 +477,5 @@ class Applications(commands.Cog):
                 await interaction.response.send_modal(CetAppModal(self.config))
 
 
-def setup(bot, **kwargs):
+def setup(bot: commands.Bot, **kwargs):
     bot.add_cog(Applications(bot, kwargs["config"]))
