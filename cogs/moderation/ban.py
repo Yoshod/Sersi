@@ -11,6 +11,7 @@ from utils.cases import (
 )
 from utils.config import Configuration
 from utils.database import db_session, BanCase
+from utils.objection import AlertView
 from utils.offences import fetch_offences_by_partial_name, offence_validity_check
 from utils.perms import (
     is_full_mod,
@@ -339,8 +340,6 @@ class BanSystem(commands.Cog):
                         if field.name == "Voted Yes:":
                             yes_men.append(field.value)
 
-                    yes_list = "\n• ".join(yes_men)
-
                     sersi_case = get_case_by_id(self.config, uuid, False)
 
                     offender: nextcord.Member = interaction.guild.get_member(
@@ -430,9 +429,9 @@ class BanSystem(commands.Cog):
                 )
 
             case ["ban-confirm", uuid]:
-                sersi_case = get_case_by_id(self.config, uuid, False)
+                sersi_case: BanCase = get_case_by_id(self.config, uuid, False)
                 offender: nextcord.Member = interaction.guild.get_member(
-                    sersi_case["Offender ID"]
+                    sersi_case.offender
                 )
 
                 try:
@@ -443,8 +442,8 @@ class BanSystem(commands.Cog):
                             "below. If you would like to appeal your ban you can do so:\n"
                             "https://appeals.wickbot.com",
                             fields={
-                                "Offence:": f"`{sersi_case['Offence']}`",
-                                "Detail:": f"`{sersi_case['Details']}`",
+                                "Offence:": f"`{sersi_case.offence}`",
+                                "Detail:": f"`{sersi_case.details}`",
                             },
                             footer="Sersi Ban",
                         ).set_thumbnail(interaction.guild.icon.url)
@@ -459,8 +458,6 @@ class BanSystem(commands.Cog):
                     interaction=interaction,
                 )
 
-                BanCase
-
                 await interaction.guild.get_channel(self.config.channels.mod_logs).send(
                     embed=logging_embed
                 )
@@ -468,14 +465,14 @@ class BanSystem(commands.Cog):
                     embed=logging_embed
                 )
 
-                await offender.ban(reason=f"Sersi Ban {sersi_case['Details']}")
+                await offender.ban(reason=f"Sersi Ban {sersi_case.details}")
 
-                await interaction.followup.send(
+                result: nextcord.WebhookMessage = await interaction.followup.send(
                     embed=SersiEmbed(
                         title="Ban Result:",
                         fields={
-                            "Offence:": f"`{sersi_case['Offence']}`",
-                            "Detail:": f"`{sersi_case['Details']}`",
+                            "Offence:": f"`{sersi_case.offence}`",
+                            "Detail:": f"`{sersi_case.details}`",
                             "Member:": f"{offender.mention} ({offender.id})",
                             "DM Sent:": self.config.emotes.fail
                             if not_sent
@@ -486,3 +483,34 @@ class BanSystem(commands.Cog):
                     ),
                     wait=True,
                 )
+
+                (
+                    reviewer_role,
+                    reviewed_role,
+                    review_embed,
+                    review_channel,
+                ) = create_alert(
+                    interaction.user,
+                    self.config,
+                    logging_embed,
+                    sersi_case.__dict__,
+                    result.jump_url,
+                )
+
+                await review_channel.send(
+                    f"{reviewer_role.mention} a ban by a {reviewed_role.mention} has been taken and should now be reviewed.",
+                    embed=review_embed,
+                    view=AlertView(self.config, reviewer_role),
+                )
+
+    @add.on_autocomplete("offence")
+    async def search_offences(self, interaction: nextcord.Interaction, offence: str):
+        if not is_mod(interaction.user):
+            await interaction.response.send_autocomplete([])
+
+        offences: list[str] = fetch_offences_by_partial_name(offence)
+        await interaction.response.send_autocomplete(sorted(offences))
+
+
+def setup(bot: commands.Bot, **kwargs):
+    bot.add_cog(BanSystem(bot, kwargs["config"]))
