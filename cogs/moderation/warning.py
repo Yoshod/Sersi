@@ -156,7 +156,7 @@ class WarningSystem(commands.Cog):
         case_id: str = nextcord.SlashOption(
             name="case_id",
             description="The Case ID of the warn you want to deactivate",
-            min_length=22,
+            min_length=11,
             max_length=22,
         ),
         reason: str = nextcord.SlashOption(
@@ -229,7 +229,7 @@ class WarningSystem(commands.Cog):
         case_id: str = nextcord.SlashOption(
             name="case_id",
             description="Case ID",
-            min_length=22,
+            min_length=11,
             max_length=22,
         ),
         reason: str = nextcord.SlashOption(
