@@ -1,9 +1,9 @@
 import nextcord
 from nextcord.ext import commands
 
-from baseutils import ConfirmView, DualCustodyView
-from configutils import Configuration
-from permutils import permcheck, is_staff, is_senior_mod, is_mod
+from utils.base import ConfirmView, DualCustodyView
+from utils.config import Configuration
+from utils.perms import permcheck, is_staff, is_senior_mod
 
 
 class Moderators(commands.Cog):
