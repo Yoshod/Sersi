@@ -325,13 +325,13 @@ class Jokes(commands.Cog):
             case "wuff":
                 if chance(10):
                     await message.channel.send(
-                        f"PLACEHOLDER TEXT WUFF RESPONSE {message.author.mention}"
+                        f"Feeling particularly wild right now, are you {message.author.mention}?"
                     )
 
             case "awoo":
                 if chance(10):
                     await message.channel.send(
-                        f"PLACEHOLDER TEXT AWOO RESPONSE {message.author.mention}"
+                        f'{message.author.mention} is a degenerate furry. How do I know? They just said "awoo".'
                     )
 
             case "grr":

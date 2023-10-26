@@ -139,8 +139,8 @@ emotes:
     inherit: "<:sersiinherit:1098338822166683668>"
 
 invites:
-    adam_something_ban_reinvite: "https://discord.gg/F6vMRTbuFk"
-    ban_appeal_server:           "https://discord.gg/dGpvCbrBRA"
+    ban_reinvite:       "https://discord.gg/F6vMRTbuFk"
+    ban_appeal_server:  "https://discord.gg/dGpvCbrBRA"
 
 guilds:
     main:   856262303795380224

@@ -124,8 +124,6 @@ class ModPing(commands.Cog):
         if ignored_message(self.config, message):
             return
 
-        adam_something = message.guild.get_member(809891646606409779)
-
         if modmention_check(self.config, message.content):
             # Reply to user
             response_embed: nextcord.Embed = SersiEmbed(
@@ -175,48 +173,6 @@ class ModPing(commands.Cog):
 
             await asyncio.sleep(10800)  # 3 hours
             updated_message = await alert.channel.fetch_message(alert.id)
-            # If there are less than 5 fields that means there is no field for response
-            if len(updated_message.embeds[0].fields) < 5:
-                await alert.reply(
-                    content=f"<@&{self.config.permission_roles.moderator}> This alert has not had a recorded response."
-                )
-
-        elif (
-            adam_something is not None
-            and adam_something.mentioned_in(message)
-            and not message.mention_everyone
-            and message.type is not nextcord.MessageType.reply
-        ):  # adam something ping
-            channel = self.bot.get_channel(self.config.channels.alert)
-            alert_embed: nextcord.Embed = SersiEmbed(
-                title="Adam Something Ping",
-                description="Some pleb just thought they were good enough to ping our benevolent server owner, "
-                "Adam Something.",
-                fields={
-                    "Channel:": message.channel.mention,
-                    "User:": message.author.mention,
-                    "Context:": message.content,
-                    "URL:": message.jump_url,
-                },
-                footer="Sersi Moderator Ping Detection",
-            )
-
-            action_taken = Button(label="Action Taken")
-            action_taken.callback = self.cb_action_taken
-
-            action_not_necessary = Button(label="Action Not Necessary")
-            action_not_necessary.callback = self.cb_action_not_necessary
-
-            button_view = View(timeout=None)
-            button_view.add_item(action_taken)
-            button_view.add_item(action_not_necessary)
-            button_view.interaction_check = cb_is_mod
-
-            alert = await channel.send(embed=alert_embed, view=button_view)
-
-            await asyncio.sleep(10800)  # 3 hours
-            updated_message = await alert.channel.fetch_message(alert.id)
-
             # If there are less than 5 fields that means there is no field for response
             if len(updated_message.embeds[0].fields) < 5:
                 await alert.reply(

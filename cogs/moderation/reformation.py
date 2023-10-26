@@ -231,7 +231,7 @@ class Reformation(commands.Cog):
         embedVar = SersiEmbed(
             title=f"Reformation Query: **{member.name}** ({member.id})",
             description=f"Reformation Inmate {member.name} was deemed well enough to start a query about their "
-            f"release\nQuery started by {interaction.user.mention} ({interaction.user.id})\n\nYes Votes: 0",
+            f"release\nQuery started by {interaction.user.mention} ({interaction.user.id})",
             color=nextcord.Color.from_rgb(237, 91, 6),
             footer=f"{member.id}",
             fields={
@@ -306,7 +306,7 @@ class Reformation(commands.Cog):
             title=f"Reformation Failed Query: **{member.name}** ({member.id})",
             description=f"Reformation Inmate {member.name} seems to not be able to be reformed. Should the "
             f"reformation process therefore be given up and the user be banned?\nQuery"
-            f" started by {interaction.user.mention} ({interaction.user.id})\n\nYes Votes: 0",
+            f" started by {interaction.user.mention} ({interaction.user.id})",
             color=nextcord.Color.from_rgb(237, 91, 6),
             footer=f"{member.id}",
             fields={

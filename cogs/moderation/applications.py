@@ -252,7 +252,7 @@ class Applications(commands.Cog):
         await ctx.send(embed=info_embed)
 
     @commands.command()
-    async def cet_apps(self, ctx):
+    async def cet_apps(self, ctx: commands.Context):
         if not await permcheck(ctx, is_dark_mod):
             return
 
@@ -260,8 +260,7 @@ class Applications(commands.Cog):
 
         test_embed = SersiEmbed(
             title="Community Engagement Team Application",
-            description="Press the button below to apply to become a member of the Community Engagement Team on Adam "
-            "Something Central.",
+            description=f"Press the button below to apply to become a member of the Community Engagement Team on {ctx.guild.name}",
         )
         open_modal = Button(
             custom_id="cet-application-start",

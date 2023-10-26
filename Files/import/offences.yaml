@@ -64,7 +64,7 @@
   severity: 3
 - detail: This is severe gore or violence and includes depictions of severely graphic
     injuries, or death. This may also be content that is extremely violent or disturbing.
-    This does not belong on ASC.
+    This does not belong here.
   offence: Tier 3 NSFL
   punishments:
   - Warning
@@ -125,8 +125,8 @@
   punishments:
   - Priority Ban
   severity: null
-- detail: This is when a user pretends to be Adam Something.
-  offence: Impersonating Adam Something
+- detail: This is when a user pretends to be a public figure/celebrity.
+  offence: Impersonating Public Figure
   punishments:
   - Warning
   - Emergency Ban
@@ -198,7 +198,7 @@
   - Informal Warning
   - Warning
   severity: 1
-- detail: This is when a user attempts to gain access to a bot on ASC they do not
+- detail: This is when a user attempts to gain access to a bot command they do not
     have permission to access. This includes running commands they do not have permission
     to run.
   offence: Unauthorised Access
@@ -224,7 +224,7 @@
   - Informal Warning
   - Warning
   severity: 1
-- detail: This is when a user attempts to foment anger or resentment against the ASC
+- detail: This is when a user attempts to foment anger or resentment against the
     moderation team.
   offence: Riling Up
   punishments:
