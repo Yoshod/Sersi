@@ -19,6 +19,7 @@ from utils.database import (
     TimeoutCase,
     WarningCase,
     ScrubbedCase,
+    PeerReview,
 )
 
 
@@ -135,6 +136,18 @@ def create_case_embed(
                         "Deactivate Reason": f"{case.deactivate_reason}",
                     }
                 )
+
+    with db_session() as session:
+        review = session.query(PeerReview).filter_by(case_id=case.id).first()
+
+        if review and review.review_outcome is None:
+            fields.append({"Review Status": config.emotes.inherit})
+
+        elif review and review.review_outcome == "Approve":
+            fields.append({"Review Status": config.emotes.success})
+
+        elif review and review.review_outcome == "None":
+            fields.append({"Review Status": config.emotes.fail})
 
     if case.scrubbed:
         with db_session() as session:

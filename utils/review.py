@@ -1,6 +1,7 @@
 import nextcord
 
 from utils.config import Configuration
+from utils.database import db_session, PeerReview
 
 
 def highest_mod_role(moderator: nextcord.Member, config: Configuration):
@@ -31,6 +32,18 @@ def determine_reviewer(moderator: nextcord.Member, config: Configuration):
     return review_relations[mod_role]
 
 
+def create_database_entry(sersi_case: dict, moderator: nextcord.User):
+    with db_session(moderator.id) as session:
+        review_case = PeerReview(
+            case_id=sersi_case["id"],
+            reviewer=None,
+            review_outcome=None,
+            review_comment=None,
+        )
+        session.add(review_case)
+        session.commit()
+
+
 def create_alert(
     moderator: nextcord.Member,
     config: Configuration,
@@ -39,6 +52,8 @@ def create_alert(
     url: str,
 ):
     reviewer = determine_reviewer(moderator, config)
+
+    create_database_entry(case, moderator)
 
     match reviewer:
         case config.permission_roles.compliance:
