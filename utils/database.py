@@ -102,8 +102,8 @@ class CaseAudit(_Base):
     case_id = Column(String, ForeignKey("cases.id", ondelete="CASCADE"), nullable=False)
 
     field = Column(String, nullable=False)
-    old_value = Column(String, nullable=False)
-    new_value = Column(String, nullable=False)
+    old_value = Column(String)
+    new_value = Column(String)
 
     author = Column(Integer)
     timestamp = Column(DateTime, default=datetime.utcnow)
