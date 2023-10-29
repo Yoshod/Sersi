@@ -493,6 +493,28 @@ class BanSystem(commands.Cog):
                     view=AlertView(self.config, reviewer_role, sersi_case),
                 )
 
+            case ["ban-no", uuid]:
+                sersi_case: BanCase = get_case_by_id(uuid)
+                offender: nextcord.Member = interaction.guild.get_member(
+                    sersi_case.offender
+                )
+
+                with db_session(interaction.user) as session:
+                    case: BanCase = session.query(BanCase).filter_by(id=uuid).first()
+                    session.delete(case)
+
+                    result: nextcord.WebhookMessage = await interaction.message.edit(
+                        embed=SersiEmbed(
+                            title="Ban Cancelled:",
+                            description=f"{self.config.emotes.success} Ban has been cancelled!",
+                            footer="Sersi Ban",
+                        ),
+                    )
+
+                    await interaction.message.edit(view=None)
+
+                    session.commit()
+
     @add.on_autocomplete("offence")
     async def search_offences(self, interaction: nextcord.Interaction, offence: str):
         if not is_mod(interaction.user):
