@@ -136,9 +136,15 @@ class Cases(commands.Cog):
 
         sersi_case = get_case_by_id(case_id)
 
-        await interaction.followup.send(
-            embed=create_case_embed(sersi_case, interaction, self.config)
-        )
+        if not sersi_case:
+            await interaction.followup.send(
+                f"{self.config.emotes.fail} `{case_id}` does not exist!"
+            )
+
+        else:
+            await interaction.followup.send(
+                embed=create_case_embed(sersi_case, interaction, self.config)
+            )
 
     @cases.subcommand(description="Get audit logs for a case")
     async def audit(
