@@ -17,7 +17,6 @@ from utils.perms import (
     is_full_mod,
     permcheck,
     is_mod,
-    is_dark_mod,
     is_immune,
     target_eligibility,
     cb_is_mod,
@@ -252,16 +251,9 @@ class BanSystem(commands.Cog):
                     custom_id=f"urgent-ban-object:{sersi_case.id}",
                 )
 
-                override = Button(
-                    label="Admin Override",
-                    style=nextcord.ButtonStyle.red,
-                    custom_id=f"urgent-ban-override:{sersi_case.id}",
-                )
-
                 button_view = View(timeout=10800)
                 button_view.add_item(approve)
                 button_view.add_item(object)
-                button_view.add_item(override)
                 button_view.interaction_check = cb_is_mod
 
                 vote_message.edit(embed=vote_embed, view=button_view)
