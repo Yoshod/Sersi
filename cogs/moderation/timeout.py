@@ -276,9 +276,11 @@ class TimeoutSystem(commands.Cog):
     async def remove(
         self,
         interaction: nextcord.Interaction,
-        offender: nextcord.Member = nextcord.SlashOption(
-            name="offender",
-            description="The person you wish to end the timeout for.",
+        case_id: str = nextcord.SlashOption(
+            name="case_id",
+            description="The Case ID of the timeout you want to end early",
+            min_length=11,
+            max_length=22,
         ),
         reason: str = nextcord.SlashOption(
             name="reason",
@@ -292,11 +294,68 @@ class TimeoutSystem(commands.Cog):
 
         await interaction.response.defer(ephemeral=False)
 
-        ...
-        ...
-        ...
+        with db_session(interaction.user) as session:
+            case: TimeoutCase = (
+                session.query(TimeoutCase).filter(TimeoutCase.id == case_id).first()
+            )
+
+            if not case:
+                await interaction.followup.send(
+                    f"{self.config.emotes.fail} {case_id} is not a valid timeout case."
+                )
+
+            active = case.planned_end > datetime.datetime.utcnow()
+            if case.actual_end is not None:
+                active = False
+
+            if not active:
+                await interaction.followup.send(
+                    f"{self.config.emotes.fail} {case_id} has already ended."
+                )
+                return
+
+            case.actual_end = datetime.datetime.utcnow()
+            case.removal_reason = reason
+            case.removed_by = interaction.user.id
+            session.commit()
+
+            case: TimeoutCase = (
+                session.query(TimeoutCase).filter(TimeoutCase.id == case_id).first()
+            )
+
+        offender = interaction.guild.get_member(case.offender)
 
         await offender.edit(timeout=None, reason=f"[{reason}] - {interaction.user}")
+
+        logging_embed = SersiEmbed(
+            title="Timeout Ended Early",
+            fields={
+                "Timeout ID:": case_id,
+                "Moderator:": f"{interaction.user.mention} ({interaction.user.id})",
+                "Reason:": reason,
+            },
+        )
+
+        try:
+            await interaction.guild.get_member(case.offender).send(
+                embed=SersiEmbed(
+                    title=f"Timeout Ended in {interaction.guild.name}",
+                    description=f"Your timeout in {interaction.guild.name} has been ended early.",
+                )
+            )
+        except nextcord.HTTPException:
+            pass
+
+        await interaction.guild.get_channel(self.config.channels.mod_logs).send(
+            embed=logging_embed
+        )
+        await interaction.guild.get_channel(self.config.channels.logging).send(
+            embed=logging_embed
+        )
+
+        await interaction.followup.send(
+            f"{self.config.emotes.success} Timeout {case_id} has been ended!"
+        )
 
     @add.on_autocomplete("offence")
     async def search_offences(self, interaction: nextcord.Interaction, offence: str):
