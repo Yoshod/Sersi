@@ -1,7 +1,6 @@
 import typing
 
 import nextcord
-from sqlalchemy.orm import Session
 
 from utils.base import get_page
 from utils.sersi_embed import SersiEmbed
