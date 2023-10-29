@@ -60,15 +60,15 @@ def create_case_embed(
         match review_case.review_outcome:
             case "Approved":
                 outcome = config.emotes.success
-                reviewer = review_case.reviewer
+                reviewer = interaction.guild.get_member(review_case.id).id
 
             case "Objection":
                 outcome = config.emotes.fail
-                reviewer = review_case.reviewer
+                reviewer = interaction.guild.get_member(review_case.id).id
 
             case None:
                 outcome = config.emotes.inherit
-                reviewer = review_case.reviewer
+                reviewer = interaction.guild.get_member(review_case.id).id
 
     except AttributeError:
         outcome = config.emotes.inherit
@@ -112,6 +112,12 @@ def create_case_embed(
             fields[1].update({"Report": case.report_url})
         case KickCase():
             fields.append({"Details": f"{case.details}"})
+            fields.append(
+                {
+                    "Review": outcome,
+                    "Reviewer": reviewer,
+                }
+            )
         case ProbationCase():
             fields.append({"Reason": f"{case.reason}"})
             fields.append(

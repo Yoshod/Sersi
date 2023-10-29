@@ -133,6 +133,7 @@ class WarningSystem(commands.Cog):
                     "DM Sent:": self.config.emotes.fail
                     if not_sent
                     else self.config.emotes.success,
+                    "Sent for Review:": self.config.emotes.success,
                 },
                 footer="Sersi Warning",
             ),
@@ -146,7 +147,7 @@ class WarningSystem(commands.Cog):
         await review_channel.send(
             f"{reviewer_role.mention} a warning by a {reviewed_role.mention} has been taken and should now be reviewed.",
             embed=review_embed,
-            view=AlertView(self.config, reviewer_role),
+            view=AlertView(self.config, reviewer_role, case),
         )
 
     @warn.subcommand(description="Deactivate a warn")

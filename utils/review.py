@@ -53,8 +53,6 @@ def create_alert(
 ):
     reviewer = determine_reviewer(moderator, config)
 
-    create_database_entry(case, moderator)
-
     match reviewer:
         case config.permission_roles.compliance:
             review_channel = moderator.guild.get_channel(
