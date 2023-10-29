@@ -4,6 +4,7 @@ import nextcord
 
 from utils import logs
 from utils.config import Configuration
+from utils.database import db_session, PeerReview, Case
 from utils.perms import (
     permcheck,
     is_compliance,
@@ -15,9 +16,10 @@ from utils.sersi_embed import SersiEmbed
 
 
 class ObjectionButton(nextcord.ui.Button):
-    def __init__(self, config: Configuration):
+    def __init__(self, config: Configuration, sersi_case: Case):
         super().__init__(label="Object", style=nextcord.ButtonStyle.red)
         self.config = config
+        self.sersi_case = sersi_case
 
     async def callback(self, interaction: nextcord.Interaction) -> None:
         new_embed = interaction.message.embeds[0]
@@ -30,7 +32,17 @@ class ObjectionButton(nextcord.ui.Button):
         await interaction.message.edit(embed=new_embed, view=None)
 
         # Database
-        # update_objected(new_embed.fields[0].value, self.config)
+        review_case = PeerReview(
+            case_id=self.sersi_case.id,
+            reviewer=interaction.user.id,
+            review_outcome="Objection",
+        )
+
+        with db_session(interaction.user) as session:
+            session.add(review_case)
+            session.commit()
+
+            review_case = session.query(PeerReview).filter_by(id=review_case.id).first()
 
         # Logging
         await interaction.guild.get_channel(self.config.channels.logging).send(
@@ -53,9 +65,10 @@ class ObjectionButton(nextcord.ui.Button):
 
 
 class ApprovalButton(nextcord.ui.Button):
-    def __init__(self, config: Configuration):
+    def __init__(self, config: Configuration, sersi_case: Case):
         super().__init__(label="Approve", style=nextcord.ButtonStyle.green)
         self.config = config
+        self.sersi_case = sersi_case
 
     async def callback(self, interaction: nextcord.Interaction) -> None:
         new_embed: nextcord.Embed = interaction.message.embeds[0]
@@ -67,7 +80,18 @@ class ApprovalButton(nextcord.ui.Button):
         new_embed.colour = nextcord.Colour.brand_green()
         await interaction.message.edit(embed=new_embed, view=None)
 
-        # update_approved(new_embed.fields[0].value, self.config)
+        # Database
+        review_case = PeerReview(
+            case_id=self.sersi_case.id,
+            reviewer=interaction.user.id,
+            review_outcome="Approved",
+        )
+
+        with db_session(interaction.user) as session:
+            session.add(review_case)
+            session.commit()
+
+            review_case = session.query(PeerReview).filter_by(id=review_case.id).first()
 
         # Logging
         await interaction.guild.get_channel(self.config.channels.logging).send(
@@ -90,12 +114,14 @@ class ApprovalButton(nextcord.ui.Button):
 
 
 class AlertView(nextcord.ui.View):
-    def __init__(self, config: Configuration, reviewer: nextcord.Role):
+    def __init__(
+        self, config: Configuration, reviewer: nextcord.Role, sersi_case: Case
+    ):
         super().__init__(timeout=None)
         self.config = config
         self.reviewer = reviewer
-        self.add_item(ApprovalButton(config))
-        self.add_item(ObjectionButton(config))
+        self.add_item(ApprovalButton(config, sersi_case))
+        self.add_item(ObjectionButton(config, sersi_case))
 
     async def interaction_check(self, interaction: nextcord.Interaction) -> bool:
         match self.reviewer.id:
