@@ -498,7 +498,7 @@ class BanSystem(commands.Cog):
                 await review_channel.send(
                     f"{reviewer_role.mention} a ban by a {reviewed_role.mention} has been taken and should now be reviewed.",
                     embed=review_embed,
-                    view=AlertView(self.config, reviewer_role),
+                    view=AlertView(self.config, reviewer_role, sersi_case),
                 )
 
     @add.on_autocomplete("offence")
