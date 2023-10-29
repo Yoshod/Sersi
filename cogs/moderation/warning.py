@@ -190,7 +190,12 @@ class WarningSystem(commands.Cog):
 
             case.active = False
             case.deactivate_reason = reason
+            case.deactivated_by = interaction.user.id
             session.commit()
+
+            case: WarningCase = (
+                session.query(WarningCase).filter(WarningCase.id == case_id).first()
+            )
 
         logging_embed = SersiEmbed(
             title="Warn Deactivated",
@@ -273,6 +278,8 @@ class WarningSystem(commands.Cog):
                 await interaction.followup.send(
                     f"{self.config.emotes.success} Warning {case_id} successfully deleted."
                 )
+
+                session.commit()
 
             else:
                 await interaction.guild.get_channel(self.config.channels.logging).send(
