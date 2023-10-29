@@ -262,21 +262,15 @@ class TimeoutSystem(commands.Cog):
             wait=True,
         )
 
-        print("pre create alert")
-
         reviewer_role, reviewed_role, review_embed, review_channel = create_alert(
             interaction.user, self.config, logging_embed, case, result.jump_url
         )
-
-        print("alert created")
 
         await review_channel.send(
             f"{reviewer_role.mention} a timeout by a {reviewed_role.mention} has been taken and should now be reviewed.",
             embed=review_embed,
             view=AlertView(self.config, reviewer_role, case),
         )
-
-        print("alert sent")
 
     @timeout.subcommand(description="Used to remove a user's timeout")
     async def remove(
