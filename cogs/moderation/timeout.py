@@ -5,14 +5,13 @@ import nextcord
 from nextcord.ext import commands
 from pytz import timezone
 from utils import logs
-from nextcord.ui import Button, View
 
 from utils.cases import create_case_embed, get_case_by_id
 from utils.config import Configuration
 from utils.database import db_session, TimeoutCase
+from utils.objection import AlertView
 from utils.offences import fetch_offences_by_partial_name, offence_validity_check
 from utils.perms import (
-    cb_is_compliance,
     permcheck,
     is_mod,
     is_dark_mod,
@@ -202,12 +201,14 @@ class TimeoutSystem(commands.Cog):
             offence=offence,
             details=detail,
             duration=duration,
-            planned_end=datetime.datetime.now(timezone.utc) + planned_end,
+            planned_end=datetime.datetime.utcnow() + planned_end,
         )
 
         with db_session(interaction.user) as session:
             session.add(case)
             session.commit()
+
+            case = session.query(TimeoutCase).filter_by(id=case.id).first()
 
         try:
             await offender.send(
@@ -229,7 +230,7 @@ class TimeoutSystem(commands.Cog):
         except (nextcord.Forbidden, nextcord.HTTPException):
             not_sent = True
 
-        sersi_case = get_case_by_id(self.config, case.id, False)
+        sersi_case = get_case_by_id(case)
 
         logging_embed: SersiEmbed = create_case_embed(
             sersi_case,
@@ -265,26 +266,13 @@ class TimeoutSystem(commands.Cog):
         )
 
         reviewer_role, reviewed_role, review_embed, review_channel = create_alert(
-            interaction.user, self.config, logging_embed, sersi_case, result.jump_url
+            interaction.user, self.config, logging_embed, case.__dict__, result.jump_url
         )
 
-        approve = Button(label="Approve", style=nextcord.ButtonStyle.green)
-        approve.callback = self.cb_approve
-
-        objection = Button(label="Object", style=nextcord.ButtonStyle.red)
-        objection.callback = self.cb_objection
-
-        button_view = View(timeout=None)
-        button_view.add_item(approve)
-        button_view.add_item(objection)
-
-        if reviewer_role.id == self.config.permission_roles.compliance:
-            button_view.interaction_check = cb_is_compliance
-
         await review_channel.send(
-            f"{reviewer_role.mention} a warning by a {reviewed_role.mention} has been taken and should now be reviewed.",
+            f"{reviewer_role.mention} a timeout by a {reviewed_role.mention} has been taken and should now be reviewed.",
             embed=review_embed,
-            view=button_view,
+            view=AlertView(self.config, reviewer_role, case),
         )
 
     @timeout.subcommand(description="Used to remove a user's timeout")
