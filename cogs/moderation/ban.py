@@ -483,7 +483,7 @@ class BanSystem(commands.Cog):
                     interaction.user,
                     self.config,
                     logging_embed,
-                    sersi_case.__dict__,
+                    sersi_case,
                     result.jump_url,
                 )
 

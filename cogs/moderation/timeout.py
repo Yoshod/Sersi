@@ -6,7 +6,7 @@ from nextcord.ext import commands
 from pytz import timezone
 from utils import logs
 
-from utils.cases import create_case_embed, get_case_by_id
+from utils.cases import create_case_embed
 from utils.config import Configuration
 from utils.database import db_session, TimeoutCase
 from utils.objection import AlertView
@@ -230,11 +230,8 @@ class TimeoutSystem(commands.Cog):
         except (nextcord.Forbidden, nextcord.HTTPException):
             not_sent = True
 
-        sersi_case = get_case_by_id(case)
-
         logging_embed: SersiEmbed = create_case_embed(
-            sersi_case,
-            interaction=interaction,
+            case, interaction=interaction, config=self.config
         )
 
         await interaction.guild.get_channel(self.config.channels.mod_logs).send(
@@ -265,15 +262,21 @@ class TimeoutSystem(commands.Cog):
             wait=True,
         )
 
+        print("pre create alert")
+
         reviewer_role, reviewed_role, review_embed, review_channel = create_alert(
-            interaction.user, self.config, logging_embed, case.__dict__, result.jump_url
+            interaction.user, self.config, logging_embed, case, result.jump_url
         )
+
+        print("alert created")
 
         await review_channel.send(
             f"{reviewer_role.mention} a timeout by a {reviewed_role.mention} has been taken and should now be reviewed.",
             embed=review_embed,
             view=AlertView(self.config, reviewer_role, case),
         )
+
+        print("alert sent")
 
     @timeout.subcommand(description="Used to remove a user's timeout")
     async def remove(

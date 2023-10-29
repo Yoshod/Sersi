@@ -1,6 +1,7 @@
 import typing
 
 import nextcord
+import datetime
 
 from utils.base import get_page
 from utils.sersi_embed import SersiEmbed
@@ -149,7 +150,7 @@ def create_case_embed(
             fields.append({"Slur(s)": f"{case.slur_used}"})
         case TimeoutCase():
             # determine if the case is active
-            active = case.planned_end > nextcord.utils.utcnow()
+            active = case.planned_end > datetime.datetime.utcnow()
             if case.actual_end is not None:
                 active = False
 

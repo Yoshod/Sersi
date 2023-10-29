@@ -141,7 +141,7 @@ class WarningSystem(commands.Cog):
         )
 
         reviewer_role, reviewed_role, review_embed, review_channel = create_alert(
-            interaction.user, self.config, logging_embed, case.__dict__, result.jump_url
+            interaction.user, self.config, logging_embed, case, result.jump_url
         )
 
         await review_channel.send(

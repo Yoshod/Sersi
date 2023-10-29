@@ -1,7 +1,7 @@
 import nextcord
 
 from utils.config import Configuration
-from utils.database import db_session, PeerReview
+from utils.database import db_session, PeerReview, Case
 
 
 def highest_mod_role(moderator: nextcord.Member, config: Configuration):
@@ -48,7 +48,7 @@ def create_alert(
     moderator: nextcord.Member,
     config: Configuration,
     review_embed: nextcord.Embed,
-    case: dict,
+    case: Case,
     url: str,
 ):
     reviewer = determine_reviewer(moderator, config)
@@ -88,7 +88,7 @@ def create_alert(
                 config.permission_roles.trial_moderator
             )
 
-    review_embed.title = f"{reviewed_role.name} {case['Case Type']} Case"
+    review_embed.title = f"{reviewed_role.name} {case.type} Case"
     review_embed.add_field(name="Jump URL:", value=f"[Jump!]({url})")
 
     return reviewer_role, reviewed_role, review_embed, review_channel
