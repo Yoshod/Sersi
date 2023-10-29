@@ -61,15 +61,15 @@ def create_case_embed(
         match review_case.review_outcome:
             case "Approved":
                 outcome = config.emotes.success
-                reviewer = interaction.guild.get_member(review_case.id).id
+                reviewer = f"{interaction.guild.get_member(review_case.reviewer).mention} `{interaction.guild.get_member(review_case.reviewer).id}`"
 
             case "Objection":
                 outcome = config.emotes.fail
-                reviewer = interaction.guild.get_member(review_case.id).id
+                reviewer = f"{interaction.guild.get_member(review_case.reviewer).mention} `{interaction.guild.get_member(review_case.reviewer).id}`"
 
             case None:
                 outcome = config.emotes.inherit
-                reviewer = interaction.guild.get_member(review_case.id).id
+                reviewer = f"{interaction.guild.get_member(review_case.reviewer).mention} `{interaction.guild.get_member(review_case.reviewer).id}`"
 
     except AttributeError:
         outcome = config.emotes.inherit
