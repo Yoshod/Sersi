@@ -53,34 +53,32 @@ def create_case_embed(
         },
     ]
 
+    with db_session(interaction.user) as session:
+        review_case = session.query(PeerReview).filter_by(case_id=case.id).first()
+
+    try:
+        match review_case.review_outcome:
+            case "Approved":
+                outcome = config.emotes.success
+                reviewer = review_case.reviewer
+
+            case "Objection":
+                outcome = config.emotes.fail
+                reviewer = review_case.reviewer
+
+            case None:
+                outcome = config.emotes.inherit
+                reviewer = review_case.reviewer
+
+    except AttributeError:
+        outcome = config.emotes.inherit
+        reviewer = "In Progress"
+
     match case:
         case BanCase():
             fields.append({"Details": f"{case.details}"})
 
-            if case.ban_type == "emergency":
-                with db_session(interaction.user) as session:
-                    review_case = (
-                        session.query(PeerReview).filter_by(case_id=case.id).first()
-                    )
-
-                try:
-                    match review_case.review_outcome:
-                        case "Approved":
-                            outcome = config.emotes.success
-                            reviewer = review_case.reviewer
-
-                        case "Objection":
-                            outcome = config.emotes.fail
-                            reviewer = review_case.reviewer
-
-                        case None:
-                            outcome = config.emotes.inherit
-                            reviewer = review_case.reviewer
-
-                except AttributeError:
-                    outcome = config.emotes.inherit
-                    reviewer = "In Progress"
-
+            if case.type == "emergency":
                 fields.append(
                     {
                         "Ban Type": "`Immediate`",
@@ -93,7 +91,14 @@ def create_case_embed(
                 fields.append({"Reviewer": reviewer})
 
             else:
-                pass
+                fields.append(
+                    {
+                        "Ban Type": "`Vote`",
+                        "Active": config.emotes.success
+                        if case.active
+                        else config.emotes.fail,
+                    }
+                )
 
             if case.active is False:
                 fields[-1].update(
@@ -150,6 +155,12 @@ def create_case_embed(
                     "Active": config.emotes.success if active else config.emotes.fail,
                 }
             )
+            fields.append(
+                {
+                    "Review": outcome,
+                    "Reviewer": reviewer,
+                }
+            )
             if case.actual_end is not None:
                 fields.append(
                     {
@@ -170,6 +181,12 @@ def create_case_embed(
                         "Deactivate Reason": f"{case.deactivate_reason}",
                     }
                 )
+            fields.append(
+                {
+                    "Review": outcome,
+                    "Reviewer": reviewer,
+                }
+            )
 
     with db_session() as session:
         review = session.query(PeerReview).filter_by(case_id=case.id).first()
