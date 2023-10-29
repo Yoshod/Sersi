@@ -64,15 +64,23 @@ def create_case_embed(
                         session.query(PeerReview).filter_by(case_id=case.id).first()
                     )
 
-                match review_case.review_outcome:
-                    case "Approved":
-                        outcome = config.emotes.success
+                try:
+                    match review_case.review_outcome:
+                        case "Approved":
+                            outcome = config.emotes.success
+                            reviewer = review_case.reviewer
 
-                    case "Objection":
-                        outcome = config.emotes.fail
+                        case "Objection":
+                            outcome = config.emotes.fail
+                            reviewer = review_case.reviewer
 
-                    case None:
-                        outcome = config.emotes.inherit
+                        case None:
+                            outcome = config.emotes.inherit
+                            reviewer = review_case.reviewer
+
+                except AttributeError:
+                    outcome = config.emotes.inherit
+                    reviewer = "In Progress"
 
                 fields.append(
                     {
@@ -83,11 +91,12 @@ def create_case_embed(
                         "Review": outcome,
                     }
                 )
+                fields.append({"Reviewer": reviewer})
 
             else:
                 pass
 
-            if not case.active:
+            if case.active is False:
                 fields[-1].update(
                     {
                         "Unbanned By": f"<@{case.unbanned_by}> `{case.unbanned_by}`",
