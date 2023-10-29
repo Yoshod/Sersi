@@ -371,8 +371,8 @@ class TicketAudit(_Base):
     )
 
     field = Column(String, nullable=False)
-    old_value = Column(String, nullable=False)
-    new_value = Column(String, nullable=False)
+    old_value = Column(String)
+    new_value = Column(String)
 
     author = Column(Integer)
     timestamp = Column(DateTime, default=datetime.utcnow)

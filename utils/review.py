@@ -32,18 +32,6 @@ def determine_reviewer(moderator: nextcord.Member, config: Configuration):
     return review_relations[mod_role]
 
 
-def create_database_entry(sersi_case: dict, moderator: nextcord.User):
-    with db_session(moderator.id) as session:
-        review_case = PeerReview(
-            case_id=sersi_case["id"],
-            reviewer=None,
-            review_outcome=None,
-            review_comment=None,
-        )
-        session.add(review_case)
-        session.commit()
-
-
 def create_alert(
     moderator: nextcord.Member,
     config: Configuration,

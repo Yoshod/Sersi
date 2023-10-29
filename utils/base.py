@@ -362,26 +362,6 @@ class PageView(View):
         )
 
 
-def create_unique_id(config: utils.config.Configuration):
-    conn = sqlite3.connect(config.datafiles.sersi_db)
-    cursor = conn.cursor()
-    uuid_unique = False
-    while not uuid_unique:
-        uuid = str(shortuuid.uuid())
-        cursor.execute(
-            """
-            SELECT id FROM cases WHERE id=:id
-            UNION
-            SELECT id FROM notes WHERE id=:id
-            """,
-            {"id": uuid},
-        )
-        cases = cursor.fetchone()
-        if not cases:
-            cursor.close()
-            return uuid
-
-
 def convert_mention_to_id(mention: str) -> int:
     return int(re.sub(r"\D", "", mention))
 
