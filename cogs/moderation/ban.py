@@ -654,7 +654,7 @@ class BanSystem(commands.Cog):
         await interaction.response.send_autocomplete(sorted(offences))
 
     @commands.Cog.listener()
-    async def on_reformation_ban(self, detail: VoteDetails):
+    async def on_ban_vote_pass(self, detail: VoteDetails):
         guild = self.bot.get_guild(self.config.guilds.main)
 
         # close case
@@ -670,6 +670,26 @@ class BanSystem(commands.Cog):
                 .filter_by(vote_id=detail.vote_id, vote="yes")
                 .all()
             ]
+
+            try:
+                await member.send(
+                    embed=SersiEmbed(
+                        title=f"You have been banned in {member.guild.name}!",
+                        description=f"You have been banned in {member.guild.name}. The details about the ban are "
+                        "below. If you would like to appeal your ban you can do so:\n"
+                        "https://appeals.wickbot.com",
+                        fields={
+                            "Offence:": f"`{case.offence}`",
+                            "Detail:": f"`{case.details}`",
+                        },
+                        footer="Sersi Ban",
+                    ).set_thumbnail(member.guild.icon.url)
+                )
+
+            except (nextcord.Forbidden, nextcord.HTTPException):
+                pass
+
+            await member.edit(timeout=None, reason="Ban Vote Successfull")
 
             await member.ban(reason=f"Sersi Ban {case.details}")
 
