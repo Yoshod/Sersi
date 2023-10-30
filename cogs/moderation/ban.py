@@ -10,7 +10,7 @@ from utils.cases import (
     get_case_by_id,
 )
 from utils.config import Configuration
-from utils.database import db_session, BanCase
+from utils.database import VoteRecord, db_session, BanCase, VoteDetails
 from utils.objection import AlertView
 from utils.offences import fetch_offences_by_partial_name, offence_validity_check
 from utils.perms import (
@@ -19,7 +19,6 @@ from utils.perms import (
     is_mod,
     is_immune,
     target_eligibility,
-    cb_is_mod,
     is_senior_mod,
     is_dark_mod,
     unban_eligibility,
@@ -27,6 +26,8 @@ from utils.perms import (
 from utils.sersi_embed import SersiEmbed
 from utils.review import create_alert
 from utils import logs
+from utils.voting import VoteView, vote_planned_end
+from utils.base import convert_to_timedelta
 
 
 class BanSystem(commands.Cog):
@@ -222,6 +223,28 @@ class BanSystem(commands.Cog):
                         },
                     )
 
+                    try:
+                        await offender.send(
+                            embed=SersiEmbed(
+                                title=f"You have been timed out in {interaction.guild.name}!",
+                                description=f"You have been timed out in {interaction.guild.name}.",
+                                fields={
+                                    "Duration:": "`3 Days`",
+                                },
+                                footer="Sersi Timeout",
+                            ).set_thumbnail(interaction.guild.icon.url)
+                        )
+
+                    except (nextcord.Forbidden, nextcord.HTTPException):
+                        pass
+
+                    planned_end: datetime.timedelta = convert_to_timedelta("h", 72)
+
+                    await offender.timeout(
+                        planned_end,
+                        reason=f"[{offence}: {detail}] - {interaction.user}",
+                    )
+
                 else:
                     vote_embed = SersiEmbed(
                         title=f"Ban Vote: **{offender.name}** ({offender.id})",
@@ -234,35 +257,31 @@ class BanSystem(commands.Cog):
                         },
                     )
 
-                alert_channel: nextcord.TextChannel = interaction.guild.get_channel(
-                    self.config.channels.alert
-                )
+                vote_type = self.config.voting["urgent-ban"]
+                with db_session(interaction.user) as session:
+                    vote_case = VoteDetails(
+                        case_id=sersi_case.id,
+                        vote_type="urgent-ban",
+                        vote_url=interaction.channel.mention,
+                        planned_end=vote_planned_end(vote_type),
+                        started_by=interaction.user.id,
+                    )
 
-                vote_message = nextcord.Message = await alert_channel.send(
-                    embed=vote_embed
-                )
+                    session.add(vote_case)
+                    session.commit()
 
-                approve = Button(
-                    label="Approve",
-                    style=nextcord.ButtonStyle.grey,
-                    custom_id=f"urgent-ban-approve:{sersi_case.id}",
-                )
+                    channel = self.bot.get_channel(
+                        self.config.channels.moderation_votes
+                    )
+                    vote_message = await channel.send(
+                        embed=vote_embed, view=VoteView(vote_type, vote_case)
+                    )
 
-                object = Button(
-                    label="Object",
-                    style=nextcord.ButtonStyle.grey,
-                    custom_id=f"urgent-ban-object:{sersi_case.id}",
-                )
-
-                button_view = View(timeout=10800)
-                button_view.add_item(approve)
-                button_view.add_item(object)
-                button_view.interaction_check = cb_is_mod
-
-                vote_message.edit(embed=vote_embed, view=button_view)
+                    vote_case.vote_url = vote_message.jump_url
+                    session.commit()
 
                 await interaction.followup.send(
-                    f"{self.config.emotes.success} The Ban Vote has been created and can be voted on in {alert_channel.mention}. The unique identifier for this case is `{sersi_case.id}`."
+                    f"{self.config.emotes.success} Vote Created!"
                 )
 
             case "emergency":
@@ -633,6 +652,48 @@ class BanSystem(commands.Cog):
 
         offences: list[str] = fetch_offences_by_partial_name(offence)
         await interaction.response.send_autocomplete(sorted(offences))
+
+    @commands.Cog.listener()
+    async def on_reformation_ban(self, detail: VoteDetails):
+        guild = self.bot.get_guild(self.config.guilds.main)
+
+        # close case
+        with db_session() as session:
+            case: BanCase = session.query(BanCase).get(detail.case_id)
+            case.active = True
+
+            member: nextcord.Member = guild.get_member(case.offender)
+
+            yes_voters = [
+                vote[0]
+                for vote in session.query(VoteRecord.voter)
+                .filter_by(vote_id=detail.vote_id, vote="yes")
+                .all()
+            ]
+
+            await member.ban(reason=f"Sersi Ban {case.details}")
+
+            session.commit()
+            case: BanCase = session.query(BanCase).get(detail.case_id)
+
+        # logging
+        yes_list = "\n• ".join(yes_voters)
+
+        embed = nextcord.Embed(
+            title="Vote Ban Complete",
+            description=f"{self.config.emotes.success} {member.mention} ({member.id}) has been banned."
+            f"Yes Voters: {yes_list}",
+            color=nextcord.Color.from_rgb(0, 0, 0),
+        )
+
+        channel = self.bot.get_channel(self.config.channels.alert)
+        await channel.send(embed=embed)
+
+        channel = self.bot.get_channel(self.config.channels.logging)
+        await channel.send(embed=embed)
+
+        channel = self.bot.get_channel(self.config.channels.mod_logs)
+        await channel.send(embed=embed)
 
 
 def setup(bot: commands.Bot, **kwargs):

@@ -153,3 +153,7 @@ voting:
     reform-fail:
         name: Reformation failed
         action: reformation_ban
+    urgent-ban:
+        name: Urgent Ban
+        action: ban_vote_pass
+        difference: 2
