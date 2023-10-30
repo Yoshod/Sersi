@@ -105,7 +105,7 @@ class BanSystem(commands.Cog):
         interaction: nextcord.Interaction,
         offender: nextcord.Member = nextcord.SlashOption(
             name="offender",
-            description="The person you wish to warn.",
+            description="The person you wish to ban.",
         ),
         offence: str = nextcord.SlashOption(
             name="offence",
@@ -419,6 +419,9 @@ class BanSystem(commands.Cog):
                 )
 
             case ["ban-confirm", uuid]:
+                if not await permcheck(interaction, is_full_mod):
+                    return
+
                 sersi_case: BanCase = get_case_by_id(uuid)
                 offender: nextcord.Member = interaction.guild.get_member(
                     sersi_case.offender
@@ -494,6 +497,9 @@ class BanSystem(commands.Cog):
                 )
 
             case ["ban-no", uuid]:
+                if not await permcheck(interaction, is_mod):
+                    return
+
                 sersi_case: BanCase = get_case_by_id(uuid)
                 offender: nextcord.Member = interaction.guild.get_member(
                     sersi_case.offender
