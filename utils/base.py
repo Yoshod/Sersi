@@ -8,7 +8,7 @@ import re
 import pytz
 import shortuuid
 import sqlite3
-from datetime import datetime
+import datetime
 
 # Sersi Config Imports
 import utils.config
@@ -16,7 +16,7 @@ from utils.perms import permcheck, is_dark_mod
 from utils.sersi_embed import SersiEmbed
 
 
-def get_discord_timestamp(time: datetime, *, relative: bool = False) -> str:
+def get_discord_timestamp(time: datetime.datetime, *, relative: bool = False) -> str:
     if relative:
         return f"<t:{int(time.timestamp())}:R>"
     else:
@@ -301,7 +301,9 @@ class PageView(View):
                 entry_list.append(self.entry_format(config=self.config, entry=entry))
         elif isinstance(self.entry_format, str):
             for entry in entries:
-                entry_list.append(self.entry_format.format(config=self.config, entry=entry))
+                entry_list.append(
+                    self.entry_format.format(config=self.config, entry=entry)
+                )
         else:
             raise ValueError(
                 "Invalid entry_format type. Must be a function or a string."
@@ -379,3 +381,23 @@ def ignored_message(
     if message.channel.category.name in config.ignored_categories:
         return True  # ignore specified categories
     return False
+
+
+def convert_to_timedelta(timespan: str, duration: int) -> datetime.timedelta | None:
+    match timespan:
+        case "m":
+            return datetime.timedelta(minutes=duration)
+
+        case "h":
+            if not duration > 672:
+                return datetime.timedelta(hours=duration)
+
+        case "d":
+            if not duration > 28:
+                return datetime.timedelta(days=duration)
+
+        case "w":
+            if not duration > 4:
+                return datetime.timedelta(weeks=duration)
+
+    return None

@@ -20,26 +20,7 @@ from utils.perms import (
 )
 from utils.review import create_alert
 from utils.sersi_embed import SersiEmbed
-
-
-def convert(timespan: str, duration: int) -> datetime.timedelta | None:
-    match timespan:
-        case "m":
-            return datetime.timedelta(minutes=duration)
-
-        case "h":
-            if not duration > 672:
-                return datetime.timedelta(hours=duration)
-
-        case "d":
-            if not duration > 28:
-                return datetime.timedelta(days=duration)
-
-        case "w":
-            if not duration > 4:
-                return datetime.timedelta(weeks=duration)
-
-    return None
+from utils.base import convert_to_timedelta
 
 
 class TimeoutSystem(commands.Cog):
@@ -155,7 +136,7 @@ class TimeoutSystem(commands.Cog):
 
         await interaction.response.defer(ephemeral=False)
 
-        planned_end: datetime.timedelta = convert(timespan, duration)
+        planned_end: datetime.timedelta = convert_to_timedelta(timespan, duration)
 
         if not planned_end:
             interaction.followup.send(
