@@ -53,7 +53,6 @@ class Voting(commands.Cog):
                 vote_type = self.config.voting[details.vote_type]
 
                 if not vote_type.end_on_threshold and not end_vote:
-                    print("skipping")
                     continue
 
                 votes: dict[str, int] = {vote: count for vote, count in (
@@ -72,7 +71,6 @@ class Voting(commands.Cog):
                     details.outcome = "Rejected"
                     colour = nextcord.Colour.brand_red()
                 elif not end_vote:
-                    print("no outcome yet")
                     continue
                 
                 details.outcome = details.outcome or "Undecided"
@@ -87,6 +85,12 @@ class Voting(commands.Cog):
                 embed.add_field(name="Vote End", value=f"<t:{int(details.actual_end.timestamp())}:R>", inline=True)
 
                 await message.edit(embed=embed, view=None)
+
+    @process_votes.before_loop
+    async def before_process_votes(self):
+        print('waiting for bot to be ready...')
+        await self.bot.wait_until_ready()
+        print('vote processing loop started')
  
     @commands.Cog.listener()
     async def on_interaction(self, interaction: nextcord.Interaction):
