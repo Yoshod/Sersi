@@ -172,6 +172,28 @@ def target_eligibility(actor: nextcord.Member, target: nextcord.Member) -> bool:
     return actor_rank > target_rank
 
 
+def unban_eligibility(actor: nextcord.Member, target: nextcord.Member) -> bool:
+    hierarchy: dict[int:int] = {
+        config.permission_roles.dark_moderator: 10,
+        config.permission_roles.senior_moderator: 3,
+        config.permission_roles.moderator: 2,
+        config.permission_roles.trial_moderator: 2,
+    }
+
+    actor_rank = 0
+    target_rank = 0
+
+    for role in actor.roles:
+        rank = hierarchy.get(role.id, 0)
+        actor_rank = max(actor_rank, rank)
+
+    for role in target.roles:
+        rank = hierarchy.get(role.id, 0)
+        target_rank = max(target_rank, rank)
+
+    return actor_rank >= target_rank
+
+
 def is_custom_role(
     member: nextcord.Member, permitted_roles: list[nextcord.Role] = None
 ) -> bool:
