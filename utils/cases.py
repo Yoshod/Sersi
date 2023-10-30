@@ -79,7 +79,7 @@ def create_case_embed(
         case BanCase():
             fields.append({"Details": f"{case.details}"})
 
-            if case.type == "emergency":
+            if case.ban_type == "emergency":
                 fields.append(
                     {
                         "Ban Type": "`Immediate`",
