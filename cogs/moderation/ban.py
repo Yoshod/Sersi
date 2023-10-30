@@ -20,6 +20,9 @@ from utils.perms import (
     is_immune,
     target_eligibility,
     cb_is_mod,
+    is_senior_mod,
+    is_dark_mod,
+    unban_eligibility,
 )
 from utils.sersi_embed import SersiEmbed
 from utils.review import create_alert
@@ -294,6 +297,100 @@ class BanSystem(commands.Cog):
                     embed=ban_confirmation, view=button_view
                 )
 
+    @ban.subcommand(description="Used to ban a user")
+    async def remove(
+        self,
+        interaction: nextcord.Interaction,
+        offender: str = nextcord.SlashOption(
+            name="offender_id",
+            description="The person you wish to unban.",
+            min_length=17,
+            max_length=18,
+        ),
+        reason: str = nextcord.SlashOption(
+            name="reason",
+            description="Reason you are unbanning the user",
+            min_length=8,
+            max_length=1024,
+        ),
+        original_case: str = nextcord.SlashOption(
+            name="ban_id",
+            description="The ID of the original ban case",
+            min_length=6,
+            max_length=22,
+        ),
+    ):
+        if not await permcheck(interaction, is_senior_mod):
+            return
+
+        try:
+            offender = int(offender)
+
+        except ValueError:
+            await interaction.response.send_message(
+                f"{self.config.emotes.fail} Invalid Case ID"
+            )
+
+        await interaction.response.defer(ephemeral=True)
+
+        with db_session(interaction.user) as session:
+            if original_case == "LEGACY":
+                if not await permcheck(interaction, is_dark_mod):
+                    return
+
+                await interaction.guild.unban(
+                    nextcord.Object(id=offender), reason=reason
+                )
+
+                await interaction.followup.send(
+                    f"{self.config.emotes.success} User Unbanned!"
+                )
+                return
+
+            sersi_case: BanCase = (
+                session.query(BanCase).filter_by(id=original_case).first()
+            )
+
+            if not sersi_case:
+                interaction.followup.send(
+                    f"{self.config.emotes.fail} No case has been found with the ID {original_case}."
+                )
+                return
+
+        if not unban_eligibility(
+            interaction.user, interaction.guild.get_member(sersi_case.moderator)
+        ):
+            await interaction.followup.send(
+                f"{self.config.emotes.fail} {interaction.user.mention} Ban Case `{sersi_case.id}` was carried out by someone of a higher level than you. Please ask them to review the ban and consider an unban."
+            )
+
+        try:
+            await interaction.guild.unban(
+                nextcord.Object(id=sersi_case.offender), reason=reason
+            )
+
+        except nextcord.HTTPException:
+            await interaction.followup.send(
+                f"{self.config.emotes.fail} Unable to unban. Manual Unban via Discord client interface is authorised!"
+            )
+            return
+
+        with db_session(interaction.user) as session:
+            sersi_case = session.query(BanCase).filter_by(id=sersi_case.id).first()
+            sersi_case.active = False
+            sersi_case.unbanned_by = interaction.user.id
+            sersi_case.unban_reason = reason
+            session.commit()
+
+            sersi_case = session.query(BanCase).filter_by(id=sersi_case.id).first()
+
+        unbanned_embed = create_case_embed(sersi_case, interaction, self.config)
+
+        await interaction.followup.send(
+            f"{self.config.emotes.success} User has been unbanned successfully!",
+            embed=unbanned_embed,
+        )
+
     @commands.Cog.listener()
     async def on_interaction(self, interaction: nextcord.Interaction):
         try:
@@ -458,6 +555,13 @@ class BanSystem(commands.Cog):
                 )
 
                 await offender.ban(reason=f"Sersi Ban {sersi_case.details}")
+
+                with db_session(interaction.user) as session:
+                    case: BanCase = session.query(BanCase).filter_by(id=uuid).first()
+                    case.active = True
+                    session.commit()
+
+                    case: BanCase = session.query(BanCase).filter_by(id=uuid).first()
 
                 result: nextcord.WebhookMessage = await interaction.message.edit(
                     embed=SersiEmbed(
