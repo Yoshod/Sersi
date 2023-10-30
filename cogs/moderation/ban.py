@@ -363,6 +363,7 @@ class BanSystem(commands.Cog):
             await interaction.followup.send(
                 f"{self.config.emotes.fail} {interaction.user.mention} Ban Case `{sersi_case.id}` was carried out by someone of a higher level than you. Please ask them to review the ban and consider an unban."
             )
+            return
 
         try:
             await interaction.guild.unban(
