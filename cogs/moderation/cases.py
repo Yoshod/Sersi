@@ -21,6 +21,7 @@ from utils.database import (
     ScrubbedCase,
     Offence,
 )
+from utils.offences import fetch_offences_by_partial_name
 from utils.perms import permcheck, is_mod, is_senior_mod, is_dark_mod
 from utils.sersi_embed import SersiEmbed
 
@@ -410,7 +411,8 @@ class Cases(commands.Cog):
         )
 
         if not valid_output:
-            interaction.followup.send(error_message)
+            await interaction.followup.send(error_message)
+            return
 
         sersi_case = get_case_by_id(case_id)
 
@@ -420,14 +422,14 @@ class Cases(commands.Cog):
                     sersi_case = (
                         session.query(WarningCase).filter_by(id=sersi_case.id).first()
                     )
-                    if offence != sersi_case.offence:
+                    if offence != sersi_case.offence and offence is not None:
                         sersi_case.offence = offence
                         offence_changed = True
 
                     else:
                         offence_changed = False
 
-                    if detail != sersi_case.details:
+                    if detail != sersi_case.details and detail is not None:
                         sersi_case.details = detail
                         detail_changed = True
 
@@ -435,7 +437,7 @@ class Cases(commands.Cog):
                         detail_changed = False
 
                     if not detail_changed and not offence_changed:
-                        interaction.followup.send(
+                        await interaction.followup.send(
                             f"{self.config.emotes.fail} You have not changed any details about the case!"
                         )
                         return
@@ -447,7 +449,7 @@ class Cases(commands.Cog):
 
                     case_embed = create_case_embed(sersi_case, interaction, self.config)
 
-                    interaction.followup.send(
+                    await interaction.followup.send(
                         f"{self.config.emotes.success} Case Updated", embed=case_embed
                     )
 
@@ -476,14 +478,14 @@ class Cases(commands.Cog):
                     sersi_case = (
                         session.query(BanCase).filter_by(id=sersi_case.id).first()
                     )
-                    if offence != sersi_case.offence:
+                    if offence != sersi_case.offence and offence is not None:
                         sersi_case.offence = offence
                         offence_changed = True
 
                     else:
                         offence_changed = False
 
-                    if detail != sersi_case.details:
+                    if detail != sersi_case.details and detail is not None:
                         sersi_case.details = detail
                         detail_changed = True
 
@@ -513,39 +515,58 @@ class Cases(commands.Cog):
                     sersi_case = (
                         session.query(TimeoutCase).filter_by(id=sersi_case.id).first()
                     )
-                    if offence != sersi_case.offence:
+                    if offence != sersi_case.offence and offence is not None:
                         sersi_case.offence = offence
                         offence_changed = True
 
                     else:
                         offence_changed = False
 
-                    if detail != sersi_case.details:
+                    if detail != sersi_case.details and detail is not None:
                         sersi_case.details = detail
                         detail_changed = True
 
                     else:
                         detail_changed = False
 
-                    if duration != sersi_case.duration:
+                    if duration != sersi_case.duration and duration is not None:
                         sersi_case.duration = duration
                         duration_changed = True
 
                     else:
                         duration_changed = False
 
-                    planned_end: datetime.timedelta = convert_to_timedelta(
-                        timespan, duration
-                    )
+                    try:
+                        time_delta: datetime.timedelta = convert_to_timedelta(
+                            timespan, duration
+                        )
+
+                        planned_end = datetime.datetime.utcnow() + time_delta
+
+                    except TypeError:
+                        planned_end = sersi_case.planned_end
 
                     if planned_end != sersi_case.planned_end:
                         sersi_case.planned_end = planned_end
                         planned_end_changed = True
-                        offender = interaction.guild.get_member(sersi_case.id)
+                        offender = interaction.guild.get_member(sersi_case.offender)
                         await offender.timeout(
-                            planned_end,
+                            time_delta,
                             reason=f"[Timeout Duration Edit - {interaction.user}",
                         )
+
+                        embed_fields = {
+                            "Offence:": f"`{sersi_case.offence}`",
+                            "Detail:": f"`{sersi_case.details}`",
+                            "Duration:": f"`{duration}{timespan}`",
+                        }
+
+                    else:
+                        embed_fields = {
+                            "Offence:": f"`{sersi_case.offence}`",
+                            "Detail:": f"`{sersi_case.details}`",
+                        }
+                        planned_end_changed = False
 
                     if (
                         not detail_changed
@@ -553,30 +574,25 @@ class Cases(commands.Cog):
                         and not duration_changed
                         and not planned_end_changed
                     ):
-                        interaction.followup.send(
+                        await interaction.followup.send(
                             f"{self.config.emotes.fail} You have not changed any details about the case!"
                         )
-
-                        offender = interaction.guild.get_member(sersi_case.offender)
-
-                        try:
-                            await offender.send(
-                                embed=SersiEmbed(
-                                    title=f"Timeout Updated in {interaction.guild.name}!",
-                                    description="A change has been made to your timeout. Please see below for the new case information.",
-                                    fields={
-                                        "Offence:": f"`{offence}`",
-                                        "Detail:": f"`{detail}`",
-                                        "Duration:": f"`{duration}{timespan}`",
-                                    },
-                                    footer="Sersi Timeout",
-                                ).set_thumbnail(interaction.guild.icon.url)
-                            )
-
-                        except (nextcord.Forbidden, nextcord.HTTPException):
-                            pass
-
                         return
+
+                    offender = interaction.guild.get_member(sersi_case.offender)
+
+                    try:
+                        await offender.send(
+                            embed=SersiEmbed(
+                                title=f"Timeout Updated in {interaction.guild.name}!",
+                                description="A change has been made to your timeout. Please see below for the new case information.",
+                                fields=embed_fields,
+                                footer="Sersi Timeout",
+                            ).set_thumbnail(interaction.guild.icon.url)
+                        )
+
+                    except (nextcord.Forbidden, nextcord.HTTPException):
+                        pass
 
                     session.commit()
                     sersi_case = (
@@ -585,10 +601,18 @@ class Cases(commands.Cog):
 
                     case_embed = create_case_embed(sersi_case, interaction, self.config)
 
-                    interaction.followup.send(
+                    await interaction.followup.send(
                         f"{self.config.emotes.success} Case Updated", embed=case_embed
                     )
                     return
+
+    @edit.on_autocomplete("offence")
+    async def search_offences(self, interaction: nextcord.Interaction, offence: str):
+        if not is_mod(interaction.user):
+            await interaction.response.send_autocomplete([])
+
+        offences: list[str] = fetch_offences_by_partial_name(offence)
+        await interaction.response.send_autocomplete(sorted(offences))
 
     # TODO: its own cog perhaps?
     @nextcord.slash_command(

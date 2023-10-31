@@ -367,16 +367,19 @@ def validate_case_edit(
             f"{config.emotes.fail} You must provide at least one value you want to edit.",
         )
 
-    if case_type == "Warning" or case_type == "Ban" and (duration or timespan):
+    if (case_type == "Warning" or case_type == "Ban") and (duration or timespan):
         return (
             False,
             f"{config.emotes.fail} You provided an invalid value for the case type {case_type}.",
         )
 
-    if case_type == "Timeout" and (
-        (duration is not None and timespan is None)
-        or (duration is None and timespan is not None)
-    ):
+    if case_type == "Timeout" and (duration is None and timespan is not None):
+        return (
+            False,
+            f"{config.emotes.fail} You provided an invalid value for the case type {case_type}.",
+        )
+
+    if case_type == "Timeout" and (duration is not None and timespan is None):
         return (
             False,
             f"{config.emotes.fail} You provided an invalid value for the case type {case_type}.",
