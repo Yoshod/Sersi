@@ -239,6 +239,16 @@ class PeerReview(_Base):
     timestamp = Column(DateTime, default=datetime.utcnow)
 
 
+class StaffBlacklist(_Base):
+    __tablename__ = "staff_blacklist"
+
+    blacklisted_user = Column(Integer, primary_key=True)
+    staff_member = Column(Integer, nullable=False)
+    reason = Column(String, nullable=False)
+
+    timestamp = Column(DateTime, default=datetime.utcnow)
+
+
 class CaseApproval(_Base):
     __tablename__ = "case_approvals"
 
@@ -253,6 +263,38 @@ class CaseApproval(_Base):
     comment = Column(String)
 
     timestamp = Column(DateTime, default=datetime.utcnow)
+
+
+class SubmittedSuggestion(_Base):
+    __tablename__ = "submitted_suggestions"
+
+    id = Column(String, primary_key=True, default=random_id)
+
+    suggestion_text = Column(String, nullable=False)
+    media_url = Column(String)
+    suggester = Column(Integer, nullable=False)
+
+    timestamp = Column(DateTime, default=datetime.utcnow)
+
+
+class SuggestionReview(_Base):
+    __tablename__ = "suggestion_review"
+
+    id = Column(String, ForeignKey("submitted_suggestions.id"), primary_key=True)
+    review = Column(Boolean, nullable=False)
+    reviewer = Column(Integer, nullable=False)
+    reason = Column(String)
+
+    timestamp = Column(DateTime, default=datetime.utcnow)
+
+
+class SuggestionVote(_Base):
+    __tablename__ = "suggestion_vote"
+
+    id = Column(String, ForeignKey("submitted_suggestions.id"), primary_key=True)
+    voter = Column(Integer, primary_key=True)
+
+    vote = Column(Boolean, nullable=False)
 
 
 class Offence(_Base):

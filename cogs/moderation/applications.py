@@ -2,7 +2,14 @@ import nextcord
 from nextcord.ext import commands
 from nextcord.ui import Button, View, Modal
 from utils.config import Configuration
-from utils.perms import is_dark_mod, permcheck, is_senior_mod, is_cet, is_mod
+from utils.perms import (
+    blacklist_check,
+    is_dark_mod,
+    permcheck,
+    is_senior_mod,
+    is_cet,
+    is_mod,
+)
 from utils.sersi_embed import SersiEmbed
 from datetime import datetime
 import pytz
@@ -286,6 +293,12 @@ class Applications(commands.Cog):
     ):
         if not await permcheck(interaction, is_mod):
             return
+
+        if await blacklist_check(user):
+            interaction.response.send_message(
+                f"{self.config.emotes.fail} The user you wish to invite is blacklisted from the Staff Team. Speak to an Administrator.",
+                ephemeral=True,
+            )
 
         await interaction.response.defer(ephemeral=True)
 
