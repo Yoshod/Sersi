@@ -296,14 +296,12 @@ class Note(_Base):
         super().__setattr__(__name, __value)
         session: Session = Session.object_session(self)
         if session and old_value != __value:
-            self.modified = datetime.utcnow()
             session.add(
                 NoteEdits(
                     note_id=self.id,
                     old_content=old_value,
                     new_content=__value,
                     author=session.owner_id,
-                    timestamp=self.modified,
                 )
             )
 
@@ -348,7 +346,6 @@ class Ticket(_Base):
         super().__setattr__(__name, __value)
         session: Session = Session.object_session(self)
         if session and old_value != __value:
-            self.modified = datetime.utcnow()
             session.add(
                 TicketAudit(
                     id=random_id(),
@@ -357,7 +354,6 @@ class Ticket(_Base):
                     old_value=old_value,
                     new_value=__value,
                     author=session.owner_id,
-                    timestamp=self.modified,
                 )
             )
 

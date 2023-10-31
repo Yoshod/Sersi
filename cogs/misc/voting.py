@@ -102,12 +102,6 @@ class Voting(commands.Cog):
 
                 await message.edit(embed=embed, view=None)
 
-    @process_votes.before_loop
-    async def before_process_votes(self):
-        print('waiting for bot to be ready...')
-        await self.bot.wait_until_ready()
-        print('vote processing loop started')
- 
     @commands.Cog.listener()
     async def on_interaction(self, interaction: nextcord.Interaction):
         if interaction.data is None or interaction.data.get("custom_id") is None:

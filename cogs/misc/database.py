@@ -20,7 +20,7 @@ from utils.database import (
     create_db_tables,
 )
 from utils.config import Configuration
-from utils.perms import is_dark_mod, permcheck
+from utils.perms import is_sersi_contributor, permcheck
 from slurdetector import leet
 
 
@@ -41,7 +41,7 @@ class Database(commands.Cog):
         description="Used to create the Sersi Database",
     )
     async def create(self, interaction: nextcord.Interaction):
-        if not await permcheck(interaction, is_dark_mod):
+        if not await permcheck(interaction, is_sersi_contributor):
             return
 
         await interaction.response.defer(ephemeral=True)
@@ -54,7 +54,7 @@ class Database(commands.Cog):
         description="Used to populate the category tables",
     )
     async def import_ticket_categories(self, interaction: nextcord.Interaction):
-        if not await permcheck(interaction, is_dark_mod):
+        if not await permcheck(interaction, is_sersi_contributor):
             return
 
         await interaction.response.defer(ephemeral=True)
@@ -70,6 +70,7 @@ class Database(commands.Cog):
                             subcategory=subcategory,
                         )
                     )
+            session.commit()
 
         await interaction.followup.send(f"{self.config.emotes.success} Complete")
 
@@ -77,7 +78,7 @@ class Database(commands.Cog):
         description="Used to populate the offences table",
     )
     async def import_offences(self, interaction: nextcord.Interaction):
-        if not await permcheck(interaction, is_dark_mod):
+        if not await permcheck(interaction, is_sersi_contributor):
             return
 
         await interaction.response.defer(ephemeral=True)
@@ -102,7 +103,7 @@ class Database(commands.Cog):
         description="Used to migrate case data",
     )
     async def case_migration(self, interaction: nextcord.Interaction):
-        if not await permcheck(interaction, is_dark_mod):
+        if not await permcheck(interaction, is_sersi_contributor):
             return
 
         await interaction.response.defer(ephemeral=True)
@@ -215,7 +216,7 @@ class Database(commands.Cog):
         description="Used to migrate the slur detection stuff",
     )
     async def migrate_slur_detection(self, interaction: nextcord.Interaction):
-        if not await permcheck(interaction, is_dark_mod):
+        if not await permcheck(interaction, is_sersi_contributor):
             return
 
         await interaction.response.defer(ephemeral=True)
@@ -267,7 +268,7 @@ class Database(commands.Cog):
             name="table", description="The table you are dropping"
         ),
     ):
-        if not await permcheck(interaction, is_dark_mod):
+        if not await permcheck(interaction, is_sersi_contributor):
             return
 
         await interaction.response.defer(ephemeral=True)
