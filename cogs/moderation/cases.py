@@ -493,7 +493,7 @@ class Cases(commands.Cog):
                         detail_changed = False
 
                     if not detail_changed and not offence_changed:
-                        interaction.followup.send(
+                        await interaction.followup.send(
                             f"{self.config.emotes.fail} You have not changed any details about the case!"
                         )
                         return
@@ -505,9 +505,10 @@ class Cases(commands.Cog):
 
                     case_embed = create_case_embed(sersi_case, interaction, self.config)
 
-                    interaction.followup.send(
+                    await interaction.followup.send(
                         f"{self.config.emotes.success} Case Updated", embed=case_embed
                     )
+
                     return
 
             case TimeoutCase():
@@ -732,6 +733,7 @@ class Cases(commands.Cog):
     @audit.on_autocomplete("case_id")
     @scrub.on_autocomplete("case_id")
     @delete.on_autocomplete("case_id")
+    @edit.on_autocomplete("case_id")
     async def cases_by_id(self, interaction: nextcord.Interaction, case: str):
         if not is_mod(interaction.user):
             await interaction.response.send_autocomplete([])
