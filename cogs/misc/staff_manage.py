@@ -12,7 +12,9 @@ from utils.perms import (
     is_slt,
     is_dark_mod,
     is_cet_lead,
+    blacklist_check,
 )
+from utils.database import StaffBlacklist, db_session
 
 
 class Staff(commands.Cog):
@@ -45,6 +47,10 @@ class Staff(commands.Cog):
 
     @staff.subcommand(name="remove")
     async def remove_from_staff(self, interaction: nextcord.Interaction):
+        pass
+
+    @staff.subcommand(name="blacklist")
+    async def blacklist(self, interaction: nextcord.Interaction):
         pass
 
     @add_to_staff.subcommand(
@@ -90,6 +96,12 @@ class Staff(commands.Cog):
     )
     async def promote(self, interaction: nextcord.Interaction, member: nextcord.Member):
         if not permcheck(interaction, is_senior_mod):
+            return
+
+        if blacklist_check(member):
+            interaction.response.send_message(
+                f"{self.config.emotes.fail} This user is blacklisted from the Staff Team. Speak to an Administrator."
+            )
             return
 
         await interaction.response.defer()
@@ -140,6 +152,12 @@ class Staff(commands.Cog):
         self, interaction: nextcord.Interaction, member: nextcord.Member
     ):
         if not permcheck(interaction, is_cet_lead):
+            return
+
+        if blacklist_check(member):
+            interaction.response.send_message(
+                f"{self.config.emotes.fail} This user is blacklisted from the Staff Team. Speak to an Administrator."
+            )
             return
 
         cet: nextcord.Role = interaction.guild.get_role(
@@ -193,6 +211,12 @@ class Staff(commands.Cog):
         if not await permcheck(interaction, is_slt):
             return
 
+        if blacklist_check(member):
+            interaction.response.send_message(
+                f"{self.config.emotes.fail} This user is already blacklisted from the staff team."
+            )
+            return
+
         await interaction.response.defer()
 
         @ConfirmView.query(
@@ -235,6 +259,15 @@ class Staff(commands.Cog):
 
             channel = interaction.guild.get_channel(self.config.channels.logging)
             await channel.send(embed=log_embed)
+
+            with db_session(interaction.user) as session:
+                blacklist_instance = StaffBlacklist(
+                    blacklisted_user=member.id,
+                    staff_member=interaction.user.id,
+                    reason=reason,
+                )
+                session.add(blacklist_instance)
+                session.commit()
 
         await execute(self.bot, self.config, interaction)
 
@@ -290,6 +323,76 @@ class Staff(commands.Cog):
         await interaction.guild.get_channel(self.config.channels.mod_logs).send(
             embed=log_embed
         )
+
+    @blacklist.subcommand(description="Add a user to the Staff Blacklist")
+    async def add(
+        self,
+        interaction: nextcord.Interaction,
+        member: nextcord.Member = SlashOption(
+            description="Who to blacklist.",
+        ),
+        reason: str = SlashOption(
+            description="The reason you are blacklisting this user."
+        ),
+    ):
+        if not await permcheck(interaction, is_slt):
+            return
+
+        if blacklist_check(member):
+            interaction.response.send_message(
+                f"{self.config.emotes.fail} This user is already blacklisted from the Staff Team."
+            )
+
+        interaction.response.defer()
+
+        with db_session(interaction.user) as session:
+            blacklist_instance = StaffBlacklist(
+                blacklisted_user=member.id,
+                staff_member=interaction.user.id,
+                reason=reason,
+            )
+            session.add(blacklist_instance)
+            session.commit()
+
+        interaction.followup.send(
+            f"{self.config.emotes.success} The user has now been blacklisted from the Staff Team."
+        )
+        return
+
+    @blacklist.subcommand(description="Remove a user to the Staff Blacklist")
+    async def remove(
+        self,
+        interaction: nextcord.Interaction,
+        member: nextcord.Member = SlashOption(
+            description="Who to blacklist.",
+        ),
+        reason: str = SlashOption(
+            description="The reason you are blacklisting this user."
+        ),
+    ):
+        if not await permcheck(interaction, is_dark_mod):
+            return
+
+        if not blacklist_check(member):
+            interaction.response.send_message(
+                f"{self.config.emotes.fail} This user is not on the Staff Team blacklist."
+            )
+
+        interaction.response.defer()
+
+        with db_session(interaction.user) as session:
+            blacklist_instance = (
+                session.query(StaffBlacklist)
+                .filter_by(blacklisted_user=member.id)
+                .first()
+            )
+            session.delete(blacklist_instance)
+            session.commit()
+
+        interaction.followup.send(
+            f"{self.config.emotes.success} The user is no longer blacklisted from the Staff Team."
+        )
+        return
 
 
 def setup(bot: commands.Bot, **kwargs):
