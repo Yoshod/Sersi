@@ -1,16 +1,26 @@
+import datetime
 from nextcord.ext import commands
 import nextcord
 
-from utils.base import PageView
+from utils.base import PageView, convert_to_timedelta
 from utils.cases import (
     fetch_cases_by_partial_id,
     create_case_embed,
     fetch_all_cases,
     get_case_by_id,
     get_case_audit_logs,
+    validate_case_edit,
 )
 from utils.config import Configuration
-from utils.database import db_session, Case, ScrubbedCase, Offence
+from utils.database import (
+    BanCase,
+    TimeoutCase,
+    WarningCase,
+    db_session,
+    Case,
+    ScrubbedCase,
+    Offence,
+)
 from utils.perms import permcheck, is_mod, is_senior_mod, is_dark_mod
 from utils.sersi_embed import SersiEmbed
 
@@ -332,6 +342,253 @@ class Cases(commands.Cog):
             await interaction.followup.send(
                 f"{self.config.emotes.fail} Case {case_id} has not been deleted."
             )
+
+    @cases.subcommand(description="Used to edit a Sersi Case")
+    async def edit(
+        self,
+        interaction: nextcord.Interaction,
+        case_type: str = nextcord.SlashOption(
+            name="case_type",
+            description="The type of case you are editing",
+            choices={
+                "Warning": "Warning",
+                "Timeout": "Timeout",
+                "Ban": "Ban",
+            },
+        ),
+        case_id: str = nextcord.SlashOption(
+            name="case_id",
+            description="Case ID",
+            min_length=11,
+            max_length=22,
+        ),
+        offence: str = nextcord.SlashOption(
+            name="offence",
+            description="The offence for which the user is being warned.",
+            required=False,
+        ),
+        detail: str = nextcord.SlashOption(
+            name="detail",
+            description="Details on the offence,",
+            min_length=8,
+            max_length=1024,
+            required=False,
+        ),
+        duration: int = nextcord.SlashOption(
+            name="duration",
+            description="The length of time the user should be timed out for",
+            min_value=1,
+            max_value=40320,
+            required=False,
+        ),
+        timespan: str = nextcord.SlashOption(
+            name="timespan",
+            description="The unit of time being used",
+            choices={
+                "Minutes": "m",
+                "Hours": "h",
+                "Days": "d",
+                "Weeks": "w",
+            },
+            required=False,
+        ),
+    ):
+        if not await permcheck(interaction, is_mod):
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        valid_output, error_message = validate_case_edit(
+            interaction,
+            self.config,
+            case_type,
+            case_id,
+            offence,
+            detail,
+            duration,
+            timespan,
+        )
+
+        if not valid_output:
+            interaction.followup.send(error_message)
+
+        sersi_case = get_case_by_id(case_id)
+
+        match sersi_case:
+            case WarningCase():
+                with db_session(interaction.user) as session:
+                    sersi_case = (
+                        session.query(WarningCase).filter_by(id=sersi_case.id).first()
+                    )
+                    if offence != sersi_case.offence:
+                        sersi_case.offence = offence
+                        offence_changed = True
+
+                    else:
+                        offence_changed = False
+
+                    if detail != sersi_case.details:
+                        sersi_case.details = detail
+                        detail_changed = True
+
+                    else:
+                        detail_changed = False
+
+                    if not detail_changed and not offence_changed:
+                        interaction.followup.send(
+                            f"{self.config.emotes.fail} You have not changed any details about the case!"
+                        )
+                        return
+
+                    session.commit()
+                    sersi_case = (
+                        session.query(WarningCase).filter_by(id=sersi_case.id).first()
+                    )
+
+                    case_embed = create_case_embed(sersi_case, interaction, self.config)
+
+                    interaction.followup.send(
+                        f"{self.config.emotes.success} Case Updated", embed=case_embed
+                    )
+
+                    offender = interaction.guild.get_member(sersi_case.offender)
+
+                    try:
+                        await offender.send(
+                            embed=SersiEmbed(
+                                title=f"Warning Updated in {interaction.guild.name}!",
+                                description="A change has been made to your warning. Please see below for the new case information.",
+                                fields={
+                                    "Offence:": f"`{sersi_case.offence}`",
+                                    "Detail:": f"`{sersi_case.details}`",
+                                },
+                                footer="Sersi Warning",
+                            ).set_thumbnail(interaction.guild.icon.url)
+                        )
+
+                    except (nextcord.Forbidden, nextcord.HTTPException):
+                        pass
+
+                    return
+
+            case BanCase():
+                with db_session(interaction.user) as session:
+                    sersi_case = (
+                        session.query(BanCase).filter_by(id=sersi_case.id).first()
+                    )
+                    if offence != sersi_case.offence:
+                        sersi_case.offence = offence
+                        offence_changed = True
+
+                    else:
+                        offence_changed = False
+
+                    if detail != sersi_case.details:
+                        sersi_case.details = detail
+                        detail_changed = True
+
+                    else:
+                        detail_changed = False
+
+                    if not detail_changed and not offence_changed:
+                        interaction.followup.send(
+                            f"{self.config.emotes.fail} You have not changed any details about the case!"
+                        )
+                        return
+
+                    session.commit()
+                    sersi_case = (
+                        session.query(BanCase).filter_by(id=sersi_case.id).first()
+                    )
+
+                    case_embed = create_case_embed(sersi_case, interaction, self.config)
+
+                    interaction.followup.send(
+                        f"{self.config.emotes.success} Case Updated", embed=case_embed
+                    )
+                    return
+
+            case TimeoutCase():
+                with db_session(interaction.user) as session:
+                    sersi_case = (
+                        session.query(TimeoutCase).filter_by(id=sersi_case.id).first()
+                    )
+                    if offence != sersi_case.offence:
+                        sersi_case.offence = offence
+                        offence_changed = True
+
+                    else:
+                        offence_changed = False
+
+                    if detail != sersi_case.details:
+                        sersi_case.details = detail
+                        detail_changed = True
+
+                    else:
+                        detail_changed = False
+
+                    if duration != sersi_case.duration:
+                        sersi_case.duration = duration
+                        duration_changed = True
+
+                    else:
+                        duration_changed = False
+
+                    planned_end: datetime.timedelta = convert_to_timedelta(
+                        timespan, duration
+                    )
+
+                    if planned_end != sersi_case.planned_end:
+                        sersi_case.planned_end = planned_end
+                        planned_end_changed = True
+                        offender = interaction.guild.get_member(sersi_case.id)
+                        await offender.timeout(
+                            planned_end,
+                            reason=f"[Timeout Duration Edit - {interaction.user}",
+                        )
+
+                    if (
+                        not detail_changed
+                        and not offence_changed
+                        and not duration_changed
+                        and not planned_end_changed
+                    ):
+                        interaction.followup.send(
+                            f"{self.config.emotes.fail} You have not changed any details about the case!"
+                        )
+
+                        offender = interaction.guild.get_member(sersi_case.offender)
+
+                        try:
+                            await offender.send(
+                                embed=SersiEmbed(
+                                    title=f"Timeout Updated in {interaction.guild.name}!",
+                                    description="A change has been made to your timeout. Please see below for the new case information.",
+                                    fields={
+                                        "Offence:": f"`{offence}`",
+                                        "Detail:": f"`{detail}`",
+                                        "Duration:": f"`{duration}{timespan}`",
+                                    },
+                                    footer="Sersi Timeout",
+                                ).set_thumbnail(interaction.guild.icon.url)
+                            )
+
+                        except (nextcord.Forbidden, nextcord.HTTPException):
+                            pass
+
+                        return
+
+                    session.commit()
+                    sersi_case = (
+                        session.query(TimeoutCase).filter_by(id=sersi_case.id).first()
+                    )
+
+                    case_embed = create_case_embed(sersi_case, interaction, self.config)
+
+                    interaction.followup.send(
+                        f"{self.config.emotes.success} Case Updated", embed=case_embed
+                    )
+                    return
 
     # TODO: its own cog perhaps?
     @nextcord.slash_command(

@@ -349,3 +349,53 @@ def get_reformation_next_case_number():
         return 1
 
     return last_case.case_number + 1
+
+
+def validate_case_edit(
+    interaction: nextcord.Interaction,
+    config: Configuration,
+    case_type: str,
+    case_id: str,
+    offence: str | None,
+    detail: str | None,
+    duration: int | None,
+    timespan: str | None,
+):
+    if not offence and not detail and not duration and not timespan:
+        return (
+            False,
+            f"{config.emotes.fail} You must provide at least one value you want to edit.",
+        )
+
+    if case_type == "Warning" or case_type == "Ban" and (duration or timespan):
+        return (
+            False,
+            f"{config.emotes.fail} You provided an invalid value for the case type {case_type}.",
+        )
+
+    if case_type == "Timeout" and (
+        (duration is not None and timespan is None)
+        or (duration is None and timespan is not None)
+    ):
+        return (
+            False,
+            f"{config.emotes.fail} You provided an invalid value for the case type {case_type}.",
+        )
+
+    sersi_case: Case = get_case_by_id(case_id)
+    if not sersi_case:
+        return False, f"{config.emotes.fail} {case_id} is not a valid case."
+
+    if case_type == "Timeout" and (duration and timespan):
+        sersi_case: TimeoutCase() = get_case_by_id(case_id)
+
+        if sersi_case.actual_end:
+            return False, f"{config.emotes.fail} {case_id} has already ended."
+
+    if sersi_case.type != case_type:
+        return (
+            False,
+            f"{config.emotes.fail} `{sersi_case.id}` is a {sersi_case.type} not {case_type}.",
+        )
+
+    return True, None
