@@ -75,6 +75,9 @@ channels:
     senior_mod_review:       1141029068372983849
     moderator_review:        1141029132852019241
     moderation_votes:                          0
+    suggestion_discussion:   1168987121936253078
+    suggestion_voting:       1168987296452845669
+    suggestion_review:       1168176532750082119
 
 ignored_categories:
     - Important stuff

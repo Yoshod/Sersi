@@ -82,6 +82,11 @@ class ConfigurationChannels(YAMLWizard):
     voice_logs: int
     automod_logs: int
 
+    # suggestions
+    suggestion_discussion: int
+    suggestion_voting: int
+    suggestion_review: int
+
 
 @dataclass
 class ConfigurationRoles(YAMLWizard):
