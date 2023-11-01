@@ -1,4 +1,3 @@
-
 import nextcord
 
 from utils.config import Configuration
@@ -10,21 +9,35 @@ def fetch_notes(
     config: Configuration,
     page: int,
     per_page: int,
-    member_id: int = None,
-    author_id: int = None,
+    member_id: int | None,
+    author_id: int | None,
 ) -> str | tuple[list, int, int]:
     with db_session() as session:
-        _query = session.query(Note)
+        if member_id and author_id:
+            notes = (
+                session.query(Note)
+                .filter_by(member=member_id, author=author_id)
+                .order_by(Note.created.desc())
+                .all()
+            )
 
-        if member_id:
-            _query = _query.filter_by(member=member_id)
+        elif member_id:
+            notes = (
+                session.query(Note)
+                .filter_by(member=member_id)
+                .order_by(Note.created.desc())
+                .all()
+            )
 
-        if author_id:
-            _query = _query.filter_by(author=author_id)
+        elif author_id:
+            notes = (
+                session.query(Note)
+                .filter_by(author=author_id)
+                .order_by(Note.created.desc())
+                .all()
+            )
 
-        notes = _query.order_by(Note.created.desc()).all()
-
-        if not notes:
+        else:
             return None, 0, 0
 
         return get_page(notes, page, per_page)
@@ -35,9 +48,7 @@ def fetch_notes_by_partial_id(note_id: str):
         return session.query(Note).filter(Note.id.like(f"{note_id}%")).limit(25).all()
 
 
-def create_note_embed(
-    note: Note, interaction: nextcord.Interaction
-) -> SersiEmbed:
+def create_note_embed(note: Note, interaction: nextcord.Interaction) -> SersiEmbed:
     note_embed = SersiEmbed()
     note_embed.add_field(name="Note ID:", value=f"`{note.id}`", inline=True)
 

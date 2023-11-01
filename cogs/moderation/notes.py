@@ -123,8 +123,19 @@ class Notes(commands.Cog):
 
         await interaction.response.defer(ephemeral=False)
 
-        note_embed = SersiEmbed(title=f"{user.name}'s Notes")
-        note_embed.set_thumbnail(user.display_avatar.url)
+        if user:
+            user_id = user.id
+            note_embed = SersiEmbed(title=f"{user.name}'s Notes")
+            note_embed.set_thumbnail(user.display_avatar.url)
+        else:
+            user_id = None
+
+        if author:
+            author_id = author.id
+            note_embed = SersiEmbed(title=f"{author.name}'s Notes")
+            note_embed.set_thumbnail(author.display_avatar.url)
+        else:
+            author_id = None
 
         view = PageView(
             config=self.config,
@@ -137,8 +148,8 @@ class Notes(commands.Cog):
             cols=10,
             per_col=1,
             init_page=int(page),
-            member_id=str(user.id),
-            author_id=str(author.id),
+            member_id=user_id,
+            author_id=author_id,
         )
 
         await view.send_followup(interaction)
