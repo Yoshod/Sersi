@@ -13,13 +13,6 @@ from utils.config import Configuration
 from utils.perms import permcheck, is_mod, is_senior_mod, is_dark_mod
 
 
-def format_entry(entry):
-    if len(entry[3]) >= 16:
-        return "`{}`... <t:{}:R>".format(entry[3][:15], entry[4])
-    else:
-        return "`{}` <t:{}:R>".format(entry[3], entry[4])
-
-
 class Notes(commands.Cog):
     def __init__(self, bot: commands.Bot, config: Configuration):
         self.bot = bot
@@ -123,17 +116,16 @@ class Notes(commands.Cog):
 
         await interaction.response.defer(ephemeral=False)
 
+        note_embed = SersiEmbed(title=f"{interaction.guild.name} Notes")
+        note_embed.set_thumbnail(interaction.guild.icon.url)
+
         if user:
             user_id = user.id
-            note_embed = SersiEmbed(title=f"{user.name}'s Notes")
-            note_embed.set_thumbnail(user.display_avatar.url)
         else:
             user_id = None
 
         if author:
             author_id = author.id
-            note_embed = SersiEmbed(title=f"{author.name}'s Notes")
-            note_embed.set_thumbnail(author.display_avatar.url)
         else:
             author_id = None
 
@@ -142,8 +134,8 @@ class Notes(commands.Cog):
             base_embed=note_embed,
             fetch_function=fetch_notes,
             author=interaction.user,
-            entry_form=format_entry,
-            field_title="{entries[0][0]}",
+            entry_form="{entry}",
+            field_title="{entries[0].list_entry_header}",
             inline_fields=False,
             cols=10,
             per_col=1,
@@ -167,7 +159,7 @@ class Notes(commands.Cog):
         note_id: str = nextcord.SlashOption(
             name="note_id",
             description="Note ID",
-            min_length=22,
+            min_length=11,
             max_length=22,
             required=False,
         ),

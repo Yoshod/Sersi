@@ -44,6 +44,13 @@ def db_session(owner: int | nextcord.User | nextcord.Member = None):
     return session
 
 
+def format_notes(note):
+    if len(note) >= 16:
+        return f"{note[:15]}..."
+    else:
+        return note
+
+
 ### Case Models ###
 
 
@@ -346,6 +353,16 @@ class Note(_Base):
                     author=session.owner_id,
                 )
             )
+
+    def __getattr__(self, __name: str) -> Any:
+        if __name == "list_entry_header":
+            return f"__Note__ <t:{int(self.created.timestamp())}:R>"
+        raise AttributeError(
+            f"'{self.__class__.__name__}' object has no attribute '{__name}'"
+        )
+
+    def __repr__(self):
+        return f"*{self.id}* <@{self.member}> `{format_notes(self.content) or 'N/A'}`"
 
 
 class NoteEdits(_Base):

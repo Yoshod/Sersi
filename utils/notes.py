@@ -38,9 +38,12 @@ def fetch_notes(
             )
 
         else:
-            return None, 0, 0
+            notes = session.query(Note).order_by(Note.created.desc()).all()
 
-        return get_page(notes, page, per_page)
+        notes, page, pages = get_page(notes, page, per_page)
+        for note in notes:
+            repr(note)
+        return notes, page, pages
 
 
 def fetch_notes_by_partial_id(note_id: str):
