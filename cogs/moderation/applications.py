@@ -64,16 +64,29 @@ class ModAppModal(Modal):
         """Run whenever the 'submit' button is pressed."""
         applicant_id = interaction.user.id
 
-        application_embed = SersiEmbed(
-            title="Moderator Application Sent",
-            description=f"User {interaction.user.name} ({interaction.user.id})",
-            fields={
+        if blacklist_check(interaction.user.id):
+            embed_fields = {
                 self.aboutq.label: self.aboutq.value,
                 self.whymod.label: self.whymod.value,
                 self.priorexp.label: self.priorexp.value,
                 self.age.label: self.age.value,
                 self.vc.label: self.vc.value,
-            },
+                "Blacklisted": self.config.emotes.success,
+            }
+
+        else:
+            embed_fields = {
+                self.aboutq.label: self.aboutq.value,
+                self.whymod.label: self.whymod.value,
+                self.priorexp.label: self.priorexp.value,
+                self.age.label: self.age.value,
+                self.vc.label: self.vc.value,
+            }
+
+        application_embed = SersiEmbed(
+            title="Moderator Application Sent",
+            description=f"User {interaction.user.name} ({interaction.user.id})",
+            fields=embed_fields,
         )
 
         accept_bttn = Button(
@@ -351,6 +364,12 @@ class Applications(commands.Cog):
         match btn_id.split(":", 1):
             case ["mod-application-next-steps", user_id]:
                 if await permcheck(interaction, is_senior_mod):
+                    if blacklist_check(interaction.guild.get_member(user_id)):
+                        interaction.response.send_message(
+                            f"{self.config.emotes.fail} This user is on the staff team blacklist. Please speak to an Administrator."
+                        )
+                        return
+
                     user = interaction.guild.get_member(int(user_id))
 
                     updated_form = interaction.message.embeds[0]
@@ -421,6 +440,12 @@ class Applications(commands.Cog):
 
             case ["cet-application-next-steps", user_id]:
                 if await permcheck(interaction, is_cet):
+                    if blacklist_check(interaction.guild.get_member(user_id)):
+                        interaction.response.send_message(
+                            f"{self.config.emotes.fail} This user is on the staff team blacklist. Please speak to an Administrator."
+                        )
+                        return
+
                     user = interaction.guild.get_member(int(user_id))
 
                     updated_form = interaction.message.embeds[0]
