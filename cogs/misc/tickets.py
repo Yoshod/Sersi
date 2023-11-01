@@ -1,10 +1,11 @@
+from datetime import datetime
+
 import nextcord
 
-from utils.tickets import ticket_check, ticket_create
+from utils.tickets import ticket_check, ticket_create, ticket_permcheck, ticket_close
 from nextcord.ext import commands
-from nextcord.ui import Button, View, Select, Modal
-from utils.database import db_session, TicketCategory
-from utils.perms import permcheck, is_dark_mod, is_senior_mod, is_mod
+from nextcord.ui import Modal
+from utils.database import db_session, Ticket, TicketCategory
 from utils.config import Configuration
 from utils.base import SersiEmbed
 
@@ -37,7 +38,7 @@ class TicketingSystem(commands.Cog):
             ],
         ),
         initial_comment: str = nextcord.SlashOption(
-            name="initial_comment",
+            name="opening_remarks",
             description="Give a brief description of the reason for the ticket",
         ),
         category: str = nextcord.SlashOption(
@@ -60,7 +61,7 @@ class TicketingSystem(commands.Cog):
             )
             return
         
-        await interaction.response.defer()
+        await interaction.response.defer(ephemeral=True)
 
         channel = await ticket_create(
             self.config,
@@ -82,7 +83,89 @@ class TicketingSystem(commands.Cog):
             ephemeral=True,
         )
     
+    @ticket.subcommand(description="Used to close a Ticket")
+    async def close(
+        self,
+        interaction: nextcord.Interaction,
+        close_reason: str = nextcord.SlashOption(
+            name="closing_remarks",
+            description="Give a brief description of the reason for the ticket closure",
+        ),
+        ticket_id: str = nextcord.SlashOption(
+            name="ticket",
+            description="The ticket to close",
+            required=False,
+        ),
+        category: str = nextcord.SlashOption(
+            name="category",
+            description="Provide category for the ticket",
+            required=False,
+        ),
+        subcategory: str = nextcord.SlashOption(
+            name="subcategory",
+            description="Provide subcategory for the ticket",
+            required=False,
+        ),
+    ):
+        with db_session(interaction.user) as session:
+            filter_dict = {"active": True}
+            if ticket_id:
+                filter_dict["id"] = ticket_id
+            else:
+                filter_dict["channel"] = interaction.channel.id
+
+            ticket: Ticket = (
+                session.query(Ticket)
+                .filter_by(**filter_dict)
+                .first()
+            )
+            if ticket is None:
+                await interaction.response.send_message(
+                    f"{self.config.emotes.fail} No open ticket with that ID exists."
+                    if ticket_id else
+                    f"{self.config.emotes.fail} This channel is not a ticket channel",
+                    ephemeral=True,
+                )
+                return
+            
+            if not await ticket_permcheck(interaction, ticket.escalation_level):
+                return
+            
+            await interaction.response.defer(ephemeral=True)
+
+            channel = interaction.guild.get_channel(ticket.channel)
+            if channel is None:
+                await interaction.followup.send(
+                    f"{self.config.emotes.fail} could not find ticket channel, please contact administartor.",
+                    ephemeral=True,
+                )
+                return
+            
+            if category:
+                ticket.category = category
+            if subcategory:
+                ticket.subcategory = subcategory
+            ticket.active = False
+            ticket.closing_comment = close_reason
+            ticket.closed = datetime.utcnow()
+
+            if not await ticket_close(
+                self.config,
+                interaction.guild,
+                ticket,
+                interaction.user,
+                channel,
+            ):
+                await interaction.followup.send(
+                    f"{self.config.emotes.fail} An error occurred while closing your ticket.",
+                    ephemeral=True,
+                )
+                return
+
+            session.commit()
+        
     @create.on_autocomplete("category")
+    @close.on_autocomplete("category")
     async def category_autocomplete(self, interaction: nextcord.Interaction, category: str):
         with db_session() as session:
             categories: list[TicketCategory] = (
@@ -92,6 +175,30 @@ class TicketingSystem(commands.Cog):
                 .all()
             )
             return [category.category for category in categories]
+
+    @close.on_autocomplete("subcategory")
+    async def subcategory_autocomplete(self, interaction: nextcord.Interaction, subcategory: str, category: str):
+        with db_session() as session:
+            subcategories: list[TicketCategory] = (
+                session.query(TicketCategory)
+                .filter_by(category=category)
+                .filter(TicketCategory.subcategory.ilike(f"%{subcategory}%"))
+                .all()
+            )
+            return [subcategory.subcategory for subcategory in subcategories]
+            
+    @close.on_autocomplete("ticket_id")
+    async def ticket_autocomplete(self, interaction: nextcord.Interaction, ticket_id: str):
+        with db_session() as session:
+            tickets: list[Ticket] = (
+                session.query(Ticket)
+                .filter_by(active=True)
+                .filter(Ticket.id.ilike(f"%{ticket_id}%"))
+                .group_by(Ticket.id)
+                .all()
+            )
+            return [ticket.id for ticket in tickets]
+
     
     @nextcord.message_command(
         name="Report Message",
@@ -118,7 +225,7 @@ class ReportModal(Modal):
         self.add_item(self.report_remarks)
     
     async def callback(self, interaction: nextcord.Interaction):
-        await interaction.response.defer()
+        await interaction.response.defer(ephemeral=True)
 
         channel = await ticket_create(
             self.config,
@@ -127,6 +234,7 @@ class ReportModal(Modal):
             "Moderator",
             "Report",
             self.report_remarks.value,
+            ticket_subcategory="Message Report",
         )
         if channel is None:
             await interaction.followup.send(

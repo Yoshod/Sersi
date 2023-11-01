@@ -69,6 +69,8 @@ class ConfigurationChannels(YAMLWizard):
     admin_ticket_logs: int
     senior_ticket_logs: int
     mod_ticket_logs: int
+    cet_ticket_logs: int
+    cet_lead_ticket_logs: int
     deleted_messages: int
     role_logs: int
     deleted_messages: int

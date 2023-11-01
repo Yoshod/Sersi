@@ -52,7 +52,8 @@ channels:
     admin_ticket_logs: 1021380970240294922
     senior_ticket_logs: 1021380970240294922
     mod_ticket_logs: 1021380970240294922
-    verification_ticket_logs: 1021380970240294922
+    cet_ticket_logs: 1021380970240294922
+    cet_lead_ticket_logs: 1021380970240294922
     mod applications: 977377171054166037
     cet applications: 0
     internalfeedback: 0
