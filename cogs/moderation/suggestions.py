@@ -42,11 +42,7 @@ class Suggestions(commands.Cog):
             required=False,
         ),
     ):
-        if interaction.channel.id == self.config.channels.suggestion_discussion:
-            await interaction.response.defer()
-
-        else:
-            await interaction.response.defer(ephemeral=True)
+        await interaction.response.defer(ephemeral=True)
 
         with db_session(interaction.user) as session:
             suggestion_instance = SubmittedSuggestion(
