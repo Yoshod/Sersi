@@ -2,7 +2,7 @@ from datetime import datetime
 
 import nextcord
 
-from utils.tickets import ticket_check, ticket_create, ticket_permcheck, ticket_close
+from utils.tickets import ticket_check, ticket_create, ticket_permcheck, ticket_close, ticket_escalate
 from nextcord.ext import commands
 from nextcord.ui import Modal
 from utils.database import db_session, Ticket, TicketCategory
@@ -163,9 +163,146 @@ class TicketingSystem(commands.Cog):
                 return
 
             session.commit()
+    
+        await interaction.followup.send(
+            f"{self.config.emotes.success} Ticket has been closed!",
+            ephemeral=True,
+        )
+    
+    @ticket.subcommand(description="Used to change ticket escalation level")
+    async def escalate(
+        self,
+        interaction: nextcord.Interaction,
+        escalation_level: str = nextcord.SlashOption(
+            name="escalation_level",
+            description="The escalation level to change to",
+            choices=[
+                "Moderator",
+                "Moderation Lead",
+                "Community Engagement",
+                "Community Engagement Lead",
+                "Administrator",
+            ],
+        ),
+        ticket_id: str = nextcord.SlashOption(
+            name="ticket",
+            description="The ticket to escalate",
+            required=False,
+        ),
+    ):
+        with db_session(interaction.user) as session:
+            filter_dict = {"active": True}
+            if ticket_id:
+                filter_dict["id"] = ticket_id
+            else:
+                filter_dict["channel"] = interaction.channel.id
+
+            ticket: Ticket = (
+                session.query(Ticket)
+                .filter_by(**filter_dict)
+                .first()
+            )
+            if ticket is None:
+                await interaction.response.send_message(
+                    f"{self.config.emotes.fail} No open ticket with that ID exists."
+                    if ticket_id else
+                    f"{self.config.emotes.fail} This channel is not a ticket channel",
+                    ephemeral=True,
+                )
+                return
+            if ticket.escalation_level == escalation_level:
+                await interaction.response.send_message(
+                    f"{self.config.emotes.fail} Ticket escalation level is already {escalation_level}.",
+                    ephemeral=True,
+                )
+                return
+            
+            if not await ticket_permcheck(interaction, ticket.escalation_level):
+                return
+            
+            await interaction.response.defer(ephemeral=True)
+
+            if not await ticket_escalate(
+                self.config,
+                interaction.guild,
+                ticket,
+                interaction.user,
+                escalation_level,
+            ):
+                await interaction.followup.send(
+                    f"{self.config.emotes.fail} An error occurred while trying to escalate ticket.",
+                    ephemeral=True,
+                )
+                return
+
+            ticket.escalation_level = escalation_level
+
+            session.commit()
+    
+        await interaction.followup.send(
+            f"{self.config.emotes.success} Ticket has been escalated to {escalation_level}!",
+            ephemeral=True,
+        )
+    
+    @ticket.subcommand(description="Used to change ticket category")
+    async def recategorize(
+        self,
+        interaction: nextcord.Interaction,
+        category: str = nextcord.SlashOption(
+            name="category",
+            description="The category to change to",
+        ),
+        subcategory: str = nextcord.SlashOption(
+            name="subcategory",
+            description="The subcategory to change to",
+            required=False,
+        ),
+        ticket_id: str = nextcord.SlashOption(
+            name="ticket",
+            description="The ticket to recategorize",
+            required=False,
+        ),
+    ):
+        with db_session(interaction.user) as session:
+            filter_dict = {"active": True}
+            if ticket_id:
+                filter_dict["id"] = ticket_id
+            else:
+                filter_dict["channel"] = interaction.channel.id
+
+            ticket: Ticket = (
+                session.query(Ticket)
+                .filter_by(**filter_dict)
+                .first()
+            )
+            if ticket is None:
+                await interaction.response.send_message(
+                    f"{self.config.emotes.fail} No open ticket with that ID exists."
+                    if ticket_id else
+                    f"{self.config.emotes.fail} This channel is not a ticket channel",
+                    ephemeral=True,
+                )
+                return
+            
+            if not await ticket_permcheck(interaction, ticket.escalation_level):
+                return
+            
+            await interaction.response.defer(ephemeral=True)
+
+            ticket.category = category
+            if subcategory:
+                ticket.subcategory = subcategory
+
+            session.commit()
+    
+        await interaction.followup.send(
+            f"{self.config.emotes.success} Ticket has been recategorized!",
+            ephemeral=True,
+        )
         
     @create.on_autocomplete("category")
     @close.on_autocomplete("category")
+    @recategorize.on_autocomplete("category")
     async def category_autocomplete(self, interaction: nextcord.Interaction, category: str):
         with db_session() as session:
             categories: list[TicketCategory] = (
@@ -177,6 +314,7 @@ class TicketingSystem(commands.Cog):
             return [category.category for category in categories]
 
     @close.on_autocomplete("subcategory")
+    @recategorize.on_autocomplete("subcategory")
     async def subcategory_autocomplete(self, interaction: nextcord.Interaction, subcategory: str, category: str):
         with db_session() as session:
             subcategories: list[TicketCategory] = (
@@ -188,6 +326,8 @@ class TicketingSystem(commands.Cog):
             return [subcategory.subcategory for subcategory in subcategories]
             
     @close.on_autocomplete("ticket_id")
+    @escalate.on_autocomplete("ticket_id")
+    @recategorize.on_autocomplete("ticket_id")
     async def ticket_autocomplete(self, interaction: nextcord.Interaction, ticket_id: str):
         with db_session() as session:
             tickets: list[Ticket] = (

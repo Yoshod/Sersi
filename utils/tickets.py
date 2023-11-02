@@ -25,15 +25,15 @@ def ticket_check(proposed_ticketer: nextcord.Member|nextcord.User, **kwargs) -> 
 async def ticket_permcheck(interaction: nextcord.Interaction, escalation_level: str) -> bool:
     match(escalation_level):
         case "Moderator":
-            return permcheck(interaction, is_mod)
+            return await permcheck(interaction, is_mod)
         case "Moderation Lead":
-            return permcheck(interaction, is_senior_mod)
+            return await permcheck(interaction, is_senior_mod)
         case "Community Engagement":
-            return permcheck(interaction, is_cet)
+            return await permcheck(interaction, is_cet)
         case "Community Engagement Lead":
-            return permcheck(interaction, is_cet_lead)
+            return await permcheck(interaction, is_cet_lead)
         case _:
-            return permcheck(interaction, is_dark_mod)
+            return await permcheck(interaction, is_dark_mod)
 
 
 def ticket_log_channel(config: Configuration, escalation_level: str) -> nextcord.TextChannel:
@@ -50,25 +50,22 @@ def ticket_log_channel(config: Configuration, escalation_level: str) -> nextcord
             return config.channels.admin_ticket_logs
 
 
-async def ticket_create(
-    config: Configuration,
+def ticket_overwrites(
+    config: Configuration, 
     guild: nextcord.Guild,
+    escalation_level: str,
     ticket_creator: nextcord.Member,
-    ticket_type: str,
-    ticket_category: str,
-    opening_remarks: str,
-    ticket_subcategory: str = None,
-):
+) -> dict:
     overwrites = {
         guild.default_role: nextcord.PermissionOverwrite(
             read_messages=False, send_messages=True
         ),
         guild.me: nextcord.PermissionOverwrite(read_messages=True),
+        ticket_creator: nextcord.PermissionOverwrite(read_messages=True),
     }
 
-    match ticket_type:
+    match escalation_level:
         case "Moderator":
-            type_name = "mod"
             overwrites.update(
                 {
                     guild.get_role(
@@ -78,7 +75,6 @@ async def ticket_create(
             )
 
         case "Moderation Lead":
-            type_name = "mod-lead"
             overwrites.update(
                 {
                     guild.get_role(
@@ -88,7 +84,6 @@ async def ticket_create(
             )
 
         case "Community Engagement":
-            type_name = "cet"
             overwrites.update(
                 {
                     guild.get_role(
@@ -98,7 +93,6 @@ async def ticket_create(
             )
         
         case "Community Engagement Lead":
-            type_name = "cet-lead"
             overwrites.update(
                 {
                     guild.get_role(
@@ -107,8 +101,7 @@ async def ticket_create(
                 }
             )
 
-        case "Administrator":
-            type_name = "admin"
+        case _:
             overwrites.update(
                 {
                     guild.get_role(
@@ -117,6 +110,30 @@ async def ticket_create(
                 }
             )
     
+    return overwrites
+
+
+async def ticket_create(
+    config: Configuration,
+    guild: nextcord.Guild,
+    ticket_creator: nextcord.Member,
+    ticket_type: str,
+    ticket_category: str,
+    opening_remarks: str,
+    ticket_subcategory: str = None,
+):
+    match(ticket_type):
+        case "Moderator":
+            type_name = "mod"
+        case "Moderation Lead":
+            type_name = "mod-lead"
+        case "Community Engagement":
+            type_name = "cet"
+        case "Community Engagement Lead":
+            type_name = "cet-lead"
+        case "Administrator":
+            type_name = "admin"
+
     channel_category = nextcord.utils.get(
             guild.categories, name="STAFF SUPPORT"
     )
@@ -124,19 +141,22 @@ async def ticket_create(
     with db_session(ticket_creator) as session:
         ticket_number = (
             session.query(Ticket)
-            .filter_by(escalation_level=ticket_type)
             .count()
         ) + 1
 
-        ticket_id = f"{type_name}-ticket-{ticket_number:04d}"
-
-        channel = await guild.create_text_channel(ticket_id, overwrites=overwrites, category=channel_category)
+        channel = await guild.create_text_channel(
+            f"{type_name}-ticket-{ticket_number:04d}",
+            overwrites=ticket_overwrites(config, guild, ticket_type, ticket_creator),
+            category=channel_category
+        )
         if channel is None:
             return
 
+        ticket_name = ticket_category.lower() if ticket_category else "ticket"
+
         session.add(
             Ticket(
-                id=ticket_id,
+                id=f"{ticket_name}-{ticket_number:04d}",
                 creator=ticket_creator.id,
                 channel=channel.id,
                 escalation_level=ticket_type,
@@ -208,4 +228,69 @@ async def ticket_close(
             f"<@{ticket_closer.id}> please set the category and subcategory for this ticket."
         )
 
+    return True
+
+
+async def ticket_escalate(
+    config: Configuration,
+    guild: nextcord.Guild,
+    ticket: Ticket,
+    ticket_escalator: nextcord.Member,
+    escalation_level: str,
+    ticket_channel: nextcord.TextChannel = None,
+):
+    if ticket_channel is None:
+        ticket_channel = guild.get_channel(ticket.channel)
+    if ticket_channel is None:
+        return False
+
+    ticket_creator = guild.get_member(ticket.creator)
+    if ticket_creator is None:
+        ticket_creator = await guild.fetch_member(ticket.creator)
+    if ticket_creator is None:
+        return False
+
+    overwrites = ticket_overwrites(config, guild, escalation_level, ticket_creator)
+
+    match(escalation_level):
+        case "Moderator":
+            type_name = "mod"
+        case "Moderation Lead":
+            type_name = "mod-lead"
+        case "Community Engagement":
+            type_name = "cet"
+        case "Community Engagement Lead":
+            type_name = "cet-lead"
+        case "Administrator":
+            type_name = "admin"
+
+    await ticket_channel.edit(
+        name=f"{type_name}-ticket-{int(ticket.id.split('-')[-1]):04d}",
+        overwrites=overwrites,
+        reason=f"Ticket escalated to {escalation_level} by {ticket_escalator.display_name} ({ticket_escalator.id})"
+    )
+
+    embed = SersiEmbed(
+        title=f"{escalation_level} Ticket Escalated",
+        description=f"{ticket_escalator.mention} ({ticket_escalator.id}) has escalated a {ticket.escalation_level} Ticket.",
+        fields={
+            "Ticket Opened By": f"<@{ticket.creator}> ({ticket.creator})",
+            "Opening Remarks": ticket.opening_comment,
+            "Ticket Escalated By": f"<@{ticket_escalator.id}> ({ticket_escalator.id})",
+            "Ticket Escalated To": escalation_level,
+            "Category": f"{ticket.category or '`N/A`'} - {ticket.subcategory or '`N/A`'}",
+        },
+        footer=ticket_escalator.display_name,
+        footer_icon=ticket_escalator.avatar.url,
+        thumbnail_url=ticket_creator.avatar.url,
+    )
+
+    prev_log_channel = guild.get_channel(ticket_log_channel(config, ticket.escalation_level))
+    if prev_log_channel is not None:
+        await prev_log_channel.send(embed=embed)
+
+    log_channel = guild.get_channel(ticket_log_channel(config, escalation_level))
+    if log_channel is not None:
+        await log_channel.send(embed=embed)
+    
     return True
