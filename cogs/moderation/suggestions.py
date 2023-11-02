@@ -260,6 +260,9 @@ class Suggestions(commands.Cog):
         except KeyError:
             return
 
+        # So I had to try except all interaction responses because without restarting the bot it would HTTPException
+        # But if I don't do the interaction response and the bot has been restarted it will interaction fail on the user side
+        # I don't know why this is happening but I'm not going to spend any more time on it
         try:
             await interaction.response.defer(ephemeral=True)
 
