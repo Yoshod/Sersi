@@ -290,7 +290,7 @@ class SuggestionReview(_Base):
     id = Column(String, ForeignKey("submitted_suggestions.id"), primary_key=True)
     review = Column(Boolean, nullable=False)
     reviewer = Column(Integer, nullable=False)
-    reason = Column(String)
+    reason = Column(String, nullable=False)
 
     timestamp = Column(DateTime, default=datetime.utcnow)
 

@@ -4,6 +4,7 @@ from nextcord.ui import Button, View
 from utils.sersi_embed import SersiEmbed
 from utils.config import Configuration
 from utils.perms import is_cet, permcheck
+from utils.suggestions import check_if_reviewed, get_suggestion_by_id
 from utils.database import (
     SubmittedSuggestion,
     SuggestionVote,
@@ -42,10 +43,10 @@ class Suggestions(commands.Cog):
         ),
     ):
         if interaction.channel.id == self.config.channels.suggestion_discussion:
-            interaction.response.defer()
+            await interaction.response.defer()
 
         else:
-            interaction.response.defer(ephemeral=True)
+            await interaction.response.defer(ephemeral=True)
 
         with db_session(interaction.user) as session:
             suggestion_instance = SubmittedSuggestion(
@@ -75,7 +76,7 @@ class Suggestions(commands.Cog):
             },
         )
 
-        suggest_embed.set_footer(suggestion_instance.id)
+        suggest_embed.set_footer(text=f"Suggestion ID: {suggestion_instance.id}")
 
         review_channel: nextcord.TextChannel = interaction.guild.get_channel(
             self.config.channels.suggestion_review
@@ -83,8 +84,8 @@ class Suggestions(commands.Cog):
 
         await review_channel.send(embed=suggest_embed)
 
-        interaction.followup.send(
-            f"{self.config.emotes.success} Your suggestion has been submitted to the Community Engagement Team for review."
+        await interaction.followup.send(
+            f"{self.config.emotes.success} Your suggestion has been submitted to the Community Engagement Team for review. If you want to edit the suggestion please use the suggestion edit command with suggestion id `{suggestion_instance.id}`."
         )
         return
 
@@ -101,13 +102,156 @@ class Suggestions(commands.Cog):
         review_outcome: str = nextcord.SlashOption(
             name="outcome",
             description="The outcome of the review",
-            choices={"Approve": "approve", "Deny": "deny"},
+            choices={"Approve": "Approve", "Deny": "Deny"},
+        ),
+        review_reason: str = nextcord.SlashOption(
+            name="reason",
+            description="The reason for your decision. May be shared with suggester.",
+            min_length=8,
+            max_length=1024,
         ),
     ):
         if not await permcheck(interaction, is_cet):
             return
 
-        pass
+        suggestion_instance: SubmittedSuggestion | None = get_suggestion_by_id(
+            interaction, suggestion_id
+        )
+
+        if not suggestion_instance:
+            interaction.response.send_message(
+                f"{self.config.emotes.fail} `{suggestion_id}` is not a valid suggestion!",
+                ephemeral=True,
+            )
+
+        if check_if_reviewed(interaction, suggestion_instance):
+            interaction.response.send_message(
+                f"{self.config.emotes.fail} `{suggestion_instance.id}` has already been reviewed.",
+                ephemeral=True,
+            )
+
+        if interaction.channel.id != self.config.channels.suggestion_review:
+            await interaction.response.send_message(
+                f"{self.config.emotes.fail} This command can only be used in the suggestion review channel.",
+                ephemeral=True,
+            )
+            return
+
+        await interaction.response.defer()
+
+        logging_embed = SersiEmbed(
+            title="Suggestion Updated",
+            description="A change has been processed on a suggestion.",
+            fields={
+                "Suggestion ID": suggestion_instance.id,
+                "Review Outcome": review_outcome,
+                "Reason": review_reason,
+            },
+        )
+
+        await interaction.guild.get_channel(self.config.channels.logging).send(
+            embed=logging_embed
+        )
+
+        if review_outcome == "Deny":
+            deny_embed = SersiEmbed(
+                title="Suggestion Denied",
+                description=(
+                    "Your suggestion has been denied. For more information please open a Community Engagement Team Ticket."
+                ),
+                fields={
+                    "Suggestion ID": suggestion_instance.id,
+                    "Suggestion": suggestion_instance.suggestion_text,
+                    "Media URL": suggestion_instance.media_url,
+                    "Reason": review_reason,
+                },
+            )
+
+            await interaction.guild.get_member(suggestion_instance.suggester).send(
+                embed=deny_embed
+            )
+
+            await interaction.followup.send(
+                f"{self.config.emotes.success} Suggestion denied!"
+            )
+
+            with db_session(interaction.user) as session:
+                review_instance = SuggestionReview(
+                    id=suggestion_instance.id,
+                    review=False,
+                    reviewer=interaction.user.id,
+                    reason=review_reason,
+                )
+                session.add(review_instance)
+                session.commit()
+
+            return
+
+        suggestion_embed = SersiEmbed(
+            description=suggestion_instance.suggestion_text,
+        )
+        suggestion_embed.set_footer(text=f"Suggestion ID: {suggestion_instance.id}")
+        suggestion_embed.set_thumbnail(url=interaction.user.display_avatar.url)
+        suggestion_embed.set_author(
+            icon_url=interaction.user.display_avatar.url,
+            name=f"Suggestion from {interaction.guild.get_member(suggestion_instance.suggester).display_name}",
+        )
+
+        if suggestion_instance.media_url:
+            suggestion_embed.add_field(
+                name="Media URL", value=suggestion_instance.media_url, inline=False
+            )
+
+        suggestion_embed.add_field(name="Yes Votes", value="0", inline=False)
+        suggestion_embed.add_field(name="No Votes", value="0", inline=False)
+        suggestion_embed.add_field(name="Net Approval", value="0", inline=False)
+
+        upvote = Button(
+            label="Upvote",
+            emoji="👍",
+            style=nextcord.ButtonStyle.green,
+            custom_id=f"suggestion-upvote:{suggestion_instance.id}",
+        )
+
+        downvote = Button(
+            label="Downvote",
+            emoji="👎",
+            style=nextcord.ButtonStyle.red,
+            custom_id=f"suggestion-downvote:{suggestion_instance.id}",
+        )
+
+        button_view = View(timeout=None)
+        button_view.add_item(upvote)
+        button_view.add_item(downvote)
+
+        await interaction.guild.get_channel(
+            self.config.channels.suggestion_voting
+        ).send(embed=suggestion_embed, view=button_view)
+
+        with db_session(interaction.user) as session:
+            review_instance = SuggestionReview(
+                id=suggestion_instance.id,
+                review=True,
+                reviewer=interaction.user.id,
+                reason=review_reason,
+            )
+            session.add(review_instance)
+            session.commit()
+
+        approved_embed = SersiEmbed(
+            title="Suggestion Approved",
+            description=(
+                "Your suggestion has been approved and is now open for voting."
+            ),
+        )
+
+        await interaction.guild.get_member(suggestion_instance.suggester).send(
+            embed=approved_embed
+        )
+
+        await interaction.followup.send(
+            f"{self.config.emotes.success} Suggestion made public for voting!"
+        )
 
     @commands.Cog.listener()
     async def on_interaction(self, interaction: nextcord.Interaction):
@@ -116,90 +260,282 @@ class Suggestions(commands.Cog):
         except KeyError:
             return
 
+        try:
+            await interaction.response.defer(ephemeral=True)
+
+        except nextcord.HTTPException:
+            pass
+
         match btn_id.split(":", 1):
-            case ["suggestion-approve"]:
+            case ["suggestion-upvote", suggestion_id]:
                 original_embed = interaction.message.embeds[0]
 
-                interaction.response.defer()
-
                 with db_session(interaction.user) as session:
-                    review_instance = SuggestionReview(
-                        id=btn_id.split(":", 1)[1],
-                        review=True,
-                        reviewer=interaction.user.id,
+                    already_voted = (
+                        session.query(SuggestionVote)
+                        .filter_by(voter=interaction.user.id, id=suggestion_id)
+                        .first()
                     )
-                    session.add(review_instance)
+
+                    if already_voted:
+                        if already_voted.vote is True:
+                            try:
+                                await interaction.followup.send(
+                                    f"{self.config.emotes.fail} You have already upvoted this suggestion.",
+                                    delete_after=5,
+                                )
+
+                            except nextcord.HTTPException:
+                                await interaction.guild.get_channel(
+                                    self.config.channels.suggestion_voting
+                                ).send(
+                                    f"{self.config.emotes.fail} You have already upvoted this suggestion.",
+                                    delete_after=5,
+                                )
+
+                            return
+
+                        if already_voted.vote is False:
+                            already_voted.vote = True
+                            session.commit()
+
+                            original_embed.set_field_at(
+                                index=0,
+                                name="Yes Votes",
+                                value=str(
+                                    session.query(SuggestionVote)
+                                    .filter_by(vote=True, id=suggestion_id)
+                                    .count()
+                                ),
+                                inline=False,
+                            )
+
+                            original_embed.set_field_at(
+                                index=1,
+                                name="No Votes",
+                                value=str(
+                                    session.query(SuggestionVote)
+                                    .filter_by(vote=False, id=suggestion_id)
+                                    .count()
+                                ),
+                                inline=False,
+                            )
+
+                            original_embed.set_field_at(
+                                index=2,
+                                name="Net Approval",
+                                value=str(
+                                    session.query(SuggestionVote)
+                                    .filter_by(vote=True, id=suggestion_id)
+                                    .count()
+                                    - session.query(SuggestionVote)
+                                    .filter_by(vote=False, id=suggestion_id)
+                                    .count()
+                                ),
+                                inline=False,
+                            ),
+
+                            await interaction.message.edit(embed=original_embed)
+
+                            try:
+                                await interaction.followup.send(
+                                    f"{self.config.emotes.success} Your vote has been updated to an upvote.",
+                                    delete_after=5,
+                                )
+
+                            except nextcord.HTTPException:
+                                await interaction.guild.get_channel(
+                                    self.config.channels.suggestion_voting
+                                ).send(
+                                    f"{self.config.emotes.success} Your vote has been updated to an upvote.",
+                                    delete_after=5,
+                                )
+
+                            return
+
+                    new_vote = SuggestionVote(
+                        id=suggestion_id, voter=interaction.user.id, vote=True
+                    )
+                    session.add(new_vote)
                     session.commit()
 
-                    suggestion_instance = (
-                        session.query(SubmittedSuggestion)
-                        .filter_by(id=btn_id.split(":", 1)[1])
+                    original_embed.set_field_at(
+                        index=0,
+                        name="Yes Votes",
+                        value=str(
+                            session.query(SuggestionVote)
+                            .filter_by(vote=True, id=suggestion_id)
+                            .count()
+                        ),
+                        inline=False,
+                    )
+
+                    original_embed.set_field_at(
+                        index=2,
+                        name="Net Approval",
+                        value=str(
+                            session.query(SuggestionVote)
+                            .filter_by(vote=True, id=suggestion_id)
+                            .count()
+                            - session.query(SuggestionVote)
+                            .filter_by(vote=False, id=suggestion_id)
+                            .count()
+                        ),
+                        inline=False,
+                    )
+
+                    await interaction.message.edit(embed=original_embed)
+
+                    try:
+                        await interaction.followup.send(
+                            f"{self.config.emotes.success} Your vote has been registered as an upvote.",
+                            delete_after=5,
+                        )
+
+                    except nextcord.HTTPException:
+                        await interaction.guild.get_channel(
+                            self.config.channels.suggestion_voting
+                        ).send(
+                            f"{self.config.emotes.success} Your vote has been registered as an upvote.",
+                            delete_after=5,
+                        )
+
+                    return
+
+            case ["suggestion-downvote", suggestion_id]:
+                original_embed = interaction.message.embeds[0]
+
+                with db_session(interaction.user) as session:
+                    already_voted = (
+                        session.query(SuggestionVote)
+                        .filter_by(voter=interaction.user.id, id=suggestion_id)
                         .first()
                     )
-                    review_instance = (
-                        session.query(SuggestionReview)
-                        .filter_by(id=btn_id.split(":", 1)[1])
-                        .first()
+
+                    if already_voted:
+                        if already_voted.vote is False:
+                            try:
+                                await interaction.followup.send(
+                                    f"{self.config.emotes.fail} You have already downvoted this suggestion.",
+                                    delete_after=5,
+                                )
+
+                            except nextcord.HTTPException:
+                                await interaction.guild.get_channel(
+                                    self.config.channels.suggestion_voting
+                                ).send(
+                                    f"{self.config.emotes.fail} You have already downvoted this suggestion.",
+                                    delete_after=5,
+                                )
+
+                            return
+
+                        if already_voted.vote is True:
+                            already_voted.vote = False
+                            session.commit()
+
+                            original_embed.set_field_at(
+                                index=0,
+                                name="Yes Votes",
+                                value=str(
+                                    session.query(SuggestionVote)
+                                    .filter_by(vote=True, id=suggestion_id)
+                                    .count()
+                                ),
+                                inline=False,
+                            )
+
+                            original_embed.set_field_at(
+                                index=1,
+                                name="No Votes",
+                                value=str(
+                                    session.query(SuggestionVote)
+                                    .filter_by(vote=False, id=suggestion_id)
+                                    .count()
+                                ),
+                                inline=False,
+                            )
+
+                            original_embed.set_field_at(
+                                index=2,
+                                name="Net Approval",
+                                value=str(
+                                    session.query(SuggestionVote)
+                                    .filter_by(vote=True, id=suggestion_id)
+                                    .count()
+                                    - session.query(SuggestionVote)
+                                    .filter_by(vote=False, id=suggestion_id)
+                                    .count()
+                                ),
+                                inline=False,
+                            )
+
+                            await interaction.message.edit(embed=original_embed)
+
+                            try:
+                                await interaction.followup.send(
+                                    f"{self.config.emotes.success} Your vote has been updated to a downvote.",
+                                    delete_after=5,
+                                )
+
+                            except nextcord.HTTPException:
+                                await interaction.guild.get_channel(
+                                    self.config.channels.suggestion_voting
+                                ).send(
+                                    f"{self.config.emotes.success} Your vote has been updated to a downvote.",
+                                    delete_after=5,
+                                )
+
+                            return
+
+                    new_vote = SuggestionVote(
+                        id=suggestion_id, voter=interaction.user.id, vote=False
+                    )
+                    session.add(new_vote)
+                    session.commit()
+
+                    original_embed.set_field_at(
+                        index=1,
+                        name="No Votes",
+                        value=str(
+                            session.query(SuggestionVote)
+                            .filter_by(vote=False, id=suggestion_id)
+                            .count()
+                        ),
+                        inline=False,
                     )
 
-                logging_embed = SersiEmbed(
-                    title=f"Suggestion Approved By {interaction.user.display_name}",
-                    description=("A suggestion has been approved and published."),
-                    fields={
-                        "Suggester": f"{interaction.guild.get_member(suggestion_instance.suggester).mention} ({suggestion_instance.suggester})",
-                        "Suggestion": suggestion_instance.suggestion_text,
-                        "Media URL": suggestion_instance.media_url,
-                    },
-                    fields={
-                        "Approver": f"{interaction.guild.get_member(review_instance.reviewer).mention} ({review_instance.reviewer})",
-                    },
-                )
+                    original_embed.set_field_at(
+                        index=2,
+                        name="Net Approval",
+                        value=str(
+                            session.query(SuggestionVote)
+                            .filter_by(vote=True, id=suggestion_id)
+                            .count()
+                            - session.query(SuggestionVote)
+                            .filter_by(vote=False, id=suggestion_id)
+                            .count(),
+                            inline=False,
+                        ),
+                    )
 
-                await interaction.guild.get_channel(self.config.channels.logging).send(
-                    embed=logging_embed
-                )
+                    await interaction.message.edit(embed=original_embed)
 
-                if suggestion_instance.media_url:
-                    media_url = f"\n{suggestion_instance.media_url}"
+                    try:
+                        await interaction.followup.send(
+                            f"{self.config.emotes.success} Your vote has been registered as a downvote.",
+                            delete_after=5,
+                        )
 
-                else:
-                    media_url = " "
+                    except nextcord.HTTPException:
+                        await interaction.guild.get_channel(
+                            self.config.channels.suggestion_voting
+                        ).send(
+                            f"{self.config.emotes.success} Your vote has been registered as a downvote.",
+                            delete_after=5,
+                        )
 
-                suggestion_embed = SersiEmbed(
-                    title=f"Suggestion from {interaction.guild.get_member(suggestion_instance.suggester).display_name}",
-                    description=f"{suggestion_instance.suggestion_text}{media_url}",
-                    fields={
-                        "Yes Votes": "0",
-                        "No Votes": "0",
-                        "Approval": "0",
-                    },
-                )
-
-                yes_vote = Button(
-                    label="Yes",
-                    emoji="👍",
-                    style=nextcord.ButtonStyle.green,
-                    custom_id=f"yes-suggest-vote:{suggestion_instance.id}",
-                )
-
-                no_vote = Button(
-                    label="No",
-                    emoji="👎",
-                    style=nextcord.ButtonStyle.red,
-                    custom_id=f"no-suggest-vote:{suggestion_instance.id}",
-                )
-
-                button_view = View(timeout=None)
-                button_view.add_item(yes_vote)
-                button_view.add_item(no_vote)
-
-                await interaction.guild.get_channel(
-                    self.config.channels.suggestion_voting
-                ).send(embed=suggestion_embed, view=button_view)
-
-                original_embed.colour = nextcord.Colour.green()
-
-                await interaction.message.edit(embed=original_embed, view=None)
+                    return
 
 
 def setup(bot: commands.Bot, **kwargs):
