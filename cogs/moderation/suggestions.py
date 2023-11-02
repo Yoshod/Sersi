@@ -4,7 +4,11 @@ from nextcord.ui import Button, View
 from utils.sersi_embed import SersiEmbed
 from utils.config import Configuration
 from utils.perms import is_cet, permcheck
-from utils.suggestions import check_if_reviewed, get_suggestion_by_id
+from utils.suggestions import (
+    check_if_reviewed,
+    get_suggestion_by_id,
+    update_embed_fields,
+)
 from utils.database import (
     SubmittedSuggestion,
     SuggestionVote,
@@ -198,9 +202,9 @@ class Suggestions(commands.Cog):
                 name="Media URL", value=suggestion_instance.media_url, inline=False
             )
 
-        suggestion_embed.add_field(name="Yes Votes", value="0", inline=False)
-        suggestion_embed.add_field(name="No Votes", value="0", inline=False)
-        suggestion_embed.add_field(name="Net Approval", value="0", inline=False)
+        suggestion_embed.add_field(name="Yes Votes", value="`0`", inline=False)
+        suggestion_embed.add_field(name="No Votes", value="`0`", inline=False)
+        suggestion_embed.add_field(name="Net Approval", value="`0`", inline=False)
 
         upvote = Button(
             label="Upvote",
@@ -216,7 +220,7 @@ class Suggestions(commands.Cog):
             custom_id=f"suggestion-downvote:{suggestion_instance.id}",
         )
 
-        button_view = View(timeout=None)
+        button_view = View(timeout=None, auto_defer=False)
         button_view.add_item(upvote)
         button_view.add_item(downvote)
 
@@ -256,17 +260,9 @@ class Suggestions(commands.Cog):
         except KeyError:
             return
 
-        # So I had to try except all interaction responses because without restarting the bot it would HTTPException
-        # But if I don't do the interaction response and the bot has been restarted it will interaction fail on the user side
-        # I don't know why this is happening but I'm not going to spend any more time on it
-        try:
-            await interaction.response.defer(ephemeral=True)
-
-        except nextcord.HTTPException:
-            pass
-
         match btn_id.split(":", 1):
             case ["suggestion-upvote", suggestion_id]:
+                await interaction.response.defer(ephemeral=True)
                 original_embed = interaction.message.embeds[0]
 
                 with db_session(interaction.user) as session:
@@ -278,130 +274,46 @@ class Suggestions(commands.Cog):
 
                     if already_voted:
                         if already_voted.vote is True:
-                            try:
-                                await interaction.followup.send(
-                                    f"{self.config.emotes.fail} You have already upvoted this suggestion.",
-                                    delete_after=5,
-                                )
-
-                            except nextcord.HTTPException:
-                                await interaction.guild.get_channel(
-                                    self.config.channels.suggestion_voting
-                                ).send(
-                                    f"{self.config.emotes.fail} You have already upvoted this suggestion.",
-                                    delete_after=5,
-                                )
-
-                            return
+                            await interaction.followup.send(
+                                f"{self.config.emotes.fail} You have already upvoted this suggestion.",
+                                ephemeral=True,
+                            )
 
                         if already_voted.vote is False:
                             already_voted.vote = True
                             session.commit()
 
-                            original_embed.set_field_at(
-                                index=0,
-                                name="Yes Votes",
-                                value=str(
-                                    session.query(SuggestionVote)
-                                    .filter_by(vote=True, id=suggestion_id)
-                                    .count()
-                                ),
-                                inline=False,
+                            await update_embed_fields(
+                                original_embed, suggestion_id, session
                             )
-
-                            original_embed.set_field_at(
-                                index=1,
-                                name="No Votes",
-                                value=str(
-                                    session.query(SuggestionVote)
-                                    .filter_by(vote=False, id=suggestion_id)
-                                    .count()
-                                ),
-                                inline=False,
-                            )
-
-                            original_embed.set_field_at(
-                                index=2,
-                                name="Net Approval",
-                                value=str(
-                                    session.query(SuggestionVote)
-                                    .filter_by(vote=True, id=suggestion_id)
-                                    .count()
-                                    - session.query(SuggestionVote)
-                                    .filter_by(vote=False, id=suggestion_id)
-                                    .count()
-                                ),
-                                inline=False,
-                            ),
 
                             await interaction.message.edit(embed=original_embed)
 
-                            try:
-                                await interaction.followup.send(
-                                    f"{self.config.emotes.success} Your vote has been updated to an upvote.",
-                                    delete_after=5,
-                                )
+                            await interaction.followup.send(
+                                f"{self.config.emotes.success} Your vote has been updated to an upvote.",
+                                ephemeral=True,
+                            )
 
-                            except nextcord.HTTPException:
-                                await interaction.guild.get_channel(
-                                    self.config.channels.suggestion_voting
-                                ).send(
-                                    f"{self.config.emotes.success} Your vote has been updated to an upvote.",
-                                    delete_after=5,
-                                )
+                    else:
+                        new_vote = SuggestionVote(
+                            id=suggestion_id, voter=interaction.user.id, vote=True
+                        )
+                        session.add(new_vote)
+                        session.commit()
 
-                            return
+                        await update_embed_fields(
+                            original_embed, suggestion_id, session
+                        )
 
-                    new_vote = SuggestionVote(
-                        id=suggestion_id, voter=interaction.user.id, vote=True
-                    )
-                    session.add(new_vote)
-                    session.commit()
+                        await interaction.message.edit(embed=original_embed)
 
-                    original_embed.set_field_at(
-                        index=0,
-                        name="Yes Votes",
-                        value=str(
-                            session.query(SuggestionVote)
-                            .filter_by(vote=True, id=suggestion_id)
-                            .count()
-                        ),
-                        inline=False,
-                    )
-
-                    original_embed.set_field_at(
-                        index=2,
-                        name="Net Approval",
-                        value=str(
-                            session.query(SuggestionVote)
-                            .filter_by(vote=True, id=suggestion_id)
-                            .count()
-                            - session.query(SuggestionVote)
-                            .filter_by(vote=False, id=suggestion_id)
-                            .count()
-                        ),
-                        inline=False,
-                    )
-
-                    await interaction.message.edit(embed=original_embed)
-
-                    try:
                         await interaction.followup.send(
                             f"{self.config.emotes.success} Your vote has been registered as an upvote.",
-                            delete_after=5,
+                            ephemeral=True,
                         )
-
-                    except nextcord.HTTPException:
-                        await interaction.guild.get_channel(
-                            self.config.channels.suggestion_voting
-                        ).send(
-                            f"{self.config.emotes.success} Your vote has been registered as an upvote.",
-                            delete_after=5,
-                        )
-
-                    return
 
             case ["suggestion-downvote", suggestion_id]:
+                await interaction.response.defer(ephemeral=True)
                 original_embed = interaction.message.embeds[0]
 
                 with db_session(interaction.user) as session:
@@ -413,128 +325,43 @@ class Suggestions(commands.Cog):
 
                     if already_voted:
                         if already_voted.vote is False:
-                            try:
-                                await interaction.followup.send(
-                                    f"{self.config.emotes.fail} You have already downvoted this suggestion.",
-                                    delete_after=5,
-                                )
-
-                            except nextcord.HTTPException:
-                                await interaction.guild.get_channel(
-                                    self.config.channels.suggestion_voting
-                                ).send(
-                                    f"{self.config.emotes.fail} You have already downvoted this suggestion.",
-                                    delete_after=5,
-                                )
-
-                            return
+                            await interaction.followup.send(
+                                f"{self.config.emotes.fail} You have already downvoted this suggestion.",
+                                ephemeral=True,
+                            )
 
                         if already_voted.vote is True:
                             already_voted.vote = False
                             session.commit()
 
-                            original_embed.set_field_at(
-                                index=0,
-                                name="Yes Votes",
-                                value=str(
-                                    session.query(SuggestionVote)
-                                    .filter_by(vote=True, id=suggestion_id)
-                                    .count()
-                                ),
-                                inline=False,
-                            )
-
-                            original_embed.set_field_at(
-                                index=1,
-                                name="No Votes",
-                                value=str(
-                                    session.query(SuggestionVote)
-                                    .filter_by(vote=False, id=suggestion_id)
-                                    .count()
-                                ),
-                                inline=False,
-                            )
-
-                            original_embed.set_field_at(
-                                index=2,
-                                name="Net Approval",
-                                value=str(
-                                    session.query(SuggestionVote)
-                                    .filter_by(vote=True, id=suggestion_id)
-                                    .count()
-                                    - session.query(SuggestionVote)
-                                    .filter_by(vote=False, id=suggestion_id)
-                                    .count()
-                                ),
-                                inline=False,
+                            await update_embed_fields(
+                                original_embed, suggestion_id, session
                             )
 
                             await interaction.message.edit(embed=original_embed)
 
-                            try:
-                                await interaction.followup.send(
-                                    f"{self.config.emotes.success} Your vote has been updated to a downvote.",
-                                    delete_after=5,
-                                )
+                            await interaction.followup.send(
+                                f"{self.config.emotes.success} Your vote has been updated to a downvote.",
+                                ephemeral=True,
+                            )
 
-                            except nextcord.HTTPException:
-                                await interaction.guild.get_channel(
-                                    self.config.channels.suggestion_voting
-                                ).send(
-                                    f"{self.config.emotes.success} Your vote has been updated to a downvote.",
-                                    delete_after=5,
-                                )
+                    else:
+                        new_vote = SuggestionVote(
+                            id=suggestion_id, voter=interaction.user.id, vote=False
+                        )
+                        session.add(new_vote)
+                        session.commit()
 
-                            return
+                        await update_embed_fields(
+                            original_embed, suggestion_id, session
+                        )
 
-                    new_vote = SuggestionVote(
-                        id=suggestion_id, voter=interaction.user.id, vote=False
-                    )
-                    session.add(new_vote)
-                    session.commit()
+                        await interaction.message.edit(embed=original_embed)
 
-                    original_embed.set_field_at(
-                        index=1,
-                        name="No Votes",
-                        value=str(
-                            session.query(SuggestionVote)
-                            .filter_by(vote=False, id=suggestion_id)
-                            .count()
-                        ),
-                        inline=False,
-                    )
-
-                    original_embed.set_field_at(
-                        index=2,
-                        name="Net Approval",
-                        value=str(
-                            session.query(SuggestionVote)
-                            .filter_by(vote=True, id=suggestion_id)
-                            .count()
-                            - session.query(SuggestionVote)
-                            .filter_by(vote=False, id=suggestion_id)
-                            .count(),
-                            inline=False,
-                        ),
-                    )
-
-                    await interaction.message.edit(embed=original_embed)
-
-                    try:
                         await interaction.followup.send(
                             f"{self.config.emotes.success} Your vote has been registered as a downvote.",
-                            delete_after=5,
+                            ephemeral=True,
                         )
-
-                    except nextcord.HTTPException:
-                        await interaction.guild.get_channel(
-                            self.config.channels.suggestion_voting
-                        ).send(
-                            f"{self.config.emotes.success} Your vote has been registered as a downvote.",
-                            delete_after=5,
-                        )
-
-                    return
 
 
 def setup(bot: commands.Bot, **kwargs):
