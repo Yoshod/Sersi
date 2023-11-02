@@ -67,6 +67,10 @@ channels:
     dark_mod_review:          1166770862150651978
     senior_mod_review:        1166770862150651979
     moderator_review:         1166770862150651980
+    moderation_votes:                          0
+    suggestion_discussion:   1166770862989525000
+    suggestion_voting:       1166770862989524999
+    suggestion_review:       1166770862435876978   
 
 ignored_categories:
     - IMPORTANT STUFF
@@ -134,3 +138,15 @@ emotes:
 guilds:
     main:   1166770860787515422
     errors: 977377117895536640
+
+voting:
+    reform-free:
+        name: Reformation successful
+        action: reformation_release
+    reform-fail:
+        name: Reformation failed
+        action: reformation_ban
+    urgent-ban:
+        name: Urgent Ban
+        action: ban_vote_pass
+        difference: 2
