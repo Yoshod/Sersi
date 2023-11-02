@@ -2,7 +2,13 @@ from datetime import datetime
 
 import nextcord
 
-from utils.tickets import ticket_check, ticket_create, ticket_permcheck, ticket_close, ticket_escalate
+from utils.tickets import (
+    ticket_check,
+    ticket_create,
+    ticket_permcheck,
+    ticket_close,
+    ticket_escalate,
+)
 from nextcord.ext import commands
 from nextcord.ui import Modal
 from utils.database import db_session, Ticket, TicketCategory
@@ -50,7 +56,7 @@ class TicketingSystem(commands.Cog):
         filter = {"escalation_level": ticket_type}
         if category:
             filter["category"] = category
-        
+
         if ticket_check(
             interaction.user,
             **filter,
@@ -60,7 +66,7 @@ class TicketingSystem(commands.Cog):
                 " You need to close that one before opening a new one.",
             )
             return
-        
+
         await interaction.response.defer(ephemeral=True)
 
         channel = await ticket_create(
@@ -79,10 +85,10 @@ class TicketingSystem(commands.Cog):
             return
 
         await interaction.followup.send(
-            f"{self.config.emotes.success} Your ticket has been created! You can find it at {channel.jump_url}.",
+            f"{self.config.emotes.success} Your ticket has been created! You can find it at {channel.mention}.",
             ephemeral=True,
         )
-    
+
     @ticket.subcommand(description="Used to close a Ticket")
     async def close(
         self,
@@ -114,23 +120,19 @@ class TicketingSystem(commands.Cog):
             else:
                 filter_dict["channel"] = interaction.channel.id
 
-            ticket: Ticket = (
-                session.query(Ticket)
-                .filter_by(**filter_dict)
-                .first()
-            )
+            ticket: Ticket = session.query(Ticket).filter_by(**filter_dict).first()
             if ticket is None:
                 await interaction.response.send_message(
                     f"{self.config.emotes.fail} No open ticket with that ID exists."
-                    if ticket_id else
-                    f"{self.config.emotes.fail} This channel is not a ticket channel",
+                    if ticket_id
+                    else f"{self.config.emotes.fail} This channel is not a ticket channel",
                     ephemeral=True,
                 )
                 return
-            
+
             if not await ticket_permcheck(interaction, ticket.escalation_level):
                 return
-            
+
             await interaction.response.defer(ephemeral=True)
 
             channel = interaction.guild.get_channel(ticket.channel)
@@ -140,7 +142,7 @@ class TicketingSystem(commands.Cog):
                     ephemeral=True,
                 )
                 return
-            
+
             if category:
                 ticket.category = category
             if subcategory:
@@ -163,12 +165,12 @@ class TicketingSystem(commands.Cog):
                 return
 
             session.commit()
-    
+
         await interaction.followup.send(
             f"{self.config.emotes.success} Ticket has been closed!",
             ephemeral=True,
         )
-    
+
     @ticket.subcommand(description="Used to change ticket escalation level")
     async def escalate(
         self,
@@ -197,16 +199,12 @@ class TicketingSystem(commands.Cog):
             else:
                 filter_dict["channel"] = interaction.channel.id
 
-            ticket: Ticket = (
-                session.query(Ticket)
-                .filter_by(**filter_dict)
-                .first()
-            )
+            ticket: Ticket = session.query(Ticket).filter_by(**filter_dict).first()
             if ticket is None:
                 await interaction.response.send_message(
                     f"{self.config.emotes.fail} No open ticket with that ID exists."
-                    if ticket_id else
-                    f"{self.config.emotes.fail} This channel is not a ticket channel",
+                    if ticket_id
+                    else f"{self.config.emotes.fail} This channel is not a ticket channel",
                     ephemeral=True,
                 )
                 return
@@ -216,10 +214,10 @@ class TicketingSystem(commands.Cog):
                     ephemeral=True,
                 )
                 return
-            
+
             if not await ticket_permcheck(interaction, ticket.escalation_level):
                 return
-            
+
             await interaction.response.defer(ephemeral=True)
 
             if not await ticket_escalate(
@@ -238,12 +236,12 @@ class TicketingSystem(commands.Cog):
             ticket.escalation_level = escalation_level
 
             session.commit()
-    
+
         await interaction.followup.send(
             f"{self.config.emotes.success} Ticket has been escalated to {escalation_level}!",
             ephemeral=True,
         )
-    
+
     @ticket.subcommand(description="Used to change ticket category")
     async def recategorize(
         self,
@@ -270,23 +268,19 @@ class TicketingSystem(commands.Cog):
             else:
                 filter_dict["channel"] = interaction.channel.id
 
-            ticket: Ticket = (
-                session.query(Ticket)
-                .filter_by(**filter_dict)
-                .first()
-            )
+            ticket: Ticket = session.query(Ticket).filter_by(**filter_dict).first()
             if ticket is None:
                 await interaction.response.send_message(
                     f"{self.config.emotes.fail} No open ticket with that ID exists."
-                    if ticket_id else
-                    f"{self.config.emotes.fail} This channel is not a ticket channel",
+                    if ticket_id
+                    else f"{self.config.emotes.fail} This channel is not a ticket channel",
                     ephemeral=True,
                 )
                 return
-            
+
             if not await ticket_permcheck(interaction, ticket.escalation_level):
                 return
-            
+
             await interaction.response.defer(ephemeral=True)
 
             ticket.category = category
@@ -294,16 +288,85 @@ class TicketingSystem(commands.Cog):
                 ticket.subcategory = subcategory
 
             session.commit()
-    
+
         await interaction.followup.send(
             f"{self.config.emotes.success} Ticket has been recategorized!",
             ephemeral=True,
         )
-        
+
+    @ticket.subcommand(
+        description="Used to get ticket information from database record"
+    )
+    async def info(
+        self,
+        interaction: nextcord.Interaction,
+        ticket_id: str = nextcord.SlashOption(
+            name="ticket",
+            description="The ticket to get info for",
+        ),
+    ):
+        with db_session(interaction.user) as session:
+            ticket: Ticket = session.query(Ticket).filter_by(id=ticket_id).first()
+            if ticket is None:
+                await interaction.response.send_message(
+                    f"{self.config.emotes.fail} No open ticket with that ID exists."
+                    if ticket_id
+                    else f"{self.config.emotes.fail} This channel is not a ticket channel",
+                    ephemeral=True,
+                )
+                return
+
+            if not await ticket_permcheck(interaction, ticket.escalation_level):
+                return
+
+            await interaction.response.defer()
+
+            ticket_creator = interaction.guild.get_member(ticket.creator)
+            ticket_channel = interaction.guild.get_channel(ticket.channel)
+
+            embed_fields = [
+                {
+                    "Ticket ID": ticket.id,
+                    "Ticket Creator": ticket_creator.mention,
+                    "Ticket Channel": ticket_channel.mention
+                    if ticket_channel
+                    else "`deleted channel`",
+                },
+                {
+                    "Escalation Level": ticket.escalation_level,
+                    "Category": ticket.category or "N/A",
+                    "Subcategory": ticket.subcategory or "N/A",
+                },
+                {
+                    "Open": f"{self.config.emotes.success}"
+                    if ticket.active
+                    else f"{self.config.emotes.fail}",
+                    "Opened": f"<t:{int(ticket.created.timestamp())}:F>",
+                },
+                {"Opening Comment": ticket.opening_comment},
+            ]
+
+            if not ticket.active:
+                embed_fields[-2].update(
+                    {"Closed": f"<t:{int(ticket.closed.timestamp())}:F>"}
+                )
+                embed_fields.append({"Closing Comment": ticket.closing_comment})
+
+            ticket_embed = SersiEmbed(
+                title=f"{ticket.escalation_level} Ticket",
+                fields=embed_fields,
+                footer=f"Ticket created at {ticket.created}",
+                thumbnail_url=ticket_creator.avatar.url,
+            )
+
+            await interaction.followup.send(embed=ticket_embed)
+
     @create.on_autocomplete("category")
     @close.on_autocomplete("category")
     @recategorize.on_autocomplete("category")
-    async def category_autocomplete(self, interaction: nextcord.Interaction, category: str):
+    async def category_autocomplete(
+        self, interaction: nextcord.Interaction, category: str
+    ):
         with db_session() as session:
             categories: list[TicketCategory] = (
                 session.query(TicketCategory)
@@ -315,7 +378,9 @@ class TicketingSystem(commands.Cog):
 
     @close.on_autocomplete("subcategory")
     @recategorize.on_autocomplete("subcategory")
-    async def subcategory_autocomplete(self, interaction: nextcord.Interaction, subcategory: str, category: str):
+    async def subcategory_autocomplete(
+        self, interaction: nextcord.Interaction, subcategory: str, category: str
+    ):
         with db_session() as session:
             subcategories: list[TicketCategory] = (
                 session.query(TicketCategory)
@@ -324,11 +389,13 @@ class TicketingSystem(commands.Cog):
                 .all()
             )
             return [subcategory.subcategory for subcategory in subcategories]
-            
+
     @close.on_autocomplete("ticket_id")
     @escalate.on_autocomplete("ticket_id")
     @recategorize.on_autocomplete("ticket_id")
-    async def ticket_autocomplete(self, interaction: nextcord.Interaction, ticket_id: str):
+    async def ticket_autocomplete(
+        self, interaction: nextcord.Interaction, ticket_id: str
+    ):
         with db_session() as session:
             tickets: list[Ticket] = (
                 session.query(Ticket)
@@ -339,15 +406,29 @@ class TicketingSystem(commands.Cog):
             )
             return [ticket.id for ticket in tickets]
 
-    
+    @info.on_autocomplete("ticket_id")
+    async def ticket_all_autocomplete(
+        self, interaction: nextcord.Interaction, ticket_id: str
+    ):
+        with db_session() as session:
+            tickets: list[Ticket] = (
+                session.query(Ticket)
+                .filter(Ticket.id.ilike(f"%{ticket_id}%"))
+                .group_by(Ticket.id)
+                .all()
+            )
+            return [ticket.id for ticket in tickets]
+
     @nextcord.message_command(
         name="Report Message",
         dm_permission=False,
         guild_ids=[1166770860787515422, 977377117895536640],
     )
-    async def report_message(self, interaction: nextcord.Interaction, message: nextcord.Message):
+    async def report_message(
+        self, interaction: nextcord.Interaction, message: nextcord.Message
+    ):
         await interaction.response.send_modal(ReportModal(self.config, message))
-    
+
 
 class ReportModal(Modal):
     def __init__(self, config: Configuration, message: nextcord.Message):
@@ -363,7 +444,7 @@ class ReportModal(Modal):
             placeholder="Please provide a brief description of the reason for the report",
         )
         self.add_item(self.report_remarks)
-    
+
     async def callback(self, interaction: nextcord.Interaction):
         await interaction.response.defer(ephemeral=True)
 
@@ -382,15 +463,17 @@ class ReportModal(Modal):
                 ephemeral=True,
             )
             return
-        
+
         reported_message_embed = SersiEmbed(
             title="Reported Message",
             description=self.message.content,
-            fields=[{
-                "Author": self.message.author.mention,
-                "Channel": self.message.channel.mention,
-                "Message Link": self.message.jump_url,
-            }],
+            fields=[
+                {
+                    "Author": self.message.author.mention,
+                    "Channel": self.message.channel.mention,
+                    "Message Link": self.message.jump_url,
+                }
+            ],
             footer=f"Reported by {interaction.user.display_name}",
             footer_icon=interaction.user.avatar.url,
             thumbnail_url=self.message.author.avatar.url,
@@ -399,7 +482,7 @@ class ReportModal(Modal):
         await channel.send(embed=reported_message_embed)
 
         await interaction.followup.send(
-            f"{self.config.emotes.success} Message reported! You can find your ticket at {channel.jump_url}.",
+            f"{self.config.emotes.success} Message reported! You can find your ticket at {channel.mention}.",
             ephemeral=True,
         )
 

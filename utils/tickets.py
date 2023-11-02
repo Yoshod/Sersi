@@ -4,10 +4,17 @@ from utils.channels import make_transcript
 from utils.config import Configuration
 from utils.database import db_session, Ticket
 from utils.sersi_embed import SersiEmbed
-from utils.perms import permcheck, is_dark_mod, is_senior_mod, is_mod, is_cet, is_cet_lead
+from utils.perms import (
+    permcheck,
+    is_dark_mod,
+    is_senior_mod,
+    is_mod,
+    is_cet,
+    is_cet_lead,
+)
 
 
-def ticket_check(proposed_ticketer: nextcord.Member|nextcord.User, **kwargs) -> bool:
+def ticket_check(proposed_ticketer: nextcord.Member | nextcord.User, **kwargs) -> bool:
     with db_session(proposed_ticketer) as session:
         tickets = (
             session.query(Ticket)
@@ -22,8 +29,10 @@ def ticket_check(proposed_ticketer: nextcord.Member|nextcord.User, **kwargs) -> 
         return bool(tickets)
 
 
-async def ticket_permcheck(interaction: nextcord.Interaction, escalation_level: str) -> bool:
-    match(escalation_level):
+async def ticket_permcheck(
+    interaction: nextcord.Interaction, escalation_level: str
+) -> bool:
+    match escalation_level:
         case "Moderator":
             return await permcheck(interaction, is_mod)
         case "Moderation Lead":
@@ -36,8 +45,10 @@ async def ticket_permcheck(interaction: nextcord.Interaction, escalation_level: 
             return await permcheck(interaction, is_dark_mod)
 
 
-def ticket_log_channel(config: Configuration, escalation_level: str) -> nextcord.TextChannel:
-    match(escalation_level):
+def ticket_log_channel(
+    config: Configuration, escalation_level: str
+) -> nextcord.TextChannel:
+    match escalation_level:
         case "Moderator":
             return config.channels.mod_ticket_logs
         case "Moderation Lead":
@@ -51,7 +62,7 @@ def ticket_log_channel(config: Configuration, escalation_level: str) -> nextcord
 
 
 def ticket_overwrites(
-    config: Configuration, 
+    config: Configuration,
     guild: nextcord.Guild,
     escalation_level: str,
     ticket_creator: nextcord.Member,
@@ -91,7 +102,7 @@ def ticket_overwrites(
                     ): nextcord.PermissionOverwrite(read_messages=True)
                 }
             )
-        
+
         case "Community Engagement Lead":
             overwrites.update(
                 {
@@ -109,7 +120,7 @@ def ticket_overwrites(
                     ): nextcord.PermissionOverwrite(read_messages=True)
                 }
             )
-    
+
     return overwrites
 
 
@@ -122,7 +133,7 @@ async def ticket_create(
     opening_remarks: str,
     ticket_subcategory: str = None,
 ):
-    match(ticket_type):
+    match ticket_type:
         case "Moderator":
             type_name = "mod"
         case "Moderation Lead":
@@ -134,20 +145,15 @@ async def ticket_create(
         case "Administrator":
             type_name = "admin"
 
-    channel_category = nextcord.utils.get(
-            guild.categories, name="STAFF SUPPORT"
-    )
+    channel_category = nextcord.utils.get(guild.categories, name="STAFF SUPPORT")
 
     with db_session(ticket_creator) as session:
-        ticket_number = (
-            session.query(Ticket)
-            .count()
-        ) + 1
+        ticket_number = (session.query(Ticket).count()) + 1
 
         channel = await guild.create_text_channel(
             f"{type_name}-ticket-{ticket_number:04d}",
             overwrites=ticket_overwrites(config, guild, ticket_type, ticket_creator),
-            category=channel_category
+            category=channel_category,
         )
         if channel is None:
             return
@@ -176,7 +182,7 @@ async def ticket_create(
     )
 
     await channel.send(embed=embed)
-    
+
     return channel
 
 
@@ -186,7 +192,7 @@ async def ticket_close(
     ticket: Ticket,
     ticket_closer: nextcord.Member,
     ticket_channel: nextcord.TextChannel = None,
-) -> str|None:
+) -> str | None:
     if ticket_channel is None:
         ticket_channel = guild.get_channel(ticket.channel)
     if ticket_channel is None:
@@ -214,13 +220,17 @@ async def ticket_close(
         thumbnail_url=ticketer_avatar,
     )
 
-    transcript_channel = guild.get_channel(ticket_log_channel(config, ticket.escalation_level))
+    transcript_channel = guild.get_channel(
+        ticket_log_channel(config, ticket.escalation_level)
+    )
     if transcript_channel is None:
         return False
     transcript = await make_transcript(ticket_channel, transcript_channel, embed)
     if transcript is None:
         return False
-    await ticket_channel.delete(reason=f"Ticket closed by {ticket_closer.display_name} ({ticket_closer.id})")
+    await ticket_channel.delete(
+        reason=f"Ticket closed by {ticket_closer.display_name} ({ticket_closer.id})"
+    )
 
     if ticket.category is None or ticket.subcategory is None:
         await transcript_channel.send(
@@ -252,7 +262,7 @@ async def ticket_escalate(
 
     overwrites = ticket_overwrites(config, guild, escalation_level, ticket_creator)
 
-    match(escalation_level):
+    match escalation_level:
         case "Moderator":
             type_name = "mod"
         case "Moderation Lead":
@@ -267,7 +277,7 @@ async def ticket_escalate(
     await ticket_channel.edit(
         name=f"{type_name}-ticket-{int(ticket.id.split('-')[-1]):04d}",
         overwrites=overwrites,
-        reason=f"Ticket escalated to {escalation_level} by {ticket_escalator.display_name} ({ticket_escalator.id})"
+        reason=f"Ticket escalated to {escalation_level} by {ticket_escalator.display_name} ({ticket_escalator.id})",
     )
 
     embed = SersiEmbed(
@@ -285,12 +295,14 @@ async def ticket_escalate(
         thumbnail_url=ticket_creator.avatar.url,
     )
 
-    prev_log_channel = guild.get_channel(ticket_log_channel(config, ticket.escalation_level))
+    prev_log_channel = guild.get_channel(
+        ticket_log_channel(config, ticket.escalation_level)
+    )
     if prev_log_channel is not None:
         await prev_log_channel.send(embed=embed)
 
     log_channel = guild.get_channel(ticket_log_channel(config, escalation_level))
     if log_channel is not None:
         await log_channel.send(embed=embed)
-    
+
     return True
