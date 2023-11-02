@@ -280,6 +280,7 @@ class SubmittedSuggestion(_Base):
     suggestion_text = Column(String, nullable=False)
     media_url = Column(String)
     suggester = Column(Integer, nullable=False)
+    vote_message_id = Column(Integer)
 
     timestamp = Column(DateTime, default=datetime.utcnow)
 
@@ -302,6 +303,16 @@ class SuggestionVote(_Base):
     voter = Column(Integer, primary_key=True)
 
     vote = Column(Boolean, nullable=False)
+
+
+class SuggestionOutcome(_Base):
+    __tablename__ = "suggestion_outcome"
+
+    id = Column(String, ForeignKey("submitted_suggestions.id"), primary_key=True)
+    outcome = Column(String, nullable=False)
+    outcome_comment = Column(String, nullable=False)
+    outcome_reviewer = Column(Integer, nullable=False)
+    outcome_timestamp = Column(DateTime, default=datetime.utcnow)
 
 
 class Offence(_Base):

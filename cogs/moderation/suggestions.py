@@ -6,14 +6,17 @@ from utils.config import Configuration
 from utils.perms import is_cet, permcheck
 from utils.suggestions import (
     check_if_reviewed,
+    check_if_marked,
     get_suggestion_by_id,
-    update_embed_fields,
+    update_embed_outcome,
+    update_embed_votes,
 )
 from utils.database import (
     SubmittedSuggestion,
     SuggestionVote,
     db_session,
     SuggestionReview,
+    SuggestionOutcome,
 )
 
 
@@ -224,7 +227,7 @@ class Suggestions(commands.Cog):
         button_view.add_item(upvote)
         button_view.add_item(downvote)
 
-        await interaction.guild.get_channel(
+        suggestion_post: nextcord.WebhookMessage = await interaction.guild.get_channel(
             self.config.channels.suggestion_voting
         ).send(embed=suggestion_embed, view=button_view)
 
@@ -236,6 +239,13 @@ class Suggestions(commands.Cog):
                 reason=review_reason,
             )
             session.add(review_instance)
+            session.commit()
+
+            update_suggestion = (
+                session.query(SubmittedSuggestion).filter_by(id=suggestion_instance.id)
+            ).first()
+
+            update_suggestion.vote_message_id = suggestion_post.id
             session.commit()
 
         approved_embed = SersiEmbed(
@@ -251,6 +261,131 @@ class Suggestions(commands.Cog):
 
         await interaction.followup.send(
             f"{self.config.emotes.success} Suggestion made public for voting!"
+        )
+
+    @suggestion.subcommand(description="Mark a suggestion outcome")
+    async def mark(
+        self,
+        interaction: nextcord.Interaction,
+        suggestion_id: str = nextcord.SlashOption(
+            name="suggestion_id",
+            description="The ID of the suggestion you want to mark",
+            min_length=11,
+            max_length=22,
+        ),
+        suggestion_outcome: str = nextcord.SlashOption(
+            name="outcome",
+            description="The outcome of the suggestion",
+            choices={
+                "Considering": "Considering",
+                "Planned": "Planned",
+                "In Progress": "In Progress",
+                "On Hold": "On Hold",
+                "Completed": "Completed",
+                "Not Happening": "Not Happening",
+            },
+        ),
+        suggestion_reason: str = nextcord.SlashOption(
+            name="reason",
+            description="The reason for your decision. May be shared with suggester.",
+            min_length=8,
+            max_length=1024,
+        ),
+    ):
+        if not await permcheck(interaction, is_cet):
+            return
+
+        suggestion_instance: SubmittedSuggestion | None = get_suggestion_by_id(
+            interaction, suggestion_id
+        )
+
+        if not suggestion_instance:
+            interaction.response.send_message(
+                f"{self.config.emotes.fail} `{suggestion_id}` is not a valid suggestion!",
+                ephemeral=True,
+            )
+
+        if not check_if_reviewed(interaction, suggestion_instance):
+            await interaction.response.send_message(
+                f"{self.config.emotes.fail} This suggestion has not been reviewed yet. Please review it before marking an outcome.",
+                ephemeral=True,
+            )
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        logging_embed = SersiEmbed(
+            title="Suggestion Marked",
+            description="A change has been processed on a suggestion.",
+            fields={
+                "Suggestion ID": suggestion_instance.id,
+                "Suggestion Outcome": suggestion_outcome,
+                "Reason": suggestion_reason,
+                "Marked By": interaction.user.mention,
+            },
+        )
+
+        await interaction.guild.get_channel(self.config.channels.logging).send(
+            embed=logging_embed
+        )
+
+        # Check if the suggestion is already marked. If already marked update the database and edit the embed. Else create a new entry in the database and edit the embed.
+        if check_if_marked(interaction, suggestion_instance):
+            with db_session(interaction.user) as session:
+                update_suggestion = (
+                    session.query(SuggestionOutcome)
+                    .filter_by(id=suggestion_instance.id)
+                    .first()
+                )
+
+                update_suggestion.outcome = suggestion_outcome
+                update_suggestion.outcome_comment = suggestion_reason
+                update_suggestion.outcome_reviewer = interaction.user.id
+                session.commit()
+
+            original_message: nextcord.WebhookMessage = (
+                await interaction.guild.get_channel(
+                    self.config.channels.suggestion_voting
+                ).fetch_message(suggestion_instance.vote_message_id)
+            )
+
+            with db_session(interaction.user) as session:
+                updated_embed = await update_embed_outcome(
+                    interaction, original_message.embeds[0], suggestion_id, session
+                )
+
+            await original_message.edit(embed=updated_embed, view=None)
+
+            await interaction.followup.send(
+                f"{self.config.emotes.success} Suggestion marked as {suggestion_outcome}!",
+                ephemeral=True,
+            )
+            return
+
+        with db_session(interaction.user) as session:
+            suggestion_outcome_instance = SuggestionOutcome(
+                id=suggestion_instance.id,
+                outcome=suggestion_outcome,
+                outcome_comment=suggestion_reason,
+                outcome_reviewer=interaction.user.id,
+            )
+            session.add(suggestion_outcome_instance)
+            session.commit()
+
+        original_message: nextcord.WebhookMessage = await interaction.guild.get_channel(
+            self.config.channels.suggestion_voting
+        ).fetch_message(suggestion_instance.vote_message_id)
+
+        with db_session(interaction.user) as session:
+            updated_embed = await update_embed_outcome(
+                interaction, original_message.embeds[0], suggestion_id, session
+            )
+
+        await original_message.edit(embed=updated_embed, view=None)
+
+        await interaction.followup.send(
+            f"{self.config.emotes.success} Suggestion marked as {suggestion_outcome}!",
+            ephemeral=True,
         )
 
     @commands.Cog.listener()
@@ -283,7 +418,7 @@ class Suggestions(commands.Cog):
                             already_voted.vote = True
                             session.commit()
 
-                            await update_embed_fields(
+                            await update_embed_votes(
                                 original_embed, suggestion_id, session
                             )
 
@@ -301,9 +436,7 @@ class Suggestions(commands.Cog):
                         session.add(new_vote)
                         session.commit()
 
-                        await update_embed_fields(
-                            original_embed, suggestion_id, session
-                        )
+                        await update_embed_votes(original_embed, suggestion_id, session)
 
                         await interaction.message.edit(embed=original_embed)
 
@@ -334,7 +467,7 @@ class Suggestions(commands.Cog):
                             already_voted.vote = False
                             session.commit()
 
-                            await update_embed_fields(
+                            await update_embed_votes(
                                 original_embed, suggestion_id, session
                             )
 
@@ -352,9 +485,7 @@ class Suggestions(commands.Cog):
                         session.add(new_vote)
                         session.commit()
 
-                        await update_embed_fields(
-                            original_embed, suggestion_id, session
-                        )
+                        await update_embed_votes(original_embed, suggestion_id, session)
 
                         await interaction.message.edit(embed=original_embed)
 
