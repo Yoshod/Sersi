@@ -194,9 +194,15 @@ class Suggestions(commands.Cog):
             description=suggestion_instance.suggestion_text,
         )
         suggestion_embed.set_footer(text=f"Suggestion ID: {suggestion_instance.id}")
-        suggestion_embed.set_thumbnail(url=interaction.user.display_avatar.url)
+        suggestion_embed.set_thumbnail(
+            url=interaction.guild.get_member(
+                suggestion_instance.suggester
+            ).display_avatar.url
+        )
         suggestion_embed.set_author(
-            icon_url=interaction.user.display_avatar.url,
+            icon_url=interaction.guild.get_member(
+                suggestion_instance.suggester
+            ).display_avatar.url,
             name=f"Suggestion from {interaction.guild.get_member(suggestion_instance.suggester).display_name}",
         )
 
