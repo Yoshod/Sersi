@@ -80,24 +80,32 @@ async def update_embed_votes(original_embed, suggestion_id, session):
     Returns:
         discord.Embed: The updated embed.
     """
+    yes_votes = (
+        session.query(SuggestionVote).filter_by(vote=True, id=suggestion_id).count()
+    )
+    no_votes = (
+        session.query(SuggestionVote).filter_by(vote=False, id=suggestion_id).count()
+    )
+    net_approval = yes_votes - no_votes
+
     original_embed.set_field_at(
         index=0,
         name="Yes Votes",
-        value=f"`{session.query(SuggestionVote).filter_by(vote=True, id=suggestion_id).count()}`",
+        value=f"`{yes_votes}`",
         inline=False,
     )
 
     original_embed.set_field_at(
         index=1,
         name="No Votes",
-        value=f"`{session.query(SuggestionVote).filter_by(vote=False, id=suggestion_id).count()}`",
+        value=f"`{no_votes}`",
         inline=False,
     )
 
     original_embed.set_field_at(
         index=2,
         name="Net Approval",
-        value=f"`{session.query(SuggestionVote).filter_by(vote=True, id=suggestion_id).count() - session.query(SuggestionVote).filter_by(vote=False, id=suggestion_id).count()}`",
+        value=f"`{'+' if net_approval > 0 else ''}{net_approval}`",
         inline=False,
     )
 
