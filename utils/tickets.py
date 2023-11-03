@@ -1,8 +1,11 @@
+from datetime import datetime
+
 import nextcord
+from nextcord.ui import View, Button, Modal, TextInput
 
 from utils.channels import make_transcript
 from utils.config import Configuration
-from utils.database import db_session, Ticket
+from utils.database import db_session, Ticket, TicketSurvey
 from utils.sersi_embed import SersiEmbed
 from utils.perms import (
     permcheck,
@@ -306,3 +309,203 @@ async def ticket_escalate(
         await log_channel.send(embed=embed)
 
     return True
+
+
+async def send_survey(
+    guild: nextcord.Guild,
+    ticket: Ticket,
+    ticket_name: str,
+) -> TicketSurvey | None:
+    ticket_creator = guild.get_member(ticket.creator)
+    if ticket_creator is None:
+        ticket_creator = await guild.fetch_member(ticket.creator)
+    if ticket_creator is None:
+        return None
+
+    embed = SersiEmbed(
+        title=f"{guild.name} Ticket Survey",
+        description=f"Please take a moment to fill out the following survey regarding your experience with {ticket_name}.\n\n"
+        "Press a button below to select your rating. You will be prompted to provide additional feedback after selecting a rating.",
+        fields={
+            "Opening Remarks": ticket.opening_comment,
+            "Closing Remarks": ticket.closing_comment,
+            "Category": f"{ticket.category or '`N/A`'} - {ticket.subcategory or '`N/A`'}",
+        },
+        footer=f"{guild.name} | <t:{int(ticket.closed.timestamp())}:R>",
+        footer_icon=ticket_creator.avatar.url,
+        thumbnail_url=guild.icon.url,
+    )
+
+    view = View(timeout=None, auto_defer=False)
+    view.add_item(
+        Button(
+            style=nextcord.ButtonStyle.red,
+            label="Terrible",
+            custom_id=f"ticket-survey:{ticket.id}:1",
+        )
+    )
+    view.add_item(
+        Button(
+            style=nextcord.ButtonStyle.red,
+            label="Poor",
+            custom_id=f"ticket-survey:{ticket.id}:2",
+        )
+    )
+    view.add_item(
+        Button(
+            style=nextcord.ButtonStyle.gray,
+            label="Satisfactory",
+            custom_id=f"ticket-survey:{ticket.id}:3",
+        )
+    )
+    view.add_item(
+        Button(
+            style=nextcord.ButtonStyle.blurple,
+            label="Good",
+            custom_id=f"ticket-survey:{ticket.id}:4",
+        )
+    )
+    view.add_item(
+        Button(
+            style=nextcord.ButtonStyle.green,
+            label="Great",
+            custom_id=f"ticket-survey:{ticket.id}:5",
+        )
+    )
+
+    await ticket_creator.send(embed=embed, view=view)
+
+    return TicketSurvey(ticket_id=ticket.id, member=ticket.creator)
+
+
+class SurveyModal(Modal):
+    def __init__(self, config: Configuration, guild: nextcord.Guild, ticket_id: str, rating: int):
+        super().__init__("Survey")
+        self.config = config
+        self.guild = guild
+        self.ticket_id = ticket_id
+        self.rating = rating
+
+        self.comment = TextInput(
+            label="Comment",
+            min_length=8,
+            max_length=1024,
+            required=True,
+            placeholder="Please provide a brief description of your experience",
+            style=nextcord.TextInputStyle.paragraph,
+        )
+        self.add_item(self.comment)
+
+    async def callback(self, interaction: nextcord.Interaction):
+        received = datetime.utcnow()
+        with db_session(interaction.user) as session:
+            survey: TicketSurvey = (
+                session.query(TicketSurvey)
+                .filter_by(ticket_id=self.ticket_id, member=interaction.user.id)
+                .first()
+            )
+            if survey is None:
+                await interaction.response.send_message(
+                    f"{self.config.emotes.fail} Could not find survey, please contact administrator.",
+                    ephemeral=True,
+                )
+                return
+            survey.rating = self.rating
+            survey.comment = self.comment.value
+            survey.received = received
+            session.commit()
+
+            await interaction.response.send_message(
+                f"{self.config.emotes.success} Thank you for your feedback!",
+            )
+
+            await interaction.message.edit(view=None)
+
+            ticket: Ticket = session.query(Ticket).filter_by(id=self.ticket_id).first()
+            if ticket is None:
+                return
+
+        channel = self.guild.get_channel(
+            ticket_log_channel(self.config, ticket.escalation_level)
+        )
+        if channel is None:
+            return
+
+        embed = SersiEmbed(
+            title=f"{ticket.escalation_level} Ticket Survey Received",
+            fields=[
+                {
+                    "Ticket ID": ticket.id,
+                    "Category": ticket.category or "N/A",
+                    "Subcategory": ticket.subcategory or "N/A",
+                },
+                {
+                    "Creator": interaction.user.mention,
+                    "Rating": self.rating,
+                    "Received": f"<t:{int(received.timestamp())}:F>",
+                },
+                {"Comment": self.comment.value},
+            ],
+            footer=interaction.user.display_name,
+            footer_icon=interaction.user.avatar.url,
+            thumbnail_url=self.guild.get_member(ticket.creator).avatar.url,
+        )
+        await channel.send(embed=embed)
+
+
+class ReportModal(Modal):
+    def __init__(self, config: Configuration, message: nextcord.Message):
+        super().__init__("Report Message")
+        self.config = config
+        self.message = message
+
+        self.report_remarks = nextcord.ui.TextInput(
+            label="Report Remarks",
+            min_length=8,
+            max_length=1024,
+            required=True,
+            placeholder="Please provide a brief description of the reason for the report",
+            style=nextcord.TextInputStyle.paragraph,
+        )
+        self.add_item(self.report_remarks)
+
+    async def callback(self, interaction: nextcord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+
+        channel = await ticket_create(
+            self.config,
+            interaction.guild,
+            interaction.user,
+            "Moderator",
+            "Report",
+            self.report_remarks.value,
+            ticket_subcategory="Message Report",
+        )
+        if channel is None:
+            await interaction.followup.send(
+                f"{self.config.emotes.fail} An error occurred while creating your ticket. Please try again later.",
+                ephemeral=True,
+            )
+            return
+
+        reported_message_embed = SersiEmbed(
+            title="Reported Message",
+            description=self.message.content,
+            fields=[
+                {
+                    "Author": self.message.author.mention,
+                    "Channel": self.message.channel.mention,
+                    "Message Link": self.message.jump_url,
+                }
+            ],
+            footer=f"Reported by {interaction.user.display_name}",
+            footer_icon=interaction.user.avatar.url,
+            thumbnail_url=self.message.author.avatar.url,
+        )
+
+        await channel.send(embed=reported_message_embed)
+
+        await interaction.followup.send(
+            f"{self.config.emotes.success} Message reported! You can find your ticket at {channel.mention}.",
+            ephemeral=True,
+        )

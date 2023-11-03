@@ -8,10 +8,13 @@ from utils.tickets import (
     ticket_permcheck,
     ticket_close,
     ticket_escalate,
+    send_survey,
+    SurveyModal,
+    ReportModal,
 )
 from nextcord.ext import commands
 from nextcord.ui import Modal
-from utils.database import db_session, Ticket, TicketCategory
+from utils.database import db_session, Ticket, TicketCategory, TicketSurvey
 from utils.config import Configuration
 from utils.base import SersiEmbed
 
@@ -112,6 +115,16 @@ class TicketingSystem(commands.Cog):
             description="Provide subcategory for the ticket",
             required=False,
         ),
+        do_survey: bool = nextcord.SlashOption(
+            name="send_survey",
+            description="Send a survey to the ticket creator",
+            required=False,
+            choices={
+                "Yes": True,
+                "No": False,
+            },
+            default=True,
+        ),
     ):
         with db_session(interaction.user) as session:
             filter_dict = {"active": True}
@@ -135,14 +148,6 @@ class TicketingSystem(commands.Cog):
 
             await interaction.response.defer(ephemeral=True)
 
-            channel = interaction.guild.get_channel(ticket.channel)
-            if channel is None:
-                await interaction.followup.send(
-                    f"{self.config.emotes.fail} could not find ticket channel, please contact administartor.",
-                    ephemeral=True,
-                )
-                return
-
             if category:
                 ticket.category = category
             if subcategory:
@@ -150,6 +155,14 @@ class TicketingSystem(commands.Cog):
             ticket.active = False
             ticket.closing_comment = close_reason
             ticket.closed = datetime.utcnow()
+
+            channel = interaction.guild.get_channel(ticket.channel)
+            if channel is None:
+                await interaction.followup.send(
+                    f"{self.config.emotes.fail} could not find ticket channel, please contact administartor.",
+                    ephemeral=True,
+                )
+                return
 
             if not await ticket_close(
                 self.config,
@@ -163,8 +176,22 @@ class TicketingSystem(commands.Cog):
                     ephemeral=True,
                 )
                 return
-
             session.commit()
+
+            if do_survey:
+                survey = await send_survey(
+                    interaction.guild,
+                    ticket,
+                    channel.name,
+                )
+                if survey is None:
+                    await interaction.followup.send(
+                        f"{self.config.emotes.fail} Could not send survey to the ticketer.",
+                        ephemeral=True,
+                    )
+                else:
+                    session.add(survey)
+                    session.commit()
 
         await interaction.followup.send(
             f"{self.config.emotes.success} Ticket has been closed!",
@@ -429,62 +456,25 @@ class TicketingSystem(commands.Cog):
     ):
         await interaction.response.send_modal(ReportModal(self.config, message))
 
-
-class ReportModal(Modal):
-    def __init__(self, config: Configuration, message: nextcord.Message):
-        super().__init__("Report Message")
-        self.config = config
-        self.message = message
-
-        self.report_remarks = nextcord.ui.TextInput(
-            label="Report Remarks",
-            min_length=8,
-            max_length=1024,
-            required=True,
-            placeholder="Please provide a brief description of the reason for the report",
-        )
-        self.add_item(self.report_remarks)
-
-    async def callback(self, interaction: nextcord.Interaction):
-        await interaction.response.defer(ephemeral=True)
-
-        channel = await ticket_create(
-            self.config,
-            interaction.guild,
-            interaction.user,
-            "Moderator",
-            "Report",
-            self.report_remarks.value,
-            ticket_subcategory="Message Report",
-        )
-        if channel is None:
-            await interaction.followup.send(
-                f"{self.config.emotes.fail} An error occurred while creating your ticket. Please try again later.",
-                ephemeral=True,
-            )
+    @commands.Cog.listener()
+    async def on_interaction(self, interaction: nextcord.Interaction):
+        if interaction.data is None or interaction.data.get("custom_id") is None:
+            return
+        if not interaction.data["custom_id"].startswith("ticket"):
             return
 
-        reported_message_embed = SersiEmbed(
-            title="Reported Message",
-            description=self.message.content,
-            fields=[
-                {
-                    "Author": self.message.author.mention,
-                    "Channel": self.message.channel.mention,
-                    "Message Link": self.message.jump_url,
-                }
-            ],
-            footer=f"Reported by {interaction.user.display_name}",
-            footer_icon=interaction.user.avatar.url,
-            thumbnail_url=self.message.author.avatar.url,
-        )
+        action, ticket_id, rating = interaction.data["custom_id"].split(":")
 
-        await channel.send(embed=reported_message_embed)
-
-        await interaction.followup.send(
-            f"{self.config.emotes.success} Message reported! You can find your ticket at {channel.mention}.",
-            ephemeral=True,
-        )
+        match(action):
+            case "ticket-survey":
+                await interaction.response.send_modal(
+                    SurveyModal(
+                        self.config,
+                        self.bot.get_guild(self.config.guilds.main),
+                        ticket_id,
+                        rating,
+                    )
+                )
 
 
 def setup(bot: commands.Bot, **kwargs):
