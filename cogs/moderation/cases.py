@@ -188,7 +188,7 @@ class Cases(commands.Cog):
             base_embed=audit_embed,
             fetch_function=get_case_audit_logs,
             author=interaction.user,
-            entry_form="{entry.old_value} => {entry.new_value}",
+            entry_form="<@{entry.author}>\n{entry.old_value} => {entry.new_value}",
             field_title="{entries[0]}",
             inline_fields=False,
             cols=10,

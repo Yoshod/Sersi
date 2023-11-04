@@ -9,14 +9,14 @@ from utils.tickets import (
     ticket_close,
     ticket_escalate,
     send_survey,
+    ticket_audit_logs,
     SurveyModal,
     ReportModal,
 )
 from nextcord.ext import commands
-from nextcord.ui import Modal
-from utils.database import db_session, Ticket, TicketCategory, TicketSurvey
+from utils.database import db_session, Ticket, TicketCategory
 from utils.config import Configuration
-from utils.base import SersiEmbed
+from utils.base import SersiEmbed, PageView
 
 
 class TicketingSystem(commands.Cog):
@@ -336,9 +336,7 @@ class TicketingSystem(commands.Cog):
             ticket: Ticket = session.query(Ticket).filter_by(id=ticket_id).first()
             if ticket is None:
                 await interaction.response.send_message(
-                    f"{self.config.emotes.fail} No open ticket with that ID exists."
-                    if ticket_id
-                    else f"{self.config.emotes.fail} This channel is not a ticket channel",
+                    f"{self.config.emotes.fail} Ticket not found.",
                     ephemeral=True,
                 )
                 return
@@ -387,6 +385,54 @@ class TicketingSystem(commands.Cog):
             )
 
             await interaction.followup.send(embed=ticket_embed)
+    
+    @ticket.subcommand(description="Get ticket audit log")
+    async def audit(
+        self,
+        interaction: nextcord.Interaction,
+        ticket_id: str = nextcord.SlashOption(
+            name="ticket",
+            description="The ticket to get info for",
+        ),
+    ):
+        with db_session(interaction.user) as session:
+            ticket: Ticket = session.query(Ticket).filter_by(id=ticket_id).first()
+            if ticket is None:
+                await interaction.response.send_message(
+                    f"{self.config.emotes.fail} Ticket not found.",
+                    ephemeral=True,
+                )
+                return
+
+        if not await ticket_permcheck(interaction, ticket.escalation_level):
+            return
+
+        await interaction.response.defer()
+
+        ticket_creator = interaction.guild.get_member(ticket.creator)
+
+        audit_embed = SersiEmbed(
+            title=f"Ticket `{ticket.id}` Audit Logs",
+            thumbnail_url=ticket_creator.avatar.url,
+            footer_icon=interaction.guild.icon.url,
+        )
+
+        view = PageView(
+            config=self.config,
+            base_embed=audit_embed,
+            fetch_function=ticket_audit_logs,
+            author=interaction.user,
+            entry_form="<@{entry.author}>\n{entry.old_value} => {entry.new_value}",
+            field_title="{entries[0]}",
+            inline_fields=False,
+            cols=10,
+            per_col=1,
+            init_page=1,
+            ticket_id=ticket.id,
+        )
+
+        await view.send_followup(interaction)
+            
 
     @create.on_autocomplete("category")
     @close.on_autocomplete("category")
@@ -434,6 +480,7 @@ class TicketingSystem(commands.Cog):
             return [ticket.id for ticket in tickets]
 
     @info.on_autocomplete("ticket_id")
+    @audit.on_autocomplete("ticket_id")
     async def ticket_all_autocomplete(
         self, interaction: nextcord.Interaction, ticket_id: str
     ):

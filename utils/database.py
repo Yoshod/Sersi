@@ -116,7 +116,7 @@ class CaseAudit(_Base):
     timestamp = Column(DateTime, default=datetime.utcnow)
 
     def __repr__(self):
-        return f"<t:{int(self.timestamp.timestamp())}:R> {self.field} <@{self.author}>"
+        return f"<t:{int(self.timestamp.timestamp())}:R> {self.field}"
 
 
 class BadFaithPingCase(Case):
@@ -442,6 +442,9 @@ class TicketAudit(_Base):
 
     author = Column(Integer)
     timestamp = Column(DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<t:{int(self.timestamp.timestamp())}:R> {self.field}"
 
 
 class TicketSurvey(_Base):

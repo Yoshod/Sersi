@@ -1,11 +1,13 @@
+import typing
 from datetime import datetime
 
 import nextcord
 from nextcord.ui import View, Button, Modal, TextInput
 
+from utils.base import get_page
 from utils.channels import make_transcript
 from utils.config import Configuration
-from utils.database import db_session, Ticket, TicketSurvey
+from utils.database import db_session, Ticket, TicketSurvey, TicketAudit
 from utils.sersi_embed import SersiEmbed
 from utils.perms import (
     permcheck,
@@ -376,6 +378,23 @@ async def send_survey(
     await ticket_creator.send(embed=embed, view=view)
 
     return TicketSurvey(ticket_id=ticket.id, member=ticket.creator)
+
+
+def ticket_audit_logs(
+    config: Configuration, page: int, per_page: int, ticket_id: str
+) -> typing.Tuple[typing.Optional[list[TicketAudit | None]], int, int]:
+    with db_session() as session:
+        audit_logs: list[TicketAudit] = (
+            session.query(TicketAudit)
+            .filter_by(ticket_id=ticket_id)
+            .order_by(TicketAudit.timestamp.desc())
+            .all()
+        )
+
+    if not audit_logs:
+        return None, 0, 0
+    
+    return get_page(audit_logs, page, per_page)
 
 
 class SurveyModal(Modal):
