@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from dataclass_wizard import YAMLWizard
 
-
 @dataclass
 class ConfigurationDatafiles(YAMLWizard):
     author_list: str
@@ -152,7 +151,7 @@ class ConfigurationGuilds(YAMLWizard):
 
 
 @dataclass
-class VoteType:
+class VoteType(YAMLWizard):
     name: str
     action: str
 
@@ -178,3 +177,29 @@ class Configuration(YAMLWizard):
     emotes: ConfigurationEmotes
     guilds: ConfigurationGuilds
     voting: dict[str, VoteType]
+
+
+class Configurator:
+    config: Configuration = None
+    path: str
+
+    def __init__(self, path: str):
+        self.path = path
+        self.load()
+
+    def load(self):
+        self.config = Configuration.from_yaml_file(self.path)
+
+    def save(self):
+        self.config.to_yaml_file(self.path)
+
+    def __getattr__(self, __name):
+        return getattr(self.config, __name)
+
+    def __setattr__(self, __name, __value):
+        if self.config and hasattr(self.config, __name):
+            raise AttributeError(
+                "Overriding base configuration categories is not allowed, modify their contentent instead."
+            )
+        else:
+            super().__setattr__(__name, __value)
