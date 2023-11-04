@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from dataclass_wizard import YAMLWizard
 
+
 @dataclass
 class ConfigurationDatafiles(YAMLWizard):
     author_list: str
@@ -141,6 +142,8 @@ class ConfigurationEmotes(YAMLWizard):
     fail: str
 
     inherit: str
+
+    blank: str
 
 
 @dataclass

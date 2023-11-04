@@ -144,6 +144,7 @@ emotes:
     success: "<:sersisuccess:979066662856822844>"
     fail:    "<:sersifail:979070135799279698>"
     inherit: "<:sersiinherit:1098338822166683668>"
+    blank:   "<:sersiblank:1170445538303418378>"
 
 invites:
     ban_reinvite:       "https://discord.gg/F6vMRTbuFk"
