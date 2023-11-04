@@ -271,6 +271,7 @@ class PageView(View):
         per_col: int = 10,
         init_page: int = 1,
         no_entries: str = "{config.emotes.fail} There are no entries to display.",
+        ephemeral: bool = False,
         **kwargs,
     ):
         super().__init__()
@@ -292,6 +293,7 @@ class PageView(View):
         self.inline_fields = inline_fields
         self.get_entries = fetch_function
         self.no_entries = no_entries
+        self.ephemeral = ephemeral
         self.message: nextcord.Message
 
     def make_column(self, entries):
@@ -360,7 +362,7 @@ class PageView(View):
 
     async def send_followup(self, interaction: nextcord.Interaction):
         self.message = await interaction.followup.send(
-            embed=self.make_embed(self.page), view=self
+            embed=self.make_embed(self.page), view=self, ephemeral=self.ephemeral
         )
 
 
