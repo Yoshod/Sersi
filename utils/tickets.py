@@ -1,3 +1,4 @@
+import io
 import typing
 from datetime import datetime
 
@@ -237,6 +238,21 @@ async def ticket_close(
         reason=f"Ticket closed by {ticket_closer.display_name} ({ticket_closer.id})"
     )
 
+    dm_embed = SersiEmbed(
+        title=f"{ticket.escalation_level} Ticket Closed",
+        description=f"Your {ticket.escalation_level} Ticket has been closed on {guild.name}.\n\n"
+        "Here is the transcript of your ticket.",
+        thumbnail_url=guild.icon.url,
+        footer=guild.name,
+    )
+
+    transcript_file = nextcord.File(
+        io.BytesIO(transcript.encode()),
+        filename=f"transcript-{ticket_channel.name}.html",
+    )
+
+    await ticketer.send(embed=dm_embed, file=transcript_file)
+
     if ticket.category is None or ticket.subcategory is None:
         await transcript_channel.send(
             f"{config.emotes.fail} Ticket {ticket.id} was closed without a category or subcategory.\n"
@@ -333,7 +349,7 @@ async def send_survey(
             "Closing Remarks": ticket.closing_comment,
             "Category": f"{ticket.category or '`N/A`'} - {ticket.subcategory or '`N/A`'}",
         },
-        footer=f"{guild.name} | <t:{int(ticket.closed.timestamp())}:R>",
+        footer=f"{guild.name}",
         footer_icon=ticket_creator.avatar.url,
         thumbnail_url=guild.icon.url,
     )
