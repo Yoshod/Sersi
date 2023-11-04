@@ -14,7 +14,7 @@ from utils.tickets import (
     ReportModal,
 )
 from nextcord.ext import commands
-from utils.database import db_session, Ticket, TicketCategory
+from utils.database import db_session, Ticket, TicketCategory, TicketSurvey
 from utils.config import Configuration
 from utils.base import SersiEmbed, PageView
 
@@ -377,6 +377,18 @@ class TicketingSystem(commands.Cog):
                 )
                 embed_fields.append({"Closing Comment": ticket.closing_comment})
 
+            survey = session.query(TicketSurvey).filter_by(ticket_id=ticket.id).first()
+            embed_fields.append({
+                "Survey Sent": self.config.emotes.success if survey else self.config.emotes.fail,
+            })
+            if survey:
+                if survey.received:
+                    embed_fields[-1].update({
+                        "Survey Rating": survey.rating,
+                        "Survey Received": f"<t:{int(survey.received.timestamp())}:F>",
+                    })
+                    embed_fields.append({"Survey Comment": survey.comment})
+
             ticket_embed = SersiEmbed(
                 title=f"{ticket.escalation_level} Ticket",
                 fields=embed_fields,
@@ -385,7 +397,7 @@ class TicketingSystem(commands.Cog):
             )
 
             await interaction.followup.send(embed=ticket_embed)
-    
+
     @ticket.subcommand(description="Get ticket audit log")
     async def audit(
         self,
@@ -432,7 +444,6 @@ class TicketingSystem(commands.Cog):
         )
 
         await view.send_followup(interaction)
-            
 
     @create.on_autocomplete("category")
     @close.on_autocomplete("category")
@@ -512,7 +523,7 @@ class TicketingSystem(commands.Cog):
 
         action, ticket_id, rating = interaction.data["custom_id"].split(":")
 
-        match (action):
+        match action:
             case "ticket-survey":
                 await interaction.response.send_modal(
                     SurveyModal(

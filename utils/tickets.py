@@ -393,12 +393,14 @@ def ticket_audit_logs(
 
     if not audit_logs:
         return None, 0, 0
-    
+
     return get_page(audit_logs, page, per_page)
 
 
 class SurveyModal(Modal):
-    def __init__(self, config: Configuration, guild: nextcord.Guild, ticket_id: str, rating: int):
+    def __init__(
+        self, config: Configuration, guild: nextcord.Guild, ticket_id: str, rating: int
+    ):
         super().__init__("Survey")
         self.config = config
         self.guild = guild
