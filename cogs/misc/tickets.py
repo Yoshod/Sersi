@@ -6,6 +6,7 @@ from utils.tickets import (
     ticket_check,
     ticket_create,
     ticket_permcheck,
+    allowed_escalation_levels,
     ticket_close,
     ticket_escalate,
     send_survey,
@@ -378,15 +379,21 @@ class TicketingSystem(commands.Cog):
                 embed_fields.append({"Closing Comment": ticket.closing_comment})
 
             survey = session.query(TicketSurvey).filter_by(ticket_id=ticket.id).first()
-            embed_fields.append({
-                "Survey Sent": self.config.emotes.success if survey else self.config.emotes.fail,
-            })
+            embed_fields.append(
+                {
+                    "Survey Sent": self.config.emotes.success
+                    if survey
+                    else self.config.emotes.fail,
+                }
+            )
             if survey:
                 if survey.received:
-                    embed_fields[-1].update({
-                        "Survey Rating": survey.rating,
-                        "Survey Received": f"<t:{int(survey.received.timestamp())}:F>",
-                    })
+                    embed_fields[-1].update(
+                        {
+                            "Survey Rating": survey.rating,
+                            "Survey Received": f"<t:{int(survey.received.timestamp())}:F>",
+                        }
+                    )
                     embed_fields.append({"Survey Comment": survey.comment})
 
             ticket_embed = SersiEmbed(
@@ -484,7 +491,12 @@ class TicketingSystem(commands.Cog):
             tickets: list[Ticket] = (
                 session.query(Ticket)
                 .filter_by(active=True)
-                .filter(Ticket.id.ilike(f"%{ticket_id}%"))
+                .filter(
+                    Ticket.id.ilike(f"%{ticket_id}%"),
+                    Ticket.escalation_level.in_(
+                        allowed_escalation_levels(interaction.user)
+                    ),
+                )
                 .group_by(Ticket.id)
                 .all()
             )
@@ -498,7 +510,12 @@ class TicketingSystem(commands.Cog):
         with db_session() as session:
             tickets: list[Ticket] = (
                 session.query(Ticket)
-                .filter(Ticket.id.ilike(f"%{ticket_id}%"))
+                .filter(
+                    Ticket.id.ilike(f"%{ticket_id}%"),
+                    Ticket.escalation_level.in_(
+                        allowed_escalation_levels(interaction.user)
+                    ),
+                )
                 .group_by(Ticket.id)
                 .all()
             )

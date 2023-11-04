@@ -51,6 +51,23 @@ async def ticket_permcheck(
             return await permcheck(interaction, is_dark_mod)
 
 
+def allowed_escalation_levels(member: nextcord.Member) -> list[str]:
+    available_levels = []
+
+    if is_mod(member):
+        available_levels.append("Moderator")
+    if is_senior_mod(member):
+        available_levels.append("Moderation Lead")
+    if is_cet(member):
+        available_levels.append("Community Engagement")
+    if is_cet_lead(member):
+        available_levels.append("Community Engagement Lead")
+    if is_dark_mod(member):
+        available_levels.append("Administrator")
+
+    return available_levels
+
+
 def ticket_log_channel(
     config: Configuration, escalation_level: str
 ) -> nextcord.TextChannel:
