@@ -81,12 +81,15 @@ channels:
     suggestion_review:       1168176532750082119
 
 ignored_categories:
-    - Important stuff
-    - Administration Centre
-    - The Staff Zone
-    - The Mod Zone
-    - The CET Zone
-    - Moderation Support
+    - IMPORTANT STUFF
+    - ADMINISTRATION TEAM
+    - SENIOR LEADERSHIP TEAM
+    - COMPLIANCE TEAM
+    - ALERT HUB
+    - MODERATION TEAM
+    - ENGAGEMENT TEAM
+    - STAFF TEAM
+    - STAFF SUPPORT
 
 ignored_channels:
     bot-commands: 875815983632252938
