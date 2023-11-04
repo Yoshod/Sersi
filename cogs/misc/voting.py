@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime
 
 import nextcord
@@ -14,6 +15,11 @@ class Voting(commands.Cog):
     def __init__(self, bot: commands.Bot, config: Configuration):
         self.bot = bot
         self.config = config
+        if bot.is_ready():
+            self.process_votes.start()
+
+    @commands.Cog.listener()
+    async def on_ready(self):
         self.process_votes.start()
 
     def cog_unload(self):
@@ -27,7 +33,10 @@ class Voting(commands.Cog):
         new_embed = interaction.message.embeds[0]
         # if the user has voted before, edit previous vote
         for index, field in enumerate(new_embed.fields):
-            if str(interaction.user.id) in field.value:
+            if (
+                field.name.startswith("Voted")
+                and str(interaction.user.id) in field.value
+            ):
                 new_embed.set_field_at(
                     index,
                     name=f"Voted {vote.vote.capitalize()}",
