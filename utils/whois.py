@@ -1,7 +1,7 @@
 import nextcord
 from utils.base import SersiEmbed
 from utils.config import Configuration
-from utils.database import BanCase, Case, WarningCase, db_session
+from utils.database import BanCase, WarningCase, db_session
 
 
 class WhoisCasesButton(nextcord.ui.Button):
@@ -39,17 +39,14 @@ def create_whois_embed(
             session.query(WarningCase).filter_by(offender=user.id, active=True).count()
         )
 
-        ban_cases = session.query(Case).filter_by(offender=user.id, type="Ban").all()
+        ban_cases = (
+            session.query(BanCase)
+            .filter_by(offender=user.id, ban_type="urgent", active=None)
+            .first()
+        )
 
         if ban_cases:
-            for case in ban_cases:
-                ban_query = session.query(BanCase).filter_by(id=case.id).first()
-                if ban_query.type == "urgent" and ban_query.active is None:
-                    ban_vote = True
-                    break
-
-                else:
-                    ban_vote = False
+            ban_vote = True
 
         else:
             ban_vote = False
@@ -63,8 +60,8 @@ def create_whois_embed(
     whois_embed = SersiEmbed(
         title=f"Whois {user.display_name}?",
         fields={
-            "General Information": f"**Username**: {user.name}\n**Global Name**: {user.global_name}\n**Nickname**: {user.nick}\n**User ID**: {user.id}\n**Mention**: {user.mention}\n**Creation Date**: <t:{int(user.created_at.timestamp())}:R>\n**Join Date**: <t:{int(user.joined_at.timestamp())}:R>",
-            "Sersi Information": f"**Active Warns**: {user_warns}\n**Ban Vote**: {config.emotes.success if ban_vote else config.emotes.fail}\n {timeout_string}",
+            "General Information": f"{config.emotes.blank}**Username**: {user.name}\n{config.emotes.blank}**Global Name**: {user.global_name}\n{config.emotes.blank}**Nickname**: {user.nick}\n{config.emotes.blank}**User ID**: {user.id}\n{config.emotes.blank}**Mention**: {user.mention}\n{config.emotes.blank}**Creation Date**: <t:{int(user.created_at.timestamp())}:R>\n{config.emotes.blank}**Join Date**: <t:{int(user.joined_at.timestamp())}:R>",
+            "Sersi Information": f"{config.emotes.blank}**Active Warns**: {user_warns}\n{config.emotes.blank}**Ban Vote**: {config.emotes.success if ban_vote else config.emotes.fail}\n{config.emotes.blank}{timeout_string}",
         },
     )
     whois_embed.set_footer(text="Sersi Whois")
