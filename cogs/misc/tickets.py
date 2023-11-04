@@ -26,7 +26,7 @@ class TicketingSystem(commands.Cog):
 
     @nextcord.slash_command(
         dm_permission=True,
-        description="Make a suggestion on European Urbanism",
+        description="Make a suggestion on The Crossroads",
     )
     async def ticket(self, interaction: nextcord.Interaction):
         pass
@@ -465,7 +465,7 @@ class TicketingSystem(commands.Cog):
 
         action, ticket_id, rating = interaction.data["custom_id"].split(":")
 
-        match(action):
+        match (action):
             case "ticket-survey":
                 await interaction.response.send_modal(
                     SurveyModal(

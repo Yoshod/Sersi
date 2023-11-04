@@ -33,60 +33,63 @@ bot:
         - "• Gombik#0935   `264502855602274306`"
 
 channels:
-    alert:                    897874682198511648
-    logging:                  977609240107700244
-    false positives:          978078399635550269
-    mod_logs:                 903367950554259466
+    alert:                   1168167178256777226
+    logging:                 1170342281333723236
+    false positives:         1168193013353295964
+    mod_logs:                1170342829504086026
     reformation:              943180985632169984
     reformation_info:         878292548785958982
     dm_forward:                                0
     errors:                   987397664280817754
-    secret:                   988184848462131250
+    secret:                                    0
     teachers_lounge:          943194039921016922
     reform public log:        988938011179900928
     ban appeals:              963567357966573629
     photography:             1003714017803653181
     youtube:                  856973356658458714
-    tamper_logs:             1024017147216797877
-    logging_category:         875816745414303754
-    admin_ticket_logs:        960179898838827078
-    senior_ticket_logs:      1024017619466059926
-    mod_ticket_logs:          902670845044998224
-    cet_ticket_logs:                           0
-    cet_lead_ticket_logs:                      0
-    mod applications:         963572589249314887
-    cet applications:        1023684027946897459
-    internalfeedback:        1018936341687443476
+    tamper_logs:             1170341885806649455
+    logging_category:        1170341589080625152
+    admin_ticket_logs:       1168191301758488798
+    senior_ticket_logs:      1168191132719661099
+    mod_ticket_logs:         1168190823670763562
+    cet_ticket_logs:         1168190953367023666
+    cet_lead_ticket_logs:    1168191197383241819
+    mod applications:        1168172187035914260
+    cet applications:        1168176280869552148
+    internalfeedback:                          0
     timeoutappeals:                            0
-    video_discussion:        1006389347257417859
-    role_logs:                895228708690984981
+    video_discussion:                          0
+    role_logs:               1170344224550559805
     ageverification:         1094352347142045878
-    deleted_messages:         895228384718762095
-    deleted_images:           895228483897270302
-    edited_messages:          895228432827424818
-    joinleave:                895228628135186473
-    channel_logs:             895229050178654218
-    guild_logs:               950443082770427914
-    user_chanes:              895228774679998496
-    ban_unban:                895228834067144704
-    voice_logs:               903368043101556837
-    automod_logs:             903370888358023258
-    compliance_review:       1141028893248208916
-    dark_mod_review:         1141029001125691534
-    senior_mod_review:       1141029068372983849
-    moderator_review:        1141029132852019241
-    moderation_votes:                          0
+    deleted_messages:        1170342618551570503
+    deleted_images:          1170342661748686919
+    edited_messages:         1170342734465355797
+    joinleave:               1170342370886303764
+    channel_logs:            1170342177218502749
+    guild_logs:              1170342093068193832
+    user_chanes:             1170342545558097990
+    ban_unban:               1170343013269110824
+    voice_logs:              1170342483415285801
+    automod_logs:            1170342878149628024
+    compliance_review:       1168167264571363430
+    dark_mod_review:         1168167329209778186
+    senior_mod_review:       1168167397929267280
+    moderator_review:        1168167441038311514
+    moderation_votes:        1170340126551965826
     suggestion_discussion:   1168987121936253078
     suggestion_voting:       1168987296452845669
     suggestion_review:       1168176532750082119
 
 ignored_categories:
-    - Important stuff
-    - Administration Centre
-    - The Staff Zone
-    - The Mod Zone
-    - The CET Zone
-    - Moderation Support
+    - IMPORTANT STUFF
+    - ADMINISTRATION TEAM
+    - SENIOR LEADERSHIP TEAM
+    - COMPLIANCE TEAM
+    - ALERT HUB
+    - MODERATION TEAM
+    - ENGAGEMENT TEAM
+    - STAFF TEAM
+    - STAFF SUPPORT
 
 ignored_channels:
     bot-commands: 875815983632252938
