@@ -159,14 +159,19 @@ async def ticket_create(
     match ticket_type:
         case "Moderator":
             type_name = "mod"
+            ping = config.permission_roles.moderator
         case "Moderation Lead":
             type_name = "mod-lead"
+            ping = config.permission_roles.moderator
         case "Community Engagement":
             type_name = "cet"
+            ping = config.permission_roles.cet
         case "Community Engagement Lead":
             type_name = "cet-lead"
+            ping = config.permission_roles.cet
         case "Administrator":
             type_name = "admin"
+            ping = config.permission_roles.dark_moderator
 
     channel_category = nextcord.utils.get(guild.categories, name="STAFF SUPPORT")
 
@@ -204,7 +209,7 @@ async def ticket_create(
         thumbnail_url=ticket_creator.avatar.url,
     )
 
-    await channel.send(embed=embed)
+    await channel.send(f"<@&{ping}>", embed=embed)
 
     return channel
 
