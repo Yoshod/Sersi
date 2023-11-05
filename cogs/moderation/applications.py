@@ -381,7 +381,7 @@ class Applications(commands.Cog):
                     advance_embed = nextcord.Embed(
                         title="Your Moderator Application",
                         description="Your moderator application has been advanced to the next steps. Please create a "
-                        "Senior Moderator Ticket on The Crossroads.",
+                        "Moderation Lead Ticket on The Crossroads.",
                         colour=nextcord.Color.from_rgb(237, 91, 6),
                     )
                     await user.send(embed=advance_embed)

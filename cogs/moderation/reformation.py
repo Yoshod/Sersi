@@ -419,7 +419,7 @@ class Reformation(commands.Cog):
             # logging
             embed = SersiEmbed(
                 title="User Has Been Released from Reformation",
-                description=f"Senior Moderator {interaction.user.mention} ({interaction.user.id}) has released user {member.mention}"
+                description=f"Lead Moderator {interaction.user.mention} ({interaction.user.id}) has released user {member.mention}"
                 f" ({member.id}) from reformation.\n\n" + f"**__Reason:__**\n{reason}",
                 color=nextcord.Color.from_rgb(237, 91, 6),
             )

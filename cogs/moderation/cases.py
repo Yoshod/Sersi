@@ -250,7 +250,7 @@ class Cases(commands.Cog):
 
         logging_embed.add_field(name="Case ID", value=f"`{case_id}`", inline=True)
         logging_embed.add_field(
-            name="Senior Moderator",
+            name="Moderation Lead",
             value=f"{interaction.user.mention}",
             inline=True,
         )

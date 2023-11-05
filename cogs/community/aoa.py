@@ -474,7 +474,7 @@ class AdultAccess(commands.Cog):
                     deny_embed = nextcord.Embed(
                         title="Over 18's Channel Application",
                         description="Your request to join the Over 18's Channel has been denied. Want to know more? "
-                        "Create a Senior Moderator Ticket.",
+                        "Create a Moderation Lead Ticket.",
                         colour=nextcord.Color.from_rgb(237, 91, 6),
                     )
                     await user.send(embed=deny_embed)
@@ -493,7 +493,7 @@ class AdultAccess(commands.Cog):
                     referred_embed = nextcord.Embed(
                         title="Over 18's Channel Application",
                         description="Your request to join the Over 18's Channel has been referred. You have been "
-                        "randomly selected to verify your age. Please create a Senior Moderator or Mega "
+                        "randomly selected to verify your age. Please create a Moderation Lead or "
                         "Administrator ticket. You will be required to submit an image which comprises of "
                         "the following:\n"
                         "Paper which has your discord name and discriminator written on it\n"
