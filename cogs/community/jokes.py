@@ -1,4 +1,6 @@
 import random
+import re
+from dataclasses import dataclass
 
 import nextcord
 from nextcord.ext import commands
@@ -8,6 +10,28 @@ from utils.config import Configuration
 from utils.perms import is_mod
 from utils.sersi_embed import SersiEmbed
 from utils.webhooks import send_webhook_message
+
+
+@dataclass
+class match_regex:
+    string: str
+
+    def __eq__(self, other: str | re.Pattern):
+        if isinstance(other, str):
+            other = re.compile(other, flags=re.IGNORECASE)
+        assert isinstance(other, re.Pattern)
+        return other.fullmatch(self.string) is not None
+
+
+def chance(success_percentage: int) -> bool:
+    """returns true at a success_percentage% chance"""
+    percentage: int = random.randint(1, 100)
+    return percentage <= success_percentage
+
+
+def clamp(n: int, min_value: int, max_value: int) -> int:
+    """clamps n between min_value and max_value"""
+    return max(min(n, max_value), min_value)
 
 
 def generate_uwu(input_text: str) -> str:
@@ -258,14 +282,11 @@ class Jokes(commands.Cog):
         if ignored_message(self.config, message):
             return
 
-        def chance(success_percentage: int) -> bool:
-            """returns true at a success_percentage% chance"""
-            percentage: int = random.randint(1, 100)
-            return percentage <= success_percentage
-
-        match message.content.lower():
-            case "admin furry stash":
-                if chance(10):
+        if message.guild.id == 1166770860787515422 or chance(
+            clamp(len(message.content), 10, 25)
+        ):
+            match match_regex(message.content.lower()):
+                case r".*admin furry stash.*":
                     await message.channel.send(
                         embed=SersiEmbed(
                             title="Admin Furry Stash Rumour",
@@ -277,8 +298,7 @@ class Jokes(commands.Cog):
                         )
                     )
 
-            case "literally 1984":
-                if chance(25):
+                case r".*literally 1984.*":
                     years: list[int] = [
                         1483,
                         1848,
@@ -292,56 +312,49 @@ class Jokes(commands.Cog):
                         f"Oh my god, so true. It literally is like George Orlando's {random.choice(years)}"
                     )
 
-            case "nya":
-                if chance(10):
+                case r"(nya+ ?)+":
                     await message.channel.send(
                         f"Nya... nya? What are you, a fucking weeb {message.author.mention}?"
                     )
 
-            case "meow":
-                if chance(10):
+                case r"(meow ?)+":
                     await message.channel.send(
                         f"Meow meow meow, we get it you have a prissy attitude {message.author.mention}, we already noticed."
                     )
 
-            case "mrow":
-                if chance(10):
+                case r"(mrow ?)+":
                     await message.channel.send(
                         f"Mrow? You're feeling particularly wild right now, do you? {message.author.mention}"
                     )
 
-            case "woof":
-                if chance(10):
+                case r"(woo+f ?)+":
                     await message.channel.send(
                         f"Who's a good dog? You are! {message.author.mention}"
                     )
 
-            case "bark":
-                if chance(10):
+                case r"(bark ?)+":
                     await message.channel.send(
                         f"What are you barking about? Do you need a muzzle {message.author.mention}?"
                     )
 
-            case "wuff":
-                if chance(10):
+                case r"(wuff ?)+":
                     await message.channel.send(
                         f"Feeling particularly wild right now, are you {message.author.mention}?"
                     )
 
-            case "awoo":
-                if chance(10):
+                case r"awoo+":
                     await message.channel.send(
                         f'{message.author.mention} is a degenerate furry. How do I know? They just said "awoo".'
                     )
 
-            case "grr":
-                if chance(10):
+                case r"grr+":
                     await message.channel.send(
                         f"PLACEHOLDER TEXT GRR RESPONSE {message.author.mention}"
                     )
 
         # don't know what to do with this -mel
-        """if message.author.is_on_mobile():
+        # maybe we could rebalance the chances? -gombik
+        if message.author.is_on_mobile():
             randomValue = random.randint(1, 100000)
             if randomValue == 1:
                 # let's have it simple _and_ gender-neutral. okay?
@@ -349,7 +362,7 @@ class Jokes(commands.Cog):
                     "Discord mobile was the greatest mistake in the history of humankind"
                 )
             elif randomValue < 4:
-                await message.reply("Phone user detected, opinion rejected")"""
+                await message.reply("Phone user detected, opinion rejected")
 
 
 def setup(bot: commands.Bot, **kwargs):
