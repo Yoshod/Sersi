@@ -112,19 +112,6 @@ class Purge(commands.Cog):
                 after=time_to_delete_all_messages_after,
             )
 
-        transcript_file = nextcord.File(
-            io.BytesIO(
-                (
-                    await raw_export(
-                        channel=interaction.channel,
-                        messages=deleted_messages,
-                        military_time=True,
-                    )
-                ).encode()
-            ),
-            filename=f"purge-{interaction.channel.name}.html",
-        )
-
         logging = SersiEmbed(
             title="Messages Purged",
             fields={
