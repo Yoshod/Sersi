@@ -167,7 +167,7 @@ class AdultAccess(commands.Cog):
 
     @nextcord.slash_command(
         dm_permission=False,
-        guild_ids=[1166770860787515422, 977377117895536640],
+        guild_ids=[1166770860787515422, 977377117895536640, 856262303795380224],
         description="Used to bypass verification to the adult only channels",
     )
     async def adult_bypass(
@@ -217,7 +217,7 @@ class AdultAccess(commands.Cog):
 
     @nextcord.slash_command(
         dm_permission=False,
-        guild_ids=[1166770860787515422, 977377117895536640],
+        guild_ids=[1166770860787515422, 977377117895536640, 856262303795380224],
         description="Used to revoke a user's access to the adult channels",
     )
     async def adult_revoke(
@@ -279,7 +279,7 @@ class AdultAccess(commands.Cog):
 
     @nextcord.slash_command(
         dm_permission=False,
-        guild_ids=[1166770860787515422, 977377117895536640],
+        guild_ids=[1166770860787515422, 977377117895536640, 856262303795380224],
         description="Used to verify a user as an adult",
     )
     async def adult_verify(

@@ -17,7 +17,7 @@ class WhoisSystem(commands.Cog):
 
     @nextcord.slash_command(
         dm_permission=False,
-        guild_ids=[1166770860787515422, 977377117895536640],
+        guild_ids=[1166770860787515422, 977377117895536640, 856262303795380224],
         description="Whois command",
     )
     async def whois(
@@ -53,7 +53,7 @@ class WhoisSystem(commands.Cog):
     @nextcord.message_command(
         name="WhoIs",
         dm_permission=False,
-        guild_ids=[1166770860787515422, 977377117895536640],
+        guild_ids=[1166770860787515422, 977377117895536640, 856262303795380224],
     )
     async def whois_message(
         self, interaction: nextcord.Interaction, message: nextcord.Message
@@ -87,7 +87,7 @@ class WhoisSystem(commands.Cog):
     @nextcord.user_command(
         name="WhoIs",
         dm_permission=False,
-        guild_ids=[1166770860787515422, 977377117895536640],
+        guild_ids=[1166770860787515422, 977377117895536640, 856262303795380224],
     )
     async def whois_user(self, interaction: nextcord.Interaction, user: nextcord.User):
         if not await permcheck(interaction, is_mod):

@@ -56,7 +56,7 @@ class Notes(commands.Cog):
 
     @nextcord.slash_command(
         dm_permission=False,
-        guild_ids=[1166770860787515422, 977377117895536640],
+        guild_ids=[1166770860787515422, 977377117895536640, 856262303795380224],
         description="Note base command",
     )
     async def notes(self, interaction: nextcord.Interaction):
@@ -301,7 +301,7 @@ class Notes(commands.Cog):
     @nextcord.message_command(
         name="Create Note",
         dm_permission=False,
-        guild_ids=[1166770860787515422, 977377117895536640],
+        guild_ids=[1166770860787515422, 977377117895536640, 856262303795380224],
     )
     async def create_note(
         self, interaction: nextcord.Interaction, message: nextcord.Message

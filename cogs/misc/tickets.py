@@ -524,7 +524,7 @@ class TicketingSystem(commands.Cog):
     @nextcord.message_command(
         name="Report Message",
         dm_permission=False,
-        guild_ids=[1166770860787515422, 977377117895536640],
+        guild_ids=[1166770860787515422, 977377117895536640, 856262303795380224],
     )
     async def report_message(
         self, interaction: nextcord.Interaction, message: nextcord.Message

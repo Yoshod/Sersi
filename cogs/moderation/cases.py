@@ -43,7 +43,7 @@ class Cases(commands.Cog):
 
     @nextcord.slash_command(
         dm_permission=False,
-        guild_ids=[1166770860787515422, 977377117895536640],
+        guild_ids=[1166770860787515422, 977377117895536640, 856262303795380224],
         description="Used to get a case",
     )
     async def cases(self, interaction: nextcord.Interaction):
@@ -618,7 +618,7 @@ class Cases(commands.Cog):
     # TODO: its own cog perhaps?
     @nextcord.slash_command(
         dm_permission=False,
-        guild_ids=[1166770860787515422, 977377117895536640],
+        guild_ids=[1166770860787515422, 977377117895536640, 856262303795380224],
         description="Used to do stuff with offences",
     )
     async def offence(self, interaction: nextcord.Interaction):
