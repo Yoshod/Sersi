@@ -269,7 +269,7 @@ class Reformation(commands.Cog):
             vote_details.vote_url = message.jump_url
             session.commit()
 
-        interaction.followup.send(
+        await interaction.followup.send(
             f"Release from reformation vote {message.jump_url} for {member.mention} was started.",
             ephemeral=True,
         )
@@ -348,7 +348,7 @@ class Reformation(commands.Cog):
             vote_details.vote_url = message.jump_url
             session.commit()
 
-        interaction.followup.send(
+        await interaction.followup.send(
             f"Reformation fail vote {message.jump_url} for {member.mention} was started.",
             ephemeral=True,
         )
@@ -457,6 +457,57 @@ class Reformation(commands.Cog):
 
         await execute(self.bot, self.config, interaction)
 
+    @reformation.subcommand(
+        name="delete_cell",
+        description="Delete an unoccupied reformation cell if it was not deleted automatically.",
+    )
+    async def reformation_delete_cell(
+        self,
+        interaction: nextcord.Interaction,
+    ):
+        if not await permcheck(interaction, is_mod):
+            return
+
+        with db_session() as session:
+            case: ReformationCase = (
+                session.query(ReformationCase)
+                .filter_by(cell_channel=interaction.channel.id)
+                .first()
+            )
+
+            if case is None:
+                await interaction.response.send_message(
+                    "This is not a reformation cell.", ephemeral=True
+                )
+                return
+
+            if case.state == "open":
+                await interaction.response.send_message(
+                    "Reformation case is still open.", ephemeral=True
+                )
+                return
+
+            embed = SersiEmbed(
+                title="Reformation Cell Deleted",
+                description=f"Reformation cell for case {case.id} has been deleted by {interaction.user.mention} ({interaction.user.id})",
+                color=nextcord.Color.from_rgb(237, 91, 6),
+            )
+
+            # transcript
+            channel = interaction.guild.get_channel(
+                self.config.channels.teachers_lounge
+            )
+            cell_channel = interaction.guild.get_channel(case.cell_channel)
+
+            transcript = await make_transcript(cell_channel, channel, embed)
+            if transcript is None:
+                await channel.send(embed=embed)
+                await channel.send(f"{self.sersifail} Failed to Generate Transcript!")
+
+            await cell_channel.delete()
+
+            return
+
     @commands.Cog.listener()
     async def on_member_remove(self, member: nextcord.Member):
         reformation_role = member.get_role(self.config.roles.reformation)
@@ -464,14 +515,6 @@ class Reformation(commands.Cog):
         if reformation_role is not None:
             async for ban_entry in member.guild.bans():
                 if member.id == ban_entry.user.id:
-                    ban_embed = nextcord.Embed(
-                        title=f"Reformation inmate **{member}** ({member.id}) banned!",
-                        colour=nextcord.Color.from_rgb(237, 91, 6),
-                    )
-                    ban_embed.add_field(name="Reason:", value=ban_entry.reason)
-                    channel = self.bot.get_channel(self.config.channels.mod_logs)
-                    await channel.send(embed=ban_embed)
-
                     # close case
                     with db_session() as session:
                         case: ReformationCase = (
@@ -479,8 +522,18 @@ class Reformation(commands.Cog):
                             .filter_by(offender=member.id, state="open")
                             .first()
                         )
+                        if case is None:
+                            return
                         case.state = "failed"
                         session.commit()
+
+                    ban_embed = nextcord.Embed(
+                        title=f"Reformation inmate **{member}** ({member.id}) banned!",
+                        colour=nextcord.Color.from_rgb(237, 91, 6),
+                    )
+                    ban_embed.add_field(name="Reason:", value=ban_entry.reason)
+                    channel = self.bot.get_channel(self.config.channels.mod_logs)
+                    await channel.send(embed=ban_embed)
 
                     # transcript
                     channel = member.guild.get_channel(
@@ -501,9 +554,7 @@ class Reformation(commands.Cog):
 
             # member not yet banned, proceed to ban
             # await member.ban(reason="Left while in reformation centre.", delete_message_days=0)
-            await ban(
-                self.config, member, "leave", reason="Left while in reformation centre."
-            )
+            await ban(member, "leave", reason="Left while in reformation centre.")
 
             channel = self.bot.get_channel(self.config.channels.alert)
             embed = nextcord.Embed(
@@ -546,31 +597,35 @@ class Reformation(commands.Cog):
             await cell_channel.delete()
 
     @commands.Cog.listener()
-    async def on_reformation_ban(self, detail: VoteDetails):
+    async def on_reformation_ban(self, details: VoteDetails):
+        print(details.outcome)
+        if details.outcome != "Accepted":
+            return
+
         guild = self.bot.get_guild(self.config.guilds.main)
 
         # close case
         with db_session() as session:
-            case: ReformationCase = session.query(ReformationCase).get(detail.case_id)
+            case: ReformationCase = session.query(ReformationCase).get(details.case_id)
             case.state = "failed"
 
             member = guild.get_member(case.offender)
 
             yes_voters = [
-                vote[0]
+                guild.get_member(vote[0]).mention
                 for vote in session.query(VoteRecord.voter)
-                .filter_by(vote_id=detail.vote_id, vote="yes")
+                .filter_by(vote_id=details.vote_id, vote="yes")
                 .all()
             ]
 
-            reason = f"`{case.offence}` - {case.details}"
-
-            await ban(self.config, member, "rf", reason=f"Reformation Failed: {reason}")
+            await ban(
+                member, "rf", reason=f"Reformation Failed: {case.id} - {case.offence}"
+            )
 
             session.add(
                 BanCase(
                     offender=member.id,
-                    moderator=detail.started_by,
+                    moderator=details.started_by,
                     offence=case.offence,
                     details=case.details,
                     active=True,
@@ -579,14 +634,20 @@ class Reformation(commands.Cog):
             )
             session.commit()
 
+            embed_fields = {
+                "Offender": member.mention,
+                "Offence": case.offence,
+                "Details": case.details,
+            }
+
         # logging
         yes_list = "\n• ".join(yes_voters)
 
-        embed = nextcord.Embed(
+        embed = SersiEmbed(
             title="Reformation Failed",
-            description=f"Reformation Inmate {member.name} has been deemed unreformable by\n•{yes_list}\n"
-            f"\nInitial reason for Reformation was: `{reason}`. They have been banned automatically.",
+            description=f"Reformation Inmate {member.name} has been deemed unreformable by\n•{yes_list}",
             color=nextcord.Color.from_rgb(0, 0, 0),
+            fields=embed_fields,
         )
 
         channel = self.bot.get_channel(self.config.channels.alert)
@@ -611,6 +672,9 @@ class Reformation(commands.Cog):
 
     @commands.Cog.listener()
     async def on_reformation_release(self, details: VoteDetails):
+        if details.outcome != "Accepted":
+            return
+
         guild = self.bot.get_guild(self.config.guilds.main)
 
         # close case
@@ -622,7 +686,7 @@ class Reformation(commands.Cog):
             member = guild.get_member(case.offender)
 
             yes_voters = [
-                vote[0]
+                guild.get_member(vote[0]).mention
                 for vote in session.query(VoteRecord.voter)
                 .filter_by(vote_id=details.vote_id, vote="yes")
                 .all()

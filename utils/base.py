@@ -25,7 +25,6 @@ def sanitize_mention(string: str) -> str:
 
 
 async def ban(
-    config: utils.config.Configuration,
     member: nextcord.Member,
     kind: str,
     reason: str,
@@ -38,23 +37,20 @@ async def ban(
     if kind == "rf":
         goodbye_embed.description = (
             f"You have been deemed to have failed reformation. As a result, you have been banned from {member.guild.name}\n"
-            "\n"
-            "If you wish to appeal your ban, please join the ban appeal server:\n"
-            f"{config.invites.ban_appeal_server}"
+            "If you would like to appeal your ban you can do so:\n"
+            "https://appeals.wickbot.com"
         )
     elif kind == "leave":
         goodbye_embed.description = (
             f"You have left {member.guild.name} whilst in Reformation, as a result you have been banned\n"
-            "\n"
-            "If you wish to appeal your ban, please join the ban appeal server:\n"
-            f"{config.invites.ban_appeal_server}"
+            "If you would like to appeal your ban you can do so:\n"
+            "https://appeals.wickbot.com"
         )
     else:
         goodbye_embed.description = (
             f"You have been banned from {member.guild.name}\n"
-            "\n"
-            "If you wish to appeal your ban, please join the ban appeal server:\n"
-            f"{config.invites.ban_appeal_server}"
+            "If you would like to appeal your ban you can do so:\n"
+            "https://appeals.wickbot.com"
         )
         goodbye_embed.add_field(name="Reason:", value=reason)
 

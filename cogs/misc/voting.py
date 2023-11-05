@@ -1,4 +1,3 @@
-import asyncio
 from datetime import datetime
 
 import nextcord
@@ -7,7 +6,7 @@ from sqlalchemy import func
 
 from utils.channels import get_message_from_url
 from utils.config import Configuration, VoteType
-from utils.database import db_session, VoteDetails, VoteRecord
+from utils.database import db_session, VoteDetails, VoteRecord, Case
 from utils.perms import permcheck, is_mod
 
 
@@ -84,7 +83,6 @@ class Voting(commands.Cog):
                 ):
                     details.outcome = "Accepted"
                     colour = nextcord.Colour.brand_green()
-                    self.bot.dispatch(vote_type.action, details)
                 elif (
                     votes.get("no", 0) >= vote_type.threshold
                     and -diff >= vote_type.difference
@@ -97,6 +95,8 @@ class Voting(commands.Cog):
                 details.outcome = details.outcome or "Undecided"
                 details.actual_end = datetime.utcnow()
                 session.commit()
+
+                self.bot.dispatch(vote_type.action, details)
 
                 message = await get_message_from_url(self.bot, details.vote_url)
 

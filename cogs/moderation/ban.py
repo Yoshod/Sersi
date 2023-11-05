@@ -31,7 +31,7 @@ from utils.base import convert_to_timedelta
 
 
 class BanSystem(commands.Cog):
-    def __init__(self, bot, config: Configuration):
+    def __init__(self, bot: commands.Bot, config: Configuration):
         self.bot = bot
         self.config = config
 
@@ -659,13 +659,18 @@ class BanSystem(commands.Cog):
 
         # close case
         with db_session() as session:
+            if detail.outcome != "Accepted":
+                session.query(BanCase).filter(detail.case_id).delete()
+                session.commit()
+                return
+
             case: BanCase = session.query(BanCase).get(detail.case_id)
             case.active = True
 
             member: nextcord.Member = guild.get_member(case.offender)
 
             yes_voters = [
-                vote[0]
+                guild.get_member(vote[0]).mention
                 for vote in session.query(VoteRecord.voter)
                 .filter_by(vote_id=detail.vote_id, vote="yes")
                 .all()
