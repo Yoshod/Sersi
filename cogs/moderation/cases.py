@@ -72,7 +72,7 @@ class Cases(commands.Cog):
                 "Reformation",
                 "Slur Usage",
                 "Timeout",
-                "Warn",
+                "Warning",
             ],
         ),
         moderator: nextcord.Member = nextcord.SlashOption(
