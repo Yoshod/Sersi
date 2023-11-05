@@ -38,7 +38,7 @@ class SersiEmbed(nextcord.Embed):
         id_string += "```"
         self.add_field(name="IDs", value=id_string, inline=False)
         return self
-    
+
     def parse_fields(self, fields, inline=False):
         match fields:
             case list():
@@ -51,4 +51,3 @@ class SersiEmbed(nextcord.Embed):
                         value=fields[field],
                         inline=inline if len(fields) > 1 else False,
                     )
-
