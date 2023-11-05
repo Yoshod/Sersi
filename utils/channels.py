@@ -6,10 +6,10 @@ from chat_exporter import export
 
 
 async def make_transcript(
-        from_channel: nextcord.TextChannel,
-        to_channel: nextcord.TextChannel = None,
-        embed: nextcord.Embed = None,
-    ) -> str|None:
+    from_channel: nextcord.TextChannel,
+    to_channel: nextcord.TextChannel = None,
+    embed: nextcord.Embed = None,
+) -> str | None:
     """Make a transcript from a channel and send it to another channel if specified."""
     transcript: str = await export(from_channel, military_time=True)
 
@@ -23,7 +23,7 @@ async def make_transcript(
 
     if to_channel is not None:
         await to_channel.send(file=transcript_file, embed=embed)
-    
+
     return transcript
 
 
