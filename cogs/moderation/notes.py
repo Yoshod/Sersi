@@ -59,13 +59,13 @@ class Notes(commands.Cog):
         )
 
     @notes.subcommand(description="Used to get a note by its ID")
-    async def by_id(
+    async def detail(
         self,
         interaction: nextcord.Interaction,
         note_id: str = nextcord.SlashOption(
             name="note_id",
             description="Note ID",
-            min_length=22,
+            min_length=11,
             max_length=22,
         ),
     ):
@@ -81,12 +81,12 @@ class Notes(commands.Cog):
 
         await interaction.followup.send(embed=note_embed)
 
-    @by_id.on_autocomplete("note_id")
+    @detail.on_autocomplete("note_id")
     async def notes_by_id(self, interaction: nextcord.Interaction, note: str):
         if not is_mod(interaction.user):
             await interaction.response.send_autocomplete([])
 
-        notes = fetch_notes_by_partial_id(self.config, note)
+        notes = fetch_notes_by_partial_id(note)
         await interaction.response.send_autocomplete(notes)
 
     @notes.subcommand(description="Used to get a note by its user")
@@ -117,7 +117,12 @@ class Notes(commands.Cog):
         await interaction.response.defer(ephemeral=False)
 
         note_embed = SersiEmbed(title=f"{interaction.guild.name} Notes")
-        note_embed.set_thumbnail(interaction.guild.icon.url)
+        if user is not None:
+            note_embed.set_thumbnail(user.display_avatar.url)
+        elif author is not None:
+            note_embed.set_thumbnail(author.display_avatar.url)
+        else:
+            note_embed.set_thumbnail(interaction.guild.icon.url)
 
         if user:
             user_id = user.id

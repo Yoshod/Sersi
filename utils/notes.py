@@ -46,9 +46,15 @@ def fetch_notes(
         return notes, page, pages
 
 
-def fetch_notes_by_partial_id(note_id: str):
+def fetch_notes_by_partial_id(note_id: str) -> list[str]:
     with db_session() as session:
-        return session.query(Note).filter(Note.id.like(f"{note_id}%")).limit(25).all()
+        return [
+            note[0]
+            for note in session.query(Note.id)
+            .filter(Note.id.like(f"{note_id}%"))
+            .limit(25)
+            .all()
+        ]
 
 
 def create_note_embed(note: Note, interaction: nextcord.Interaction) -> SersiEmbed:
@@ -75,7 +81,7 @@ def create_note_embed(note: Note, interaction: nextcord.Interaction) -> SersiEmb
 
     note_embed.add_field(
         name="Timestamp:",
-        value=(f"<t:{note.created}:R>"),
+        value=(f"<t:{int(note.created.timestamp())}:R>"),
         inline=True,
     )
 
