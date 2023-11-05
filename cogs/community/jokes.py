@@ -337,7 +337,7 @@ class Jokes(commands.Cog):
             case "grr":
                 if chance(10):
                     await message.channel.send(
-                        f"PLACEHOLDER TEXT GRR RESPONSE {message.author.mention}"
+                        f"{message.author.mention} is a degenerate furry. How do I know? They just said grr."
                     )
 
         # don't know what to do with this -mel
