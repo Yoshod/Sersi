@@ -92,9 +92,7 @@ class Reformation(commands.Cog):
 
             # remove opt-ins
             await member.remove_roles(
-                *parse_roles(
-                    interaction.guild, *self.config.opt_in_roles.values()
-                ),
+                *parse_roles(interaction.guild, *self.config.opt_in_roles.values()),
                 reason=reason,
             )
 
@@ -242,9 +240,11 @@ class Reformation(commands.Cog):
         vote_type = self.config.voting["reform-free"]
 
         with db_session(interaction.user) as session:
-            case: ReformationCase = session.query(ReformationCase).filter_by(
-                offender=member.id, state="open"
-            ).first()
+            case: ReformationCase = (
+                session.query(ReformationCase)
+                .filter_by(offender=member.id, state="open")
+                .first()
+            )
 
             if case is None:
                 await interaction.send("Reformation case for member not found.")
@@ -262,7 +262,9 @@ class Reformation(commands.Cog):
             session.commit()
 
             channel = self.bot.get_channel(self.config.channels.moderation_votes)
-            message = await channel.send(embed=embedVar, view=VoteView(vote_type, vote_details))
+            message = await channel.send(
+                embed=embedVar, view=VoteView(vote_type, vote_details)
+            )
 
             vote_details.vote_url = message.jump_url
             session.commit()
@@ -317,9 +319,11 @@ class Reformation(commands.Cog):
         vote_type = self.config.voting["reform-fail"]
 
         with db_session(interaction.user) as session:
-            case: ReformationCase = session.query(ReformationCase).filter_by(
-                offender=member.id, state="open"
-            ).first()
+            case: ReformationCase = (
+                session.query(ReformationCase)
+                .filter_by(offender=member.id, state="open")
+                .first()
+            )
 
             if case is None:
                 await interaction.send("Reformation case for member not found.")
@@ -337,11 +341,13 @@ class Reformation(commands.Cog):
             session.commit()
 
             channel = self.bot.get_channel(self.config.channels.moderation_votes)
-            message = await channel.send(embed=embedVar, view=VoteView(vote_type, vote_details))
+            message = await channel.send(
+                embed=embedVar, view=VoteView(vote_type, vote_details)
+            )
 
             vote_details.vote_url = message.jump_url
             session.commit()
-        
+
         interaction.followup.send(
             f"Reformation fail vote {message.jump_url} for {member.mention} was started.",
             ephemeral=True,
@@ -515,7 +521,7 @@ class Reformation(commands.Cog):
                     .first()
                 )
                 case.state = "failed"
-                
+
                 session.add(
                     BanCase(
                         offender=member.id,
@@ -538,7 +544,7 @@ class Reformation(commands.Cog):
                 await channel.send(f"{self.sersifail} Failed to Generate Transcript!")
 
             await cell_channel.delete()
-    
+
     @commands.Cog.listener()
     async def on_reformation_ban(self, detail: VoteDetails):
         guild = self.bot.get_guild(self.config.guilds.main)
@@ -550,9 +556,12 @@ class Reformation(commands.Cog):
 
             member = guild.get_member(case.offender)
 
-            yes_voters = [vote[0] for vote in session.query(VoteRecord.voter).filter_by(
-                vote_id=detail.vote_id, vote="yes"
-            ).all()]
+            yes_voters = [
+                vote[0]
+                for vote in session.query(VoteRecord.voter)
+                .filter_by(vote_id=detail.vote_id, vote="yes")
+                .all()
+            ]
 
             reason = f"`{case.offence}` - {case.details}"
 
@@ -590,18 +599,16 @@ class Reformation(commands.Cog):
         await channel.send(embed=embed)
 
         # transcript
-        channel = guild.get_channel(
-            self.config.channels.teachers_lounge
-        )
+        channel = guild.get_channel(self.config.channels.teachers_lounge)
         cell_channel = guild.get_channel(case.cell_channel)
 
         transcript = await make_transcript(cell_channel, channel, embed)
         if transcript is None:
             await channel.send(embed=embed)
             await channel.send(f"{self.sersifail} Failed to Generate Transcript!")
-        
+
         await cell_channel.delete()
-    
+
     @commands.Cog.listener()
     async def on_reformation_release(self, details: VoteDetails):
         guild = self.bot.get_guild(self.config.guilds.main)
@@ -614,9 +621,12 @@ class Reformation(commands.Cog):
 
             member = guild.get_member(case.offender)
 
-            yes_voters = [vote[0] for vote in session.query(VoteRecord.voter).filter_by(
-                vote_id=details.vote_id, vote="yes"
-            ).all()]
+            yes_voters = [
+                vote[0]
+                for vote in session.query(VoteRecord.voter)
+                .filter_by(vote_id=details.vote_id, vote="yes")
+                .all()
+            ]
 
         # roles
         try:
@@ -656,12 +666,10 @@ class Reformation(commands.Cog):
         await channel.send(embed=log_embed)
 
         channel = guild.get_channel(self.config.channels.mod_logs)
-        await channel.send(embed=log_embed)            
+        await channel.send(embed=log_embed)
 
         # transcript
-        channel = guild.get_channel(
-            self.config.channels.teachers_lounge
-        )
+        channel = guild.get_channel(self.config.channels.teachers_lounge)
         cell_channel = guild.get_channel(case.cell_channel)
 
         transcript = await make_transcript(cell_channel, channel, log_embed)
