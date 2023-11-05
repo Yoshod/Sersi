@@ -33,6 +33,12 @@ class KickSystem(commands.Cog):
         if not await permcheck(interaction, is_mod):
             return
 
+        if True:
+            interaction.response.send_message(
+                "This command is currently disabled.", ephemeral=True
+            )
+            return
+
         await interaction.response.defer(ephemeral=False)
 
         if not target_eligibility(interaction.user, offender):
