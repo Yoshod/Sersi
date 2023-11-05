@@ -157,36 +157,40 @@ class BanSystem(commands.Cog):
         else:
             await interaction.response.defer(ephemeral=True)
 
-        if not target_eligibility(interaction.user, offender):
-            warning_alert = SersiEmbed(
-                title="Unauthorised Moderation Target",
-                description=f"{interaction.user.mention} ({interaction.user.id}) attempted to ban {offender.mention} ({offender.id}) despite being outranked!",
-            )
+        try:
+            if not target_eligibility(interaction.user, offender):
+                warning_alert = SersiEmbed(
+                    title="Unauthorised Moderation Target",
+                    description=f"{interaction.user.mention} ({interaction.user.id}) attempted to ban {offender.mention} ({offender.id}) despite being outranked!",
+                )
 
-            logging_channel = interaction.guild.get_channel(
-                self.config.channels.logging
-            )
+                logging_channel = interaction.guild.get_channel(
+                    self.config.channels.logging
+                )
 
-            mega_admin_role = interaction.guild.get_role(
-                self.config.permission_roles.dark_moderator
-            )
+                mega_admin_role = interaction.guild.get_role(
+                    self.config.permission_roles.dark_moderator
+                )
 
-            await logging_channel.send(
-                content=f"**ALERT:** {mega_admin_role.mention}", embed=warning_alert
-            )
+                await logging_channel.send(
+                    content=f"**ALERT:** {mega_admin_role.mention}", embed=warning_alert
+                )
 
-            await interaction.send(
-                f"{self.config.emotes.fail} {offender.mention} is a higher level than you. This has been reported.",
-                ephemeral=True,
-            )
-            return
+                await interaction.send(
+                    f"{self.config.emotes.fail} {offender.mention} is a higher level than you. This has been reported.",
+                    ephemeral=True,
+                )
+                return
 
-        if is_immune(offender):
-            await interaction.send(
-                f"{self.config.emotes.fail} {offender.mention} is immune.",
-                ephemeral=True,
-            )
-            return
+            if is_immune(offender):
+                await interaction.send(
+                    f"{self.config.emotes.fail} {offender.mention} is immune.",
+                    ephemeral=True,
+                )
+                return
+
+        except AttributeError:
+            pass
 
         if not offence_validity_check(offence):
             await interaction.send(
@@ -469,7 +473,7 @@ class BanSystem(commands.Cog):
                         )
                         not_sent = False
 
-                    except (nextcord.Forbidden, nextcord.HTTPException):
+                    except (nextcord.Forbidden, nextcord.HTTPException, AttributeError):
                         not_sent = True
 
                     logging_embed: SersiEmbed = create_case_embed(
@@ -540,7 +544,7 @@ class BanSystem(commands.Cog):
                     return
 
                 sersi_case: BanCase = get_case_by_id(uuid)
-                offender: nextcord.Member = interaction.guild.get_member(
+                offender: nextcord.User = await interaction.client.fetch_user(
                     sersi_case.offender
                 )
 
@@ -560,7 +564,7 @@ class BanSystem(commands.Cog):
                     )
                     not_sent = False
 
-                except (nextcord.Forbidden, nextcord.HTTPException):
+                except (nextcord.Forbidden, nextcord.HTTPException, AttributeError):
                     not_sent = True
 
                 logging_embed: SersiEmbed = create_case_embed(
@@ -574,7 +578,7 @@ class BanSystem(commands.Cog):
                     embed=logging_embed
                 )
 
-                await offender.ban(reason=f"Sersi Ban {sersi_case.details}")
+                await interaction.guild.ban(offender, reason=sersi_case.details)
 
                 with db_session(interaction.user) as session:
                     case: BanCase = session.query(BanCase).filter_by(id=uuid).first()
@@ -625,7 +629,7 @@ class BanSystem(commands.Cog):
                     return
 
                 sersi_case: BanCase = get_case_by_id(uuid)
-                offender: nextcord.Member = interaction.guild.get_member(
+                offender: nextcord.User = interaction.client.fetch_user(
                     sersi_case.offender
                 )
 
@@ -655,8 +659,6 @@ class BanSystem(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ban_vote_pass(self, detail: VoteDetails):
-        guild = self.bot.get_guild(self.config.guilds.main)
-
         # close case
         with db_session() as session:
             if detail.outcome != "Accepted":
@@ -667,7 +669,7 @@ class BanSystem(commands.Cog):
             case: BanCase = session.query(BanCase).get(detail.case_id)
             case.active = True
 
-            member: nextcord.Member = guild.get_member(case.offender)
+            member: nextcord.User = self.bot.fetch_user(case.offender)
 
             yes_voters = [
                 guild.get_member(vote[0]).mention
@@ -691,7 +693,7 @@ class BanSystem(commands.Cog):
                     ).set_thumbnail(member.guild.icon.url)
                 )
 
-            except (nextcord.Forbidden, nextcord.HTTPException):
+            except (nextcord.Forbidden, nextcord.HTTPException, AttributeError):
                 pass
 
             await member.edit(timeout=None, reason="Ban Vote Successfull")
