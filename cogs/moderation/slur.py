@@ -4,7 +4,6 @@ import nextcord
 from nextcord.ext import commands
 
 import utils
-from utils import logs
 from utils.sersi_embed import SersiEmbed
 from utils.base import (
     sanitize_mention,
@@ -286,7 +285,6 @@ class Slur(commands.Cog):
         detected_slurs: list[str] = detect_slur(message.content)
 
         if len(detected_slurs) > 0:  # checks slur heat
-
             alert = await self.bot.get_channel(self.config.channels.alert).send(
                 embed=SersiEmbed(
                     title="Slur(s) Detected",
