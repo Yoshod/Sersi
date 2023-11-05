@@ -13,6 +13,42 @@ from utils.config import Configuration
 from utils.perms import permcheck, is_mod, is_senior_mod, is_dark_mod
 
 
+class NoteModal(nextcord.ui.Modal):
+    def __init__(self, config: Configuration, message: nextcord.Message):
+        super().__init__("Create Note")
+        self.config = config
+        self.message = message
+
+        self.note_remarks = nextcord.ui.TextInput(
+            label="Note Remarks",
+            min_length=8,
+            max_length=1024,
+            required=True,
+            placeholder="Please enter your note remarks here.",
+            style=nextcord.TextInputStyle.paragraph,
+        )
+        self.add_item(self.note_remarks)
+
+    async def callback(self, interaction: nextcord.Interaction):
+        await interaction.response.defer(ephemeral=True)
+
+        with db_session(interaction.user) as session:
+            session.add(
+                Note(
+                    author=interaction.user.id,
+                    member=self.message.author.id,
+                    content=f"{self.message.jump_url}\n\n{self.note_remarks.value}",
+                )
+            )
+
+            session.commit()
+
+        await interaction.followup.send(
+            f"{self.config.emotes.success} Note created!",
+            ephemeral=True,
+        )
+
+
 class Notes(commands.Cog):
     def __init__(self, bot: commands.Bot, config: Configuration):
         self.bot = bot
@@ -261,6 +297,19 @@ class Notes(commands.Cog):
             await interaction.followup.send(
                 f"{self.config.emotes.success} Note {note_id} successfully deleted."
             )
+
+    @nextcord.message_command(
+        name="Create Note",
+        dm_permission=False,
+        guild_ids=[1166770860787515422, 977377117895536640],
+    )
+    async def create_note(
+        self, interaction: nextcord.Interaction, message: nextcord.Message
+    ):
+        if not await permcheck(interaction, is_mod):
+            return
+
+        await interaction.response.send_modal(NoteModal(self.config, message))
 
 
 def setup(bot: commands.Bot, **kwargs):
