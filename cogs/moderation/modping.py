@@ -133,7 +133,10 @@ class ModPing(commands.Cog):
             )
             await message.channel.send(embed=response_embed)
             await message.channel.send(
-                f"<@&{self.config.permission_roles.trial_moderator}>", delete_after=1
+                message.guild.get_role(
+                    self.config.permission_roles.trial_moderator
+                ).mention,
+                delete_after=1,
             )
 
             # notification for mods
@@ -176,7 +179,7 @@ class ModPing(commands.Cog):
             # If there are less than 5 fields that means there is no field for response
             if len(updated_message.embeds[0].fields) < 5:
                 await alert.reply(
-                    content=f"<@&{self.config.permission_roles.moderator}> This alert has not had a recorded response."
+                    content=f"{message.guild.get_role(self.config.permission_roles.moderator).mention} This alert has not had a recorded response."
                 )
 
 
