@@ -6,6 +6,7 @@ __pycache__
 *.pkl
 .vscode
 *.db
+.flake8
 
 discordTokens.py
 .DS_Store
