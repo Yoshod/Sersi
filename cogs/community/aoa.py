@@ -251,7 +251,7 @@ class AdultAccess(commands.Cog):
             )
         except nextcord.HTTPException:
             await interaction.followup.send(
-                f"{self.config.emotes.fail} Removing roles failed. Please request a Mega Administrator or "
+                f"{self.config.emotes.fail} Removing roles failed. Please request an Administrator or "
                 f"Community Engagement Team member to manually remove the roles."
             )
             return
@@ -319,7 +319,7 @@ class AdultAccess(commands.Cog):
             birthdate = datetime.strptime(date_of_birth, "%d%m%Y").date()
         except ValueError:
             await interaction.response.send_message(
-                f"{self.config.emotes.fail} Date of Birth not valid. Please try again or contact CET or a Mega Administrator",
+                f"{self.config.emotes.fail} Date of Birth not valid. Please try again or contact CET or a Administrator",
                 ephemeral=True,
             )
             return
@@ -446,8 +446,8 @@ class AdultAccess(commands.Cog):
                         verify_embed = nextcord.Embed(
                             title="Over 18's Channel Application",
                             description="Your request to join the Over 18's Channel has been referred. You have been "
-                            "randomly selected to verify your age. Please create a Senior Moderator or "
-                            "Mega Administrator ticket. You will be required to submit an image which "
+                            "randomly selected to verify your age. Please create a Moderation Lead or "
+                            "Administrator ticket. You will be required to submit an image which "
                             "comprises of the following:\n"
                             "Paper which has your discord name and discriminator written on it\n"
                             "The Crossroads written on it\n"

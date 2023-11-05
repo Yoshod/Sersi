@@ -267,7 +267,7 @@ class WarningSystem(commands.Cog):
                     )
                     .add_field(name="Warn ID", value=f"`{case_id}`", inline=True)
                     .add_field(
-                        name="Mega Administrator",
+                        name="Administrator",
                         value=f"{interaction.user.mention}",
                         inline=True,
                     )
@@ -288,7 +288,7 @@ class WarningSystem(commands.Cog):
                     )
                     .add_field(name="Warn ID", value=f"`{case_id}`", inline=True)
                     .add_field(
-                        name="Mega Administrator",
+                        name="Administrator",
                         value=f"{interaction.user.mention}",
                         inline=True,
                     )

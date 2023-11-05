@@ -243,7 +243,7 @@ class Notes(commands.Cog):
 
             logging_embed.add_field(name="User", value=user.mention, inline=True)
             logging_embed.add_field(
-                name="Mega Administrator",
+                name="Administrator",
                 value=f"{interaction.user.mention}",
                 inline=True,
             )

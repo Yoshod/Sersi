@@ -38,7 +38,7 @@ class Probation(commands.Cog):
             max_length=1024,
         ),
         bypass_reason: str = nextcord.SlashOption(
-            description="(Mega Administrator only!) Reason to bypass dual custody",
+            description="(Administrator only!) Reason to bypass dual custody",
             min_length=8,
             max_length=1024,
             required=False,
@@ -158,7 +158,7 @@ class Probation(commands.Cog):
             max_length=1024,
         ),
         bypass_reason: str = nextcord.SlashOption(
-            description="(Mega Administrator only!) Reason to bypass dual custody",
+            description="(Administrator only!) Reason to bypass dual custody",
             min_length=8,
             max_length=1024,
             required=False,
