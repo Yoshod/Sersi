@@ -21,6 +21,9 @@ class Roles(commands.Cog):
 
         await ctx.message.delete()
 
+        # This command is a work in progress and disabled for now
+        return
+
         interests_options = [
             nextcord.SelectOption(
                 label="Gaming",
@@ -364,8 +367,6 @@ class Roles(commands.Cog):
             dropdown_value = interaction.data["values"][0]
         except KeyError:
             return
-
-        print(dropdown_value)
 
         match dropdown_value:
             case ["gaming"]:
