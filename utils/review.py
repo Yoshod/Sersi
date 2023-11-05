@@ -1,7 +1,7 @@
 import nextcord
 
 from utils.config import Configuration
-from utils.database import db_session, PeerReview, Case
+from utils.database import Case
 
 
 def highest_mod_role(moderator: nextcord.Member, config: Configuration):
