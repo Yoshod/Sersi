@@ -7,6 +7,7 @@ from utils.config import Configuration
 from utils.database import db_session, KickCase
 from utils.perms import permcheck, is_mod, is_dark_mod, is_immune, target_eligibility
 from utils.sersi_embed import SersiEmbed
+from utils.sersi_exceptions import CommandDisabledException
 
 
 class KickSystem(commands.Cog):
@@ -34,10 +35,7 @@ class KickSystem(commands.Cog):
             return
 
         if True:
-            interaction.response.send_message(
-                "This command is currently disabled.", ephemeral=True
-            )
-            return
+            raise CommandDisabledException
 
         await interaction.response.defer(ephemeral=False)
 

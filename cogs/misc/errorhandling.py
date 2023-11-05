@@ -1,9 +1,11 @@
 import nextcord
 from nextcord.ext import commands
+from nextcord import InteractionType
 
 
 from utils.config import Configuration
 from utils.sersi_embed import SersiEmbed
+from utils.sersi_exceptions import CommandDisabledException
 
 
 class ErrorHandling(commands.Cog):
@@ -12,6 +14,82 @@ class ErrorHandling(commands.Cog):
         self.config = config
         if bot.is_ready():
             self.error_guild = bot.get_guild(config.guilds.errors)
+
+    @commands.Cog.listener()
+    async def on_application_command_error(
+        self, interaction: nextcord.Interaction, error: Exception
+    ):
+        if isinstance(error, CommandDisabledException):
+            await interaction.response.send_message(
+                "This command is currently disabled.", ephemeral=True
+            )
+            return
+
+        channel = self.error_guild.get_channel(self.config.channels.errors)
+        if channel is None:
+            return
+        else:
+            if interaction.type == InteractionType.application_command:
+                await channel.send(
+                    embed=SersiEmbed(
+                        title="An Error Has Occurred",
+                        fields={
+                            "Server:": f"{interaction.guild.name} ({interaction.guild.id})",
+                            "Channel:": f"{interaction.channel.name} ({interaction.channel.id})",
+                            "Data:": str(interaction.data),
+                            "Error:": error,
+                            "URL:": interaction.channel.jump_url,
+                        },
+                        colour=nextcord.Color.from_rgb(208, 29, 29),
+                    )
+                )
+                try:
+                    await interaction.response.send_message(
+                        "An error has occurred. An alert has been sent to my creators.",
+                        ephemeral=True,
+                    )
+
+                except [
+                    nextcord.HTTPException,
+                    nextcord.NotFound,
+                    nextcord.InteractionResponded,
+                ]:
+                    await interaction.followup.send(
+                        "An error has occurred. An alert has been sent to my creators.",
+                        ephemeral=True,
+                    )
+                return
+            else:
+                await channel.send(
+                    embed=SersiEmbed(
+                        title="An Error Has Occurred",
+                        fields={
+                            "Server:": f"{interaction.guild.name} ({interaction.guild.id})",
+                            "Channel:": f"{interaction.channel.name} ({interaction.channel.id})",
+                            "Command:": str(interaction.type),
+                            "Error:": error,
+                            "URL:": interaction.channel.jump_url,
+                        },
+                        colour=nextcord.Color.from_rgb(208, 29, 29),
+                    )
+                )
+
+                try:
+                    await interaction.response.send_message(
+                        "An error has occurred. An alert has been sent to my creators.",
+                        ephemeral=True,
+                    )
+
+                except [
+                    nextcord.HTTPException,
+                    nextcord.NotFound,
+                    nextcord.InteractionResponded,
+                ]:
+                    await interaction.followup.send(
+                        "An error has occurred. An alert has been sent to my creators.",
+                        ephemeral=True,
+                    )
+                return
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
