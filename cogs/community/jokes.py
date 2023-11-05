@@ -342,14 +342,9 @@ class Jokes(commands.Cog):
                         f"Feeling particularly wild right now, are you {message.author.mention}?"
                     )
 
-                case r"awoo+":
+                case r"awoo+|grr+":
                     await message.channel.send(
-                        f'{message.author.mention} is a degenerate furry. How do I know? They just said "awoo".'
-                    )
-
-                case r"grr+":
-                    await message.channel.send(
-                        f"{message.author.mention} is a degenerate furry. How do I know? They just said grr."
+                        f'{message.author.mention} is a degenerate furry. How do I know? They just said "{message.content}".'
                     )
 
         # don't know what to do with this -mel
