@@ -31,7 +31,7 @@ class WhoisView(nextcord.ui.View):
         self.add_item(WhoisNotesButton(user_id))
 
 
-def create_whois_embed(
+async def create_whois_embed(
     config: Configuration, interaction: nextcord.Interaction, user: nextcord.Member
 ) -> SersiEmbed:
     with db_session(interaction.user) as session:
@@ -51,20 +51,45 @@ def create_whois_embed(
         else:
             ban_vote = False
 
-    if user.communication_disabled_until:
-        timeout_string = f"**Timeout**: {config.emotes.success} <t:{int(user.communication_disabled_until.timestamp())}:R>"
+    try:
+        if user.communication_disabled_until:
+            timeout_string = f"**Timeout**: {config.emotes.success} <t:{int(user.communication_disabled_until.timestamp())}:R>"
+
+        else:
+            timeout_string = f"**Timeout**: {config.emotes.fail}"
+
+        guild_member = True
+
+    except AttributeError:
+        guild_bans = await interaction.guild.bans().flatten()
+        if user.id in guild_bans:
+            timeout_string = f"**User Banned**: {config.emotes.success}"
+
+        else:
+            timeout_string = f"**User Banned**: {config.emotes.fail}"
+
+        guild_member = False
+
+    if guild_member:
+        whois_embed = SersiEmbed(
+            title=f"Whois {user.display_name}?",
+            fields={
+                "General Information": f"{config.emotes.blank}**Username**: {user.name}\n{config.emotes.blank}**Global Name**: {user.global_name}\n{config.emotes.blank}**Nickname**: {user.nick}\n{config.emotes.blank}**User ID**: {user.id}\n{config.emotes.blank}**Mention**: {user.mention}\n{config.emotes.blank}**Creation Date**: <t:{int(user.created_at.timestamp())}:R>\n{config.emotes.blank}**Join Date**: <t:{int(user.joined_at.timestamp())}:R>",
+                "Sersi Information": f"{config.emotes.blank}**Active Warns**: {user_warns}\n{config.emotes.blank}**Ban Vote**: {config.emotes.success if ban_vote else config.emotes.fail}\n{config.emotes.blank}{timeout_string}",
+            },
+        )
+        whois_embed.set_footer(text="Sersi Whois - Server Member")
+        whois_embed.set_thumbnail(url=user.display_avatar.url)
 
     else:
-        timeout_string = f"**Timeout**: {config.emotes.fail}"
-
-    whois_embed = SersiEmbed(
-        title=f"Whois {user.display_name}?",
-        fields={
-            "General Information": f"{config.emotes.blank}**Username**: {user.name}\n{config.emotes.blank}**Global Name**: {user.global_name}\n{config.emotes.blank}**Nickname**: {user.nick}\n{config.emotes.blank}**User ID**: {user.id}\n{config.emotes.blank}**Mention**: {user.mention}\n{config.emotes.blank}**Creation Date**: <t:{int(user.created_at.timestamp())}:R>\n{config.emotes.blank}**Join Date**: <t:{int(user.joined_at.timestamp())}:R>",
-            "Sersi Information": f"{config.emotes.blank}**Active Warns**: {user_warns}\n{config.emotes.blank}**Ban Vote**: {config.emotes.success if ban_vote else config.emotes.fail}\n{config.emotes.blank}{timeout_string}",
-        },
-    )
-    whois_embed.set_footer(text="Sersi Whois")
-    whois_embed.set_thumbnail(url=user.display_avatar.url)
+        whois_embed = SersiEmbed(
+            title=f"Whois {user.display_name}?",
+            fields={
+                "General Information": f"{config.emotes.blank}**Username**: {user.name}\n{config.emotes.blank}**Global Name**: {user.global_name}\n{config.emotes.blank}**User ID**: {user.id}\n{config.emotes.blank}**Creation Date**: <t:{int(user.created_at.timestamp())}:R>",
+                "Sersi Information": f"{config.emotes.blank}**Active Warns**: {user_warns}\n{config.emotes.blank}{timeout_string}",
+            },
+        )
+        whois_embed.set_footer(text="Sersi Whois - Not a Server Member")
+        whois_embed.set_thumbnail(url=user.display_avatar.url)
 
     return whois_embed

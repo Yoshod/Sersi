@@ -39,14 +39,14 @@ class WhoisSystem(commands.Cog):
 
         if interaction.channel.category.name not in self.config.ignored_categories:
             await interaction.followup.send(
-                embed=create_whois_embed(self.config, interaction, user),
+                embed=await create_whois_embed(self.config, interaction, user),
                 view=WhoisView(user.id),
                 ephemeral=True,
             )
 
         else:
             await interaction.followup.send(
-                embed=create_whois_embed(self.config, interaction, user),
+                embed=await create_whois_embed(self.config, interaction, user),
                 view=WhoisView(user.id),
             )
 
@@ -69,14 +69,18 @@ class WhoisSystem(commands.Cog):
 
         if interaction.channel.category.name not in self.config.ignored_categories:
             await interaction.followup.send(
-                embed=create_whois_embed(self.config, interaction, message.author),
+                embed=await create_whois_embed(
+                    self.config, interaction, message.author
+                ),
                 view=WhoisView(message.author.id),
                 ephemeral=True,
             )
 
         else:
             await interaction.followup.send(
-                embed=create_whois_embed(self.config, interaction, message.author),
+                embed=await create_whois_embed(
+                    self.config, interaction, message.author
+                ),
                 view=WhoisView(message.author.id),
             )
 
@@ -97,14 +101,14 @@ class WhoisSystem(commands.Cog):
 
         if interaction.channel.category.name not in self.config.ignored_categories:
             await interaction.followup.send(
-                embed=create_whois_embed(self.config, interaction, user),
+                embed=await create_whois_embed(self.config, interaction, user),
                 view=WhoisView(user.id),
                 ephemeral=True,
             )
 
         else:
             await interaction.followup.send(
-                embed=create_whois_embed(self.config, interaction, user),
+                embed=await create_whois_embed(self.config, interaction, user),
                 view=WhoisView(user.id),
             )
 
