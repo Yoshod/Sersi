@@ -431,11 +431,6 @@ class Reformation(commands.Cog):
             await channel.send(embed=embed)
 
             channel = interaction.guild.get_channel(
-                self.config.channels.teachers_lounge
-            )
-            await channel.send(embed=embed)
-
-            channel = interaction.guild.get_channel(
                 self.config.channels.reform_public_log
             )
             await channel.send(embed=embed)
@@ -527,12 +522,19 @@ class Reformation(commands.Cog):
                         case.state = "failed"
                         session.commit()
 
-                    ban_embed = nextcord.Embed(
+                    ban_embed = SersiEmbed(
                         title=f"Reformation inmate **{member}** ({member.id}) banned!",
-                        colour=nextcord.Color.from_rgb(237, 91, 6),
                     )
-                    ban_embed.add_field(name="Reason:", value=ban_entry.reason)
+
                     channel = self.bot.get_channel(self.config.channels.mod_logs)
+                    await channel.send(embed=ban_embed)
+
+                    channel = self.bot.get_channel(self.config.channels.logging)
+                    await channel.send(embed=ban_embed)
+
+                    channel = self.bot.get_channel(
+                        self.config.channels.reform_public_log
+                    )
                     await channel.send(embed=ban_embed)
 
                     # transcript
@@ -556,12 +558,10 @@ class Reformation(commands.Cog):
             # await member.ban(reason="Left while in reformation centre.", delete_message_days=0)
             await ban(member, "leave", reason="Left while in reformation centre.")
 
-            channel = self.bot.get_channel(self.config.channels.alert)
-            embed = nextcord.Embed(
+            embed = SersiEmbed(
                 title=f"User **{member}** ({member.id}) has left the server while in the reformation centre!",
                 description=f"User has left the server while having the <@&{self.config.roles.reformation}> role. "
                 f"They have been banned automatically.",
-                colour=nextcord.Color.from_rgb(237, 91, 6),
             )
 
             # close case
@@ -584,6 +584,15 @@ class Reformation(commands.Cog):
                     )
                 )
                 session.commit()
+            
+            channel = self.bot.get_channel(self.config.channels.logging)
+            await channel.send(embed=embed)
+
+            channel = self.bot.get_channel(self.config.channels.mod_logs)
+            await channel.send(embed=embed)
+
+            channel = self.bot.get_channel(self.config.channels.reform_public_log)
+            await channel.send(embed=embed)
 
             # transcript
             channel = member.guild.get_channel(self.config.channels.teachers_lounge)
@@ -598,7 +607,6 @@ class Reformation(commands.Cog):
 
     @commands.Cog.listener()
     async def on_reformation_ban(self, details: VoteDetails):
-        print(details.outcome)
         if details.outcome != "Accepted":
             return
 
@@ -650,13 +658,14 @@ class Reformation(commands.Cog):
             fields=embed_fields,
         )
 
-        channel = self.bot.get_channel(self.config.channels.alert)
-        await channel.send(embed=embed)
 
         channel = self.bot.get_channel(self.config.channels.logging)
         await channel.send(embed=embed)
 
         channel = self.bot.get_channel(self.config.channels.mod_logs)
+        await channel.send(embed=embed)
+
+        channel = self.bot.get_channel(self.config.channels.reform_public_log)
         await channel.send(embed=embed)
 
         # transcript
@@ -717,19 +726,19 @@ class Reformation(commands.Cog):
         # logs
         yes_list = "\n• ".join(yes_voters)
 
-        log_embed = nextcord.Embed(
+        log_embed = SersiEmbed(
             title=f"Successful Reformation: **{member.name}** ({member.id})",
             description=f"Reformation Member {member.name} was deemed well enough to be considered "
             f"reformed.\nThis has been approved by:\n• {yes_list}.",
-            color=nextcord.Color.from_rgb(237, 91, 6),
         )
-        channel = guild.get_channel(self.config.channels.alert)
-        await channel.send(embed=log_embed)
 
         channel = guild.get_channel(self.config.channels.logging)
         await channel.send(embed=log_embed)
 
         channel = guild.get_channel(self.config.channels.mod_logs)
+        await channel.send(embed=log_embed)
+
+        channel = guild.get_channel(self.config.channels.reform_public_log)
         await channel.send(embed=log_embed)
 
         # transcript
