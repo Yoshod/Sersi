@@ -1,7 +1,7 @@
 import nextcord
 from utils.base import SersiEmbed
 from utils.config import Configuration
-from utils.database import BanCase, WarningCase, db_session
+from utils.database import WarningCase, db_session, VoteDetails
 
 
 class WhoisCasesButton(nextcord.ui.Button):
@@ -39,17 +39,12 @@ async def create_whois_embed(
             session.query(WarningCase).filter_by(offender=user.id, active=True).count()
         )
 
-        ban_cases = (
-            session.query(BanCase)
-            .filter_by(offender=user.id, ban_type="urgent", active=None)
+        ban_vote = (
+            session.query(VoteDetails)
+            .filter_by(vote_type="urgent-ban", outcome=None)
+            .filter(VoteDetails.case.has(offender=user.id))
             .first()
         )
-
-        if ban_cases:
-            ban_vote = True
-
-        else:
-            ban_vote = False
 
     try:
         if user.communication_disabled_until:

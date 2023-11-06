@@ -31,7 +31,7 @@ from utils.base import convert_to_timedelta
 
 
 class BanSystem(commands.Cog):
-    def __init__(self, bot, config: Configuration):
+    def __init__(self, bot: commands.Bot, config: Configuration):
         self.bot = bot
         self.config = config
 
@@ -670,7 +670,7 @@ class BanSystem(commands.Cog):
             case: BanCase = session.query(BanCase).get(detail.case_id)
             case.active = True
 
-            member: nextcord.User = guild.get_member(case.offender)
+            member: nextcord.Member = guild.get_member(case.offender)
 
             yes_voters = [
                 vote[0]
