@@ -31,7 +31,7 @@ from utils.base import convert_to_timedelta
 
 
 class BanSystem(commands.Cog):
-    def __init__(self, bot: commands.Bot, config: Configuration):
+    def __init__(self, bot, config: Configuration):
         self.bot = bot
         self.config = config
 
@@ -544,7 +544,7 @@ class BanSystem(commands.Cog):
                     return
 
                 sersi_case: BanCase = get_case_by_id(uuid)
-                offender: nextcord.User = await interaction.client.fetch_user(
+                offender: nextcord.Member = interaction.guild.get_member(
                     sersi_case.offender
                 )
 
@@ -576,6 +576,10 @@ class BanSystem(commands.Cog):
                 )
                 await interaction.guild.get_channel(self.config.channels.logging).send(
                     embed=logging_embed
+                )
+
+                offender: nextcord.User = await interaction.client.fetch_user(
+                    sersi_case.offender
                 )
 
                 await interaction.guild.ban(offender, reason=sersi_case.details)
@@ -629,7 +633,7 @@ class BanSystem(commands.Cog):
                     return
 
                 sersi_case: BanCase = get_case_by_id(uuid)
-                offender: nextcord.User = interaction.client.fetch_user(
+                offender: nextcord.Member = interaction.guild.get_member(
                     sersi_case.offender
                 )
 
@@ -659,20 +663,17 @@ class BanSystem(commands.Cog):
 
     @commands.Cog.listener()
     async def on_ban_vote_pass(self, detail: VoteDetails):
+        guild: nextcord.Guild = self.bot.get_guild(self.config.guilds.main)
+
         # close case
         with db_session() as session:
-            if detail.outcome != "Accepted":
-                session.query(BanCase).filter(detail.case_id).delete()
-                session.commit()
-                return
-
             case: BanCase = session.query(BanCase).get(detail.case_id)
             case.active = True
 
-            member: nextcord.User = self.bot.fetch_user(case.offender)
+            member: nextcord.User = guild.get_member(case.offender)
 
             yes_voters = [
-                guild.get_member(vote[0]).mention
+                vote[0]
                 for vote in session.query(VoteRecord.voter)
                 .filter_by(vote_id=detail.vote_id, vote="yes")
                 .all()
