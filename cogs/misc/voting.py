@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import nextcord
 from nextcord.ext import tasks, commands
@@ -61,6 +61,9 @@ class Voting(commands.Cog):
             for details in details_list:
                 end_vote = details.planned_end < datetime.utcnow()
                 vote_type = self.config.voting[details.vote_type]
+
+                if self.config.bot.dev_mode:
+                    end_vote = details.created + timedelta(hours=1) < datetime.utcnow()
 
                 if not vote_type.end_on_threshold and not end_vote:
                     continue

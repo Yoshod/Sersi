@@ -18,7 +18,7 @@ class match_regex:
 
     def __eq__(self, other: str | re.Pattern):
         if isinstance(other, str):
-            other = re.compile(other, flags=re.IGNORECASE)
+            other = re.compile(other)
         assert isinstance(other, re.Pattern)
         return other.fullmatch(self.string) is not None
 
@@ -282,9 +282,7 @@ class Jokes(commands.Cog):
         if ignored_message(self.config, message):
             return
 
-        if message.guild.id == 1166770860787515422 or chance(
-            clamp(len(message.content), 10, 25)
-        ):
+        if self.config.bot.dev_mode or chance(clamp(len(message.content), 10, 25)):
             match match_regex(message.content.lower()):
                 case r".*admin furry stash.*":
                     await message.channel.send(

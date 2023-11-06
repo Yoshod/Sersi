@@ -247,14 +247,17 @@ async def reload(ctx: commands.Context, extension: str):
 @bot.command()
 async def about(ctx: commands.Context):
     """Display basic information about the bot."""
+    embed_fields = {
+        "Version": config.bot.version,
+        "Authors:": "\n".join(config.bot.authors),
+        "GitHub Repository:": config.bot.git_url,
+    }
+    if config.bot.dev_mode:
+        embed_fields["Development Mode"] = f"{config.emotes.success} ***Enabled!***"
     embed = SersiEmbed(
         title="About Sersi",
-        description=f"Sersi is the custom moderation help bot for The Crossroads.",
-        fields={
-            "Version": config.bot.version,
-            "Authors:": "\n".join(config.bot.authors),
-            "GitHub Repository:": config.bot.git_url,
-        },
+        description="Sersi is the custom moderation help bot for The Crossroads.",
+        fields=embed_fields,
     )
     await ctx.send(embed=embed)
 

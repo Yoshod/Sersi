@@ -270,6 +270,13 @@ class Database(commands.Cog):
     ):
         if not await permcheck(interaction, is_sersi_contributor):
             return
+        
+        if not self.config.bot.dev_mode:
+            await interaction.response.send_message(
+                "This command is not allowed on live Sersi!",
+                ephemeral=True,
+            )
+            return
 
         await interaction.response.defer(ephemeral=True)
 

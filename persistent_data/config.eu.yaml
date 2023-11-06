@@ -21,6 +21,7 @@ datafiles:
     sersi_db:           "persistent_data/sersi.db"
 
 bot:
+    dev_mode: true
     prefix: "s!"
     status: "Sword and shield"
     port:   8074 # 8074 for live, 8113 for unstable
