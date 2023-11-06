@@ -662,7 +662,10 @@ class BanSystem(commands.Cog):
         await interaction.response.send_autocomplete(sorted(offences))
 
     @commands.Cog.listener()
-    async def on_ban_vote_pass(self, detail: VoteDetails):
+    async def on_vote_ban(self, detail: VoteDetails):
+        if detail.outcome != "Accepted":
+            return
+
         guild: nextcord.Guild = self.bot.get_guild(self.config.guilds.main)
 
         # close case

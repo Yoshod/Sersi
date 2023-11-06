@@ -165,5 +165,5 @@ voting:
         difference: 2
     urgent-ban:
         name: Urgent Ban
-        action: ban_vote_pass
+        action: vote_ban
         difference: 2
