@@ -582,7 +582,9 @@ class BanSystem(commands.Cog):
                     sersi_case.offender
                 )
 
-                await interaction.guild.ban(offender, reason=sersi_case.details)
+                await interaction.guild.ban(
+                    offender, reason=f"{[sersi_case.details]} -{interaction.user.name}"
+                )
 
                 with db_session(interaction.user) as session:
                     case: BanCase = session.query(BanCase).filter_by(id=uuid).first()
