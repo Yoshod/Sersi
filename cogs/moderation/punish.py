@@ -47,7 +47,7 @@ class Punish(commands.Cog):
         await member.add_roles(role, reason=reason)
 
         await interaction.response.send_message(
-            f"{member.mention} has been given the {role.mention} role as punishment."
+            f"Uh-oh, {member.mention} posted cringe and has been given the role {role.mention} as punishment."
         )
 
         await member.guild.get_channel(self.config.channels.logging).send(
