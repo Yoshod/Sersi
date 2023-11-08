@@ -402,3 +402,20 @@ def validate_case_edit(
         )
 
     return True, None
+
+
+async def check_if_banned(user_id: int, guild: nextcord.Guild) -> bool:
+    with db_session() as session:
+        ban_case: BanCase = (
+            session.query(BanCase).filter_by(offender=user_id, active=True).first()
+        )
+
+    if ban_case:
+        return True
+
+    try:
+        await guild.fetch_ban(user_id)
+        return True
+
+    except nextcord.NotFound:
+        return False

@@ -8,6 +8,7 @@ import datetime
 from utils.cases import (
     create_case_embed,
     get_case_by_id,
+    check_if_banned,
 )
 from utils.config import Configuration
 from utils.database import VoteRecord, db_session, BanCase, VoteDetails
@@ -191,6 +192,13 @@ class BanSystem(commands.Cog):
 
         except AttributeError:
             pass
+
+        if check_if_banned(offender):
+            await interaction.send(
+                f"{self.config.emotes.fail} {offender.mention} is already banned.",
+                ephemeral=True,
+            )
+            return
 
         if not offence_validity_check(offence):
             await interaction.send(
