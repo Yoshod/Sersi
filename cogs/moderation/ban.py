@@ -551,6 +551,8 @@ class BanSystem(commands.Cog):
                 if not await permcheck(interaction, is_full_mod):
                     return
 
+                await interaction.message.edit(view=None)
+
                 sersi_case: BanCase = get_case_by_id(uuid)
                 offender: nextcord.Member = interaction.guild.get_member(
                     sersi_case.offender
@@ -616,8 +618,6 @@ class BanSystem(commands.Cog):
                         footer="Sersi Ban",
                     ),
                 )
-
-                await interaction.message.edit(view=None)
 
                 (
                     reviewer_role,
