@@ -1,7 +1,7 @@
 import nextcord
 from utils.base import SersiEmbed
 from utils.config import Configuration
-from utils.database import WarningCase, db_session, VoteDetails
+from utils.database import WarningCase, db_session, VoteDetails, BanCase
 
 
 class WhoisCasesButton(nextcord.ui.Button):
@@ -31,6 +31,15 @@ class WhoisView(nextcord.ui.View):
         self.add_item(WhoisNotesButton(user_id))
 
 
+def _get_user_ban(user_id: int) -> BanCase | None:
+    with db_session() as session:
+        ban_case = (
+            session.query(BanCase).filter_by(offender=user_id, active=True).first()
+        )
+
+    return ban_case
+
+
 async def create_whois_embed(
     config: Configuration, interaction: nextcord.Interaction, user: nextcord.Member
 ) -> SersiEmbed:
@@ -56,12 +65,23 @@ async def create_whois_embed(
         guild_member = True
 
     except AttributeError:
-        guild_bans = await interaction.guild.bans().flatten()
-        if user.id in guild_bans:
-            timeout_string = f"**User Banned**: {config.emotes.success}"
+        ban_case = _get_user_ban(user.id)
+
+        if not ban_case:
+            guild_bans = await interaction.guild.bans().flatten()
+
+            timeout_string = None
+
+            for ban in guild_bans:
+                if ban.user.id == user.id:
+                    timeout_string = f"**User Banned**: {config.emotes.success} `Non Sersi Ban: {ban.reason}`"
+                    break
+
+            if not timeout_string:
+                timeout_string = f"**User Banned**: {config.emotes.fail}"
 
         else:
-            timeout_string = f"**User Banned**: {config.emotes.fail}"
+            timeout_string = f"**User Banned**: {config.emotes.success} `{ban_case.id}` (<t:{int(ban_case.created.timestamp())}:R>)"
 
         guild_member = False
 
