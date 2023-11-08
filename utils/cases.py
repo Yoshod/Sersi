@@ -419,3 +419,7 @@ async def check_if_banned(user_id: int, guild: nextcord.Guild) -> bool:
 
     except nextcord.NotFound:
         return False
+
+
+async def check_if_timeout(member: nextcord.Member) -> bool:
+    return member.communication_disabled_until

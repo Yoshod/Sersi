@@ -6,7 +6,7 @@ from nextcord.ext import commands
 from pytz import timezone
 from utils import logs
 
-from utils.cases import create_case_embed
+from utils.cases import create_case_embed, check_if_timeout
 from utils.config import Configuration
 from utils.database import db_session, TimeoutCase
 from utils.objection import AlertView
@@ -132,6 +132,12 @@ class TimeoutSystem(commands.Cog):
         ),
     ):
         if not await permcheck(interaction, is_mod):
+            return
+
+        if check_if_timeout(offender):
+            await interaction.response.send_message(
+                f"{self.config.emotes.fail} {offender.mention} is already timed out."
+            )
             return
 
         await interaction.response.defer(ephemeral=False)
