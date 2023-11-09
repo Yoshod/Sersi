@@ -58,7 +58,7 @@ class WarningSystem(commands.Cog):
             warning_alert = SersiEmbed(
                 title="Unauthorised Moderation Target",
                 description=f"{interaction.user.mention} ({interaction.user.id}) attempted to warn "
-                "{offender.mention} ({offender.id}) despite being outranked!",
+                f"{offender.mention} ({offender.id}) despite being outranked!",
             )
 
             await interaction.guild.get_channel(self.config.channels.logging).send(
