@@ -214,6 +214,8 @@ class Perspective(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.message.Message):
+        return  # disable perspective
+
         if ignored_message(self.config, message):
             return
 
