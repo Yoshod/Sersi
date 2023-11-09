@@ -130,22 +130,22 @@ class WhoisSystem(commands.Cog):
                 if not interaction.user.is_on_mobile():
                     cases_embed.set_thumbnail(interaction.guild.icon.url)
 
-                    view = PageView(
-                        config=self.config,
-                        base_embed=cases_embed,
-                        fetch_function=fetch_all_cases,
-                        author=interaction.user,
-                        entry_form="{entry}",
-                        field_title="{entries[0].list_entry_header}",
-                        inline_fields=False,
-                        cols=10,
-                        per_col=1,
-                        init_page=1,
-                        ephemeral=True,
-                        offender_id=user_id,
-                    )
+                view = PageView(
+                    config=self.config,
+                    base_embed=cases_embed,
+                    fetch_function=fetch_all_cases,
+                    author=interaction.user,
+                    entry_form="{entry}",
+                    field_title="{entries[0].list_entry_header}",
+                    inline_fields=False,
+                    cols=10,
+                    per_col=1,
+                    init_page=1,
+                    ephemeral=True,
+                    offender_id=user_id,
+                )
 
-                    await view.send_followup(interaction)
+                await view.send_followup(interaction)
 
             case ["whois-notes", user_id]:
                 note_embed = SersiEmbed(title=f"{interaction.guild.name} Notes")
