@@ -12,9 +12,9 @@ async def permcheck(
     hook: [nextcord.ext.commands.Context | nextcord.Interaction], function: callable
 ) -> bool:
     if isinstance(hook, nextcord.ext.commands.Context):
-        if function is True:
+        if function(hook.author):
             return True
-        elif function(hook.author):
+        elif config.bot.dev_mode and is_sersi_contributor(hook.author):
             return True
         else:
             await hook.send(f"{config.emotes.fail} Insufficient permission!")
@@ -52,6 +52,8 @@ async def permcheck(
 
     elif isinstance(hook, nextcord.Interaction):
         if function(hook.user):
+            return True
+        elif config.bot.dev_mode and is_sersi_contributor(hook.user):
             return True
         else:
             await hook.response.send_message(
@@ -158,6 +160,9 @@ def target_eligibility(actor: nextcord.Member, target: nextcord.Member) -> bool:
         config.permission_roles.cet: 2,
         config.permission_roles.trial_moderator: 2,
     }
+
+    if config.bot.dev_mode:
+        hierarchy[config.permission_roles.sersi_contributor] = 42
 
     actor_rank = 0
     target_rank = 0
