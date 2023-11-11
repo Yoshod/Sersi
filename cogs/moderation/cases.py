@@ -131,7 +131,7 @@ class Cases(commands.Cog):
         case_id: str = nextcord.SlashOption(
             name="case_id",
             description="Case ID",
-            min_length=11,
+            min_length=10,
             max_length=22,
         ),
         scrubbed: bool = nextcord.SlashOption(
@@ -164,7 +164,7 @@ class Cases(commands.Cog):
         case_id: str = nextcord.SlashOption(
             name="case_id",
             description="Case ID",
-            min_length=11,
+            min_length=10,
             max_length=22,
         ),
     ):
@@ -206,7 +206,7 @@ class Cases(commands.Cog):
         case_id: str = nextcord.SlashOption(
             name="case_id",
             description="Case ID",
-            min_length=11,
+            min_length=10,
             max_length=22,
         ),
         reason: str = nextcord.SlashOption(
@@ -273,7 +273,7 @@ class Cases(commands.Cog):
         case_id: str = nextcord.SlashOption(
             name="case_id",
             description="Case ID",
-            min_length=11,
+            min_length=10,
             max_length=22,
         ),
         reason: str = nextcord.SlashOption(
@@ -360,7 +360,7 @@ class Cases(commands.Cog):
         case_id: str = nextcord.SlashOption(
             name="case_id",
             description="Case ID",
-            min_length=11,
+            min_length=10,
             max_length=22,
         ),
         offence: str = nextcord.SlashOption(
