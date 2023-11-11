@@ -6,10 +6,9 @@ import pytz
 from nextcord.ext import commands
 from nextcord.ui import Button, View, Modal
 
-from baseutils import SersiEmbed
-from configutils import Configuration
-from permutils import is_dark_mod, permcheck, is_senior_mod, is_cet, is_slt
-from permutils import is_mod
+from utils.sersi_embed import SersiEmbed
+from utils.config import Configuration
+from utils.perms import is_dark_mod, permcheck, is_senior_mod, is_cet, is_slt, is_staff
 
 
 class AdultAccessModal(Modal):
@@ -168,7 +167,7 @@ class AdultAccess(commands.Cog):
 
     @nextcord.slash_command(
         dm_permission=False,
-        guild_ids=[977377117895536640, 856262303795380224],
+        guild_ids=[1166770860787515422, 977377117895536640, 856262303795380224],
         description="Used to bypass verification to the adult only channels",
     )
     async def adult_bypass(
@@ -218,7 +217,7 @@ class AdultAccess(commands.Cog):
 
     @nextcord.slash_command(
         dm_permission=False,
-        guild_ids=[977377117895536640, 856262303795380224],
+        guild_ids=[1166770860787515422, 977377117895536640, 856262303795380224],
         description="Used to revoke a user's access to the adult channels",
     )
     async def adult_revoke(
@@ -232,15 +231,17 @@ class AdultAccess(commands.Cog):
             max_length=1240,
         ),
     ):
-        if not await permcheck(interaction, is_mod) and not await permcheck(
-            interaction, is_cet
-        ):
+        if not await permcheck(interaction, is_staff):
             return
 
         await interaction.response.defer(ephemeral=True)
 
-        adult_access_role = member.guild.get_role(self.config.roles.adult_access)
-        adult_verified_role = member.guild.get_role(self.config.roles.adult_verified)
+        adult_access_role: nextcord.Role = member.guild.get_role(
+            self.config.roles.adult_access
+        )
+        adult_verified_role: nextcord.Role = member.guild.get_role(
+            self.config.roles.adult_verified
+        )
         try:
             await member.remove_roles(
                 adult_access_role,
@@ -250,7 +251,7 @@ class AdultAccess(commands.Cog):
             )
         except nextcord.HTTPException:
             await interaction.followup.send(
-                f"{self.config.emotes.fail} Removing roles failed. Please request a Mega Administrator or "
+                f"{self.config.emotes.fail} Removing roles failed. Please request an Administrator or "
                 f"Community Engagement Team member to manually remove the roles."
             )
             return
@@ -278,7 +279,7 @@ class AdultAccess(commands.Cog):
 
     @nextcord.slash_command(
         dm_permission=False,
-        guild_ids=[977377117895536640, 856262303795380224],
+        guild_ids=[1166770860787515422, 977377117895536640, 856262303795380224],
         description="Used to verify a user as an adult",
     )
     async def adult_verify(
@@ -318,7 +319,7 @@ class AdultAccess(commands.Cog):
             birthdate = datetime.strptime(date_of_birth, "%d%m%Y").date()
         except ValueError:
             await interaction.response.send_message(
-                f"{self.config.emotes.fail} Date of Birth not valid. Please try again or contact CET or a Mega Administrator",
+                f"{self.config.emotes.fail} Date of Birth not valid. Please try again or contact CET or a Administrator",
                 ephemeral=True,
             )
             return
@@ -445,11 +446,11 @@ class AdultAccess(commands.Cog):
                         verify_embed = nextcord.Embed(
                             title="Over 18's Channel Application",
                             description="Your request to join the Over 18's Channel has been referred. You have been "
-                            "randomly selected to verify your age. Please create a Senior Moderator or "
-                            "Mega Administrator ticket. You will be required to submit an image which "
+                            "randomly selected to verify your age. Please create a Moderation Lead or "
+                            "Administrator ticket. You will be required to submit an image which "
                             "comprises of the following:\n"
                             "Paper which has your discord name and discriminator written on it\n"
-                            "Adam Something Central written on it\n"
+                            "The Crossroads written on it\n"
                             "The date in DD.MM.YYYY format\n"
                             "A photo ID placed on the paper. **Blank out everything except the date of birth. We do "
                             "not want or need to see anything other than the date of birth.** Ensure all four corners "
@@ -473,7 +474,7 @@ class AdultAccess(commands.Cog):
                     deny_embed = nextcord.Embed(
                         title="Over 18's Channel Application",
                         description="Your request to join the Over 18's Channel has been denied. Want to know more? "
-                        "Create a Senior Moderator Ticket.",
+                        "Create a Moderation Lead Ticket.",
                         colour=nextcord.Color.from_rgb(237, 91, 6),
                     )
                     await user.send(embed=deny_embed)
@@ -492,11 +493,11 @@ class AdultAccess(commands.Cog):
                     referred_embed = nextcord.Embed(
                         title="Over 18's Channel Application",
                         description="Your request to join the Over 18's Channel has been referred. You have been "
-                        "randomly selected to verify your age. Please create a Senior Moderator or Mega "
+                        "randomly selected to verify your age. Please create a Moderation Lead or "
                         "Administrator ticket. You will be required to submit an image which comprises of "
                         "the following:\n"
                         "Paper which has your discord name and discriminator written on it\n"
-                        "Adam Something Central written on it\n"
+                        "The Crossroads written on it\n"
                         "The date in DD.MM.YYYY format\n"
                         "A photo ID placed on the paper. **Blank out everything except the date of birth. We do "
                         "not want or need to see anything other than the date of birth.** Ensure all four "
@@ -508,5 +509,5 @@ class AdultAccess(commands.Cog):
                     await user.send(embed=referred_embed)
 
 
-def setup(bot, **kwargs):
+def setup(bot: commands.Bot, **kwargs):
     bot.add_cog(AdultAccess(bot, kwargs["config"]))

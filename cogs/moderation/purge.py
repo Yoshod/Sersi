@@ -1,234 +1,194 @@
-import nextcord
-import re
+import datetime
 import io
-from nextcord.ext import commands
-from datetime import timedelta
 
-from configutils import Configuration
-from permutils import permcheck, is_mod, is_senior_mod
+import nextcord
 from chat_exporter import raw_export
+from nextcord.ext import commands
+
+from utils.config import Configuration
+from utils.perms import permcheck, is_mod
+from utils.sersi_embed import SersiEmbed
 
 
 class Purge(commands.Cog):
     def __init__(self, bot, config: Configuration):
         self.bot = bot
         self.config = config
-        self.sersisuccess = config.emotes.success
-        self.sersifail = config.emotes.fail
-        self.MAXMESSAGES = 100
         self.MAXTIME = 15
 
-    @commands.command(aliases=["p", "massdelete", "delete", "del", "purge"])
-    async def clear(self, ctx, amount, member: nextcord.Member = None):
-        deleted_msgs = []
-        try:
-            amount = int(amount)
+    @nextcord.slash_command(
+        dm_permission=False,
+        guild_ids=[1166770860787515422, 977377117895536640, 856262303795380224],
+        name="purge",
+    )
+    async def purge(self, interaction: nextcord.Interaction):
+        pass
 
-        except ValueError:
-            await ctx.send(f'{self.sersifail} Amount "{amount}" is not an integer. ')
+    @purge.subcommand()
+    async def standard(
+        self,
+        interaction: nextcord.Interaction,
+        amount: int = nextcord.SlashOption(min_value=1, max_value=100),
+        member: nextcord.Member = nextcord.SlashOption(required=False),
+    ):
+        if not await permcheck(interaction, is_mod):
             return
 
-        if not await permcheck(ctx, is_mod):
-            return
+        await interaction.response.defer(ephemeral=True)
 
-        elif amount is None:
-            await ctx.send(
-                f"{self.sersifail} You must specify how many messages you wish to purge."
-            )
-            return
+        if not member:
+            deleted_messages = await interaction.channel.purge(limit=amount + 1)
 
-        elif amount < 1:
-            await ctx.send(f"{self.sersifail} You must delete at least one message.")
-            return
-
-        elif amount > self.MAXMESSAGES:
-            await ctx.send(
-                f"{self.sersifail} You cannot delete more than 100 messages."
-            )
-            return
-
-        elif member is None:
-            deleted_msgs = await ctx.channel.purge(limit=amount + 1)
-
-        elif member is not None:
-            deleted_msgs = await ctx.channel.purge(
+        else:
+            deleted_messages = await interaction.channel.purge(
                 limit=amount + 1,
                 check=lambda x: True if (x.author.id == member.id) else False,
             )
 
-        # LOGGING
-        # await asyncio.sleep(2)
-        # async for entry in ctx.guild.audit_logs(limit=1, action=nextcord.AuditLogAction.message_bulk_delete):
-        #     deletion_count = entry.extra['count']
-
-        transcript = await raw_export(
-            channel=ctx.channel, messages=deleted_msgs, military_time=True
+        logging = SersiEmbed(
+            title="Messages Purged",
+            fields={
+                "Moderator:": interaction.user.mention,
+                "Messages Requested:": amount,
+                "Messages Purged:": len(deleted_messages) - 1,
+                "Channel Purged:": interaction.channel.mention,
+            },
         )
 
-        if transcript is None:
-            return
-        transcript_file = nextcord.File(
-            io.BytesIO(transcript.encode()),
-            filename=f"purge-{ctx.channel.name}.html",
-        )
-
-        deletion_count = len(deleted_msgs) - 1
-
-        logging = nextcord.Embed(
-            title="Messages Purged", color=nextcord.Color.from_rgb(237, 91, 6)
-        )
-        logging.add_field(name="Moderator:", value=ctx.author.mention, inline=False)
-        logging.add_field(name="Messages Requested:", value=amount, inline=False)
-        logging.add_field(name="Messages Purged:", value=deletion_count, inline=False)
-        logging.add_field(
-            name="Channel Purged:", value=ctx.channel.mention, inline=False
-        )
         if member is not None:
             logging.add_field(
                 name="User Targeted:", value=f"{member.mention} ({member.id})"
             )
 
-        channel = ctx.guild.get_channel(self.config.channels.logging)
-        await channel.send(embed=logging)
+        await interaction.guild.get_channel(self.config.channels.mod_logs).send(
+            embed=logging,
+            file=nextcord.File(
+                io.BytesIO(
+                    (
+                        await raw_export(
+                            channel=interaction.channel,
+                            messages=deleted_messages,
+                            military_time=True,
+                        )
+                    ).encode()
+                ),
+                filename=f"purge-{interaction.channel.name}.html",
+            ),
+        )
 
-        channel = ctx.guild.get_channel(self.config.channels.mod_logs)
-        await channel.send(embed=logging, file=transcript_file)
+        await interaction.followup.send(
+            f"{self.config.emotes.success} All {len(deleted_messages) - 1} messages deleted!"
+        )
 
-    @commands.command(aliases=["tp", "timedpurge"])
     @commands.cooldown(1, 900, commands.BucketType.user)
-    async def timed_purge(self, ctx, time=None, target: nextcord.Member = None):
-        deleted_msgs = []
-        try:
-            time = re.sub(r"[^0-9]", "", time)
-            time = int(time)
-
-        except ValueError:
-            await ctx.send(f"{self.sersifail} `{time}` is not a valid time.")
+    @purge.subcommand()
+    async def timed(
+        self,
+        interaction: nextcord.Interaction,
+        time: int = nextcord.SlashOption(
+            description="The last x minutes to purge", min_value=1, max_value=15
+        ),
+        member: nextcord.Member = nextcord.SlashOption(required=False),
+    ):
+        if not await permcheck(interaction, is_mod):
             return
 
-        if not await permcheck(ctx, is_senior_mod):
-            return
+        await interaction.response.defer(ephemeral=True)
 
-        elif time < 1:
-            await ctx.send(f"{self.sersifail} The minimum time is one minute.")
-            return
+        time_to_delete_all_messages_after: datetime.datetime = (
+            interaction.created_at - datetime.timedelta(minutes=time)
+        )
 
-        elif time is None:
-            await ctx.send(f"{self.sersifail} You must specify a length of time.")
-            return
-
-        elif time > self.MAXTIME:
-            await ctx.send(
-                f"{self.sersifail} The length of time specified is greater than the maximum value."
-            )
-            return
-
-        elif target is None:
-            after = ctx.message.created_at - timedelta(minutes=time)
-            deleted_msgs = await ctx.channel.purge(limit=10 * time, after=after)
-
-        elif target is not None:
-            after = ctx.message.created_at - timedelta(minutes=time)
-            deleted_msgs = await ctx.channel.purge(
+        if member:
+            deleted_messages = await interaction.channel.purge(
                 limit=10 * time,
-                check=lambda x: True if (x.author.id == target.id) else False,
-                after=after,
+                check=lambda x: True if (x.author.id == member.id) else False,
+                after=time_to_delete_all_messages_after,
             )
 
-        # LOGGING
-        # await asyncio.sleep(2)
-        # async for entry in ctx.guild.audit_logs(limit=1, action=nextcord.AuditLogAction.message_bulk_delete):
-        #     deletion_count = entry.extra['count']
+        else:
+            deleted_messages = await interaction.channel.purge(
+                limit=10 * time,
+                after=time_to_delete_all_messages_after,
+            )
 
-        transcript = await raw_export(
-            channel=ctx.channel, messages=deleted_msgs, military_time=True
+        logging = SersiEmbed(
+            title="Messages Purged",
+            fields={
+                "Moderator:": interaction.user.mention,
+                "Time Specified:": f"{time} minutes",
+                "Messages Purged:": len(deleted_messages) - 1,
+                "Channel Purged:": interaction.channel.mention,
+            },
         )
-
-        if transcript is None:
-            return
-        transcript_file = nextcord.File(
-            io.BytesIO(transcript.encode()),
-            filename=f"purge-{ctx.channel.name}.html",
-        )
-
-        deletion_count = len(deleted_msgs) - 1
-
-        logging = nextcord.Embed(
-            title="Messages Purged", color=nextcord.Color.from_rgb(237, 91, 6)
-        )
-        logging.add_field(name="Moderator:", value=ctx.author.mention, inline=False)
-        logging.add_field(name="Time Specified:", value=f"{time} minutes", inline=False)
-        logging.add_field(name="Messages Purged:", value=deletion_count, inline=False)
-        logging.add_field(
-            name="Channel Purged:", value=ctx.channel.mention, inline=False
-        )
-        if target is not None:
+        if member:
             logging.add_field(
-                name="User Targeted:", value=f"{target.mention} ({target.id})"
+                name="User Targeted:", value=f"{member.mention} ({member.id})"
             )
 
-        channel = ctx.guild.get_channel(self.config.channels.logging)
-        await channel.send(embed=logging)
+        await interaction.guild.get_channel(self.config.channels.mod_logs).send(
+            embed=logging,
+            file=nextcord.File(
+                io.BytesIO(
+                    (
+                        await raw_export(
+                            channel=interaction.channel,
+                            messages=deleted_messages,
+                            military_time=True,
+                        )
+                    ).encode()
+                ),
+                filename=f"purge-{interaction.channel.name}.html",
+            ),
+        )
 
-        channel = ctx.guild.get_channel(self.config.channels.mod_logs)
-        await channel.send(embed=logging, file=transcript_file)
+        await interaction.followup.send(
+            f"{self.config.emotes.success} All {len(deleted_messages) - 1} messages deleted!"
+        )
 
-    @commands.command(aliases=["pu", "purgeuntil"])
-    async def purge_until(self, ctx, message_id=None):
-        if not await permcheck(ctx, is_senior_mod):
+    @nextcord.message_command(
+        name="Purge After This Message",
+        dm_permission=False,
+        guild_ids=[1166770860787515422, 977377117895536640, 856262303795380224],
+    )
+    async def until(self, interaction: nextcord.Interaction, message: nextcord.Message):
+        if not await permcheck(interaction, is_mod):
             return
 
-        channel = ctx.message.channel
-        try:
-            message = await channel.fetch_message(int(message_id))
-        except nextcord.errors.NotFound:
-            await ctx.send(
-                f"{self.sersifail} The message specified has not been found."
-            )
-            return
-        except ValueError:
-            await ctx.send(f"{self.sersifail} Could not parse message id.")
-            return
+        await interaction.response.defer(ephemeral=True)
 
-        await ctx.message.delete()
-        deleted_msgs = await channel.purge(after=message)
-
-        # LOGGING
-        # await asyncio.sleep(2)
-        # async for entry in ctx.guild.audit_logs(limit=1, action=nextcord.AuditLogAction.message_bulk_delete):
-        #     deletion_count = entry.extra['count']
-
-        transcript = await raw_export(
-            channel=ctx.channel, messages=deleted_msgs, military_time=True
+        deleted_messages: list[nextcord.Message] = await message.channel.purge(
+            after=message
         )
 
-        if transcript is None:
-            return
-        transcript_file = nextcord.File(
-            io.BytesIO(transcript.encode()),
-            filename=f"purge-{ctx.channel.name}.html",
+        await interaction.guild.get_channel(self.config.channels.mod_logs).send(
+            embed=SersiEmbed(
+                title="Messages Purged",
+                fields={
+                    "Moderator:": interaction.user.mention,
+                    "Message Specified:": message.jump_url,
+                    "Messages Purged:": len(deleted_messages) - 1,
+                    "Channel Purged:": message.channel.mention,
+                },
+            ),
+            file=nextcord.File(
+                io.BytesIO(
+                    (
+                        await raw_export(
+                            channel=interaction.channel,
+                            messages=deleted_messages,
+                            military_time=True,
+                        )
+                    ).encode()
+                ),
+                filename=f"purge-{interaction.channel.name}.html",
+            ),
         )
 
-        deletion_count = len(deleted_msgs) - 1
-
-        logging = nextcord.Embed(
-            title="Messages Purged", color=nextcord.Color.from_rgb(237, 91, 6)
-        )
-        logging.add_field(name="Moderator:", value=ctx.author.mention, inline=False)
-        logging.add_field(
-            name="Message Specified:", value=message.jump_url, inline=False
-        )
-        logging.add_field(name="Messages Purged:", value=deletion_count, inline=False)
-        logging.add_field(
-            name="Channel Purged:", value=ctx.channel.mention, inline=False
+        await interaction.followup.send(
+            f"{self.config.emotes.success} All {len(deleted_messages) - 1} messages deleted!"
         )
 
-        channel = ctx.guild.get_channel(self.config.channels.logging)
-        await channel.send(embed=logging)
 
-        channel = ctx.guild.get_channel(self.config.channels.mod_logs)
-        await channel.send(embed=logging, file=transcript_file)
-
-
-def setup(bot, **kwargs):
+def setup(bot: commands.Bot, **kwargs):
     bot.add_cog(Purge(bot, kwargs["config"]))

@@ -1,9 +1,16 @@
 import nextcord
 from nextcord.ext import commands
 from nextcord.ui import Button, View, Modal
-from configutils import Configuration
-from permutils import is_dark_mod, permcheck, is_senior_mod, is_cet, is_mod
-from baseutils import SersiEmbed
+from utils.config import Configuration
+from utils.perms import (
+    blacklist_check,
+    is_dark_mod,
+    permcheck,
+    is_senior_mod,
+    is_cet,
+    is_mod,
+)
+from utils.sersi_embed import SersiEmbed
 from datetime import datetime
 import pytz
 
@@ -57,16 +64,29 @@ class ModAppModal(Modal):
         """Run whenever the 'submit' button is pressed."""
         applicant_id = interaction.user.id
 
-        application_embed = SersiEmbed(
-            title="Moderator Application Sent",
-            description=f"User {interaction.user.name} ({interaction.user.id})",
-            fields={
+        if blacklist_check(interaction.user.id):
+            embed_fields = {
                 self.aboutq.label: self.aboutq.value,
                 self.whymod.label: self.whymod.value,
                 self.priorexp.label: self.priorexp.value,
                 self.age.label: self.age.value,
                 self.vc.label: self.vc.value,
-            },
+                "Blacklisted": self.config.emotes.success,
+            }
+
+        else:
+            embed_fields = {
+                self.aboutq.label: self.aboutq.value,
+                self.whymod.label: self.whymod.value,
+                self.priorexp.label: self.priorexp.value,
+                self.age.label: self.age.value,
+                self.vc.label: self.vc.value,
+            }
+
+        application_embed = SersiEmbed(
+            title="Moderator Application Sent",
+            description=f"User {interaction.user.name} ({interaction.user.id})",
+            fields=embed_fields,
         )
 
         accept_bttn = Button(
@@ -208,7 +228,7 @@ class Applications(commands.Cog):
 
         test_embed = SersiEmbed(
             title="Moderator Application",
-            description="Press the button below to apply to become a moderator on Adam Something Central.",
+            description="Press the button below to apply to become a moderator on The Crossroads.",
         )
         open_modal = Button(
             custom_id="mod-application-start",
@@ -232,9 +252,9 @@ class Applications(commands.Cog):
         info_embed = SersiEmbed(
             title="Staff Application Information",
             description="Staff applications are open all year round! If you wish to be a moderator, member of CET, "
-            "or anything else on Adam Something Central, here are somethings to be aware of:",
+            "or anything else on The Crossroads, here are somethings to be aware of:",
             fields={
-                "Server Membership": "We want all of our staff to be members of the Adam Something Central community. "
+                "Server Membership": "We want all of our staff to be members of the The Crossroads community. "
                 "This means if you have been here for less than two months we will not be able "
                 "to consider you.",
                 "Moderation History": "Whilst having a moderation history on the server does not automatically "
@@ -252,7 +272,7 @@ class Applications(commands.Cog):
         await ctx.send(embed=info_embed)
 
     @commands.command()
-    async def cet_apps(self, ctx):
+    async def cet_apps(self, ctx: commands.Context):
         if not await permcheck(ctx, is_dark_mod):
             return
 
@@ -260,8 +280,7 @@ class Applications(commands.Cog):
 
         test_embed = SersiEmbed(
             title="Community Engagement Team Application",
-            description="Press the button below to apply to become a member of the Community Engagement Team on Adam "
-            "Something Central.",
+            description=f"Press the button below to apply to become a member of the Community Engagement Team on {ctx.guild.name}",
         )
         open_modal = Button(
             custom_id="cet-application-start",
@@ -277,7 +296,7 @@ class Applications(commands.Cog):
 
     @nextcord.slash_command(
         dm_permission=False,
-        guild_ids=[977377117895536640, 856262303795380224],
+        guild_ids=[1166770860787515422, 977377117895536640, 856262303795380224],
         description="Used to invite a user to apply to become a moderator",
     )
     async def moderator_invite(
@@ -288,11 +307,22 @@ class Applications(commands.Cog):
         if not await permcheck(interaction, is_mod):
             return
 
+        if await blacklist_check(user):
+            interaction.response.send_message(
+                f"{self.config.emotes.fail} The user you wish to invite is blacklisted from the Staff Team. Speak to an Administrator.",
+                ephemeral=True,
+            )
+
         await interaction.response.defer(ephemeral=True)
 
         test_embed = SersiEmbed(
             title="Moderator Invite",
-            description="Hey there! You've received this DM because a Moderator on Adam Something Central thinks you'd be a great fit on our moderation team.\n\nIf this interests you then all you have to do is press the Open Form button below and submit an application. If you're not interested in the role then that's okay too. In that case you can simply ignore this DM and you won't receive another one.",
+            description=""
+            "Hey there! You've received this DM because a Moderator on The Crossroads thinks "
+            "you'd be a great fit on our moderation team.\n\n"
+            "If this interests you then all you have to do is press the Open Form button below and "
+            "submit an application. If you're not interested in the role then that's okay too. "
+            "In that case you can simply ignore this DM and you won't receive another one.",
         )
         open_modal = Button(
             custom_id="mod-application-start",
@@ -325,7 +355,7 @@ class Applications(commands.Cog):
             )
 
     @commands.Cog.listener()
-    async def on_interaction(self, interaction):
+    async def on_interaction(self, interaction: nextcord.Interaction):
         try:
             btn_id = interaction.data["custom_id"]
         except KeyError:
@@ -334,6 +364,12 @@ class Applications(commands.Cog):
         match btn_id.split(":", 1):
             case ["mod-application-next-steps", user_id]:
                 if await permcheck(interaction, is_senior_mod):
+                    if blacklist_check(interaction.guild.get_member(user_id)):
+                        interaction.response.send_message(
+                            f"{self.config.emotes.fail} This user is on the staff team blacklist. Please speak to an Administrator."
+                        )
+                        return
+
                     user = interaction.guild.get_member(int(user_id))
 
                     updated_form = interaction.message.embeds[0]
@@ -345,7 +381,7 @@ class Applications(commands.Cog):
                     advance_embed = nextcord.Embed(
                         title="Your Moderator Application",
                         description="Your moderator application has been advanced to the next steps. Please create a "
-                        "Senior Moderator Ticket on Adam Something Central.",
+                        "Moderation Lead Ticket on The Crossroads.",
                         colour=nextcord.Color.from_rgb(237, 91, 6),
                     )
                     await user.send(embed=advance_embed)
@@ -404,6 +440,12 @@ class Applications(commands.Cog):
 
             case ["cet-application-next-steps", user_id]:
                 if await permcheck(interaction, is_cet):
+                    if blacklist_check(interaction.guild.get_member(user_id)):
+                        interaction.response.send_message(
+                            f"{self.config.emotes.fail} This user is on the staff team blacklist. Please speak to an Administrator."
+                        )
+                        return
+
                     user = interaction.guild.get_member(int(user_id))
 
                     updated_form = interaction.message.embeds[0]
@@ -415,7 +457,7 @@ class Applications(commands.Cog):
                     advance_embed = nextcord.Embed(
                         title="Your Community Engagement Application",
                         description="Your community engagement application has been advanced to the next steps. "
-                        "Please contact the Community Engagement Team Lead on Adam Something Central.",
+                        "Please contact the Community Engagement Team Lead on The Crossroads.",
                         colour=nextcord.Color.from_rgb(237, 91, 6),
                     )
                     await user.send(embed=advance_embed)
@@ -473,5 +515,5 @@ class Applications(commands.Cog):
                 await interaction.response.send_modal(CetAppModal(self.config))
 
 
-def setup(bot, **kwargs):
+def setup(bot: commands.Bot, **kwargs):
     bot.add_cog(Applications(bot, kwargs["config"]))

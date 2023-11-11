@@ -21,11 +21,12 @@ datafiles:
     sersi_db:           "persistent_data/sersi.db"
 
 bot:
+    dev_mode: false
     prefix: "s!"
     status: "Sword and shield"
     port:   8074 # 8074 for live, 8113 for unstable
     minimum caps length: 8
-    version: "4.1.0"
+    version: "5.0.0"
     git_url: "https://github.com/Yoshod/Sersi"
     authors:
         - "• Hekkland#0001 `261870562798731266`"
@@ -33,35 +34,66 @@ bot:
         - "• Gombik#0935   `264502855602274306`"
 
 channels:
-    alert:                    897874682198511648
-    logging:                  977609240107700244
-    false positives:          978078399635550269
-    mod_logs:                 903367950554259466
+    alert:                   1168167178256777226
+    logging:                 1170342281333723236
+    false positives:         1168193013353295964
+    mod_logs:                1170342829504086026
     reformation:              943180985632169984
     reformation_info:         878292548785958982
     dm_forward:                                0
     errors:                   987397664280817754
-    secret:                   988184848462131250
+    secret:                                    0
     teachers_lounge:          943194039921016922
     reform public log:        988938011179900928
     ban appeals:              963567357966573629
     photography:             1003714017803653181
     youtube:                  856973356658458714
-    tamper_logs:             1024017147216797877
-    logging_category:         875816745414303754
-    admin_ticket_logs:        960179898838827078
-    senior_ticket_logs:      1024017619466059926
-    mod_ticket_logs:          902670845044998224
-    verification_ticket_logs: 879842297842401300
-    deleted_messages:                          0
-    mod applications:         963572589249314887
-    cet applications:        1023684027946897459
-    internalfeedback:        1018936341687443476
+    tamper_logs:             1170341885806649455
+    logging_category:        1170341589080625152
+    admin_ticket_logs:       1168191301758488798
+    senior_ticket_logs:      1168191132719661099
+    mod_ticket_logs:         1168190823670763562
+    cet_ticket_logs:         1168190953367023666
+    cet_lead_ticket_logs:    1168191197383241819
+    mod applications:        1168172187035914260
+    cet applications:        1168176280869552148
+    internalfeedback:                          0
     timeoutappeals:                            0
-    video_discussion:        1006389347257417859
-    role_logs:                                 0
-    ageverification:       1094352347142045878
+    video_discussion:                          0
+    role_logs:               1170344224550559805
+    ageverification:         1094352347142045878
+    deleted_messages:        1170342618551570503
+    deleted_images:          1170342661748686919
+    edited_messages:         1170342734465355797
+    joinleave:               1170342370886303764
+    channel_logs:            1170342177218502749
+    guild_logs:              1170342093068193832
+    user_chanes:             1170342545558097990
+    ban_unban:               1170343013269110824
+    voice_logs:              1170342483415285801
+    automod_logs:            1170342878149628024
+    compliance_review:       1168167264571363430
+    dark_mod_review:         1168167329209778186
+    senior_mod_review:       1168167397929267280
+    moderator_review:        1168167441038311514
+    moderation_votes:        1170340126551965826
+    suggestion_discussion:   1168987121936253078
+    suggestion_voting:       1168987296452845669
+    suggestion_review:       1168176532750082119
 
+ignored_categories:
+    - IMPORTANT STUFF
+    - ADMINISTRATION TEAM
+    - SENIOR LEADERSHIP TEAM
+    - COMPLIANCE TEAM
+    - ALERT HUB
+    - MODERATION TEAM
+    - ENGAGEMENT TEAM
+    - STAFF TEAM
+    - STAFF SUPPORT
+
+ignored_channels:
+    bot-commands: 875815983632252938
 
 roles:
     reformation:                878289857527562310
@@ -99,23 +131,39 @@ permission_roles:
     dark_moderator:    875805670799179799
     cet:               956795983621132289
     cet_lead:         1022923124053921853
+    compliance:       1147601480526856202
 
 punishment roles:
     annoying:                 925191425904238592
     terrible_ideas:           912816038163398727
     politics_and_debate_mute: 931474944611745812
-    probation:                957671793844445204
     ancap:                    877680362829021194
     problem_child:            903368456433451069
+    role_lock:               1118235612089159720
 
 emotes:
     success: "<:sersisuccess:979066662856822844>"
     fail:    "<:sersifail:979070135799279698>"
+    inherit: "<:sersiinherit:1098338822166683668>"
+    blank:   "<:sersiblank:1170445538303418378>"
 
 invites:
-    adam_something_ban_reinvite: "https://discord.gg/F6vMRTbuFk"
-    ban_appeal_server:           "https://discord.gg/dGpvCbrBRA"
+    ban_reinvite:       "https://discord.gg/F6vMRTbuFk"
+    ban_appeal_server:  "https://discord.gg/dGpvCbrBRA"
 
 guilds:
     main:   856262303795380224
     errors: 977377117895536640
+
+voting:
+    reform-free:
+        name: Reformation successful
+        action: reformation_release
+    reform-fail:
+        name: Reformation failed
+        action: reformation_ban
+        difference: 2
+    urgent-ban:
+        name: Urgent Ban
+        action: vote_ban
+        difference: 2

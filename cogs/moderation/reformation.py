@@ -1,156 +1,50 @@
 import nextcord
-import pickle
-import io
 from nextcord.ext import commands
-from nextcord.ui import Button, View
-from nextcord.ext.commands.errors import MemberNotFound
-from chat_exporter import export
 
-from baseutils import ConfirmView, ban
-from configutils import Configuration
-from permutils import permcheck, is_mod, cb_is_mod, is_custom_role
-from caseutils import case_history, reform_case
+from utils.base import ConfirmView, SersiEmbed, ban
+from utils.cases import get_reformation_next_case_number
+from utils.channels import make_transcript
+from utils.config import Configuration
+from utils.database import db_session, BanCase, ReformationCase, VoteDetails, VoteRecord
+from utils.offences import fetch_offences_by_partial_name
+from utils.perms import permcheck, is_mod, is_senior_mod
+from utils.roles import parse_roles
+from utils.voting import VoteView, vote_planned_end
 
 
 class Reformation(commands.Cog):
-    def __init__(self, bot, config: Configuration):
+    def __init__(self, bot: commands.Bot, config: Configuration):
         self.bot = bot
         self.config = config
         self.sersifail = config.emotes.fail
-        self.case_history_file = config.datafiles.casehistory
-        self.case_details_file = config.datafiles.casedetails
 
-    async def cb_rn_proceed(self, interaction):
-        member_id, reason = 0, ""
-        for field in interaction.message.embeds[0].fields:
-            if field.name == "User ID":
-                member_id = int(field.value)
-            elif field.name == "Reason":
-                reason = field.value
-        member = interaction.guild.get_member(member_id)
+    @nextcord.slash_command(
+        dm_permission=False,
+        guild_ids=[1166770860787515422, 977377117895536640, 856262303795380224],
+    )
+    async def reformation(self, interaction: nextcord.Interaction):
+        pass
 
-        # ------------------------------- ROLES CHANNELS
-        # give reformation role
-        reformation_role = interaction.guild.get_role(self.config.roles.reformation)
-        await member.add_roles(reformation_role, reason=reason, atomic=True)
-
-        # remove civil engineering initiate
-        role_obj = interaction.guild.get_role(
-            self.config.roles.civil_engineering_initiate
-        )
-        await member.remove_roles(role_obj, reason=reason, atomic=True)
-
-        # remove opt-ins
-        for role in vars(self.config.opt_in_roles):
-            role_obj = interaction.guild.get_role(vars(self.config.opt_in_roles)[role])
-            await member.remove_roles(role_obj, reason=reason, atomic=True)
-
-        # ------------------------------- CREATING THE CASE CHANNEL
-        # updating the case number in the iter file
-        with open(self.config.datafiles.reform_iter, "r") as file:
-            case_num = file.readline()
-            case_num = int(case_num) + 1
-
-        with open(self.config.datafiles.reform_iter, "w") as file:
-            file.write(str(case_num))
-
-        case_name = f"reformation-case-{str(case_num).zfill(4)}"
-
-        overwrites = {
-            interaction.guild.default_role: nextcord.PermissionOverwrite(
-                read_messages=False
-            ),
-            interaction.guild.me: nextcord.PermissionOverwrite(read_messages=True),
-            interaction.guild.get_role(
-                self.config.permission_roles.reformist
-            ): nextcord.PermissionOverwrite(read_messages=True),
-            interaction.guild.get_role(
-                self.config.permission_roles.moderator
-            ): nextcord.PermissionOverwrite(read_messages=True),
-            member: nextcord.PermissionOverwrite(
-                read_messages=True,
-                create_public_threads=False,
-                create_private_threads=False,
-                external_stickers=False,
-                embed_links=False,
-                attach_files=False,
-                use_external_emojis=False,
-            ),
-        }
-        category = nextcord.utils.get(
-            interaction.guild.categories, name="REFORMATION ROOMS"
-        )
-        case_channel = await interaction.guild.create_text_channel(
-            case_name, overwrites=overwrites, category=category
-        )
-
-        # ------------------------------- CREATING THE CASEFILE ENTRY
-        # load the reformation cases
-        try:
-            with open(self.config.datafiles.reformation_cases, "rb") as file:
-                reformation_list = pickle.load(file)
-        except (EOFError, TypeError):
-            reformation_list = {}
-
-        case_details = [case_name, case_num, interaction.user.id, reason]
-        reformation_list[member.id] = case_details
-
-        with open(self.config.datafiles.reformation_cases, "wb") as file:
-            pickle.dump(reformation_list, file)
-
-        unique_id = case_history(self.config, member.id, "Reformation")
-        reform_case(
-            self.config,
-            unique_id,
-            case_num,
-            member.id,
-            interaction.user.id,
-            case_channel.id,
-            reason,
-        )
-
-        await interaction.message.edit(
-            f"Member {member.mention} has been sent to reformation by {interaction.user.mention} for reason: `{reason}`",
-            embed=None,
-            view=None,
-        )
-
-        # ------------------------------- LOGGING
-
-        # Giving a welcome to the person sent to reformation
-        welcome_embed = nextcord.Embed(
-            title="Welcome to Reformation",
-            description=f"Hello {member.mention}, you have been sent to reformation by {interaction.user.mention}. "
-            f"The reason given for this is `{reason}`. \n\nFor more information on reformation "
-            f"check out <#{self.config.channels.reformation_info}> or talk to a <@&"
-            f"{self.config.permission_roles.reformist}>.",
-            color=nextcord.Color.from_rgb(237, 91, 6),
-        )
-
-        channel = nextcord.utils.get(interaction.guild.channels, name=case_name)
-        await channel.send(embed=welcome_embed)
-
-        embed = nextcord.Embed(
-            title="User Has Been Sent to Reformation",
-            description=f"Moderator {interaction.user.mention} ({interaction.user.id}) has sent user {member.mention}"
-            f" ({member.id}) to reformation.\n\n" + f"**__Reason:__**\n{reason}",
-            color=nextcord.Color.from_rgb(237, 91, 6),
-        )
-
-        channel = interaction.guild.get_channel(self.config.channels.logging)
-        await channel.send(embed=embed)
-
-        channel = interaction.guild.get_channel(self.config.channels.mod_logs)
-        await channel.send(embed=embed)
-
-        channel = interaction.guild.get_channel(self.config.channels.teachers_lounge)
-        await channel.send(embed=embed)
-
-        channel = interaction.guild.get_channel(self.config.channels.reform_public_log)
-        await channel.send(embed=embed)
-
-    @commands.command(aliases=["rn", "reformneeded", "reform"])
-    async def reformationneeded(self, ctx, member: nextcord.Member, *, reason=""):
+    @reformation.subcommand(
+        name="add", description="Send a user to reformation centre."
+    )
+    async def reformation_needed(
+        self,
+        interaction: nextcord.Interaction,
+        member: nextcord.Member = nextcord.SlashOption(
+            description="Member to send to reformation", required=True
+        ),
+        offence: str = nextcord.SlashOption(
+            description="Offence committed by member",
+            required=True,
+        ),
+        details: str = nextcord.SlashOption(
+            description="Additional details about offence",
+            required=True,
+            min_length=8,
+            max_length=1024,
+        ),
+    ):
         """Send a user to reformation centre.
 
         Sends a [member] to reformation centre for reform by giving said [member] the @Reformation role.
@@ -158,555 +52,706 @@ class Reformation(commands.Cog):
         Permission Needed: Moderator, Trial Moderator.
         """
 
-        if not await permcheck(ctx, is_mod):
+        if not await permcheck(interaction, is_mod):
             return
 
-        if reason.startswith(
-            "?r "
-        ):  # splices away the "?r" that moderators accustomed to wick might put in there
-            reason = reason[3:]
+        reformation_role = interaction.guild.get_role(self.config.roles.reformation)
 
-        elif reason == "":
-            await ctx.send(f"{ctx.author.mention} please provide a reason.")
+        if reformation_role in member.roles:
+            await interaction.send(
+                f"{self.sersifail} member is already in reformation", ephemeral=True
+            )
             return
 
-        dialog_embed = nextcord.Embed(
-            title="Reform Member",
-            description="Following member will be sent to reformation:",
-            color=nextcord.Color.from_rgb(237, 91, 6),
-        )
-        dialog_embed.add_field(name="User", value=member.mention)
-        dialog_embed.add_field(name="User ID", value=member.id)
-        dialog_embed.add_field(name="Reason", value=reason)
-
-        await ConfirmView(self.cb_rn_proceed).send_as_reply(ctx, embed=dialog_embed)
-
-    async def cb_rq_yes(self, interaction):
-        new_embed = interaction.message.embeds[0]
-        new_embed.add_field(
-            name="Voted Yes:",
-            value=f"{interaction.user.mention}\n*{interaction.data['components'][0]['components'][0]['value']}*",
-            inline=True,
-        )
-
-        # retrieve current amount of votes and iterate by 1
-        yes_votes = new_embed.description[-1]
-        yes_votes = int(yes_votes) + 1
-
-        new_embed.description = f"{new_embed.description[:-1]}{yes_votes}"
-        await interaction.message.edit(embed=new_embed)
         await interaction.response.defer()
 
-        # automatically releases inmate at 3 yes votes
-        if yes_votes >= 3:
-            await interaction.message.edit(view=None)
+        @ConfirmView.query(
+            title="Reformation Needed",
+            prompt="Following member will be sent to reformation:",
+            embed_args={
+                "User": member.mention,
+                "Offence": offence,
+                "Details": details,
+            },
+        )
+        async def execute(*args, **kwargs):
+            # ------------------------------- ROLES
+            # give reformation role
+            reason = f"{offence} - {details}"
 
-            # get member object of member to be released
-            member_string = new_embed.footer.text
-            member_id = int(member_string)
-            member = interaction.guild.get_member(member_id)
+            await member.add_roles(reformation_role, reason=reason)
 
-            # fetch yes voters
-            yes_men = []
-            for field in new_embed.fields:
-                if field.name == "Voted Yes:":
-                    yes_men.append(field.value)
-
-            # roles
-            try:
-                civil_engineering_initiate = interaction.guild.get_role(
-                    self.config.roles.civil_engineering_initiate
-                )
-                reformed = interaction.guild.get_role(self.config.roles.reformed)
-
-                await member.add_roles(
-                    civil_engineering_initiate,
-                    reformed,
-                    reason="Released out of the Reformation Centre",
-                    atomic=True,
-                )
-            except AttributeError:
-                await interaction.send("Could not assign roles.")
+            # remove civil engineering initiate
             await member.remove_roles(
-                interaction.guild.get_role(self.config.roles.reformation),
-                reason="Released out of the Reformation Centre",
-                atomic=True,
+                *parse_roles(
+                    interaction.guild,
+                    self.config.roles.civil_engineering_initiate,
+                ),
+                reason=reason,
             )
 
-            # logs
-            yes_list = "\n• ".join(yes_men)
+            # remove opt-ins
+            await member.remove_roles(
+                *parse_roles(interaction.guild, *self.config.opt_in_roles.values()),
+                reason=reason,
+            )
 
-            log_embed = nextcord.Embed(
-                title=f"Successful Reformation: **{member.name}** ({member.id})",
-                description=f"Reformation Member {member.name} was deemed well enough to be considered "
-                f"reformed.\nThis has been approved by:\n• {yes_list}.",
+            # ------------------------------- CREATING THE CASE CHANNEL
+            # get case number
+
+            case_num = get_reformation_next_case_number()
+
+            case_name = f"reformation-case-{str(case_num).zfill(4)}"
+            overwrites = {
+                interaction.guild.default_role: nextcord.PermissionOverwrite(
+                    read_messages=False
+                ),
+                interaction.guild.me: nextcord.PermissionOverwrite(read_messages=True),
+                interaction.guild.get_role(
+                    self.config.permission_roles.reformist
+                ): nextcord.PermissionOverwrite(read_messages=True),
+                interaction.guild.get_role(
+                    self.config.permission_roles.moderator
+                ): nextcord.PermissionOverwrite(read_messages=True),
+                member: nextcord.PermissionOverwrite(
+                    read_messages=True,
+                    create_public_threads=False,
+                    create_private_threads=False,
+                    external_stickers=False,
+                    embed_links=False,
+                    attach_files=False,
+                    use_external_emojis=False,
+                ),
+            }
+            category = nextcord.utils.get(
+                interaction.guild.categories, name="REFORMATION ROOMS"
+            )
+
+            case_channel = await interaction.guild.create_text_channel(
+                case_name, overwrites=overwrites, category=category
+            )
+
+            # ------------------------------- INSERT CASE INTO DATABASE
+
+            with db_session() as session:
+                session.add(
+                    ReformationCase(
+                        case_number=case_num,
+                        offender=member.id,
+                        moderator=interaction.user.id,
+                        offence=offence,
+                        details=details,
+                        cell_channel=case_channel.id,
+                        state="open",
+                    )
+                )
+                session.commit()
+
+            # ------------------------------- LOGGING
+
+            # Giving a welcome to the person sent to reformation
+            welcome_embed = SersiEmbed(
+                title="Welcome to Reformation",
+                description=f"Hello {member.mention}, you have been sent to reformation by {interaction.user.mention}. "
+                f"The reason given for this is `{reason}`. \n\nFor more information on reformation "
+                f"check out <#{self.config.channels.reformation_info}> or talk to a <@&"
+                f"{self.config.permission_roles.reformist}>.",
                 color=nextcord.Color.from_rgb(237, 91, 6),
             )
-            channel = interaction.guild.get_channel(self.config.channels.alert)
-            await channel.send(embed=log_embed)
+
+            await case_channel.send(embed=welcome_embed)
+
+            embed = SersiEmbed(
+                title="User Has Been Sent to Reformation",
+                description=f"Moderator {interaction.user.mention} ({interaction.user.id}) has sent user {member.mention}"
+                f" ({member.id}) to reformation.\n\n" + f"**__Reason:__**\n{reason}",
+                color=nextcord.Color.from_rgb(237, 91, 6),
+            )
 
             channel = interaction.guild.get_channel(self.config.channels.logging)
-            await channel.send(embed=log_embed)
+            await channel.send(embed=embed)
 
             channel = interaction.guild.get_channel(self.config.channels.mod_logs)
-            await channel.send(embed=log_embed)
+            await channel.send(embed=embed)
 
             channel = interaction.guild.get_channel(
                 self.config.channels.teachers_lounge
             )
-            await channel.send(embed=log_embed)
+            await channel.send(embed=embed)
 
-            # await interaction.send(f"**{member.name}** ({member.id}) will now be considered reformed.")
+            channel = interaction.guild.get_channel(
+                self.config.channels.reform_public_log
+            )
+            await channel.send(embed=embed)
 
-            # updates embed and removed buttons
-            await interaction.message.edit(embed=new_embed, view=None)
+            return embed
+
+        await execute(self.bot, self.config, interaction)
+
+    @reformation_needed.on_autocomplete("offence")
+    async def offence_by_name(self, interaction: nextcord.Interaction, string: str):
+        if not await permcheck(interaction, is_mod):
+            return
+
+        return fetch_offences_by_partial_name(string)
+
+    @reformation.subcommand(
+        name="query_release",
+        description="Query releasing a user from reformation centre.",
+    )
+    async def reformation_query(
+        self,
+        interaction: nextcord.Interaction,
+        member: nextcord.Member = nextcord.SlashOption(
+            description="Member to send to reformation", required=True
+        ),
+        reason: str = nextcord.SlashOption(
+            description="Reason for sending to reformation",
+            required=True,
+            min_length=8,
+            max_length=1024,
+        ),
+    ):
+        if not await permcheck(interaction, is_mod):
+            return
+
+        # member have reformation role check
+        is_in_reformation = False
+        for role in member.roles:
+            if role.id == self.config.roles.reformation:
+                is_in_reformation = True
+        if not is_in_reformation:
+            await interaction.send("Member is not in reformation.")
+            return
+
+        await interaction.response.defer()
+
+        embedVar = SersiEmbed(
+            title=f"Reformation Query: **{member.name}** ({member.id})",
+            description=f"Reformation Inmate {member.name} was deemed well enough to start a query about their "
+            f"release\nQuery started by {interaction.user.mention} ({interaction.user.id})",
+            color=nextcord.Color.from_rgb(237, 91, 6),
+            footer=f"{member.id}",
+            fields={
+                "Reason": reason,
+            },
+        )
+
+        vote_type = self.config.voting["reform-free"]
+
+        with db_session(interaction.user) as session:
+            case: ReformationCase = (
+                session.query(ReformationCase)
+                .filter_by(offender=member.id, state="open")
+                .first()
+            )
+
+            if case is None:
+                await interaction.send("Reformation case for member not found.")
+                return
+
+            vote_details = VoteDetails(
+                case_id=case.id,
+                vote_type="reform-free",
+                vote_url=interaction.channel.id,
+                planned_end=vote_planned_end(vote_type),
+                started_by=interaction.user.id,
+            )
+
+            session.add(vote_details)
+            session.commit()
+
+            channel = self.bot.get_channel(self.config.channels.moderation_votes)
+            message = await channel.send(
+                embed=embedVar, view=VoteView(vote_type, vote_details)
+            )
+
+            vote_details.vote_url = message.jump_url
+            session.commit()
+
+        await interaction.followup.send(
+            f"Release from reformation vote {message.jump_url} for {member.mention} was started.",
+            ephemeral=True,
+        )
+
+    @reformation.subcommand(
+        name="query_failed", description="Query a ban of failed reformation inmate."
+    )
+    async def reformation_failed(
+        self,
+        interaction: nextcord.Interaction,
+        member: nextcord.Member = nextcord.SlashOption(
+            description="Member to ban", required=True
+        ),
+        reason: str = nextcord.SlashOption(
+            description="Reason for banning member",
+            required=False,
+            min_length=8,
+            max_length=1024,
+        ),
+    ):
+        if not await permcheck(interaction, is_mod):
+            return
+
+        # member have reformation role check
+        is_in_reformation = False
+        for role in member.roles:
+            if role.id == self.config.roles.reformation:
+                is_in_reformation = True
+        if not is_in_reformation:
+            await interaction.send("Member is not in reformation.")
+            return
+
+        await interaction.response.defer()
+
+        embedVar = SersiEmbed(
+            title=f"Reformation Failed Query: **{member.name}** ({member.id})",
+            description=f"Reformation Inmate {member.name} seems to not be able to be reformed. Should the "
+            f"reformation process therefore be given up and the user be banned?\nQuery"
+            f" started by {interaction.user.mention} ({interaction.user.id})",
+            color=nextcord.Color.from_rgb(237, 91, 6),
+            footer=f"{member.id}",
+            fields={
+                "Reason": reason,
+            },
+        )
+
+        vote_type = self.config.voting["reform-fail"]
+
+        with db_session(interaction.user) as session:
+            case: ReformationCase = (
+                session.query(ReformationCase)
+                .filter_by(offender=member.id, state="open")
+                .first()
+            )
+
+            if case is None:
+                await interaction.send("Reformation case for member not found.")
+                return
+
+            vote_details = VoteDetails(
+                case_id=case.id,
+                vote_type="reform-fail",
+                vote_url=interaction.channel.id,
+                planned_end=vote_planned_end(vote_type),
+                started_by=interaction.user.id,
+            )
+
+            session.add(vote_details)
+            session.commit()
+
+            channel = self.bot.get_channel(self.config.channels.moderation_votes)
+            message = await channel.send(
+                embed=embedVar, view=VoteView(vote_type, vote_details)
+            )
+
+            vote_details.vote_url = message.jump_url
+            session.commit()
+
+        await interaction.followup.send(
+            f"Reformation fail vote {message.jump_url} for {member.mention} was started.",
+            ephemeral=True,
+        )
+
+    @reformation.subcommand(
+        name="release", description="Release a user from reformation centre. (manual)"
+    )
+    async def reformation_release(
+        self,
+        interaction: nextcord.Interaction,
+        member: nextcord.Member = nextcord.SlashOption(
+            description="Member to release", required=True
+        ),
+        reason: str = nextcord.SlashOption(
+            description="Reason for releasing member",
+            required=True,
+            min_length=8,
+            max_length=1024,
+        ),
+    ):
+        if not await permcheck(interaction, is_senior_mod):
+            return
+
+        # member have reformation role check
+        is_in_reformation = False
+        for role in member.roles:
+            if role.id == self.config.roles.reformation:
+                is_in_reformation = True
+        if not is_in_reformation:
+            await interaction.send("Member is not in reformation.")
+            return
+
+        await interaction.response.defer()
+
+        @ConfirmView.query(
+            title="Release Member from reformation",
+            prompt="Following member will be released from reformation:",
+            embed_args={
+                "User": member.mention,
+                "Reason": reason,
+            },
+        )
+        async def execute(*args, **kwargs):
+            # remove reformation role
+            await member.remove_roles(
+                *parse_roles(interaction.guild, self.config.roles.reformation),
+                reason=reason,
+            )
+
+            # add civil engineering initiate role
+            await member.add_roles(
+                *parse_roles(
+                    interaction.guild, self.config.roles.civil_engineering_initiate
+                ),
+                reason=reason,
+            )
 
             # close case
-            with open(self.config.datafiles.reformation_cases, "rb") as file:
-                reformation_list = pickle.load(file)
-
-            channel_name = reformation_list[member.id][0]
-            channel = nextcord.utils.get(interaction.guild.channels, name=channel_name)
-
-            transcript = await export(channel, military_time=True)
-
-            if transcript is None:
-                await channel.delete()
-                channel = interaction.guild.get_channel(
-                    self.config.channels.teachers_lounge
+            with db_session(interaction.user) as session:
+                case: ReformationCase = (
+                    session.query(ReformationCase)
+                    .filter_by(offender=member.id, state="open")
+                    .first()
                 )
-                await channel.send(f"{self.sersifail} Failed to Generate Transcript!")
+                case.state = "released"
+                session.commit()
 
-            else:
-                transcript_file = nextcord.File(
-                    io.BytesIO(transcript.encode()),
-                    filename=f"transcript-{channel_name}.html",
-                )
+            # logging
+            embed = SersiEmbed(
+                title="User Has Been Released from Reformation",
+                description=f"Lead Moderator {interaction.user.mention} ({interaction.user.id}) has released user {member.mention}"
+                f" ({member.id}) from reformation.\n\n" + f"**__Reason:__**\n{reason}",
+                color=nextcord.Color.from_rgb(237, 91, 6),
+            )
 
-            await channel.delete()
+            channel = interaction.guild.get_channel(self.config.channels.logging)
+            await channel.send(embed=embed)
+
+            channel = interaction.guild.get_channel(self.config.channels.mod_logs)
+            await channel.send(embed=embed)
+
+            channel = interaction.guild.get_channel(
+                self.config.channels.reform_public_log
+            )
+            await channel.send(embed=embed)
+
+            # transcript
             channel = interaction.guild.get_channel(
                 self.config.channels.teachers_lounge
             )
-            await channel.send(embed=log_embed, file=transcript_file)
+            cell_channel = interaction.guild.get_channel(case.cell_channel)
 
-    async def cb_rq_yes_open_modal(self, interaction):
-        # check if user has already voted
-        for field in interaction.message.embeds[0].fields:
-            if field.value.splitlines()[0] == interaction.user.mention:
+            transcript = await make_transcript(cell_channel, interaction.channel, embed)
+            if transcript is None:
+                await channel.send(embed=embed)
+                await channel.send(f"{self.sersifail} Failed to Generate Transcript!")
+
+            await cell_channel.delete()
+
+            return embed
+
+        await execute(self.bot, self.config, interaction)
+
+    @reformation.subcommand(
+        name="delete_cell",
+        description="Delete an unoccupied reformation cell if it was not deleted automatically.",
+    )
+    async def reformation_delete_cell(
+        self,
+        interaction: nextcord.Interaction,
+    ):
+        if not await permcheck(interaction, is_mod):
+            return
+
+        with db_session() as session:
+            case: ReformationCase = (
+                session.query(ReformationCase)
+                .filter_by(cell_channel=interaction.channel.id)
+                .first()
+            )
+
+            if case is None:
                 await interaction.response.send_message(
-                    "You already voted", ephemeral=True
+                    "This is not a reformation cell.", ephemeral=True
                 )
                 return
 
-        await interaction.response.send_modal(
-            ReasonModal("Reason for voting Yes", self.cb_rq_yes)
-        )
+            if case.state == "open":
+                await interaction.response.send_message(
+                    "Reformation case is still open.", ephemeral=True
+                )
+                return
 
-    async def cb_rf_yes(self, interaction):
-        new_embed = interaction.message.embeds[0]
-        new_embed.add_field(
-            name="Voted Yes:",
-            value=f"{interaction.user.mention}\n*{interaction.data['components'][0]['components'][0]['value']}*",
-            inline=True,
-        )
-        # retrieve current amount of votes and iterate by 1
-        yes_votes = new_embed.description[-1]
-        yes_votes = int(yes_votes) + 1
-
-        new_embed.description = f"{new_embed.description[:-1]}{yes_votes}"
-        await interaction.message.edit(embed=new_embed)
-        await interaction.response.defer()
-
-        # automatically releases inmate at 3 yes votes
-        if yes_votes >= 3:
-            await interaction.message.edit(view=None)
-
-            member_string = new_embed.footer.text
-            member_id = int(member_string)
-            member = interaction.guild.get_member(member_id)
-
-            yes_men = []
-            for field in new_embed.fields:
-                if field.name == "Voted Yes:":
-                    yes_men.append(field.value)
-
-            # get person cases
-            case_history = {}
-            with open(self.case_history_file, "rb") as file:
-                case_history = pickle.load(file)
-
-            user_history = case_history[member_id][
-                ::-1
-            ]  # filter for member_id, most recent first
-
-            for case in user_history:
-                if case[1] == "Reformation":
-                    case_id = case[0]
-
-            # lookup most recent ref case
-            case_details = {}
-            with open(self.case_details_file, "rb") as file:
-                case_details = pickle.load(file)
-
-            # get reason
-            reason = case_details[case_id][5]
-
-            # await member.ban(reason=f"Reformation Failed: {reason}", delete_message_days=0)
-            await ban(self.config, member, "rf", reason=f"Reformation Failed: {reason}")
-
-            # transript
-            with open(self.config.datafiles.reformation_cases, "rb") as file:
-                reformation_list = pickle.load(file)
-            room_channel_name = reformation_list[member.id][0]
-            room_channel = nextcord.utils.get(
-                interaction.guild.channels, name=room_channel_name
+            embed = SersiEmbed(
+                title="Reformation Cell Deleted",
+                description=f"Reformation cell for case {case.id} has been deleted by {interaction.user.mention} ({interaction.user.id})",
+                color=nextcord.Color.from_rgb(237, 91, 6),
             )
 
-            transcript = await export(room_channel, military_time=True)
-            await room_channel.delete()
-
-            yes_list = "\n• ".join(yes_men)
-
-            embed = nextcord.Embed(
-                title="Reformation Failed",
-                description=f"Reformation Inmate {member.name} has been deemed unreformable by\n•{yes_list}\n"
-                f"\nInitial reason for Reformation was: `{reason}`. They have been banned automatically.",
-                color=nextcord.Color.from_rgb(0, 0, 0),
+            # transcript
+            channel = interaction.guild.get_channel(
+                self.config.channels.teachers_lounge
             )
+            cell_channel = interaction.guild.get_channel(case.cell_channel)
 
+            transcript = await make_transcript(cell_channel, channel, embed)
             if transcript is None:
-                channel = interaction.guild.get_channel(
-                    self.config.channels.teachers_lounge
-                )
+                await channel.send(embed=embed)
                 await channel.send(f"{self.sersifail} Failed to Generate Transcript!")
-            else:
-                transcript_file = nextcord.File(
-                    io.BytesIO(transcript.encode()),
-                    filename=f"transcript-{room_channel_name}.html",
+
+            await cell_channel.delete()
+
+            return
+
+    @commands.Cog.listener()
+    async def on_member_remove(self, member: nextcord.Member):
+        reformation_role = member.get_role(self.config.roles.reformation)
+
+        if reformation_role is not None:
+            async for ban_entry in member.guild.bans():
+                if member.id == ban_entry.user.id:
+                    # close case
+                    with db_session() as session:
+                        case: ReformationCase = (
+                            session.query(ReformationCase)
+                            .filter_by(offender=member.id, state="open")
+                            .first()
+                        )
+                        if case is None:
+                            return
+                        case.state = "failed"
+                        session.commit()
+
+                    ban_embed = SersiEmbed(
+                        title=f"Reformation inmate **{member}** ({member.id}) banned!",
+                    )
+
+                    channel = self.bot.get_channel(self.config.channels.mod_logs)
+                    await channel.send(embed=ban_embed)
+
+                    channel = self.bot.get_channel(self.config.channels.logging)
+                    await channel.send(embed=ban_embed)
+
+                    channel = self.bot.get_channel(
+                        self.config.channels.reform_public_log
+                    )
+                    await channel.send(embed=ban_embed)
+
+                    # transcript
+                    channel = member.guild.get_channel(
+                        self.config.channels.teachers_lounge
+                    )
+                    cell_channel = member.guild.get_channel(case.cell_channel)
+
+                    transcript = await make_transcript(cell_channel, channel, ban_embed)
+                    if transcript is None:
+                        await channel.send(embed=ban_embed)
+                        await channel.send(
+                            f"{self.sersifail} Failed to Generate Transcript!"
+                        )
+
+                    await cell_channel.delete()
+
+                    return
+
+            # member not yet banned, proceed to ban
+            # await member.ban(reason="Left while in reformation centre.", delete_message_days=0)
+            await ban(member, "leave", reason="Left while in reformation centre.")
+
+            embed = SersiEmbed(
+                title=f"User **{member}** ({member.id}) has left the server while in the reformation centre!",
+                description=f"User has left the server while having the <@&{self.config.roles.reformation}> role. "
+                f"They have been banned automatically.",
+            )
+
+            # close case
+            with db_session() as session:
+                case: ReformationCase = (
+                    session.query(ReformationCase)
+                    .filter_by(offender=member.id, state="open")
+                    .first()
                 )
+                case.state = "failed"
 
-            channel = self.bot.get_channel(self.config.channels.alert)
-            await channel.send(embed=embed)
-
+                session.add(
+                    BanCase(
+                        offender=member.id,
+                        moderator=member.guild.me.id,
+                        offence=case.offence,
+                        details=case.details,
+                        active=True,
+                        ban_type="reformation leave",
+                    )
+                )
+                session.commit()
+            
             channel = self.bot.get_channel(self.config.channels.logging)
             await channel.send(embed=embed)
 
             channel = self.bot.get_channel(self.config.channels.mod_logs)
             await channel.send(embed=embed)
 
-            channel = interaction.guild.get_channel(
-                self.config.channels.teachers_lounge
-            )
-            await channel.send(embed=embed, file=transcript_file)
+            channel = self.bot.get_channel(self.config.channels.reform_public_log)
+            await channel.send(embed=embed)
 
-    async def cb_rf_yes_open_modal(self, interaction):
-        # check if user has already voted
-        for field in interaction.message.embeds[0].fields:
-            if field.value.splitlines()[0] == interaction.user.mention:
-                await interaction.response.send_message(
-                    "You already voted", ephemeral=True
-                )
-                return
+            # transcript
+            channel = member.guild.get_channel(self.config.channels.teachers_lounge)
+            cell_channel = member.guild.get_channel(case.cell_channel)
 
-        await interaction.response.send_modal(
-            ReasonModal("Reason for voting Yes", self.cb_rf_yes)
-        )
+            transcript = await make_transcript(cell_channel, channel, embed)
+            if transcript is None:
+                await channel.send(embed=embed)
+                await channel.send(f"{self.sersifail} Failed to Generate Transcript!")
 
-    async def cb_no(self, interaction):
-        new_embed = interaction.message.embeds[0]
-        new_embed.add_field(
-            name="Voted No:",
-            value=f"{interaction.user.mention}\n*{interaction.data['components'][0]['components'][0]['value']}*",
-            inline=True,
-        )
-        await interaction.message.edit(embed=new_embed)
-
-    async def cb_no_open_modal(self, interaction):
-        # check if user has already voted
-        for field in interaction.message.embeds[0].fields:
-            if field.value.splitlines()[0] == interaction.user.mention:
-                await interaction.response.send_message(
-                    "You already voted", ephemeral=True
-                )
-                return
-
-        await interaction.response.send_modal(
-            ReasonModal("Reason for voting No", self.cb_no)
-        )
-
-    async def cb_maybe(self, interaction):
-        new_embed = interaction.message.embeds[0]
-        new_embed.add_field(
-            name="Voted Maybe:",
-            value=f"{interaction.user.mention}\n*{interaction.data['components'][0]['components'][0]['value']}*",
-            inline=True,
-        )
-        await interaction.message.edit(embed=new_embed)
-
-    async def cb_maybe_open_modal(self, interaction):
-        # check if user has already voted
-        for field in interaction.message.embeds[0].fields:
-            if field.value.splitlines()[0] == interaction.user.mention:
-                await interaction.response.send_message(
-                    "You already voted", ephemeral=True
-                )
-                return
-
-        await interaction.response.send_modal(
-            ReasonModal("Reason for voting Maybe", self.cb_maybe)
-        )
-
-    @commands.command(aliases=["rq", "reformquery", "reformq"])
-    async def reformationquery(self, ctx, member: nextcord.Member, *, reason=""):
-        """Query releasing a user from reformation centre.
-
-        Sends query for release out of reformation centre for [member] into the information centre.
-        Three 'Yes' votes will result in an automatic release.
-        Permission Needed: Moderator, Trial Moderator.
-        """
-        if not await permcheck(ctx, is_mod):
-            return
-
-        elif reason == "":
-            await ctx.send(f"{ctx.author.mention} please provide a reason.")
-            return
-
-        # member have reformation role check
-        is_in_reformation = False
-        for role in member.roles:
-            if role.id == self.config.roles.reformation:
-                is_in_reformation = True
-        if not is_in_reformation:
-            await ctx.send("Member is not in reformation.")
-            return
-
-        try:
-            embedVar = nextcord.Embed(
-                title=f"Reformation Query: **{member.name}** ({member.id})",
-                description=f"Reformation Inmate {member.name} was deemed well enough to start a query about their "
-                f"release\nQuery started by {ctx.author.mention} ({ctx.author.id})\n\nYes Votes: 0",
-                color=nextcord.Color.from_rgb(237, 91, 6),
-            )
-            embedVar.set_footer(text=f"{member.id}")
-        except MemberNotFound:
-            await ctx.send("Member not found!")
-
-        embedVar.add_field(name="Reason", value=reason, inline=False)
-
-        yes = Button(label="Yes", style=nextcord.ButtonStyle.green)
-        yes.callback = self.cb_rq_yes_open_modal
-
-        no = Button(label="No", style=nextcord.ButtonStyle.red)
-        no.callback = self.cb_no_open_modal
-
-        maybe = Button(label="Maybe")
-        maybe.callback = self.cb_maybe_open_modal
-
-        button_view = View(timeout=None)
-        button_view.add_item(yes)
-        button_view.add_item(no)
-        button_view.add_item(maybe)
-        button_view.interaction_check = cb_is_mod
-
-        channel = self.bot.get_channel(self.config.channels.alert)
-        await channel.send(embed=embedVar, view=button_view)
-
-    @commands.command(aliases=["rf", "reformfailed", "reformfail", "reformf"])
-    async def reformationfailed(self, ctx, member: nextcord.Member):
-        """Query banning a user in reformation centre.
-
-        Sends query for ban of a [member] who is currently in the reformation centre.
-        Members should have been in reformation of at least 14 Days.
-        Three 'Yes' votes will result in a greenlight for a ban.
-        Permission Needed: Moderator, Trial Moderator.
-        """
-        if not await permcheck(ctx, is_mod):
-            return
-
-        # member have reformation role check
-        is_in_reformation = False
-        for role in member.roles:
-            if role.id == self.config.roles.reformation:
-                is_in_reformation = True
-        if not is_in_reformation:
-            await ctx.send("Member is not in reformation.")
-            return
-
-        try:
-            embedVar = nextcord.Embed(
-                title=f"Reformation Failed Query: **{member.name}** ({member.id})",
-                description=f"Reformation Inmate {member.name} seems to not be able to be reformed. Should the "
-                f"reformation process therefore be given up and the user be banned?\nQuery"
-                f" started by {ctx.author.mention} ({ctx.author.id})\n\nYes Votes: 0",
-                color=nextcord.Color.from_rgb(237, 91, 6),
-            )
-            embedVar.set_footer(text=f"{member.id}")
-        except MemberNotFound:
-            await ctx.send("Member not found!")
-
-        yes = Button(label="Yes", style=nextcord.ButtonStyle.green)
-        yes.callback = self.cb_rf_yes_open_modal
-
-        no = Button(label="No", style=nextcord.ButtonStyle.red)
-        no.callback = self.cb_no_open_modal
-
-        maybe = Button(label="Maybe")
-        maybe.callback = self.cb_maybe_open_modal
-
-        button_view = View(timeout=None)
-        button_view.add_item(yes)
-        button_view.add_item(no)
-        button_view.add_item(maybe)
-        button_view.interaction_check = cb_is_mod
-
-        channel = self.bot.get_channel(self.config.channels.alert)
-        await channel.send(embed=embedVar, view=button_view)
-
-    @commands.command(aliases=["rcase", "reformcase"])
-    async def reformationcase(self, ctx, user: nextcord.Member):
-        permitted_roles = [
-            self.config.permission_roles.moderator,
-            self.config.permission_roles.trial_moderator,
-            self.config.permission_roles.reformist,
-        ]
-        if not await permcheck(ctx, is_custom_role(ctx.author, permitted_roles)):
-            return
-
-        elif user is None:
-            await ctx.send(f"{self.sersifail} Please provide a user.")
-
-        elif user is not None:
-            with open(self.config.datafiles.reformation_cases, "rb") as file:
-                reformation_list = pickle.load(file)
-            keys = reformation_list.keys()
-            if user.id in keys:
-                case_embed = nextcord.Embed(
-                    title=(f"Reformation Case: {reformation_list[user.id][1]}"),
-                    color=nextcord.Color.from_rgb(237, 91, 6),
-                )
-                moderator = ctx.guild.get_member(reformation_list[user.id][2])
-                channel_name = reformation_list[user.id][0]
-                reform_channel = nextcord.utils.get(
-                    ctx.guild.channels, name=channel_name
-                )
-                case_embed.add_field(
-                    name="Username:",
-                    value=(f"{user.mention} ({user.id})"),
-                    inline=False,
-                )
-                case_embed.add_field(
-                    name="Responsible Moderator:",
-                    value=(f"{moderator.mention} ({moderator.id}"),
-                    inline=False,
-                )
-                case_embed.add_field(
-                    name="Channel:", value=(reform_channel.mention), inline=False
-                )
-                case_embed.add_field(name="Reason:", value=reformation_list[user.id][3])
-                await ctx.send(embed=case_embed)
-                return
-        else:
-            ctx.send(
-                f"{self.sersifail} Failed to find the specified user! Perhaps they do not have a case?"
-            )
+            await cell_channel.delete()
 
     @commands.Cog.listener()
-    async def on_member_remove(self, member):
-        reformation_role = member.get_role(self.config.roles.reformation)
+    async def on_reformation_ban(self, details: VoteDetails):
+        if details.outcome != "Accepted":
+            return
 
-        if reformation_role is not None:
-            async for ban_entry in member.guild.bans():
-                if member.id == ban_entry.user.id:
-                    ban_embed = nextcord.Embed(
-                        title=f"Reformation inmate **{member}** ({member.id}) banned!",
-                        colour=nextcord.Color.from_rgb(237, 91, 6),
-                    )
-                    ban_embed.add_field(name="Reason:", value=ban.reason)
-                    channel = self.bot.get_channel(self.config.channels.mod_logs)
-                    await channel.send(embed=ban_embed)
+        guild = self.bot.get_guild(self.config.guilds.main)
 
-                    # transript
-                    with open(self.config.datafiles.reformation_cases, "rb") as file:
-                        reformation_list = pickle.load(file)
-                    room_channel_name = reformation_list[member.id][0]
-                    room_channel = nextcord.utils.get(
-                        member.guild.channels, name=room_channel_name
-                    )
+        # close case
+        with db_session() as session:
+            case: ReformationCase = session.query(ReformationCase).get(details.case_id)
+            case.state = "failed"
 
-                    transcript = await export(room_channel, military_time=True)
+            member = guild.get_member(case.offender)
 
-                    if transcript is None:
-                        channel = member.guild.get_channel(
-                            self.config.channels.teachers_lounge
-                        )
-                        await channel.send(
-                            f"{self.sersifail} Failed to Generate Transcript!"
-                        )
-                    else:
-                        transcript_file = nextcord.File(
-                            io.BytesIO(transcript.encode()),
-                            filename=f"transcript-{room_channel_name}.html",
-                        )
+            yes_voters = [
+                guild.get_member(vote[0]).mention
+                for vote in session.query(VoteRecord.voter)
+                .filter_by(vote_id=details.vote_id, vote="yes")
+                .all()
+            ]
 
-                    await room_channel.delete()
-                    channel = member.guild.get_channel(
-                        self.config.channels.teachers_lounge
-                    )
-                    await channel.send(embed=ban_embed, file=transcript_file)
-
-                    return
-
-            # member not yet banned, proceed to ban
-            # await member.ban(reason="Left while in reformation centre.", delete_message_days=0)
             await ban(
-                self.config, member, "leave", reason="Left while in reformation centre."
+                member, "rf", reason=f"Reformation Failed: {case.id} - {case.offence}"
             )
 
-            channel = self.bot.get_channel(self.config.channels.alert)
-            embed = nextcord.Embed(
-                title=f"User **{member}** ({member.id}) has left the server while in the reformation centre!",
-                description=f"User has left the server while having the <@&{self.config.roles.reformation}> role. "
-                f"They have been banned automatically.",
-                colour=nextcord.Color.from_rgb(237, 91, 6),
-            )
-
-            # transript
-            with open(self.config.datafiles.reformation_cases, "rb") as file:
-                reformation_list = pickle.load(file)
-            room_channel_name = reformation_list[member.id][0]
-            room_channel = nextcord.utils.get(
-                member.guild.channels, name=room_channel_name
-            )
-
-            transcript = await export(room_channel, military_time=True)
-
-            if transcript is None:
-                channel = member.guild.get_channel(self.config.channels.teachers_lounge)
-                await channel.send(f"{self.sersifail} Failed to Generate Transcript!")
-            else:
-                transcript_file = nextcord.File(
-                    io.BytesIO(transcript.encode()),
-                    filename=f"transcript-{room_channel_name}.html",
+            session.add(
+                BanCase(
+                    offender=member.id,
+                    moderator=details.started_by,
+                    offence=case.offence,
+                    details=case.details,
+                    active=True,
+                    ban_type="reformation failed",
                 )
+            )
+            session.commit()
 
-            await room_channel.delete()
-            channel = member.guild.get_channel(self.config.channels.teachers_lounge)
-            await channel.send(embed=embed, file=transcript_file)
+            embed_fields = {
+                "Offender": member.mention,
+                "Offence": case.offence,
+                "Details": case.details,
+            }
 
+        # logging
+        yes_list = "\n• ".join(yes_voters)
 
-class ReasonModal(nextcord.ui.Modal):
-    def __init__(self, name, cb):
-        super().__init__(name)
-        self.field = nextcord.ui.TextInput(
-            label="Reason",
-            min_length=4,
-            max_length=256,
-            required=True,
-            placeholder="please provide a reason",
+        embed = SersiEmbed(
+            title="Reformation Failed",
+            description=f"Reformation Inmate {member.name} has been deemed unreformable by\n•{yes_list}",
+            color=nextcord.Color.from_rgb(0, 0, 0),
+            fields=embed_fields,
         )
-        self.add_item(self.field)
-        self.callback = cb
 
 
-def setup(bot, **kwargs):
+        channel = self.bot.get_channel(self.config.channels.logging)
+        await channel.send(embed=embed)
+
+        channel = self.bot.get_channel(self.config.channels.mod_logs)
+        await channel.send(embed=embed)
+
+        channel = self.bot.get_channel(self.config.channels.reform_public_log)
+        await channel.send(embed=embed)
+
+        # transcript
+        channel = guild.get_channel(self.config.channels.teachers_lounge)
+        cell_channel = guild.get_channel(case.cell_channel)
+
+        transcript = await make_transcript(cell_channel, channel, embed)
+        if transcript is None:
+            await channel.send(embed=embed)
+            await channel.send(f"{self.sersifail} Failed to Generate Transcript!")
+
+        await cell_channel.delete()
+
+    @commands.Cog.listener()
+    async def on_reformation_release(self, details: VoteDetails):
+        if details.outcome != "Accepted":
+            return
+
+        guild = self.bot.get_guild(self.config.guilds.main)
+
+        # close case
+        with db_session() as session:
+            case: ReformationCase = session.query(ReformationCase).get(details.case_id)
+            case.state = "reformed"
+            session.commit()
+
+            member = guild.get_member(case.offender)
+
+            yes_voters = [
+                guild.get_member(vote[0]).mention
+                for vote in session.query(VoteRecord.voter)
+                .filter_by(vote_id=details.vote_id, vote="yes")
+                .all()
+            ]
+
+        # roles
+        try:
+            civil_engineering_initiate = guild.get_role(
+                self.config.roles.civil_engineering_initiate
+            )
+            reformed = guild.get_role(self.config.roles.reformed)
+
+            await member.add_roles(
+                civil_engineering_initiate,
+                reformed,
+                reason="Released out of the Reformation Centre",
+                atomic=True,
+            )
+        except AttributeError:
+            pass
+            # await interaction.send("Could not assign roles.")
+        await member.remove_roles(
+            guild.get_role(self.config.roles.reformation),
+            reason="Released out of the Reformation Centre",
+            atomic=True,
+        )
+
+        # logs
+        yes_list = "\n• ".join(yes_voters)
+
+        log_embed = SersiEmbed(
+            title=f"Successful Reformation: **{member.name}** ({member.id})",
+            description=f"Reformation Member {member.name} was deemed well enough to be considered "
+            f"reformed.\nThis has been approved by:\n• {yes_list}.",
+        )
+
+        channel = guild.get_channel(self.config.channels.logging)
+        await channel.send(embed=log_embed)
+
+        channel = guild.get_channel(self.config.channels.mod_logs)
+        await channel.send(embed=log_embed)
+
+        channel = guild.get_channel(self.config.channels.reform_public_log)
+        await channel.send(embed=log_embed)
+
+        # transcript
+        channel = guild.get_channel(self.config.channels.teachers_lounge)
+        cell_channel = guild.get_channel(case.cell_channel)
+
+        transcript = await make_transcript(cell_channel, channel, log_embed)
+        if transcript is None:
+            await channel.send(embed=log_embed)
+            await channel.send(f"{self.sersifail} Failed to Generate Transcript!")
+
+        await cell_channel.delete()
+
+
+def setup(bot: commands.Bot, **kwargs):
     bot.add_cog(Reformation(bot, kwargs["config"]))

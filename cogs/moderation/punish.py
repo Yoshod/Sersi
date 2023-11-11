@@ -1,30 +1,27 @@
-# import nextcord.slash_command
 import nextcord
 from nextcord.ext import commands
-from configutils import Configuration
-from permutils import permcheck, is_staff
+
+from utils.sersi_embed import SersiEmbed
+from utils.config import Configuration
+from utils.perms import permcheck, is_staff
 
 
 class Punish(commands.Cog):
     def __init__(self, bot: commands.Bot, config: Configuration):
         self.bot = bot
         self.config = config
-        self.choices: dict[str, nextcord.Role] = {}
+        self.choices: dict[str, int] = {}
 
         if bot.is_ready():
             self.get_roles()
 
     def get_roles(self):
         guild = self.bot.get_guild(self.config.guilds.main)
-        for role in self.config.punishment_roles:
-            roleobj = guild.get_role(self.config.punishment_roles[role])
-            if roleobj is None:
-                continue
+        for role_id in self.config.punishment_roles:
+            role = guild.get_role(self.config.punishment_roles[role_id])
 
-            role_name = roleobj.name
-            role_id = roleobj.id
-
-            self.choices[role_name] = role_id
+            if role is not None:
+                self.choices[role.name] = role.id
 
     @nextcord.slash_command(name="punish_user", dm_permission=False)
     async def punish(
@@ -32,6 +29,7 @@ class Punish(commands.Cog):
         interaction: nextcord.Interaction,
         member: nextcord.Member,
         punishment: str = nextcord.SlashOption(name="punishment_role"),
+        reason: str = nextcord.SlashOption(),
     ):
         """Adds a punishment role to the user."""
 
@@ -46,10 +44,14 @@ class Punish(commands.Cog):
 
         role = member.guild.get_role(self.choices[punishment])
 
-        await member.add_roles(role)
+        await member.add_roles(role, reason=reason)
 
         await interaction.response.send_message(
             f"Uh-oh, {member.mention} posted cringe and has been given the role {role.mention} as punishment."
+        )
+
+        await member.guild.get_channel(self.config.channels.logging).send(
+            embed=SersiEmbed(title="Member Punished")
         )
 
     @commands.Cog.listener()

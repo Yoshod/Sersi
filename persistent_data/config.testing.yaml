@@ -21,11 +21,12 @@ datafiles:
     sersi_db:           "persistent_data/sersi.db"
 
 bot:
+    dev_mode: true
     prefix: "s!"
     status: "melanie did this"
     port:   8113 # 8074 for live, 8113 for unstable
     minimum caps length: 8
-    version: "4.0.0"
+    version: "5.0.0"
     git_url: "https://github.com/Yoshod/Sersi"
     authors:
         - "• Hekkland#0001 `261870562798731266`"
@@ -52,25 +53,50 @@ channels:
     admin_ticket_logs: 1021380970240294922
     senior_ticket_logs: 1021380970240294922
     mod_ticket_logs: 1021380970240294922
-    verification_ticket_logs: 1021380970240294922
-    deleted_messages: 0
+    cet_ticket_logs: 1021380970240294922
+    cet_lead_ticket_logs: 1021380970240294922
     mod applications: 977377171054166037
     cet applications: 0
     internalfeedback: 0
     timeoutappeals: 0
     video_discussion: 0
-    role_logs:                                 0
+    role_logs:  1025102991637885019
     ageverification: 977377171054166037
+    deleted_messages: 1097961018447110224
+    deleted_images: 1097961040819536054
+    edited_messages: 1097961075498029138
+    joinleave: 1097998750108098681
+    channel_logs: 1098204252444315663
+    guild_logs: 1098204215416979577
+    user_chanes: 1098601681777856664
+    ban_unban: 1098601966034223125
+    voice_logs: 1098602372915273779
+    automod_logs: 1098602528406523914
+    compliance_review: 1147602461343891466
+    dark_mod_review: 1147602489017892944
+    senior_mod_review: 1147602514154377247
+    moderator_review: 1147602548971278407
+    moderation_votes: 0
 
+ignored_categories:
+    - alerts
+    - Important Information
+
+ignored_channels:
+    discord updates:    1030300015761047606
+    priority issues:    1018834204039053322
+    tokens:             977388875100090368
+    developers:         978678011375288370
+    devlog:             977784875618824272
 
 roles:
-    reformation:                978334782968721468
-    reformed:                   878289678623703080
-    probation:                  984195306038124558
-    never_mod:                  878045315784114216
-    civil_engineering_initiate: 878040658244403253
-    newbie:                     938465528043954267
-    honourable_member:          0
+    reformation:                 978334782968721468
+    reformed:                    878289678623703080
+    probation:                   984195306038124558
+    never_mod:                   878045315784114216
+    civil_engineering_initiate:  878040658244403253
+    newbie:                      938465528043954267
+    honourable_member:           985984664676225074
     adult_access:               1094367708306477126
     adult_verified:             1094367738107019324
 
@@ -89,24 +115,26 @@ opt_in_roles:
     environment:    0
 
 permission_roles:
-    staff:             978678150789754890
-    reformist:         943193811574751314
+    staff:              978678150789754890
+    reformist:          943193811574751314
     ticket_support:    1021477270331850795
-    sersi_contributor: 978677753945657356
+    sersi_contributor:  978677753945657356
     trial_moderator:   1021476974901870652
-    moderator:         977394150494326855
+    moderator:          977394150494326855
     senior_moderator:  1021477021664153653
-    dark_moderator:    978681533453971526
-    cet: 0
-    cet_lead: 0
+    dark_moderator:     978681533453971526
+    cet:               1103757125286641716
+    cet_lead:          1149386994464608387
+    compliance:        1147603484431089705
 
 emotes:
     success: "<:sersisuccess:979066662856822844>"
     fail:    "<:sersifail:979070135799279698>"
+    inherit: "<:sersiinherit:1098338822166683668>"
 
 invites:
-    adam_something_ban_reinvite:        "https://discord.gg/F6vMRTbuFk"
-    ban_appeal_server:                  "https://discord.gg/dGpvCbrBRA"
+    ban_reinvite:       "https://discord.gg/F6vMRTbuFk"
+    ban_appeal_server:  "https://discord.gg/dGpvCbrBRA"
 
 guilds:
     main: 977377117895536640
@@ -115,7 +143,19 @@ guilds:
 punishment roles:
     annoying:                 1023985995898683463
     terrible_ideas:           1023986985209167954
-    politics_and_debate_mute: 986009181733654528
-    probation:                984195306038124558
+    politics_and_debate_mute:  986009181733654528
     ancap:                    1023986097002385408
     problem_child:            1023986949918314609
+    role_lock:                1023986154393059429
+
+voting:
+    reform-fail:
+        name: Reformation successful
+        action: reformation_release
+    reform-ban:
+        name: Reformation failed
+        action: reformation_ban
+    urgent-ban:
+        name: Urgent Ban
+        action: vote_ban
+        difference: 2

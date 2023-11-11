@@ -1,0 +1,259 @@
+- detail: Intentional bigotry refers to acts of discrimination, prejudice, or intolerance
+    that are committed purposefully and with the intent to harm or marginalise a particular
+    group of people. This can include hate speech, racial slurs, or other forms of
+    derogatory language, as well as actions that exclude or discriminate against individuals
+    based on their race, ethnicity, gender, sexual orientation, religion, or other
+    personal characteristics.
+  offence: Intentional Bigotry
+  punishments:
+  - Priority Ban
+  severity: null
+- detail: Unintentional bigotry refers to instances of discrimination, prejudice,
+    or intolerance that are committed without the intent to harm or marginalise a
+    particular group of people. It can occur when individuals make assumptions or
+    use language that is insensitive or unaware of the experiences and perspectives
+    of marginalised groups. This can include making jokes or comments that perpetuate
+    stereotypes, or failing to recognise the impact of systemic discrimination on
+    certain individuals or communities.
+  offence: Unintentional Bigotry
+  punishments:
+  - Informal Warning
+  - Warning
+  - Reformation Centre
+  severity: 1
+- detail: The lowest tier of NSFW Content is content which is suggestive in nature.
+    It may not show anything explicit, but it is so heavily suggested that you would
+    have to be incredibly dense to not notice it.
+  offence: Tier 1 NSFW
+  punishments:
+  - Informal Warning
+  - Warning
+  severity: 1
+- detail: The second tier of NSFW content, this is content which is explicit in nature,
+    but not pornographic. This could be images in which genitals are clearly visible,
+    or referring to sex acts.
+  offence: Tier 2 NSFW
+  punishments:
+  - Warning
+  severity: 2
+- detail: This is porn. Content generally made for the purposes of arousing others.
+    There is no excuse for posting this type of content.
+  offence: Tier 3 NSFW
+  punishments:
+  - Warning
+  - Temporary Ban
+  severity: 5
+- detail: This is child sexual abuse material.
+  offence: Tier 4 NSFW
+  punishments:
+  - Emergency Ban & TnS Report
+  severity: null
+- detail: This is mild gore or violence that is not too disturbing. This can be posted
+    with a spoiler tag and appropriate warnings.
+  offence: Tier 1 NSFL
+  punishments:
+  - Informal Warning
+  - Warning
+  severity: 1
+- detail: This is moderate gore or violence that is somewhat disturbing. Still within
+    the range of a person of average firmness. This can be posted with a spoiler tag,
+    appropriate warnings, and in a channel specified as NSFW.
+  offence: Tier 2 NSFL
+  punishments:
+  - Warning
+  severity: 3
+- detail: This is severe gore or violence and includes depictions of severely graphic
+    injuries, or death. This may also be content that is extremely violent or disturbing.
+    This does not belong here.
+  offence: Tier 3 NSFL
+  punishments:
+  - Warning
+  - Temporary Ban
+  - Priority Ban
+  severity: 5
+- detail: This is extreme gore or violence that is so graphic or disturbing it could
+    cause trauma to those who see it. This may include torture, mutilation, decapitation,
+    or dismemberment. This should be reported to Discord Trust and Safety.
+  offence: Tier 4 NSFL
+  punishments:
+  - Emergency Ban & TnS Report
+  severity: null
+- detail: This is any message that promotes or supports ideas, beliefs, or behaviours
+    that are discriminatory, prejudiced, or harmful to individuals or groups. This
+    can include messages that are offensive derogatory, or threatening towards others,
+    or that seek to incite or justify hate speech or violence
+  offence: Regressive/Hateful/Harmful Message
+  punishments:
+  - Reformation Centre
+  severity: null
+- detail: This is using a bot or channel for any purpose other than it was intended
+    to be used for.
+  offence: Channel/Bot Misuse
+  punishments:
+  - Informal Warning
+  - Warning
+  severity: 1
+- detail: This is engaging in a series of messages back and forth in any language
+    other than English.
+  offence: Discussion in Foreign Language
+  punishments:
+  - Informal Warning
+  - Warning
+  severity: 1
+- detail: 'This is any kind of unwanted or repetitive message that is not related
+    to the current conversation or topic at hand. This can include flooding the chat
+    with repetitive messages, posting the same message multiple times, or sending
+    unsolicited advertisements or links. '
+  offence: Spamming
+  punishments:
+  - Informal Warning
+  - Warning
+  severity: 1
+- detail: This is any repeated behaviour that is intended to cause harm, humiliation,
+    or distress to an individual
+  offence: Harassment/Bullying
+  punishments:
+  - Warning
+  - Reformation Centre
+  - Priority Ban
+  severity: 3
+- detail: Personally Identifying Information is any information relating to a person
+    who can be identified or who are identifiable, directly from the information in
+    question or who can be indirectly identified from that information in combination
+    with other information.
+  offence: Disclosing Personally Identifying Information
+  punishments:
+  - Priority Ban
+  severity: null
+- detail: This is when a user pretends to be a public figure/celebrity.
+  offence: Impersonating Public Figure
+  punishments:
+  - Warning
+  - Emergency Ban
+  severity: 4
+- detail: This is when a user pretends to be a staff member on The Crossroads.
+    They may either be impersonating a specific staff member, or just pretending to
+    have permissions they do not have.
+  offence: Impersonating Server Staff
+  punishments:
+  - Warning
+  - Emergency Ban
+  severity: 3
+- detail: This is when a user pretends to be a member of Discord Staff. This should
+    be reported to Discord Trust and Safety.
+  offence: Impersonating Discord Staff
+  punishments:
+  - Emergency Ban & TnS Report
+  severity: null
+- detail: This is when a user attempts to deceive or defraud an individual for their
+    own gain.
+  offence: Scamming
+  punishments:
+  - Emergency Ban & TnS Report
+  severity: null
+- detail: When a user shillposts outside of shillposting.
+  offence: Advertising Outside Shillposting
+  punishments:
+  - Warning
+  - Priority Ban
+  severity: 2
+- detail: When a user does not disclose that they benefit directly from what they
+    are shilling.
+  offence: Failure to Disclose in Shillposting
+  punishments:
+  - Warning
+  - Priority Ban
+  severity: 3
+- detail: When a user debates or argues in bad faith, they do not care about what
+    is right or wrong but about winning the argument.
+  offence: Bad Faith Engagement
+  punishments:
+  - Informal Warning
+  - Warning
+  - Reformation Centre
+  severity: 2
+- detail: This is posting any information that is legally classified by a national
+    government. Even if this information is leaked, if it remains legally classified
+    it should not be posted.
+  offence: Posting Classified Material
+  punishments:
+  - Priority Ban
+  severity: null
+- detail: This is when a user posts materials they do not have the rights to and the
+    usage does not qualify under fair usage.
+  offence: Posting Copyrighted Material
+  punishments:
+  - Warning
+  - Priority Ban
+  severity: 5
+- detail: This is when a user requests or begs for nitro, money, or something else.
+  offence: Begging
+  punishments:
+  - Informal Warning
+  - Warning
+  severity: 1
+- detail: This is when a user attemps to bypass auto-moderation features on the server.
+  offence: Auto-Moderation Circumvention
+  punishments:
+  - Informal Warning
+  - Warning
+  severity: 1
+- detail: This is when a user attempts to gain access to a bot command they do not
+    have permission to access. This includes running commands they do not have permission
+    to run.
+  offence: Unauthorised Access
+  punishments:
+  - Emergency Ban
+  severity: null
+- detail: This is when a user makes a credible threat against another user. This should
+    always be reported to Discord Trust and Safety.
+  offence: Threatening Behaviour
+  punishments:
+  - Emergency Ban & TnS Report
+  severity: null
+- detail: This is when a user fails to listen to the commands of a moderator.
+  offence: Acting Contrary to Moderator Commands
+  punishments:
+  - Informal Warning
+  - Warning
+  severity: 2
+- detail: This is when somebody is being annoying in VC either by using a soundboard,
+    making noises, joining and leaving constantly, or any other behaviour.
+  offence: Nuisance in VC
+  punishments:
+  - Informal Warning
+  - Warning
+  severity: 1
+- detail: This is when a user attempts to foment anger or resentment against the
+    moderation team.
+  offence: Riling Up
+  punishments:
+  - Warning
+  - Reformation Centre
+  severity: 3
+- detail: This is when a user publicly complains about a moderation action taken against
+    them rather than appealing it via a ticket.
+  offence: Complaining About Moderator Action
+  punishments:
+  - Informal Warning
+  - Warning
+  severity: 1
+- detail: This is when a user attempts to circumvent a decision, such as moderator
+    shopping.
+  offence: Moderator Decision Circumvention
+  punishments:
+  - Warning
+  severity: 2
+- detail: This when a user posts content that is designed to enduce a seizure to those
+    with photosensitive epilepsy.
+  offence: Posting Seizure Enducing Content
+  punishments:
+  - Emergency Ban
+  severity: null
+- detail: For any offence currently not covered by the existing list of offences.
+  offence: Other
+  punishments:
+  - Timeout
+  - Reformation
+  - Ban
+  severity: null

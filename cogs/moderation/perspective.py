@@ -8,10 +8,11 @@ from nextcord.ext import commands
 from nextcord.ui import Button, View
 
 import discordTokens
-import logutils
-from baseutils import SersiEmbed
-from configutils import Configuration
-from permutils import cb_is_mod
+from utils import logs
+from utils.sersi_embed import SersiEmbed
+from utils.base import ignored_message
+from utils.config import Configuration
+from utils.perms import cb_is_mod
 
 
 @dataclass
@@ -151,7 +152,7 @@ class Perspective(commands.Cog):
         sersi_logs = self.bot.get_channel(self.config.channels.logging)
         await sersi_logs.send(embed=logging_embed)
 
-        await logutils.update_response(
+        await logs.update_response(
             self.config, interaction.message, datetime.now(timezone.utc)
         )
 
@@ -179,7 +180,7 @@ class Perspective(commands.Cog):
         sersi_logs = self.bot.get_channel(self.config.channels.logging)
         await sersi_logs.send(embed=logging_embed)
 
-        await logutils.update_response(
+        await logs.update_response(
             self.config, interaction.message, datetime.now(timezone.utc)
         )
 
@@ -207,12 +208,17 @@ class Perspective(commands.Cog):
         sersi_logs = self.bot.get_channel(self.config.channels.logging)
         await sersi_logs.send(embed=logging_embed)
 
-        await logutils.update_response(
+        await logs.update_response(
             self.config, interaction.message, datetime.now(timezone.utc)
         )
 
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.message.Message):
+        return  # disable perspective
+
+        if ignored_message(self.config, message):
+            return
+
         if len(message.content) < 10:
             return
         # ignores message if sent outside general chat.
@@ -220,9 +226,6 @@ class Perspective(commands.Cog):
             not message.channel.id == 856262304337100832
             and message.guild.id == 856262303795380224
         ):
-            return
-        # ignores message if message is by bot
-        elif message.author == self.bot.user:
             return
 
         evaluation: PerspectiveEvaluation = await self.ask_perspective(
@@ -286,8 +289,8 @@ class Perspective(commands.Cog):
 
         alert = await information_centre.send(embed=toxic_embed, view=button_view)
 
-        await logutils.create_alert_log(
-            self.config, alert, logutils.AlertType.Toxic, alert.created_at
+        await logs.create_alert_log(
+            self.config, alert, logs.AlertType.Toxic, alert.created_at
         )
 
         await asyncio.sleep(10800)  # 3 hours

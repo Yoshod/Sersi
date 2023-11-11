@@ -1,0 +1,153 @@
+# Default configuration; no IDs nor a token have been set.
+
+datafiles:
+    author_list:        "files/about/authors.md"
+    keyfile:            "files/AnonMessages/key.bin"
+    slurfile:           "files/SlurAlerts/slurs.txt"
+    goodwordfile:       "files/SlurAlerts/goodword.txt"
+    blacklist:          "files/WBList/blacklist.csv"
+    casedetails:        "files/Cases/casedetails.pkl"
+    casehistory:        "files/Cases/casehistory.pkl"
+    gifblacklist:       "files/WBList/gifblacklist.txt"
+    secret_dms:         "files/AnonMessages/secret_dms.pkl"
+    secret_mutes:       "files/AnonMessages/banned.csv"
+    reform_iter:        "files/Reformation/reformationiter.txt"
+    reformation_cases:  "files/Reformation/reformationcases.pkl"
+    watchlist:          "files/WBList/watchlist.csv"
+    ticketers:          "files/Tickets/ticketers.pkl"
+    video_history:      "files/youtube/processed_videos.txt"
+    alert_logs:         "files/Alerts/alerts.pkl"
+    alert_csv:          "files/Alerts/alerts.csv"
+    sersi_db:           "persistent_data/sersi.db"
+
+bot:
+    dev_mode: true
+    prefix: "s!"
+    status: "Sword and shield"
+    port:   8074 # 8074 for live, 8113 for unstable
+    minimum caps length: 8
+    version: "5.0.0"
+    git_url: "https://github.com/Yoshod/Sersi"
+    authors:
+        - "• Hekkland#0001 `261870562798731266`"
+        - "• kisachi#7272  `348142492245426176`"
+        - "• Gombik#0935   `264502855602274306`"
+
+channels:
+    alert:                    1166770862150651976
+    logging:                  1166770864423964788
+    false positives:          1166770862150651982
+    mod_logs:                 1166770864595943516
+    reformation:              1166770864197468235
+    reformation_info:         1166770864197468233
+    dm_forward:                                0
+    errors:                   987397664280817754
+    teachers_lounge:          1166770864197468235
+    reform public log:        1166770864197468234
+    photography:              1166770863387983918
+    tamper_logs:              1166770864595943519
+    logging_category:         1166770864197468238
+    admin_ticket_logs:        1166770862989524993
+    senior_ticket_logs:       1166770862989524992
+    mod_ticket_logs:          1166770862846906488
+    mod applications:         1166770861878018144
+    cet applications:         1166770861878018139
+    role_logs:                1166770864423964786
+    ageverification:          1166770862607827066
+    deleted_messages:         1166770864423964789
+    deleted_images:           1166770864423964791
+    edited_messages:          1166770864423964790
+    joinleave:                1166770864423964787
+    channel_logs:             1166770864423964784
+    guild_logs:               1166770864197468241
+    user_chanes:              1166770864423964793
+    ban_unban:                1166770864595943515
+    voice_logs:               1166770864595943517
+    automod_logs:             1166770864595943518
+    compliance_review:        1166770862150651977
+    dark_mod_review:          1166770862150651978
+    senior_mod_review:        1166770862150651979
+    moderator_review:         1166770862150651980
+    moderation_votes:                          0
+    suggestion_discussion:   1166770862989525000
+    suggestion_voting:       1166770862989524999
+    suggestion_review:       1166770862435876978   
+
+ignored_categories:
+    - IMPORTANT STUFF
+    - ADMINISTRATION TEAM
+    - SENIOR LEADERSHIP TEAM
+    - ALERTS
+    - MODERATION TEAM
+    - ENGAGEMENT TEAM
+    - STAFF TEAM
+    - MODERATION SUPPORT
+
+ignored_channels:
+    bot-commands: 1166770862989525001
+
+roles:
+    reformation:                1166770861148213305
+    reformed:                   1166770861148213298
+    probation:                  1166770861148213304
+    never_mod:                  1166770860904943713
+    civil_engineering_initiate: 1166770861039173747
+    newbie:                     1166770861039173748
+    honourable_member:          1166770861169197149
+    adult_access:               1166770860787515426
+    adult_verified:             1166770860787515425
+
+opt_in_roles:
+    gaming:         1166770860980437040
+    tech_compsci:   1166770860980437039
+    food_and_drink: 1166770860980437038
+    education:      1166770860980437037
+    art:            1166770860980437036
+    anime:          1166770860980437035
+    furry:          1166770860980437034
+    models:         1166770860980437033
+    shillposting:   1166770860946899053
+    music:          1166770860946899051
+    photography:    1166770860946899052
+    environment:    1166770860946899050
+
+permission_roles:
+    staff:             1166770861169197147
+    reformist:         1166770861169197148
+    sersi_contributor: 1166770861169197153
+    trial_moderator:   1166770861211123719
+    moderator:         1166770861211123720
+    senior_moderator:  1166770861211123721
+    dark_moderator:    1166770861232099369
+    cet:               1166770861169197155
+    cet_lead:          1166770861211123712
+    compliance:        1166770861211123713
+
+punishment roles:
+    annoying:                 925191425904238592
+    terrible_ideas:           912816038163398727
+    politics_and_debate_mute: 931474944611745812
+    ancap:                    877680362829021194
+    problem_child:            903368456433451069
+    role_lock:               1118235612089159720
+
+emotes:
+    success: "<:sersisuccess:979066662856822844>"
+    fail:    "<:sersifail:979070135799279698>"
+    inherit: "<:sersiinherit:1098338822166683668>"
+
+guilds:
+    main:   1166770860787515422
+    errors: 977377117895536640
+
+voting:
+    reform-free:
+        name: Reformation successful
+        action: reformation_release
+    reform-fail:
+        name: Reformation failed
+        action: reformation_ban
+    urgent-ban:
+        name: Urgent Ban
+        action: vote_ban
+        difference: 2

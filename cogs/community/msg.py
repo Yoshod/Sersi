@@ -1,8 +1,8 @@
 import nextcord
 from nextcord.ext import commands
 
-from configutils import Configuration
-from permutils import permcheck, is_staff
+from utils.config import Configuration
+from utils.perms import permcheck, is_staff
 
 
 class Messages(commands.Cog):
@@ -14,7 +14,7 @@ class Messages(commands.Cog):
 
     @nextcord.slash_command(
         dm_permission=False,
-        guild_ids=[977377117895536640, 856262303795380224],
+        guild_ids=[1166770860787515422, 977377117895536640, 856262303795380224],
         description="Sends a specified recipient a DM",
     )
     async def dm(

@@ -1,14 +1,13 @@
 from itertools import product  # needed for slur obscurity permutations
 import unidecode  # needed for cleaning accents and diacritic marks
+import re
 
-from baseutils import get_page
-import configutils
+from utils.base import get_page
+from utils.database import db_session, Slur, Goodword
 
 slurs = []
 goodword = []
 slurs_list = []
-
-config = configutils.Configuration.from_yaml_file("./persistent_data/config.yaml")
 
 
 def leet(word):
@@ -34,7 +33,7 @@ def leet(word):
     return ["".join(permutations) for permutations in product(*possibles)]
 
 
-def get_slurs(config=None, page=None, per_page=10):
+def get_slurs(*args, page=None, per_page=10):
     if page is None:
         return slurs_list
     else:
@@ -45,7 +44,7 @@ def get_slurs_leet():
     return slurs
 
 
-def get_goodwords(config=None, page=None, per_page=10):
+def get_goodwords(*args, page=None, per_page=10):
     if page is None:
         return goodword
     else:
@@ -58,7 +57,6 @@ def load_slurdetector():
 
 
 def rm_slur(slur):
-    lines = []
     if slur in slurs_list:
         slurs_list.remove(slur)
         slurs.clear()
@@ -66,54 +64,44 @@ def rm_slur(slur):
             slurs.extend(leet(item))
 
     slur_comb(slur)
-
-    with open(config.datafiles.slurfile, "r") as fp:
-        lines = fp.readlines()
-
-    with open(config.datafiles.slurfile, "w") as fp:
-        for line in lines:
-            if line.strip("\n") != slur:
-                fp.write(line)
+    with db_session() as session:
+        session.query(Slur).filter_by(slur=slur).delete()
+        session.commit()
 
 
 def slur_comb(slur):
     for word in goodword:
         if slur in word:
-            rm_goodword(word)
+            goodword.remove(word)
 
 
-def rm_goodword(word):
-    lines = []
+def rm_goodword(word: str):
     if word in goodword:
         goodword.remove(word)
-    with open(config.datafiles.goodwordfile, "r") as fp:
-        lines = fp.readlines()
-
-    with open(config.datafiles.goodwordfile, "w") as fp:
-        for line in lines:
-            if line.strip("\n") != word:
-                fp.write(line)
+    with db_session() as session:
+        session.query(Goodword).filter_by(goodword=word).delete()
+        session.commit()
 
 
 def load_slurs():
     slurs.clear()
     slurs_list.clear()
-    with open(config.datafiles.slurfile, "r") as file:
-        for line in file:
-            line = line.replace("\n", "")
-            slurs_list.append(line)
-            slurs.extend(leet(line))
+    with db_session() as session:
+        slur_list: list[Slur] = session.query(Slur).all()
+        for slur in slur_list:
+            slurs_list.append(slur.slur)
+            slurs.extend(leet(slur.slur))
 
 
 def load_goodwords():
     goodword.clear()
-    with open(config.datafiles.goodwordfile, "r") as file:
-        for line in file:
-            line = line.replace("\n", "")
-            goodword.append(line)
+    with db_session() as session:
+        goodword_list: list[Goodword] = session.query(Goodword).all()
+        for word in goodword_list:
+            goodword.append(word.goodword)
 
 
-def clear_string(string):
+def clear_string(string: str) -> str:
     """clean up the message by eliminating special characters and making the entire message lowercase."""
     special_characters = ["#", "%", "&", "[", "]", " ", "]", "_", "-", "<", ">", "'"]
 
@@ -126,20 +114,18 @@ def clear_string(string):
     return string
 
 
-def detect_slur(messageData):
-    if str(messageData).startswith("s!"):  # ignores if message was a command
-        return []
+def detect_slur(message: str) -> list[str]:
 
-    cleanedMessageData = clear_string(messageData)
-    messageData = messageData.lower()
-    messageData = messageData.replace(" ", "")
+    cleaned_message: str = clear_string(message)
+    message = message.lower()
+    message = message.replace(" ", "")
 
-    slur_counter = 0  # more like based_counter, amirite?
-    slur_list = []
+    slur_counter: int = 0  # more like based_counter, amirite?
+    slur_list: list[str] = []
 
     for slur in slurs:
-        s1 = messageData.count(slur)
-        s2 = cleanedMessageData.count(slur)
+        s1: int = message.count(slur)
+        s2: int = cleaned_message.count(slur)
         if s1 > 0:
             slur_list.append(slur)
             slur_counter += s1
@@ -148,8 +134,8 @@ def detect_slur(messageData):
             slur_counter += s2
 
     for word in goodword:
-        g1 = messageData.count(word)
-        g2 = cleanedMessageData.count(word)
+        g1: int = message.count(word)
+        g2: int = cleaned_message.count(word)
         if g1 > 0:
             slur_counter -= g1
         elif g2 > 0:

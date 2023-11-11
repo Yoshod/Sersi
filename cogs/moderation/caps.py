@@ -2,9 +2,11 @@ import nextcord
 from nextcord.ext import commands
 import re
 
-from configutils import Configuration
-from permutils import permcheck, is_mod
-from webhookutils import send_webhook_message
+from utils.sersi_embed import SersiEmbed
+from utils.base import ignored_message
+from utils.config import Configuration
+from utils.perms import permcheck, is_mod, is_staff
+from utils.webhooks import send_webhook_message
 
 
 class Caps(commands.Cog):
@@ -15,55 +17,27 @@ class Caps(commands.Cog):
         self.config = config
         self.MIN_CHARS_FOR_DETECTION = config.bot.minimum_caps_length
 
-    @commands.command()
-    async def setcapslength(self, ctx, number):
-        if not await permcheck(ctx, is_mod):
+    @nextcord.slash_command(
+        name="get_caps_length",
+        dm_permission=False,
+        guild_ids=[1166770860787515422, 977377117895536640, 856262303795380224],
+        description="Shows the currently active caps length",
+    )
+    async def getcapslength(self, interaction: nextcord.Interaction):
+        if not await permcheck(interaction, is_mod):
             return
 
-        try:
-            value = int(number)
-        except ValueError:
-            await ctx.send(f"{self.sersifail} {number} is not an integer.")
-            return
-
-        if value < 0:
-            await ctx.send(f"{self.sersifail} {number} must be greater than **0**.")
-            return
-
-        old_val = self.MIN_CHARS_FOR_DETECTION
-        self.MIN_CHARS_FOR_DETECTION = value
-        self.config.bot.minimum_caps_length = number
-
-        await ctx.send(
-            f"{self.sersisuccess} Caps lock detection starts now at messages longer than **{value}**."
-        )
-
-        embed = nextcord.Embed(
-            title="Minimum Letters For Detection Changed",
-            description="The minimum number of letters required for a message to have caps detection has been changed",
-            color=nextcord.Color.from_rgb(237, 91, 6),
-        )
-        embed.add_field(name="Moderator", value=ctx.author.mention)
-        embed.add_field(name="Old Value", value=str(old_val))
-        embed.add_field(name="New Value", value=str(value))
-
-        channel = ctx.guild.get_channel(self.config.channels.logging)
-        await channel.send(embed=embed)
-
-    @commands.command()
-    async def getcapslength(self, ctx):
-        if not await permcheck(ctx, is_mod):
-            return
-
-        await ctx.send(
-            f"Current caps lock detection starts at messages longer than **{self.MIN_CHARS_FOR_DETECTION}**."
+        await interaction.send(
+            f"Current caps lock detection starts at messages longer than **{self.MIN_CHARS_FOR_DETECTION}**.",
+            ephemeral=True,
         )
 
     # events
     @commands.Cog.listener()
-    async def on_message(self, message):
-        if message.author.bot:  # ignores message if message is by bot
+    async def on_message(self, message: nextcord.Message):
+        if ignored_message(self.config, message):
             return
+        need_replacement: bool = False
 
         # remove emotes
         msg_string = re.sub(r"(<a?)?:\w+:(\d{18}>)?", "", message.content)
@@ -71,18 +45,44 @@ class Caps(commands.Cog):
         # remove nums and non-alpanumeric
         new_msg_string = re.sub(r"[\W0-9]", "", msg_string)
 
-        if len(new_msg_string) < int(
-            self.MIN_CHARS_FOR_DETECTION
-        ):  # should be an int, somehow isn't
-            return
+        # remove markdown headers
+        if not is_staff(message.author):
+            cleaned_message: str = ""
+            for line in msg_string.splitlines():
+                if line.startswith(
+                    (
+                        "# ",
+                        "## ",
+                        "### ",
+                        "* # ",
+                        "* ## ",
+                        "* ### ",
+                        "> # ",
+                        "> ## ",
+                        "> ### ",
+                        ">>> # ",
+                        ">>> ## ",
+                        ">>> ### ",
+                    )
+                ):
+                    need_replacement = True
 
-        # msg_string = unidecode.unidecode(msg_string)
+                    line = line.replace("### ", "")
+                    line = line.replace("## ", "")
+                    line = line.replace("# ", "")
 
+                cleaned_message += f"{line}\n"
+            msg_string = cleaned_message
+
+        # count uppercase chars
         uppercase = sum(1 for char in new_msg_string if char.isupper())
 
-        percentage = uppercase / len(new_msg_string)
+        if (uppercase / len(new_msg_string)) > 0.7 and len(new_msg_string) > int(
+            self.MIN_CHARS_FOR_DETECTION
+        ):
+            need_replacement = True
 
-        if percentage < 0.7:
+        if not need_replacement:
             return
 
         await message.delete(delay=None)
@@ -95,33 +95,22 @@ class Caps(commands.Cog):
             wait=True,
         )
 
-        channel = self.bot.get_channel(self.config.channels.logging)
-        logging_embed = nextcord.Embed(
-            title="Caps Lock Message replaced",
-            description="",
-            color=nextcord.Color.from_rgb(237, 91, 6),
+        await self.bot.get_channel(self.config.channels.logging).send(
+            embed=SersiEmbed(
+                title="Caps Lock Message replaced",
+                description="",
+                color=nextcord.Color.from_rgb(237, 91, 6),
+                fields={
+                    "User:": message.author.mention,
+                    "Channel:": message.channel.mention,
+                    "Original Message:": message.content,
+                    "Replacement Message:": msg_string.lower(),
+                    "Link to Replacement Message:": f"{replacement_message.jump_url}",
+                },
+                footer="Sersi Caps Removal",
+            )
         )
-        logging_embed.add_field(
-            name="User:", value=message.author.mention, inline=False
-        )
-        logging_embed.add_field(
-            name="Channel:", value=message.channel.mention, inline=False
-        )
-        logging_embed.add_field(
-            name="Original Message:", value=msg_string, inline=False
-        )
-        logging_embed.add_field(
-            name="Replacement Message:",
-            value=str(msg_string.lower()),
-            inline=False,
-        )
-        logging_embed.add_field(
-            name="Link to Replacement Message:",
-            value=f"[Jump!]({replacement_message.jump_url})",
-            inline=True,
-        )
-        await channel.send(embed=logging_embed)
 
 
-def setup(bot, **kwargs):
+def setup(bot: commands.Bot, **kwargs):
     bot.add_cog(Caps(bot, kwargs["config"]))

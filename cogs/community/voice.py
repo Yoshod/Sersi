@@ -1,12 +1,11 @@
 import nextcord
 import requests
-
 from nextcord.ext import commands
 
-from baseutils import ConfirmView, SersiEmbed
-from configutils import Configuration
-from permutils import permcheck, is_mod
 import discordTokens
+from utils.config import Configuration
+from utils.perms import permcheck, is_staff
+from utils.sersi_embed import SersiEmbed
 
 
 class Voice(commands.Cog):
@@ -16,17 +15,23 @@ class Voice(commands.Cog):
         self.sersisuccess = self.config.emotes.success
         self.sersifail = self.config.emotes.fail
         self.unlocked_channels = []
+    
+    @nextcord.slash_command(
+            dm_permission=False,
+            guild_ids=[1166770860787515422, 977377117895536640, 856262303795380224],
+            description="Mass move members from one VC to another."
+        )
+    async def mass_move(
+        self,
+        interaction: nextcord.Interaction,
+        current: nextcord.VoiceChannel,
+        target: nextcord.VoiceChannel,
+    ):
+        if not await permcheck(interaction, is_staff):
+            return
 
-    async def cb_massmove_proceed(self, interaction):
-        current_id, target_id = 0, 0
-        for field in interaction.message.embeds[0].fields:
-            if field.name == "Source ID":
-                current_id = int(field.value)
-            elif field.name == "Destination ID":
-                target_id = int(field.value)
-        current = interaction.guild.get_channel(current_id)
-        target = interaction.guild.get_channel(target_id)
-
+        await interaction.response.defer(ephemeral=True)
+        
         memberlist = ""
         for member in current.members:
             memberlist = memberlist + f"**{member.display_name}** ({member.id})\n"
@@ -35,61 +40,35 @@ class Voice(commands.Cog):
                 reason=f"Mass move by {interaction.user} ({interaction.user.id})",
             )
 
-        await interaction.message.edit(
-            f"All members in {current.mention} were moved to {target.mention} by {interaction.user.mention}",
-            embed=None,
-            view=None,
+        await interaction.followup.send(
+            f"All members in {current.mention} were moved to {target.mention}",
+            ephemeral=True,
         )
 
         # logging
+
         embed = SersiEmbed(
             title="Members mass moved to other VC",
-            color=nextcord.Color.from_rgb(237, 91, 6),
-            fields={
-                "Moderator:": interaction.user.mention,
-                "Original channel:": current.mention,
-                "Members moved to channel:": target.mention,
+            description="All members in channel were moved to another VC",
+            fields=[{
+                "Move done by:": interaction.user.mention,
+                "From channel:": current.mention,
+                "To channel:": target.mention,
+            }, {
                 "Members Moved:": memberlist,
-            },
+            }],
             footer="Voice Cog",
+            footer_icon=interaction.user.avatar.url,
         )
 
         channel = interaction.guild.get_channel(self.config.channels.logging)
         await channel.send(embed=embed)
 
-    @commands.command(aliases=["mvc", "movevc", "vcmove", "mm"])
-    async def massmove(
-        self, ctx, current: nextcord.VoiceChannel, target: nextcord.VoiceChannel
-    ):
-        """Mass move members from one VC to another.
-
-        both VCs must be referenced to by mention or Channel ID
-        """
-        if not await permcheck(ctx, is_mod):
-            return
-
-        dialog_embed = SersiEmbed(
-            title="Move Members to different voice channel",
-            color=nextcord.Color.from_rgb(237, 91, 6),
-            fields={
-                "\u200b": "All members in channel:",
-                "Source Channel": current.mention,
-                "Source ID": current.id,
-                "Destination Channel": target.mention,
-                "Destination ID": target.id,
-            },
-            footer="Voice Cog",
-        )
-
-        await ConfirmView(self.cb_massmove_proceed).send_as_reply(
-            ctx, embed=dialog_embed
-        )
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
-        def make_embed(message: str):
-            embed_obj = {"color": 0xED5B06, "description": message}
-            return embed_obj
+        def make_embed(message: str) -> dict:
+            return {"color": 0xED5B06, "description": message}
 
         if (
             after.channel != before.channel
@@ -145,5 +124,5 @@ class Voice(commands.Cog):
                 requests.post(url, headers=headers, json=json)
 
 
-def setup(bot, **kwargs):
+def setup(bot: commands.Bot, **kwargs):
     bot.add_cog(Voice(bot, kwargs["config"]))

@@ -1,5 +1,6 @@
+import nextcord
 from nextcord.ext import commands
-from configutils import Configuration
+from utils.config import Configuration
 
 
 class Photos(commands.Cog):
@@ -9,7 +10,7 @@ class Photos(commands.Cog):
         self.emotes = ["👍", "❤", "😲"]
 
     @commands.Cog.listener()
-    async def on_message(self, message):
+    async def on_message(self, message: nextcord.Message):
         """photography channel new post routing."""
 
         # ignore if message is not in photography channel
@@ -47,5 +48,5 @@ class Photos(commands.Cog):
             await message.create_thread(name=f"{message.author.display_name} {timestr}")
 
 
-def setup(bot, **kwargs):
+def setup(bot: commands.Bot, **kwargs):
     bot.add_cog(Photos(bot, kwargs["config"]))

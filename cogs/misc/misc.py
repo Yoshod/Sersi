@@ -1,23 +1,27 @@
+import nextcord
 from nextcord.ext import commands
 
-from baseutils import SersiEmbed
+from utils.sersi_embed import SersiEmbed
 
 
 class Misc(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(aliases=["dontasktoask", "justask", "ask2ask", "a2a", "ja"])
-    @commands.cooldown(1, 30, commands.BucketType.user)
-    async def asktoask(self, ctx):
-        ask_embed = SersiEmbed(
-            title="Don't Ask To Ask, Just Ask",
-            url="https://dontasktoask.com",
-            description="Don't ask permission to ask a question, just ask the question.\nhttps://dontasktoask.com",
+    @nextcord.slash_command(
+        dm_permission=False,
+        guild_ids=[1166770860787515422, 977377117895536640, 856262303795380224],
+        description="When someone asks an if they can as something",
+    )
+    async def asktoask(self, interaction: nextcord.Interaction):
+        await interaction.send(
+            embed=SersiEmbed(
+                title="Don't Ask To Ask, Just Ask",
+                url="https://dontasktoask.com",
+                description="Don't ask permission to ask a question, just ask the question.\nhttps://dontasktoask.com",
+            ).set_thumbnail("https://dontasktoask.com/favicon.png")
         )
-        ask_embed.set_thumbnail("https://dontasktoask.com/favicon.png")
-        await ctx.send(embed=ask_embed)
 
 
-def setup(bot, **kwargs):
+def setup(bot: commands.Bot, **kwargs):
     bot.add_cog(Misc(bot))

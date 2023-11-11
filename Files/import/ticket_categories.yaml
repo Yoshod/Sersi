@@ -1,0 +1,41 @@
+- category: Appeal
+  subcategories:
+  - Ban Appeal
+  - Timeout Appeal
+  - Other Appeal
+- category: Complaint
+  subcategories:
+  - Event Manager Complaint
+  - Community Engagement Team Complaint
+  - Community Engagement Team Lead Complaint
+  - Trial Moderator Complaint
+  - Moderator Complaint
+  - Moderation Lead Complaint
+  - Administrator Complaint
+  - Other Complaint
+- category: Other
+  subcategories:
+  - Server Partnership Inquiry
+  - Adult Access Verification
+  - Adult Access Denial Query
+  - Other Issue
+- category: Policy
+  subcategories:
+  - User Conduct Query
+  - Moderation Policy Query
+  - Terms of Service Query
+  - Other Policy Query
+- category: Report
+  subcategories:
+  - Message Report
+  - User Report
+  - Channel Report
+  - Forum Post Report
+  - Thread Report
+  - Voice Chat Report
+  - Other Report
+- category: Technical
+  subcategories:
+  - Bot Not Working
+  - User Permission Problem
+  - Other Technical Issue
