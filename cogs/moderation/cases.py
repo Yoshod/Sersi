@@ -14,6 +14,7 @@ from utils.cases import (
 from utils.config import Configuration
 from utils.database import (
     BanCase,
+    ReformationCase,
     TimeoutCase,
     WarningCase,
     db_session,
@@ -355,6 +356,7 @@ class Cases(commands.Cog):
                 "Warning": "Warning",
                 "Timeout": "Timeout",
                 "Ban": "Ban",
+                "Reformation": "Reformation",
             },
         ),
         case_id: str = nextcord.SlashOption(
@@ -393,6 +395,16 @@ class Cases(commands.Cog):
             },
             required=False,
         ),
+        state: str = nextcord.SlashOption(
+            name="state",
+            description="The state of the reformation case",
+            choices={
+                "Open": "open",
+                "Failed": "failed",
+                "Reformed": "reformed",
+            },
+            required=False,
+        ),
     ):
         if not await permcheck(interaction, is_mod):
             return
@@ -425,14 +437,12 @@ class Cases(commands.Cog):
                     if offence != sersi_case.offence and offence is not None:
                         sersi_case.offence = offence
                         offence_changed = True
-
                     else:
                         offence_changed = False
 
                     if detail != sersi_case.details and detail is not None:
                         sersi_case.details = detail
                         detail_changed = True
-
                     else:
                         detail_changed = False
 
@@ -606,6 +616,52 @@ class Cases(commands.Cog):
                         f"{self.config.emotes.success} Case Updated", embed=case_embed
                     )
                     return
+            
+            case ReformationCase():
+                with db_session(interaction.user) as session:
+                    sersi_case = (
+                        session.query(ReformationCase).filter_by(id=sersi_case.id).first()
+                    )
+                    if offence != sersi_case.offence and offence is not None:
+                        sersi_case.offence = offence
+                        offence_changed = True
+
+                    else:
+                        offence_changed = False
+
+                    if detail != sersi_case.details and detail is not None:
+                        sersi_case.details = detail
+                        detail_changed = True
+
+                    else:
+                        detail_changed = False
+
+                    if state != sersi_case.state and state is not None:
+                        sersi_case.state = state
+                        state_changed = True
+
+                    else:
+                        state_changed = False
+
+                    if not detail_changed and not offence_changed and not state_changed:
+                        await interaction.followup.send(
+                            f"{self.config.emotes.fail} You have not changed any details about the case!"
+                        )
+                        return
+
+                    session.commit()
+                    sersi_case = (
+                        session.query(ReformationCase).filter_by(id=sersi_case.id).first()
+                    )
+
+                    case_embed = create_case_embed(sersi_case, interaction, self.config)
+
+                    await interaction.followup.send(
+                        f"{self.config.emotes.success} Case Updated", embed=case_embed
+                    )
+
+                    return
+
 
     @edit.on_autocomplete("offence")
     async def search_offences(self, interaction: nextcord.Interaction, offence: str):
