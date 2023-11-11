@@ -14,7 +14,7 @@ class Roles(commands.Cog):
         self.config = config
 
     @commands.command()
-    async def add_roles(self, ctx):
+    async def add_roles(self, ctx: commands.Context):
         """Single use Command for the 'Add Roles' Embed."""
         if not await permcheck(ctx, is_dark_mod):
             return
@@ -22,7 +22,12 @@ class Roles(commands.Cog):
         await ctx.message.delete()
 
         # This command is a work in progress and disabled for now
-        return
+        if not self.config.bot.dev_mode:
+            await ctx.send(
+                "This command is work in progress and disabled for now.",
+                delete_after=10,
+            )
+            return
 
         interests_options = [
             nextcord.SelectOption(

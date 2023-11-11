@@ -34,7 +34,7 @@ class KickSystem(commands.Cog):
         if not await permcheck(interaction, is_mod):
             return
 
-        if True:
+        if not self.config.bot.dev_mode:
             raise CommandDisabledException
 
         await interaction.response.defer(ephemeral=False)
