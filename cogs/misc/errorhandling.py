@@ -33,10 +33,10 @@ class ErrorHandling(commands.Cog):
                 await channel.send(
                     embed=SersiEmbed(
                         title="An Error Has Occurred",
+                        description=str(interaction.data),
                         fields={
                             "Server:": f"{interaction.guild.name} ({interaction.guild.id})",
                             "Channel:": f"{interaction.channel.name} ({interaction.channel.id})",
-                            "Data:": str(interaction.data),
                             "Error:": error,
                             "URL:": interaction.channel.jump_url,
                         },
