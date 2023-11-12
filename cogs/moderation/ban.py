@@ -193,7 +193,7 @@ class BanSystem(commands.Cog):
         except AttributeError:
             pass
 
-        if check_if_banned(offender.id):
+        if check_if_banned(offender.id, interaction.guild):
             await interaction.send(
                 f"{self.config.emotes.fail} {offender.mention} is already banned.",
                 ephemeral=True,
