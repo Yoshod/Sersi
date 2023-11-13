@@ -143,7 +143,7 @@ class BanSystem(commands.Cog):
         if not await permcheck(interaction, is_mod):
             return
 
-        if not await permcheck(interaction, is_full_mod) and ban_type == "emergency":
+        if ban_type == "emergency" and not await permcheck(interaction, is_full_mod):
             return
 
         if ban_type == "emergency" and timeout:
@@ -193,12 +193,16 @@ class BanSystem(commands.Cog):
         except AttributeError:
             pass
 
-        if check_if_banned(offender.id, interaction.guild):
+        try:
+            await interaction.guild.fetch_ban(offender)
             await interaction.send(
                 f"{self.config.emotes.fail} {offender.mention} is already banned.",
                 ephemeral=True,
             )
             return
+
+        except nextcord.NotFound:
+            pass
 
         if not offence_validity_check(offence):
             await interaction.send(
