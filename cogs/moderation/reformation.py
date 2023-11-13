@@ -416,6 +416,8 @@ class Reformation(commands.Cog):
                 case.state = "released"
                 session.commit()
 
+                cell_channel = interaction.guild.get_channel(case.cell_channel)
+
             # logging
             embed = SersiEmbed(
                 title="User Has Been Released from Reformation",
@@ -439,7 +441,6 @@ class Reformation(commands.Cog):
             channel = interaction.guild.get_channel(
                 self.config.channels.teachers_lounge
             )
-            cell_channel = interaction.guild.get_channel(case.cell_channel)
 
             transcript = await make_transcript(cell_channel, interaction.channel, embed)
             if transcript is None:
@@ -522,6 +523,8 @@ class Reformation(commands.Cog):
                         case.state = "failed"
                         session.commit()
 
+                        cell_channel = member.guild.get_channel(case.cell_channel)
+
                     ban_embed = SersiEmbed(
                         title=f"Reformation inmate **{member}** ({member.id}) banned!",
                     )
@@ -541,7 +544,6 @@ class Reformation(commands.Cog):
                     channel = member.guild.get_channel(
                         self.config.channels.teachers_lounge
                     )
-                    cell_channel = member.guild.get_channel(case.cell_channel)
 
                     transcript = await make_transcript(cell_channel, channel, ban_embed)
                     if transcript is None:
@@ -584,6 +586,8 @@ class Reformation(commands.Cog):
                     )
                 )
                 session.commit()
+
+                cell_channel = member.guild.get_channel(case.cell_channel)
             
             channel = self.bot.get_channel(self.config.channels.logging)
             await channel.send(embed=embed)
@@ -596,7 +600,6 @@ class Reformation(commands.Cog):
 
             # transcript
             channel = member.guild.get_channel(self.config.channels.teachers_lounge)
-            cell_channel = member.guild.get_channel(case.cell_channel)
 
             transcript = await make_transcript(cell_channel, channel, embed)
             if transcript is None:
@@ -648,6 +651,8 @@ class Reformation(commands.Cog):
                 "Details": case.details,
             }
 
+            cell_channel = guild.get_channel(case.cell_channel)
+
         # logging
         yes_list = "\n• ".join(yes_voters)
 
@@ -657,7 +662,6 @@ class Reformation(commands.Cog):
             color=nextcord.Color.from_rgb(0, 0, 0),
             fields=embed_fields,
         )
-
 
         channel = self.bot.get_channel(self.config.channels.logging)
         await channel.send(embed=embed)
@@ -670,7 +674,6 @@ class Reformation(commands.Cog):
 
         # transcript
         channel = guild.get_channel(self.config.channels.teachers_lounge)
-        cell_channel = guild.get_channel(case.cell_channel)
 
         transcript = await make_transcript(cell_channel, channel, embed)
         if transcript is None:
@@ -700,6 +703,8 @@ class Reformation(commands.Cog):
                 .filter_by(vote_id=details.vote_id, vote="yes")
                 .all()
             ]
+
+            cell_channel = guild.get_channel(case.cell_channel)
 
         # roles
         try:
@@ -743,7 +748,6 @@ class Reformation(commands.Cog):
 
         # transcript
         channel = guild.get_channel(self.config.channels.teachers_lounge)
-        cell_channel = guild.get_channel(case.cell_channel)
 
         transcript = await make_transcript(cell_channel, channel, log_embed)
         if transcript is None:

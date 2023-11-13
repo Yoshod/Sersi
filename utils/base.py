@@ -58,7 +58,7 @@ async def ban(
         await member.send(embed=goodbye_embed)
 
     except nextcord.errors.Forbidden:
-        return
+        pass
 
     await member.ban(reason=reason, delete_message_days=0)
 
