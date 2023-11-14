@@ -161,10 +161,12 @@ class Reformation(commands.Cog):
 
             await case_channel.send(embed=welcome_embed)
 
+            message = await interaction.original_message()
+
             embed = SersiEmbed(
                 title="User Has Been Sent to Reformation",
                 description=f"Moderator {interaction.user.mention} ({interaction.user.id}) has sent user {member.mention}"
-                f" ({member.id}) to reformation.\n\n" + f"**__Reason:__**\n{reason}",
+                f" ({member.id}) to reformation.\n\n" + f"**__Reason:__**\n{reason}\n\n[Link to context]({message.jump_url})",
                 color=nextcord.Color.from_rgb(237, 91, 6),
             )
 
