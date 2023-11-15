@@ -3,28 +3,6 @@ from dataclass_wizard import YAMLWizard
 
 
 @dataclass
-class ConfigurationDatafiles(YAMLWizard):
-    author_list: str
-    keyfile: str
-    slurfile: str
-    goodwordfile: str
-    blacklist: str
-    casedetails: str
-    casehistory: str
-    gifblacklist: str
-    secret_dms: str
-    secret_mutes: str
-    reform_iter: str
-    reformation_cases: str
-    watchlist: str
-    ticketers: str
-    video_history: str
-    alert_logs: str
-    alert_csv: str
-    sersi_db: str
-
-
-@dataclass
 class ConfigurationBot(YAMLWizard):
     prefix: str
     status: str
@@ -169,7 +147,6 @@ class VoteType(YAMLWizard):
 
 @dataclass(frozen=True)
 class Configuration(YAMLWizard):
-    datafiles: ConfigurationDatafiles
     bot: ConfigurationBot
     channels: ConfigurationChannels
     ignored_channels: dict[str, int]

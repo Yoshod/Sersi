@@ -1,25 +1,5 @@
 # Default configuration; no IDs nor a token have been set.
 
-datafiles:
-    author_list:        "files/about/authors.md"
-    keyfile:            "files/AnonMessages/key.bin"
-    slurfile:           "files/SlurAlerts/slurs.txt"
-    goodwordfile:       "files/SlurAlerts/goodword.txt"
-    blacklist:          "files/WBList/blacklist.csv"
-    casedetails:        "files/Cases/casedetails.pkl"
-    casehistory:        "files/Cases/casehistory.pkl"
-    gifblacklist:       "files/WBList/gifblacklist.txt"
-    secret_dms:         "files/AnonMessages/secret_dms.pkl"
-    secret_mutes:       "files/AnonMessages/banned.csv"
-    reform_iter:        "files/Reformation/reformationiter.txt"
-    reformation_cases:  "files/Reformation/reformationcases.pkl"
-    watchlist:          "files/WBList/watchlist.csv"
-    ticketers:          "files/Tickets/ticketers.pkl"
-    video_history:      "files/youtube/processed_videos.txt"
-    alert_logs:         "files/Alerts/alerts.pkl"
-    alert_csv:          "files/Alerts/alerts.csv"
-    sersi_db:           "persistent_data/sersi.db"
-
 bot:
     dev_mode: true
     prefix: "s!"

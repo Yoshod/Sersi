@@ -109,11 +109,11 @@ class Database(commands.Cog):
         await interaction.response.defer(ephemeral=True)
 
         # Load the first pickle file containing the case data
-        with open(self.config.datafiles.casehistory, "rb") as f:
+        with open("files/Cases/casehistory.pkl", "rb") as f:
             cases_dict = pickle.load(f)
 
         # Load the second pickle file containing the case details
-        with open(self.config.datafiles.casedetails, "rb") as f:
+        with open("files/Cases/casedetails.pkl", "rb") as f:
             details_dict = pickle.load(f)
 
         with db_session() as session:
@@ -221,10 +221,10 @@ class Database(commands.Cog):
 
         await interaction.response.defer(ephemeral=True)
 
-        with open(self.config.datafiles.slurfile, "r") as f:
+        with open("files/SlurAlerts/slurs.txt") as f:
             slur_list = [slur.replace("\n", "") for slur in f]
 
-        with open(self.config.datafiles.goodwordfile, "r") as f:
+        with open("files/SlurAlerts/goodword.txt", "r") as f:
             goodword_list = [goodword.replace("\n", "") for goodword in f]
 
         with db_session() as session:
@@ -280,7 +280,7 @@ class Database(commands.Cog):
 
         await interaction.response.defer(ephemeral=True)
 
-        conn = sqlite3.connect(self.config.datafiles.sersi_db)
+        conn = sqlite3.connect("persistent_data/sersi.db")
         cursor = conn.cursor()
 
         try:
