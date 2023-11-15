@@ -526,7 +526,7 @@ class Config(commands.Cog):
 
         self.config.load()
 
-        await interaction.followup.send(
+        await interaction.response.send_message(
             f"{self.config.emotes.success} Config reloaded."
         )
 
