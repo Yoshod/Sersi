@@ -290,7 +290,7 @@ class TicketingSystem(commands.Cog):
         ),
     ):
         with db_session(interaction.user) as session:
-            filter_dict = {"active": True}
+            filter_dict = {}
             if ticket_id:
                 filter_dict["id"] = ticket_id
             else:
@@ -483,7 +483,6 @@ class TicketingSystem(commands.Cog):
 
     @close.on_autocomplete("ticket_id")
     @escalate.on_autocomplete("ticket_id")
-    @recategorize.on_autocomplete("ticket_id")
     async def ticket_autocomplete(
         self, interaction: nextcord.Interaction, ticket_id: str
     ):
@@ -504,6 +503,7 @@ class TicketingSystem(commands.Cog):
 
     @info.on_autocomplete("ticket_id")
     @audit.on_autocomplete("ticket_id")
+    @recategorize.on_autocomplete("ticket_id")
     async def ticket_all_autocomplete(
         self, interaction: nextcord.Interaction, ticket_id: str
     ):
