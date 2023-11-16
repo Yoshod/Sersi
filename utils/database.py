@@ -26,7 +26,7 @@ def random_id() -> str:
     return "".join(random.sample(_alphabet, 11))
 
 
-_engine = sqlalchemy.create_engine("sqlite:///persistent_data/sersi.db", echo=True)
+_engine = sqlalchemy.create_engine("sqlite:///persistent_data/sersi.db")
 _Base = declarative_base()
 
 
