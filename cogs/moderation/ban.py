@@ -687,7 +687,9 @@ class BanSystem(commands.Cog):
             case: BanCase = session.query(BanCase).get(detail.case_id)
             case.active = True
 
-            member: nextcord.Member = guild.get_member(case.offender)
+            user: nextcord.Member = guild.get_member(case.offender)
+            if user is None:
+                user: nextcord.User = await self.bot.fetch_user(case.offender)
 
             yes_voters = [
                 vote[0]
@@ -697,10 +699,10 @@ class BanSystem(commands.Cog):
             ]
 
             try:
-                await member.send(
+                await user.send(
                     embed=SersiEmbed(
-                        title=f"You have been banned in {member.guild.name}!",
-                        description=f"You have been banned in {member.guild.name}. The details about the ban are "
+                        title=f"You have been banned in {guild.name}!",
+                        description=f"You have been banned in {guild.name}. The details about the ban are "
                         "below. If you would like to appeal your ban you can do so:\n"
                         "https://appeals.wickbot.com",
                         fields={
@@ -708,15 +710,16 @@ class BanSystem(commands.Cog):
                             "Detail:": f"`{case.details}`",
                         },
                         footer="Sersi Ban",
-                    ).set_thumbnail(member.guild.icon.url)
+                    ).set_thumbnail(guild.icon.url)
                 )
 
             except (nextcord.Forbidden, nextcord.HTTPException, AttributeError):
                 pass
 
-            await member.edit(timeout=None, reason="Ban Vote Successfull")
+            if isinstance(user, nextcord.Member):
+                await user.edit(timeout=None, reason="Ban Vote Successfull")
 
-            await member.ban(reason=f"Sersi Ban {case.details}")
+            await guild.ban(user, reason=f"Sersi Ban {case.details}")
 
             session.commit()
             case: BanCase = session.query(BanCase).get(detail.case_id)
@@ -726,7 +729,7 @@ class BanSystem(commands.Cog):
 
         embed = nextcord.Embed(
             title="Vote Ban Complete",
-            description=f"{self.config.emotes.success} {member.mention} ({member.id}) has been banned."
+            description=f"{self.config.emotes.success} {user.mention} ({user.id}) has been banned."
             f"Yes Voters: {yes_list}",
             color=nextcord.Color.from_rgb(0, 0, 0),
         )
