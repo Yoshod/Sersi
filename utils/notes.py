@@ -51,7 +51,7 @@ def fetch_notes_by_partial_id(note_id: str) -> list[str]:
         return [
             note[0]
             for note in session.query(Note.id)
-            .filter(Note.id.like(f"{note_id}%"))
+            .filter(Note.id.ilike(f"{note_id}%"))
             .limit(25)
             .all()
         ]

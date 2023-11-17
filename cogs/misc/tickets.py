@@ -463,6 +463,7 @@ class TicketingSystem(commands.Cog):
                 session.query(TicketCategory)
                 .filter(TicketCategory.category.ilike(f"%{category}%"))
                 .group_by(TicketCategory.category)
+                .limit(25)
                 .all()
             )
             return [category.category for category in categories]
@@ -477,6 +478,7 @@ class TicketingSystem(commands.Cog):
                 session.query(TicketCategory)
                 .filter_by(category=category)
                 .filter(TicketCategory.subcategory.ilike(f"%{subcategory}%"))
+                .limit(25)
                 .all()
             )
             return [subcategory.subcategory for subcategory in subcategories]
@@ -497,6 +499,7 @@ class TicketingSystem(commands.Cog):
                     ),
                 )
                 .group_by(Ticket.id)
+                .limit(25)
                 .all()
             )
             return [ticket.id for ticket in tickets]
@@ -517,6 +520,7 @@ class TicketingSystem(commands.Cog):
                     ),
                 )
                 .group_by(Ticket.id)
+                .limit(25)
                 .all()
             )
             return [ticket.id for ticket in tickets]
