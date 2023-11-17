@@ -1,11 +1,10 @@
 import nextcord
 import nextcord.ext.commands
 
-from utils import config
-from utils.database import StaffBlacklist, db_session
+from utils.config import Configuration
 from utils.sersi_embed import SersiEmbed
 
-config = config.Configuration.from_yaml_file("./persistent_data/config.yaml")
+config = Configuration.from_yaml_file("./persistent_data/config.yaml")
 
 
 async def permcheck(
@@ -229,16 +228,3 @@ async def cb_is_dark_mod(interaction) -> bool:
 
 async def cb_is_cet(interaction) -> bool:
     return await permcheck(interaction, is_cet)
-
-
-def blacklist_check(user: nextcord.Member):
-    with db_session() as session:
-        blacklisted = (
-            session.query(StaffBlacklist).filter_by(blacklisted_user=user.id).first()
-        )
-
-        if blacklisted:
-            return True
-
-        else:
-            return False

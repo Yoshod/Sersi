@@ -3,7 +3,6 @@ from nextcord.ext import commands
 from nextcord.ui import Button, View, Modal
 from utils.config import Configuration
 from utils.perms import (
-    blacklist_check,
     is_dark_mod,
     permcheck,
     is_senior_mod,
@@ -13,6 +12,7 @@ from utils.perms import (
 from utils.sersi_embed import SersiEmbed
 from datetime import datetime
 import pytz
+from utils.roles import blacklist_check
 
 
 class ModAppModal(Modal):
