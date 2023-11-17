@@ -178,7 +178,7 @@ class Notes(commands.Cog):
             entry_form="{entry}",
             field_title="{entries[0].list_entry_header}",
             inline_fields=False,
-            cols=10,
+            cols=5,
             per_col=1,
             init_page=int(page),
             member_id=user_id,

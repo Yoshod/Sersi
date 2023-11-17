@@ -374,9 +374,9 @@ class Note(_Base):
             r"https://discord.com/channels/[0-9]*/[0-9]*/[0-9]*", self.content
         ):
             after_link = self.content[link.end() :].lstrip(" \n")
-            return f"<@{self.member}> {link.group(0)}\n```{limit_string(after_link, 128) or 'N/A'}```"
+            return f"<@{self.member}> {link.group(0)}\n```{limit_string(after_link, 224) or 'N/A'}```"
 
-        return f"<@{self.member}>\n```{limit_string(self.content, 128) or 'N/A'}```"
+        return f"<@{self.member}>\n```{limit_string(self.content, 224) or 'N/A'}```"
 
 
 class NoteEdits(_Base):
