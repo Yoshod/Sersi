@@ -22,7 +22,7 @@ class NoteModal(nextcord.ui.Modal):
         self.note_remarks = nextcord.ui.TextInput(
             label="Note Remarks",
             min_length=8,
-            max_length=1024,
+            max_length=928,
             required=True,
             placeholder="Please enter your note remarks here.",
             style=nextcord.TextInputStyle.paragraph,
