@@ -81,7 +81,7 @@ class ErrorHandling(commands.Cog):
                         try:
                             target = await self.bot.fetch_user(int(option["value"]))
                         except nextcord.NotFound:
-                            fields[option["name"]] = f"`{option['value']}`"
+                            pass
 
                     if isinstance(target, nextcord.Role):
                         fields[option["name"]] = f"{target.name} (`{target.id}`)"
@@ -93,6 +93,8 @@ class ErrorHandling(commands.Cog):
                         fields[
                             option["name"]
                         ] = f"{target.mention} ({target.display_name} `{target.id}`)"
+                    else:
+                        fields[option["name"]] = f"`{option['value']}`"
 
         return subcommand, fields
 
