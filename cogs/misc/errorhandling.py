@@ -213,14 +213,12 @@ class ErrorHandling(commands.Cog):
                         )
                     ), 4090)}```""",
                     fields={
-                        "Server:": f"{ctx.guild.name} ({ctx.guild.id})",
-                        "Channel:": f"{ctx.channel.name} ({ctx.channel.id})",
+                        "Context:": f"{ctx.message.jump_url} (#{ctx.channel.name} `{ctx.channel.id}`)",
+                        "User:": f"{ctx.author.mention} ({ctx.author.display_name} `{ctx.author.id}`)",
                         "Command:": ctx.message.content,
-                        "Error:": error,
-                        "URL:": ctx.message.jump_url,
                     },
-                    footer=f"{ctx.author} ({ctx.author.id})",
-                    footer_icon=ctx.author.avatar.url,
+                    footer=f"{ctx.guild.name} ({ctx.guild.id})",
+                    footer_icon=ctx.guild.icon.url,
                     colour=nextcord.Color.from_rgb(208, 29, 29),
                 )
             )
