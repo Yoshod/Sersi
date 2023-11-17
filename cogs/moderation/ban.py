@@ -143,7 +143,7 @@ class BanSystem(commands.Cog):
         if not await permcheck(interaction, is_mod):
             return
 
-        if not await permcheck(interaction, is_full_mod) and ban_type == "emergency":
+        if ban_type == "emergency" and not await permcheck(interaction, is_full_mod):
             return
 
         if ban_type == "emergency" and timeout:
@@ -193,12 +193,16 @@ class BanSystem(commands.Cog):
         except AttributeError:
             pass
 
-        if check_if_banned(offender.id):
+        try:
+            await interaction.guild.fetch_ban(offender)
             await interaction.send(
                 f"{self.config.emotes.fail} {offender.mention} is already banned.",
                 ephemeral=True,
             )
             return
+
+        except nextcord.NotFound:
+            pass
 
         if not offence_validity_check(offence):
             await interaction.send(
@@ -683,7 +687,9 @@ class BanSystem(commands.Cog):
             case: BanCase = session.query(BanCase).get(detail.case_id)
             case.active = True
 
-            member: nextcord.Member = guild.get_member(case.offender)
+            user: nextcord.Member = guild.get_member(case.offender)
+            if user is None:
+                user: nextcord.User = await self.bot.fetch_user(case.offender)
 
             yes_voters = [
                 vote[0]
@@ -693,10 +699,10 @@ class BanSystem(commands.Cog):
             ]
 
             try:
-                await member.send(
+                await user.send(
                     embed=SersiEmbed(
-                        title=f"You have been banned in {member.guild.name}!",
-                        description=f"You have been banned in {member.guild.name}. The details about the ban are "
+                        title=f"You have been banned in {guild.name}!",
+                        description=f"You have been banned in {guild.name}. The details about the ban are "
                         "below. If you would like to appeal your ban you can do so:\n"
                         "https://appeals.wickbot.com",
                         fields={
@@ -704,15 +710,16 @@ class BanSystem(commands.Cog):
                             "Detail:": f"`{case.details}`",
                         },
                         footer="Sersi Ban",
-                    ).set_thumbnail(member.guild.icon.url)
+                    ).set_thumbnail(guild.icon.url)
                 )
 
             except (nextcord.Forbidden, nextcord.HTTPException, AttributeError):
                 pass
 
-            await member.edit(timeout=None, reason="Ban Vote Successfull")
+            if isinstance(user, nextcord.Member):
+                await user.edit(timeout=None, reason="Ban Vote Successfull")
 
-            await member.ban(reason=f"Sersi Ban {case.details}")
+            await guild.ban(user, reason=f"Sersi Ban {case.details}")
 
             session.commit()
             case: BanCase = session.query(BanCase).get(detail.case_id)
@@ -722,7 +729,7 @@ class BanSystem(commands.Cog):
 
         embed = nextcord.Embed(
             title="Vote Ban Complete",
-            description=f"{self.config.emotes.success} {member.mention} ({member.id}) has been banned."
+            description=f"{self.config.emotes.success} {user.mention} ({user.id}) has been banned."
             f"Yes Voters: {yes_list}",
             color=nextcord.Color.from_rgb(0, 0, 0),
         )

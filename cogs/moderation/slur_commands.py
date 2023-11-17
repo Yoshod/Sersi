@@ -233,7 +233,9 @@ class SlurCommands(nextcord.ext.commands.Cog):
         if not is_mod(interaction.user):
             await interaction.response.send_autocomplete([])
 
-        slurs = [slur for slur in get_slurs() if slur.lower().startswith(input.lower())]
+        slurs = [
+            slur for slur in get_slurs() if slur.lower().startswith(input.lower())
+        ][:25]
         await interaction.response.send_autocomplete(slurs)
 
     @slur_detection.subcommand(
@@ -284,7 +286,7 @@ class SlurCommands(nextcord.ext.commands.Cog):
 
         goodwords = [
             word for word in get_goodwords() if word.lower().startswith(input.lower())
-        ]
+        ][:25]
         await interaction.response.send_autocomplete(goodwords)
 
     @slur_detection.subcommand(description="List currently detected slurs.")

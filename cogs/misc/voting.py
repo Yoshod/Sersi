@@ -6,8 +6,9 @@ from sqlalchemy import func
 
 from utils.channels import get_message_from_url
 from utils.config import Configuration, VoteType
-from utils.database import db_session, VoteDetails, VoteRecord, Case
-from utils.perms import permcheck, is_mod
+from utils.database import db_session, VoteDetails, VoteRecord
+from utils.perms import permcheck, is_mod, is_sersi_contributor
+from utils.sersi_embed import SersiEmbed
 
 
 class Voting(commands.Cog):
@@ -16,6 +17,49 @@ class Voting(commands.Cog):
         self.config = config
         if bot.is_ready():
             self.process_votes.start()
+
+    @nextcord.slash_command(dm_permission=False)
+    async def redo_vote_action(
+        self,
+        interaction: nextcord.Interaction,
+        vote: int = nextcord.SlashOption(name="vote_id"),
+    ):
+        """Allows vote action to be redone in case of an error occuring"""
+        if not await permcheck(interaction, is_sersi_contributor):
+            return
+
+        with db_session() as session:
+            details: VoteDetails = session.query(VoteDetails).get(vote)
+            if details is None:
+                await interaction.response.send_message(
+                    "This vote does not exist", ephemeral=True
+                )
+                return
+            if details.outcome is None:
+                await interaction.response.send_message(
+                    "This vote has not been decided yet", ephemeral=True
+                )
+                return
+
+            self.bot.dispatch(self.config.voting[details.vote_type].action, details)
+
+        await interaction.response.send_message(
+            "The action has been triggered", ephemeral=True
+        )
+
+        # logging
+        channel = self.bot.get_channel(self.config.channels.logging)
+        await channel.send(
+            embed=SersiEmbed(
+                title="Redo Vote Action",
+                description=f"{interaction.user.mention} has redone the vote action for vote {vote}",
+                fields={
+                    "Vote Type": details.vote_type,
+                    "Vote": details.vote_url,
+                    "Outcome": details.outcome,
+                },
+            )
+        )
 
     @commands.Cog.listener()
     async def on_ready(self):

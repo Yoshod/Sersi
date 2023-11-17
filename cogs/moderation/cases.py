@@ -749,6 +749,12 @@ class Cases(commands.Cog):
     ):
         if not await permcheck(interaction, is_senior_mod):
             return
+        
+        if not self.config.bot.dev_mode:
+            await interaction.response.send_message(
+                "This command is WIP and is currently disabled."
+            )
+            return
 
         await interaction.response.defer(ephemeral=False)
 

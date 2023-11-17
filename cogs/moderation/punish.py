@@ -62,13 +62,16 @@ class Punish(commands.Cog):
     async def punishment_roles(
         self, interaction: nextcord.Interaction, punishment: str
     ):
+        if not is_staff(interaction.user):
+            return
+
         if not punishment:
             await interaction.response.send_autocomplete(self.choices.keys())
             return
 
         punish_roles = [
             role for role in self.choices if role.lower().startswith(punishment.lower())
-        ]
+        ][:25]
         await interaction.response.send_autocomplete(punish_roles)
 
 

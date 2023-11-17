@@ -27,7 +27,7 @@ def fetch_cases_by_partial_id(case_id: str) -> list[str]:
     with db_session() as session:
         cases: list[typing.Tuple(str)] = (
             session.query(Case.id)
-            .filter(Case.id.like(f"%{case_id}%"))
+            .filter(Case.id.ilike(f"%{case_id}%"))
             .order_by(Case.created.desc())
             .limit(25)
             .all()

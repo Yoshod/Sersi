@@ -12,9 +12,9 @@ from utils.perms import (
     is_slt,
     is_dark_mod,
     is_cet_lead,
-    blacklist_check,
 )
 from utils.database import StaffBlacklist, db_session
+from utils.roles import blacklist_check
 
 
 class Staff(commands.Cog):

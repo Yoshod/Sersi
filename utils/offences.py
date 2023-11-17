@@ -7,7 +7,7 @@ def fetch_offences_by_partial_name(offence: str) -> list[str]:
     with db_session() as session:
         offences: list[typing.Tuple(str)] = (
             session.query(Offence.offence)
-            .filter(Offence.offence.like(f"%{offence}%"))
+            .filter(Offence.offence.ilike(f"%{offence}%"))
             .order_by(Offence.offence.asc())
             .limit(25)
             .all()

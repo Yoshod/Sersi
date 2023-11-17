@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Any
 import random
+import re
 
 import nextcord
 import sqlalchemy
@@ -9,6 +10,8 @@ from sqlalchemy.orm import Session, relationship
 from sqlalchemy.ext.declarative import declarative_base
 from shortuuid.main import int_to_string, string_to_int
 
+
+from utils.base import limit_string
 
 # base on https://github.com/skorokithakis/shortuuid
 _alphabet = list("23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz")
@@ -26,7 +29,7 @@ def random_id() -> str:
     return "".join(random.sample(_alphabet, 11))
 
 
-_engine = sqlalchemy.create_engine("sqlite:///persistent_data/sersi.db", echo=True)
+_engine = sqlalchemy.create_engine("sqlite:///persistent_data/sersi.db")
 _Base = declarative_base()
 
 
@@ -42,13 +45,6 @@ def db_session(owner: int | nextcord.User | nextcord.Member = None):
             session.owner_id = 0
 
     return session
-
-
-def format_notes(note: str):
-    if len(note) >= 135:
-        return f"{note[:127].strip()}..."
-    else:
-        return note
 
 
 ### Case Models ###
@@ -373,7 +369,14 @@ class Note(_Base):
         )
 
     def __repr__(self):
-        return f"<@{self.member}>\n```{format_notes(self.content) or 'N/A'}```"
+        link: re.Match
+        if link := re.match(
+            r"https://discord.com/channels/[0-9]*/[0-9]*/[0-9]*", self.content
+        ):
+            after_link = self.content[link.end() :].lstrip(" \n")
+            return f"<@{self.member}> {link.group(0)}\n```{limit_string(after_link, 224) or 'N/A'}```"
+
+        return f"<@{self.member}>\n```{limit_string(self.content, 224) or 'N/A'}```"
 
 
 class NoteEdits(_Base):

@@ -58,7 +58,7 @@ async def ban(
         await member.send(embed=goodbye_embed)
 
     except nextcord.errors.Forbidden:
-        return
+        pass
 
     await member.ban(reason=reason, delete_message_days=0)
 
@@ -396,3 +396,10 @@ def convert_to_timedelta(timespan: str, duration: int) -> datetime.timedelta | N
                 return datetime.timedelta(weeks=duration)
 
     return None
+
+
+def limit_string(string: str, length: int = 1024) -> str:
+    if len(string) > length:
+        return string[: length - 3].rstrip(" .,\n") + "..."
+    else:
+        return string
