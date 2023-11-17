@@ -223,7 +223,7 @@ class ViewNotesButton(nextcord.ui.Button):
             entry_form=format_entry,
             field_title="{entries[0][0]}",
             inline_fields=False,
-            cols=10,
+            cols=5,
             per_col=1,
             init_page=0,
             member_id=str(user.id),

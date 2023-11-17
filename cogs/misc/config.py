@@ -4,7 +4,13 @@ from nextcord.ext import commands
 
 from utils.sersi_embed import SersiEmbed
 from utils.config import Configuration, Configurator
-from utils.perms import permcheck, is_sersi_contributor, is_staff, is_dark_mod, is_cet_lead
+from utils.perms import (
+    permcheck,
+    is_sersi_contributor,
+    is_staff,
+    is_dark_mod,
+    is_cet_lead,
+)
 
 
 class Config(commands.Cog):
@@ -182,7 +188,7 @@ class Config(commands.Cog):
     async def set_channel_setting(
         self, interaction: nextcord.Interaction, setting: str
     ):
-        if not await permcheck(interaction, is_dark_mod):
+        if not is_dark_mod(interaction.user):
             return
 
         await interaction.response.send_autocomplete(
@@ -247,7 +253,7 @@ class Config(commands.Cog):
 
     @remove_channel.on_autocomplete("channel")
     async def remove_channel_id(self, interaction: nextcord.Interaction, channel: str):
-        if not await permcheck(interaction, is_dark_mod):
+        if not is_dark_mod(interaction.user):
             return
 
         await interaction.response.send_autocomplete(
@@ -312,7 +318,7 @@ class Config(commands.Cog):
     async def remove_category_name(
         self, interaction: nextcord.Interaction, category: str
     ):
-        if not await permcheck(interaction, is_dark_mod):
+        if not is_dark_mod(interaction.user):
             return
 
         await interaction.response.send_autocomplete(
@@ -343,7 +349,7 @@ class Config(commands.Cog):
 
     @set_role.on_autocomplete("setting")
     async def set_role_setting(self, interaction: nextcord.Interaction, setting):
-        if not await permcheck(interaction, is_dark_mod):
+        if not is_dark_mod(interaction.user):
             return
 
         await interaction.response.send_autocomplete(
@@ -376,7 +382,7 @@ class Config(commands.Cog):
     async def set_permission_role_setting(
         self, interaction: nextcord.Interaction, setting: str
     ):
-        if not await permcheck(interaction, is_dark_mod):
+        if not is_dark_mod(interaction.user):
             return
 
         await interaction.response.send_autocomplete(
@@ -443,7 +449,7 @@ class Config(commands.Cog):
     async def remove_punishment_role_name(
         self, interaction: nextcord.Interaction, role: str
     ):
-        if not await permcheck(interaction, is_dark_mod):
+        if not is_dark_mod(interaction.user):
             return
 
         await interaction.response.send_autocomplete(
@@ -510,7 +516,7 @@ class Config(commands.Cog):
     async def remove_opt_in_role_name(
         self, interaction: nextcord.Interaction, role: str
     ):
-        if not await permcheck(interaction, is_cet_lead):
+        if not is_cet_lead(interaction.user):
             return
 
         await interaction.response.send_autocomplete(

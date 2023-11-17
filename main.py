@@ -111,17 +111,23 @@ async def cog(
 
 @cog.on_autocomplete("category")
 async def cog_category_autocomplete(interaction: nextcord.Interaction, category: str):
+    if not is_sersi_contributor(interaction.user):
+        return
+
     categories = [dir for dir in os.listdir("./cogs") if dir != "__pycache__"]
     if not category:
         return categories
 
-    return [c for c in categories if c.startswith(category)]
+    return [c for c in categories if c.startswith(category)][:25]
 
 
 @cog.on_autocomplete("cog")
 async def cog_cog_autocomplete(
     interaction: nextcord.Interaction, cog_name: str, action: str, category: str
 ):
+    if not is_sersi_contributor(interaction.user):
+        return
+
     bot_cogs = [
         cog_name.removeprefix(f"cogs.{category}.")
         for cog_name in bot.extensions.keys()
@@ -153,7 +159,7 @@ async def cog_cog_autocomplete(
         cog_suggestion
         for cog_suggestion in available_cogs
         if cog_suggestion.startswith(cog_name)
-    ]
+    ][:25]
 
 
 @bot.command()

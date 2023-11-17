@@ -134,9 +134,14 @@ class TimeoutSystem(commands.Cog):
         if not await permcheck(interaction, is_mod):
             return
 
-        if check_if_timeout(offender):
+        if (
+            offender.communication_disabled_until is not None
+            and offender.communication_disabled_until
+            > datetime.datetime.now(offender.communication_disabled_until.tzinfo)
+        ):
             await interaction.response.send_message(
-                f"{self.config.emotes.fail} {offender.mention} is already timed out."
+                f"{self.config.emotes.fail} {offender.mention} is already timed out.",
+                ephemeral=True,
             )
             return
 
