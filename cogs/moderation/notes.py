@@ -37,7 +37,7 @@ class NoteModal(nextcord.ui.Modal):
                 Note(
                     author=interaction.user.id,
                     member=self.message.author.id,
-                    content=f"{self.note_remarks.value}\n\n{self.message.jump_url}",
+                    content=f"{self.message.jump_url}\n\n{self.note_remarks.value}",
                 )
             )
 
