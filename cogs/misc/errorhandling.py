@@ -4,6 +4,7 @@ from enum import Enum
 import nextcord
 from nextcord.ext import commands
 
+from utils.base import limit_string
 from utils.config import Configuration
 from utils.sersi_embed import SersiEmbed
 from utils.sersi_exceptions import CommandDisabledException
@@ -161,11 +162,11 @@ class ErrorHandling(commands.Cog):
         await channel.send(
             embed=SersiEmbed(
                 title="An Error Has Occurred",
-                description="".join(
+                description=f"""```{limit_string("".join(
                     traceback.format_exception(
                         type(error), value=error, tb=error.__traceback__
                     )
-                )[:4096],
+                ), 4090)}```""",
                 fields=embed_fields,
                 footer=f"{interaction.guild.name} ({interaction.guild.id})",
                 footer_icon=interaction.guild.icon.url,
@@ -206,6 +207,11 @@ class ErrorHandling(commands.Cog):
             await channel.send(
                 embed=SersiEmbed(
                     title="An Error Has Occurred",
+                    description=f"""```{limit_string("".join(
+                        traceback.format_exception(
+                            type(error), value=error, tb=error.__traceback__
+                        )
+                    ), 4090)}```""",
                     fields={
                         "Server:": f"{ctx.guild.name} ({ctx.guild.id})",
                         "Channel:": f"{ctx.channel.name} ({ctx.channel.id})",
@@ -213,6 +219,8 @@ class ErrorHandling(commands.Cog):
                         "Error:": error,
                         "URL:": ctx.message.jump_url,
                     },
+                    footer=f"{ctx.author} ({ctx.author.id})",
+                    footer_icon=ctx.author.avatar.url,
                     colour=nextcord.Color.from_rgb(208, 29, 29),
                 )
             )
