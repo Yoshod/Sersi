@@ -5,7 +5,7 @@ import re
 
 import nextcord
 import sqlalchemy
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, event
 from sqlalchemy.orm import Session, relationship
 from sqlalchemy.ext.declarative import declarative_base
 from shortuuid.main import int_to_string, string_to_int
@@ -31,6 +31,13 @@ def random_id() -> str:
 
 _engine = sqlalchemy.create_engine("sqlite:///persistent_data/sersi.db")
 _Base = declarative_base()
+
+
+@event.listens_for(_engine, "connect")
+def set_sqlite_pragma(dbapi_connection, connection_record):
+    cursor = dbapi_connection.cursor()
+    cursor.execute("PRAGMA foreign_keys=ON")
+    cursor.close()
 
 
 def db_session(owner: int | nextcord.User | nextcord.Member = None):

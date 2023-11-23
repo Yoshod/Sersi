@@ -241,8 +241,8 @@ class DualCustodyView(View):
                     embed=SersiEmbed(
                         title=title,
                         description="Pending review by another moderator",
-                        ephemeral=True,
-                    )
+                    ),
+                    ephemeral=True,
                 )
 
             return dual_custody
