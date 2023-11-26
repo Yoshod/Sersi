@@ -302,6 +302,41 @@ class Database(commands.Cog):
         finally:
             cursor.close()
             conn.close()
+        
+
+    @database.subcommand(
+        description="Execute a raw SQL query on the Sersi Database",
+    )
+    async def execute(
+        self,
+        interaction: nextcord.Interaction,
+        query: str = nextcord.SlashOption(
+            name="query", description="The query you are executing"
+        ),
+    ):
+        if not await permcheck(interaction, is_sersi_contributor):
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        conn = sqlite3.connect(self.config.datafiles.sersi_db)
+        cursor = conn.cursor()
+
+        try:
+            cursor.execute(query)
+            conn.commit()
+            await interaction.followup.send(
+                f"{self.config.emotes.success}The query has been executed."
+            )
+        except sqlite3.Error as error_code:
+            await interaction.followup.send(
+                f"{self.config.emotes.fail}An error occurred: {error_code}"
+            )
+        finally:
+            cursor.close()
+            conn.close()
+
+        
 
     @database.subcommand()
     async def cleanup(self, interaction: nextcord.Interaction):
