@@ -77,9 +77,10 @@ class Caps(commands.Cog):
         # count uppercase chars
         uppercase = sum(1 for char in new_msg_string if char.isupper())
 
-        if (uppercase / len(new_msg_string)) > 0.7 and len(new_msg_string) > int(
-            self.MIN_CHARS_FOR_DETECTION
-        ):
+        if (
+            len(new_msg_string) > int(self.MIN_CHARS_FOR_DETECTION)
+            and uppercase / len(new_msg_string)
+        ) > 0.7:
             need_replacement = True
 
         if not need_replacement:
