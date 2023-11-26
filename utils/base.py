@@ -117,7 +117,6 @@ class ConfirmView(nextcord.ui.View):
         self.author: nextcord.Member
 
     async def cb_cancel(self, interaction: nextcord.Interaction):
-        print("confirm view cancel")
         await interaction.message.edit(
             content="Action canceled!", embed=None, view=None
         )

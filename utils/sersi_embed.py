@@ -29,7 +29,6 @@ class SersiEmbed(nextcord.Embed):
         # Configure Fields
         if fields:
             self.parse_fields(fields)
-            print(self.fields)
 
     def add_id_field(self, ids: dict):
         id_string: str = f"```ini"
