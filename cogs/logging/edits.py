@@ -3,6 +3,7 @@ import datetime
 import nextcord
 from nextcord.ext import commands
 
+from utils.base import ignored_message
 from utils.sersi_embed import SersiEmbed
 from utils.config import Configuration
 
@@ -14,12 +15,10 @@ class Edits(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message_edit(self, before: nextcord.Message, after: nextcord.Message):
-        if (
-            before.guild is None
-            or before.content == ""
-            or after.content == ""
-            or before.content == after.content
-        ):
+        if ignored_message(self.config, after, ignore_channels=False):
+            return
+    
+        if not before.content or not after.content or before.content == after.content:
             return
 
         if before.pinned is False and after.pinned is True:

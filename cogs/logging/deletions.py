@@ -5,6 +5,7 @@ import nextcord
 from nextcord.ext import commands
 import chat_exporter
 
+from utils.base import ignored_message
 from utils.sersi_embed import SersiEmbed
 from utils.base import get_discord_timestamp
 from utils.config import Configuration
@@ -21,8 +22,7 @@ class Deletions(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message_delete(self, message: nextcord.Message):
-        if message.guild is None:
-            return
+        ignored_message(self.config, message, ignore_channels=False)
 
         message_has_images: bool = False
 

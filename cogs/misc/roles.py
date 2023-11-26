@@ -9,7 +9,7 @@ import nextcord
 
 
 class Roles(commands.Cog):
-    def __init__(self, bot, config: Configuration):
+    def __init__(self, bot: commands.Bot, config: Configuration):
         self.bot = bot
         self.config = config
 
@@ -341,7 +341,7 @@ class Roles(commands.Cog):
         await ctx.send(embed=opt_in_embed, view=button_view)
 
     @commands.Cog.listener()
-    async def on_member_join(self, member):
+    async def on_member_join(self, member: nextcord.Member):
         if member.bot:  # do not apply newbie role do bots
             return
 
@@ -349,7 +349,7 @@ class Roles(commands.Cog):
         await member.add_roles(newbie_role)
 
     @commands.Cog.listener()
-    async def on_message(self, message):
+    async def on_message(self, message: nextcord.Message):
         if message.author.bot:  # ignores message if message is by bot
             return
 

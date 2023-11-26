@@ -17,7 +17,7 @@ class Photos(commands.Cog):
         if message.channel.id != self.config.channels.photography:
             return
 
-        elif message.author == self.bot.user:  # ignores message if message is by bot
+        elif message.author.bot: # ignores message if message is by bot
             return
 
         # if there are no attachments whatsoever

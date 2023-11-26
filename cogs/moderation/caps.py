@@ -37,6 +37,7 @@ class Caps(commands.Cog):
     async def on_message(self, message: nextcord.Message):
         if ignored_message(self.config, message):
             return
+
         need_replacement: bool = False
 
         # remove emotes
