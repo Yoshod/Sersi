@@ -63,16 +63,11 @@ def rm_slur(slur):
         for item in slurs_list:
             slurs.extend(leet(item))
 
-    slur_comb(slur)
     with db_session() as session:
         session.query(Slur).filter_by(slur=slur).delete()
         session.commit()
-
-
-def slur_comb(slur):
-    for word in goodword:
-        if slur in word:
-            goodword.remove(word)
+    
+    load_goodwords()
 
 
 def rm_goodword(word: str):
