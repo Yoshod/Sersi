@@ -411,8 +411,8 @@ class Ticket(_Base):
 
     creator = Column(Integer, nullable=False)
     channel = Column(Integer, nullable=False)
-    category = Column(String, ForeignKey("ticket_categories.category"))
-    subcategory = Column(String, ForeignKey("ticket_categories.subcategory"))
+    category = Column(String)
+    subcategory = Column(String)
 
     opening_comment = Column(String)
     closing_comment = Column(String)
