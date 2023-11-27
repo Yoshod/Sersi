@@ -16,7 +16,7 @@ def is_older_than_five_seconds(created_at: datetime.datetime):
 
 
 class Deletions(commands.Cog):
-    def __init__(self, bot, config: Configuration):
+    def __init__(self, bot: commands.Bot, config: Configuration):
         self.bot = bot
         self.config = config
 

@@ -207,7 +207,7 @@ class CetAppModal(Modal):
 
 
 class Applications(commands.Cog):
-    def __init__(self, bot, config: Configuration):
+    def __init__(self, bot: commands.Bot, config: Configuration):
         self.bot = bot
         self.config = config
         self.sersisuccess = config.emotes.success

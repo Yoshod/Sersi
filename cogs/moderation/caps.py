@@ -10,7 +10,7 @@ from utils.webhooks import send_webhook_message
 
 
 class Caps(commands.Cog):
-    def __init__(self, bot, config: Configuration):
+    def __init__(self, bot: commands.Bot, config: Configuration):
         self.sersisuccess = config.emotes.success
         self.sersifail = config.emotes.fail
         self.bot = bot
