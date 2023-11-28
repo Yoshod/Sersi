@@ -229,11 +229,15 @@ def create_case_embed(
         fields.append({"Last Modified": f"<t:{int(case.modified.timestamp())}:R>"})
 
     offender = interaction.guild.get_member(case.offender)
+    moderator = interaction.guild.get_member(case.moderator)
 
     return SersiEmbed(
         fields=fields,
         thumbnail_url=offender.display_avatar.url if offender else None,
         footer="Sersi Case Tracking",
+    ).set_author(
+        name=moderator.display_name if moderator else case.moderator,
+        icon_url=moderator.display_avatar.url if moderator else None,
     )
 
 
