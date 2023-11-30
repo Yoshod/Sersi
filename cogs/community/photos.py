@@ -4,7 +4,7 @@ from utils.config import Configuration
 
 
 class Photos(commands.Cog):
-    def __init__(self, bot, config: Configuration):
+    def __init__(self, bot: commands.Bot, config: Configuration):
         self.bot = bot
         self.config = config
         self.emotes = ["👍", "❤", "😲"]
@@ -17,7 +17,7 @@ class Photos(commands.Cog):
         if message.channel.id != self.config.channels.photography:
             return
 
-        elif message.author == self.bot.user:  # ignores message if message is by bot
+        elif message.author.bot: # ignores message if message is by bot
             return
 
         # if there are no attachments whatsoever

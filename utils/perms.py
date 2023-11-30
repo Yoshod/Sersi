@@ -58,15 +58,19 @@ async def permcheck(
             await hook.response.send_message(
                 f"{config.emotes.fail} Permission denied.", ephemeral=True
             )
+            
+            embed_fields = {
+                "User:": f"{hook.user} ({hook.user.id})",
+                "Channel:": f"{hook.channel.mention} ({hook.channel.id})",
+            }
+            if hook.message:
+                embed_fields["Message:"] = hook.message.jump_url
 
             await hook.guild.get_channel(config.channels.logging).send(
                 embed=SersiEmbed(
                     title="Unauthorised Interaction",
                     colour=nextcord.Colour.brand_red(),
-                    fields={
-                        "User:": f"{hook.user} ({hook.user.id})",
-                        "Message:": hook.message.jump_url,
-                    },
+                    fields=embed_fields,
                 )
             )
 

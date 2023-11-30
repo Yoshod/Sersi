@@ -5,6 +5,7 @@ import nextcord
 from nextcord.ext import commands
 import chat_exporter
 
+from utils.base import ignored_message
 from utils.sersi_embed import SersiEmbed
 from utils.base import get_discord_timestamp
 from utils.config import Configuration
@@ -15,14 +16,13 @@ def is_older_than_five_seconds(created_at: datetime.datetime):
 
 
 class Deletions(commands.Cog):
-    def __init__(self, bot, config: Configuration):
+    def __init__(self, bot: commands.Bot, config: Configuration):
         self.bot = bot
         self.config = config
 
     @commands.Cog.listener()
     async def on_message_delete(self, message: nextcord.Message):
-        if message.guild is None:
-            return
+        ignored_message(self.config, message, ignore_channels=False)
 
         message_has_images: bool = False
 

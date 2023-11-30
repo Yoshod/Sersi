@@ -8,12 +8,18 @@ from nextcord.ext import commands
 
 from utils.database import (
     db_session,
+    Case,
+    CaseAudit,
     BadFaithPingCase,
     ProbationCase,
     ReformationCase,
     SlurUsageCase,
     CaseApproval,
+    ScrubbedCase,
+    PeerReview,
     Offence,
+    Note,
+    NoteEdits,
     TicketCategory,
     Slur,
     Goodword,
@@ -21,6 +27,7 @@ from utils.database import (
 )
 from utils.config import Configuration
 from utils.perms import is_sersi_contributor, permcheck
+from utils.sersi_embed import SersiEmbed
 from slurdetector import leet
 
 
@@ -270,7 +277,7 @@ class Database(commands.Cog):
     ):
         if not await permcheck(interaction, is_sersi_contributor):
             return
-        
+
         if not self.config.bot.dev_mode:
             await interaction.response.send_message(
                 "This command is not allowed on live Sersi!",
@@ -296,6 +303,135 @@ class Database(commands.Cog):
         finally:
             cursor.close()
             conn.close()
+
+    @database.subcommand(
+        description="Execute a raw SQL query on the Sersi Database",
+    )
+    async def execute(
+        self,
+        interaction: nextcord.Interaction,
+        query: str = nextcord.SlashOption(
+            name="query", description="The query you are executing"
+        ),
+    ):
+        if not await permcheck(interaction, is_sersi_contributor):
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        conn = sqlite3.connect(self.config.datafiles.sersi_db)
+        cursor = conn.cursor()
+
+        try:
+            cursor.execute(query)
+            conn.commit()
+            await interaction.followup.send(
+                f"{self.config.emotes.success}The query has been executed."
+            )
+
+            # logging
+            interaction.guild.get_channel(self.config.channels.logging).send(
+                embed=SersiEmbed(
+                    title="SQL Query Executed",
+                    fields={
+                        "Query:": query,
+                        "User:": f"{interaction.user} ({interaction.user.id})",
+                    },
+                    footer="Sersi Database",
+                ).set_author(
+                    name=interaction.user.display_name,
+                    icon_url=interaction.user.avatar.url,
+                )
+            )
+
+        except sqlite3.Error as error_code:
+            await interaction.followup.send(
+                f"{self.config.emotes.fail}An error occurred: {error_code}"
+            )
+        finally:
+            cursor.close()
+            conn.close()
+
+    @database.subcommand()
+    async def cleanup(self, interaction: nextcord.Interaction):
+        pass
+
+    @cleanup.subcommand(
+        description="Deletes orphaned records that should have been cascade deleted"
+    )
+    async def prune_orphans(self, interaction: nextcord.Interaction):
+        if not await permcheck(interaction, is_sersi_contributor):
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        with db_session(interaction.user) as session:
+            goodwords = (
+                session.query(Goodword)
+                .filter(Goodword.slur.not_in(session.query(Slur.slur)))
+                .delete()
+            )
+
+            case_logs = (
+                session.query(CaseAudit)
+                .filter(CaseAudit.case_id.not_in(session.query(Case.id)))
+                .delete()
+            )
+
+            case_approvals = (
+                session.query(CaseApproval)
+                .filter(CaseApproval.case_id.not_in(session.query(Case.id)))
+                .delete()
+            )
+
+            scrubbed_cases = (
+                session.query(ScrubbedCase)
+                .filter(ScrubbedCase.case_id.not_in(session.query(Case.id)))
+                .delete()
+            )
+
+            peer_reviews = (
+                session.query(PeerReview)
+                .filter(PeerReview.case_id.not_in(session.query(Case.id)))
+                .delete()
+            )
+
+            note_edits = (
+                session.query(NoteEdits)
+                .filter(NoteEdits.note_id.not_in(session.query(Note.id)))
+                .delete()
+            )
+
+            session.commit()
+
+        total = (
+            goodwords
+            + case_logs
+            + case_approvals
+            + scrubbed_cases
+            + peer_reviews
+            + note_edits
+        )
+
+        if total == 0:
+            await interaction.followup.send(
+                f"{self.config.emotes.success} No orphaned records found."
+            )
+            return
+
+        log = [
+            f"- {goodwords:3} Goodwords" if goodwords else None,
+            f"- {case_logs:3} Case Logs" if case_logs else None,
+            f"- {case_approvals:3} Case Approvals" if case_approvals else None,
+            f"- {scrubbed_cases:3} Scrubbed Cases" if scrubbed_cases else None,
+            f"- {peer_reviews:3} Peer Reviews" if peer_reviews else None,
+            f"- {note_edits:3} Note Edits" if note_edits else None,
+        ]
+
+        await interaction.followup.send(
+            f"{self.config.emotes.success} Pruned {total} orphaned records from the database:\n"
+            + "\n".join([line for line in log if line])
+        )
 
 
 def setup(bot: commands.Bot, **kwargs):

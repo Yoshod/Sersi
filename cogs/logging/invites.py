@@ -3,18 +3,22 @@ from nextcord.ext import commands
 
 import re
 
+from utils.base import ignored_message
 from utils.sersi_embed import SersiEmbed
 from utils.config import Configuration
 
 
 class Invites(commands.Cog):
-    def __init__(self, bot, config: Configuration):
+    def __init__(self, bot: commands.Bot, config: Configuration):
         self.bot = bot
         self.config = config
         self.invite_regex = re.compile(r"discord.gg/[A-Za-z0-9]+")
 
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.Message):
+        if ignored_message(self.config, message, ignore_channels=False):
+            return
+
         if not self.invite_regex.search(message.content):
             return
 

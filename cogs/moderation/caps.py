@@ -10,7 +10,7 @@ from utils.webhooks import send_webhook_message
 
 
 class Caps(commands.Cog):
-    def __init__(self, bot, config: Configuration):
+    def __init__(self, bot: commands.Bot, config: Configuration):
         self.sersisuccess = config.emotes.success
         self.sersifail = config.emotes.fail
         self.bot = bot
@@ -37,6 +37,7 @@ class Caps(commands.Cog):
     async def on_message(self, message: nextcord.Message):
         if ignored_message(self.config, message):
             return
+
         need_replacement: bool = False
 
         # remove emotes
@@ -77,9 +78,10 @@ class Caps(commands.Cog):
         # count uppercase chars
         uppercase = sum(1 for char in new_msg_string if char.isupper())
 
-        if (uppercase / len(new_msg_string)) > 0.7 and len(new_msg_string) > int(
-            self.MIN_CHARS_FOR_DETECTION
-        ):
+        if (
+            len(new_msg_string) > int(self.MIN_CHARS_FOR_DETECTION)
+            and uppercase / len(new_msg_string)
+        ) > 0.7:
             need_replacement = True
 
         if not need_replacement:

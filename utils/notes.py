@@ -87,4 +87,10 @@ def create_note_embed(note: Note, interaction: nextcord.Interaction) -> SersiEmb
 
     note_embed.set_footer(text="Sersi Notes")
 
+    if moderator := interaction.guild.get_member(note.author):
+        note_embed.set_author(
+            name=moderator.display_name,
+            icon_url=moderator.display_avatar.url,
+        )
+
     return note_embed

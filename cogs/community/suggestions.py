@@ -21,7 +21,7 @@ from utils.database import (
 
 
 class Suggestions(commands.Cog):
-    def __init__(self, bot, config: Configuration):
+    def __init__(self, bot: commands.Bot, config: Configuration):
         self.bot = bot
         self.config = config
 

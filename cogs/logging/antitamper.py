@@ -12,16 +12,19 @@ class Antitamper(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message_delete(self, message: nextcord.Message):
+        if message.guild is None:
+            return
+
+        # ignore if message was not from logging section
+        if message.channel.category.id != self.config.channels.logging_category:
+            return
+    
         # fetch the last deleted message
         log: nextcord.AuditLogEntry = (
             await message.guild.audit_logs(
                 action=nextcord.AuditLogAction.message_delete, limit=1
             ).flatten()
         )[0]
-
-        # ignore if message was not from logging section
-        if message.channel.category.id != self.config.channels.logging_category:
-            return
 
         channel = message.guild.get_channel(self.config.channels.tamper_logs)
         await channel.send(

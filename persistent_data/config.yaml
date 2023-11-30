@@ -6,7 +6,7 @@ bot:
     status: "Sword and shield"
     port:   8074 # 8074 for live, 8113 for unstable
     minimum caps length: 8
-    version: "5.0.1"
+    version: "5.0.2"
     git_url: "https://github.com/Yoshod/Sersi"
     authors:
         - "• Hekkland#0001 `261870562798731266`"

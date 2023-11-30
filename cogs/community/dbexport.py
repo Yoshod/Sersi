@@ -9,7 +9,7 @@ from utils.perms import is_sersi_contributor, permcheck
 
 
 class DBExport(commands.Cog):
-    def __init__(self, bot, config: Configuration):
+    def __init__(self, bot: commands.Bot, config: Configuration):
         self.bot = bot
         self.config = config
 

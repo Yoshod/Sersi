@@ -2,7 +2,12 @@ import datetime
 from nextcord.ext import commands
 import nextcord
 
-from utils.base import PageView, convert_to_timedelta
+from utils.base import (
+    PageView,
+    convert_to_timedelta,
+    decode_button_id,
+    decode_snowflake,
+)
 from utils.cases import (
     fetch_cases_by_partial_id,
     create_case_embed,
@@ -10,6 +15,7 @@ from utils.cases import (
     get_case_by_id,
     get_case_audit_logs,
     validate_case_edit,
+    decode_case_kwargs,
 )
 from utils.config import Configuration
 from utils.database import (
@@ -616,11 +622,13 @@ class Cases(commands.Cog):
                         f"{self.config.emotes.success} Case Updated", embed=case_embed
                     )
                     return
-            
+
             case ReformationCase():
                 with db_session(interaction.user) as session:
                     sersi_case = (
-                        session.query(ReformationCase).filter_by(id=sersi_case.id).first()
+                        session.query(ReformationCase)
+                        .filter_by(id=sersi_case.id)
+                        .first()
                     )
                     if offence != sersi_case.offence and offence is not None:
                         sersi_case.offence = offence
@@ -651,7 +659,9 @@ class Cases(commands.Cog):
 
                     session.commit()
                     sersi_case = (
-                        session.query(ReformationCase).filter_by(id=sersi_case.id).first()
+                        session.query(ReformationCase)
+                        .filter_by(id=sersi_case.id)
+                        .first()
                     )
 
                     case_embed = create_case_embed(sersi_case, interaction, self.config)
@@ -661,7 +671,6 @@ class Cases(commands.Cog):
                     )
 
                     return
-
 
     @edit.on_autocomplete("offence")
     async def search_offences(self, interaction: nextcord.Interaction, offence: str):
@@ -749,7 +758,7 @@ class Cases(commands.Cog):
     ):
         if not await permcheck(interaction, is_senior_mod):
             return
-        
+
         if not self.config.bot.dev_mode:
             await interaction.response.send_message(
                 "This command is WIP and is currently disabled."
@@ -802,6 +811,44 @@ class Cases(commands.Cog):
 
         cases = fetch_cases_by_partial_id(case)
         await interaction.response.send_autocomplete(cases)
+
+    @commands.Cog.listener()
+    async def on_interaction(self, interaction: nextcord.Interaction):
+        if interaction.data is None or interaction.data.get("custom_id") is None:
+            return
+        if not interaction.data["custom_id"].startswith("cases"):
+            return
+
+        if not await permcheck(interaction, is_mod):
+            return
+
+        if not interaction.response.is_done():
+            await interaction.response.defer(ephemeral=True)
+
+        action, args, kwargs = decode_button_id(interaction.data["custom_id"])
+
+        match action:
+            case "cases":
+                cases_embed = SersiEmbed(title=f"{interaction.guild.name} Cases")
+                if not interaction.user.is_on_mobile():
+                    cases_embed.set_thumbnail(interaction.guild.icon.url)
+
+                view = PageView(
+                    config=self.config,
+                    base_embed=cases_embed,
+                    fetch_function=fetch_all_cases,
+                    author=interaction.user,
+                    entry_form="{entry}",
+                    field_title="{entries[0].list_entry_header}",
+                    inline_fields=False,
+                    cols=10,
+                    per_col=1,
+                    init_page=1,
+                    ephemeral=True,
+                    **decode_case_kwargs(kwargs),
+                )
+
+                await view.send_followup(interaction)
 
 
 def setup(bot: commands.Bot, **kwargs):
