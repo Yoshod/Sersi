@@ -1,5 +1,5 @@
 import nextcord
-from utils.base import SersiEmbed
+from utils.base import SersiEmbed, encode_button_id, encode_snowflake
 from utils.config import Configuration
 from utils.database import WarningCase, db_session, VoteDetails, BanCase
 
@@ -9,7 +9,7 @@ class WhoisCasesButton(nextcord.ui.Button):
         super().__init__(
             style=nextcord.ButtonStyle.blurple,
             label="Cases",
-            custom_id=f"whois-cases:{user_id}",
+            custom_id=encode_button_id("cases", user=encode_snowflake(user_id)),
             disabled=False,
         )
 
@@ -24,11 +24,24 @@ class WhoisNotesButton(nextcord.ui.Button):
         )
 
 
+class WhoisWarningsButton(nextcord.ui.Button):
+    def __init__(self, user_id: int):
+        super().__init__(
+            style=nextcord.ButtonStyle.blurple,
+            label="Warnings",
+            custom_id=encode_button_id(
+                "cases", user=encode_snowflake(user_id), type="Warning"
+            ),
+            disabled=False,
+        )
+
+
 class WhoisView(nextcord.ui.View):
     def __init__(self, user_id: int):
         super().__init__(timeout=None, auto_defer=False)
         self.add_item(WhoisCasesButton(user_id))
         self.add_item(WhoisNotesButton(user_id))
+        self.add_item(WhoisWarningsButton(user_id))
 
 
 def _get_user_ban(user_id: int) -> BanCase | None:

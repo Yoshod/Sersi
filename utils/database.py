@@ -5,32 +5,27 @@ import re
 
 import nextcord
 import sqlalchemy
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, event
 from sqlalchemy.orm import Session, relationship
 from sqlalchemy.ext.declarative import declarative_base
-from shortuuid.main import int_to_string, string_to_int
 
 
-from utils.base import limit_string
-
-# base on https://github.com/skorokithakis/shortuuid
-_alphabet = list("23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz")
-
-
-def encode_snowflake(snowflake: int) -> str:
-    return int_to_string(snowflake, _alphabet, padding=11)
-
-
-def decode_snowflake(string: str) -> int:
-    return string_to_int(string, _alphabet)
+from utils.base import limit_string, encode_snowflake
 
 
 def random_id() -> str:
-    return "".join(random.sample(_alphabet, 11))
+    return encode_snowflake(random.getrandbits(64))
 
 
 _engine = sqlalchemy.create_engine("sqlite:///persistent_data/sersi.db")
 _Base = declarative_base()
+
+
+@event.listens_for(_engine, "connect")
+def set_sqlite_pragma(dbapi_connection, connection_record):
+    cursor = dbapi_connection.cursor()
+    cursor.execute("PRAGMA foreign_keys=ON")
+    cursor.close()
 
 
 def db_session(owner: int | nextcord.User | nextcord.Member = None):
@@ -404,8 +399,8 @@ class Ticket(_Base):
 
     creator = Column(Integer, nullable=False)
     channel = Column(Integer, nullable=False)
-    category = Column(String, ForeignKey("ticket_categories.category"))
-    subcategory = Column(String, ForeignKey("ticket_categories.subcategory"))
+    category = Column(String)
+    subcategory = Column(String)
 
     opening_comment = Column(String)
     closing_comment = Column(String)

@@ -3,7 +3,7 @@ import typing
 import nextcord
 import datetime
 
-from utils.base import get_page
+from utils.base import get_page, decode_snowflake
 from utils.sersi_embed import SersiEmbed
 from utils.config import Configuration
 from utils.database import (
@@ -230,11 +230,18 @@ def create_case_embed(
 
     offender = interaction.guild.get_member(case.offender)
 
-    return SersiEmbed(
+    embed = SersiEmbed(
         fields=fields,
         thumbnail_url=offender.display_avatar.url if offender else None,
         footer="Sersi Case Tracking",
     )
+
+    if moderator := interaction.guild.get_member(case.moderator):
+        embed.set_author(
+            name=moderator.display_name,
+            icon_url=moderator.display_avatar.url,
+        )
+    return embed
 
 
 def get_case_by_id(case_id: str) -> typing.Type[Case] | None:
@@ -422,4 +429,21 @@ async def check_if_banned(user_id: int, guild: nextcord.Guild) -> bool:
 
 
 async def check_if_timeout(member: nextcord.Member) -> bool:
-    return member.communication_disabled_until
+    return bool(member.communication_disabled_until)
+
+
+def decode_case_kwargs(kwargs: dict):
+    decoded = {**kwargs}
+
+    case_type = decoded.pop("type", None)
+    offender_id = decoded.pop("user", None)
+    moderator_id = decoded.pop("mod", None)
+
+    if case_type:
+        decoded["case_type"] = case_type
+    if offender_id:
+        decoded["offender_id"] = decode_snowflake(offender_id)
+    if moderator_id:
+        decoded["moderator_id"] = decode_snowflake(moderator_id)
+
+    return decoded

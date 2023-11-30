@@ -26,7 +26,7 @@ bot:
     status: "melanie did this"
     port:   8113 # 8074 for live, 8113 for unstable
     minimum caps length: 8
-    version: "5.0.1"
+    version: "5.0.2"
     git_url: "https://github.com/Yoshod/Sersi"
     authors:
         - "• Hekkland#0001 `261870562798731266`"

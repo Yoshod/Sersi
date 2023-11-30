@@ -6,6 +6,7 @@ from nextcord.ui import View, Button
 # Library Imports
 import re
 import datetime
+from shortuuid.main import int_to_string, string_to_int
 
 # Sersi Config Imports
 import utils.config
@@ -117,7 +118,6 @@ class ConfirmView(nextcord.ui.View):
         self.author: nextcord.Member
 
     async def cb_cancel(self, interaction: nextcord.Interaction):
-        print("confirm view cancel")
         await interaction.message.edit(
             content="Action canceled!", embed=None, view=None
         )
@@ -241,8 +241,8 @@ class DualCustodyView(View):
                     embed=SersiEmbed(
                         title=title,
                         description="Pending review by another moderator",
-                        ephemeral=True,
-                    )
+                    ),
+                    ephemeral=True,
                 )
 
             return dual_custody
@@ -364,16 +364,21 @@ def convert_mention_to_id(mention: str) -> int:
 
 
 def ignored_message(
-    config: utils.config.Configuration, message: nextcord.Message
+    config: utils.config.Configuration,
+    message: nextcord.Message,
+    *,
+    ignore_bots: bool = True,
+    ignore_channels: bool = True,
+    ignore_categories: bool = True,
 ) -> bool:
     """Check if a message should be ignored by the bot."""
     if message.guild is None:
         return True  # ignore DMs
-    if message.author.bot:
+    if ignore_bots and message.author.bot:
         return True  # ignore bots
-    if message.channel.id in config.ignored_channels.values():
+    if ignore_channels and message.channel.id in config.ignored_channels.values():
         return True  # ignore specified channels
-    if message.channel.category.name in config.ignored_categories:
+    if ignore_categories and message.channel.category.name in config.ignored_categories:
         return True  # ignore specified categories
     return False
 
@@ -403,3 +408,43 @@ def limit_string(string: str, length: int = 1024) -> str:
         return string[: length - 3].rstrip(" .,\n") + "..."
     else:
         return string
+
+
+# base on https://github.com/skorokithakis/shortuuid
+_alphabet = list("23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz")
+
+
+def encode_snowflake(snowflake: int) -> str:
+    return int_to_string(snowflake, _alphabet, padding=11)
+
+
+def decode_snowflake(string: str) -> int:
+    return string_to_int(string, _alphabet)
+
+
+def encode_button_id(label: str, *args, **kwargs) -> str:
+    id = ":".join(
+        [label, *args, *[f"{key}={value}" for key, value in kwargs.items()]]
+    )
+
+    if len(id) > 100:
+        raise ValueError("Button ID too long, must be <= 100 characters.")
+    
+    return id
+
+
+def decode_button_id(custom_id: str) -> tuple[str, list[str], dict[str, str]]:
+    split = custom_id.split(":")
+    label = split[0]
+    args = []
+    kwargs = {}
+
+    for arg in split[1:]:
+        if "=" not in arg:
+            args.append(arg)
+            continue
+
+        key, value = arg.split("=")
+        kwargs[key] = value
+
+    return label, args, kwargs
