@@ -27,6 +27,7 @@ from utils.database import (
 )
 from utils.config import Configuration
 from utils.perms import is_sersi_contributor, permcheck
+from utils.sersi_embed import SersiEmbed
 from slurdetector import leet
 
 
@@ -302,7 +303,6 @@ class Database(commands.Cog):
         finally:
             cursor.close()
             conn.close()
-        
 
     @database.subcommand(
         description="Execute a raw SQL query on the Sersi Database",
@@ -328,6 +328,22 @@ class Database(commands.Cog):
             await interaction.followup.send(
                 f"{self.config.emotes.success}The query has been executed."
             )
+
+            # logging
+            interaction.guild.get_channel(self.config.channels.logging).send(
+                embed=SersiEmbed(
+                    title="SQL Query Executed",
+                    fields={
+                        "Query:": query,
+                        "User:": f"{interaction.user} ({interaction.user.id})",
+                    },
+                    footer="Sersi Database",
+                ).set_author(
+                    name=interaction.user.display_name,
+                    icon_url=interaction.user.avatar.url,
+                )
+            )
+
         except sqlite3.Error as error_code:
             await interaction.followup.send(
                 f"{self.config.emotes.fail}An error occurred: {error_code}"
@@ -335,8 +351,6 @@ class Database(commands.Cog):
         finally:
             cursor.close()
             conn.close()
-
-        
 
     @database.subcommand()
     async def cleanup(self, interaction: nextcord.Interaction):
