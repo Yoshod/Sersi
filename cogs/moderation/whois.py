@@ -1,7 +1,6 @@
 import nextcord
 from nextcord.ext import commands
 from utils.base import PageView
-from utils.cases import fetch_all_cases
 
 from utils.config import Configuration
 from utils.notes import fetch_notes
@@ -125,28 +124,6 @@ class WhoisSystem(commands.Cog):
         await interaction.response.defer(ephemeral=True)
 
         match btn_id.split(":", 1):
-            case ["whois-cases", user_id]:
-                cases_embed = SersiEmbed(title=f"{interaction.guild.name} Cases")
-                if not interaction.user.is_on_mobile():
-                    cases_embed.set_thumbnail(interaction.guild.icon.url)
-
-                view = PageView(
-                    config=self.config,
-                    base_embed=cases_embed,
-                    fetch_function=fetch_all_cases,
-                    author=interaction.user,
-                    entry_form="{entry}",
-                    field_title="{entries[0].list_entry_header}",
-                    inline_fields=False,
-                    cols=10,
-                    per_col=1,
-                    init_page=1,
-                    ephemeral=True,
-                    offender_id=user_id,
-                )
-
-                await view.send_followup(interaction)
-
             case ["whois-notes", user_id]:
                 note_embed = SersiEmbed(title=f"{interaction.guild.name} Notes")
                 note_embed.set_thumbnail(interaction.guild.icon.url)

@@ -8,25 +8,13 @@ import sqlalchemy
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, event
 from sqlalchemy.orm import Session, relationship
 from sqlalchemy.ext.declarative import declarative_base
-from shortuuid.main import int_to_string, string_to_int
 
 
-from utils.base import limit_string
-
-# base on https://github.com/skorokithakis/shortuuid
-_alphabet = list("23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz")
-
-
-def encode_snowflake(snowflake: int) -> str:
-    return int_to_string(snowflake, _alphabet, padding=11)
-
-
-def decode_snowflake(string: str) -> int:
-    return string_to_int(string, _alphabet)
+from utils.base import limit_string, encode_snowflake
 
 
 def random_id() -> str:
-    return "".join(random.sample(_alphabet, 11))
+    return encode_snowflake(random.getrandbits(64))
 
 
 _engine = sqlalchemy.create_engine("sqlite:///persistent_data/sersi.db")
