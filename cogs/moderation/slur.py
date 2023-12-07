@@ -1,9 +1,7 @@
 import asyncio
-from datetime import datetime, timezone
 import nextcord
 from nextcord.ext import commands
 
-import utils
 from utils.sersi_embed import SersiEmbed
 from utils.base import (
     sanitize_mention,
@@ -21,11 +19,13 @@ from slurdetector import (
     load_slurdetector,
     detect_slur,
 )
+from utils.logs import create_alert_log, AlertType, add_response_time
 
 
 class ActionTakenButton(nextcord.ui.Button):
-    def __init__(self, config: Configuration):
+    def __init__(self, config: Configuration, alert_id: str):
         super().__init__(label="Action Taken")
+        super().__init__(custom_id=alert_id)
         self.config = config
 
     async def callback(self, interaction: nextcord.Interaction) -> None:
@@ -55,8 +55,6 @@ class ActionTakenButton(nextcord.ui.Button):
 
         member = interaction.guild.get_member(int(sanitize_mention(case_data[0])))
 
-        timestamp = datetime.now(timezone.utc)
-
         with db_session(interaction.user) as session:
             session.add(
                 SlurUsageCase(
@@ -67,12 +65,13 @@ class ActionTakenButton(nextcord.ui.Button):
             )
             session.commit()
 
-        await utils.logs.update_response(self.config, interaction.message, timestamp)
+        await add_response_time(interaction.data["custom_id"])
 
 
 class AcceptableUseButton(nextcord.ui.Button):
-    def __init__(self, config: Configuration):
+    def __init__(self, config: Configuration, alert_id: str):
         super().__init__(label="Acceptable Use")
+        super().__init__(custom_id=alert_id)
         self.config = config
 
     async def callback(self, interaction: nextcord.Interaction) -> None:
@@ -97,14 +96,13 @@ class AcceptableUseButton(nextcord.ui.Button):
             )
         )
 
-        await utils.logs.update_response(
-            self.config, interaction.message, datetime.now(timezone.utc)
-        )
+        await add_response_time(interaction.data["custom_id"])
 
 
 class FalsePositiveButton(nextcord.ui.Button):
-    def __init__(self, config: Configuration):
+    def __init__(self, config: Configuration, alert_id: str):
         super().__init__(label="False Positive")
+        super().__init__(custom_id=alert_id)
         self.config = config
 
     async def callback(self, interaction: nextcord.Interaction) -> None:
@@ -143,9 +141,7 @@ class FalsePositiveButton(nextcord.ui.Button):
             )
         )
 
-        await utils.logs.update_response(
-            self.config, interaction.message, datetime.now(timezone.utc)
-        )
+        await add_response_time(interaction.data["custom_id"])
 
 
 class ViewCasesButton(nextcord.ui.Button):
@@ -233,11 +229,11 @@ class ViewNotesButton(nextcord.ui.Button):
 
 
 class SlurAlertButtons(nextcord.ui.View):
-    def __init__(self, config: Configuration, interaction_check):
+    def __init__(self, config: Configuration, interaction_check, alert_id: str):
         super().__init__(timeout=None)
-        self.add_item(ActionTakenButton(config))
-        self.add_item(AcceptableUseButton(config))
-        self.add_item(FalsePositiveButton(config))
+        self.add_item(ActionTakenButton(config, alert_id))
+        self.add_item(AcceptableUseButton(config, alert_id))
+        self.add_item(FalsePositiveButton(config, alert_id))
         self.add_item(ViewCasesButton(config))
         self.add_item(ViewNotesButton(config))
         self.interaction_check(interaction_check)
@@ -306,9 +302,7 @@ class Slur(commands.Cog):
                 view=SlurAlertButtons(self.config, cb_is_mod),
             )
 
-            await utils.logs.create_alert_log(
-                self.config, alert, utils.logs.AlertType.Slur, alert.created_at
-            )
+            await create_alert_log(alert, AlertType.Slur)
 
             await asyncio.sleep(10800)  # 3 hours
             updated_message = await alert.channel.fetch_message(alert.id)
@@ -338,9 +332,7 @@ class Slur(commands.Cog):
                 view=SlurAlertButtons(self.config, cb_is_mod),
             )
 
-            await utils.logs.create_alert_log(
-                self.config, alert, utils.logs.AlertType.Slur, alert.created_at
-            )
+            await create_alert_log(alert, AlertType.Slur)
 
             await asyncio.sleep(10800)  # 3 hours
             updated_message = await alert.channel.fetch_message(alert.id)
@@ -370,9 +362,7 @@ class Slur(commands.Cog):
                 view=SlurAlertButtons(self.config, cb_is_mod),
             )
 
-            await utils.logs.create_alert_log(
-                self.config, alert, utils.logs.AlertType.Slur, alert.created_at
-            )
+            await create_alert_log(alert, AlertType.Slur)
 
             await asyncio.sleep(10800)  # 3 hours
             updated_message = await alert.channel.fetch_message(alert.id)
@@ -405,9 +395,7 @@ class Slur(commands.Cog):
                 view=SlurAlertButtons(self.config, cb_is_mod),
             )
 
-            await utils.logs.create_alert_log(
-                self.config, alert, utils.logs.AlertType.Slur, alert.created_at
-            )
+            await create_alert_log(alert, AlertType.Slur)
 
             await asyncio.sleep(10800)  # 3 hours
             updated_message = await alert.channel.fetch_message(alert.id)
