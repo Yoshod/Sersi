@@ -305,6 +305,8 @@ class Slur(commands.Cog):
 
             view = SlurAlertButtons(self.config, cb_is_mod, alert_id)
 
+            await alert.edit(view=view)
+
             await asyncio.sleep(10800)  # 3 hours
             updated_message = await alert.channel.fetch_message(alert.id)
             if not updated_message.edited_at:
@@ -336,6 +338,8 @@ class Slur(commands.Cog):
 
             view = SlurAlertButtons(self.config, cb_is_mod, alert_id)
 
+            await alert.edit(view=view)
+
             await asyncio.sleep(10800)  # 3 hours
             updated_message = await alert.channel.fetch_message(alert.id)
             if not updated_message.edited_at:
@@ -366,6 +370,8 @@ class Slur(commands.Cog):
             alert_id: str = await create_alert_log(alert, AlertType.Slur)
 
             view = SlurAlertButtons(self.config, cb_is_mod, alert_id)
+
+            await alert.edit(view=view)
 
             await asyncio.sleep(10800)  # 3 hours
             updated_message = await alert.channel.fetch_message(alert.id)
@@ -400,6 +406,8 @@ class Slur(commands.Cog):
             alert_id: str = await create_alert_log(alert, AlertType.Slur)
 
             view = SlurAlertButtons(self.config, cb_is_mod, alert_id)
+
+            await alert.edit(view=view)
 
             await asyncio.sleep(10800)  # 3 hours
             updated_message = await alert.channel.fetch_message(alert.id)
