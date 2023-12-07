@@ -174,6 +174,8 @@ class ModPing(commands.Cog):
             button_view.add_item(bad_faith_ping)
             button_view.interaction_check = cb_is_mod
 
+            await alert.edit(view=button_view)
+
             await asyncio.sleep(10800)  # 3 hours
             updated_message = await alert.channel.fetch_message(alert.id)
             # If there are less than 5 fields that means there is no field for response
