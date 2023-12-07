@@ -73,6 +73,7 @@ class ModAppModal(Modal):
                 self.vc.label: self.vc.value,
                 "Blacklisted": self.config.emotes.success,
             }
+            send_to_user = False
 
         else:
             embed_fields = {
@@ -82,6 +83,7 @@ class ModAppModal(Modal):
                 self.age.label: self.age.value,
                 self.vc.label: self.vc.value,
             }
+            send_to_user = True
 
         application_embed = SersiEmbed(
             title="Moderator Application Sent",
@@ -118,6 +120,12 @@ class ModAppModal(Modal):
             f"{self.config.emotes.success} Your application has been received! Thanks for applying.",
             ephemeral=True,
         )
+
+        if send_to_user:
+            await interaction.user.send(
+                f"{self.config.emotes.success} Your application has been received! Below is a copy of your application.",
+                embed=application_embed,
+            )
 
 
 class CetAppModal(Modal):
