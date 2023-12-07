@@ -1,255 +1,19 @@
-import asyncio
-from datetime import datetime, timezone
 import nextcord
 from nextcord.ext import commands
 
-import utils
-from utils.sersi_embed import SersiEmbed
-from utils.base import (
-    sanitize_mention,
-    PageView,
-    format_entry,
-    convert_mention_to_id,
-    ignored_message,
-)
-from utils.cases import fetch_all_cases, slur_history, slur_virgin
+from utils.base import ignored_message, limit_string
+from utils.cases import slur_history, slur_virgin
 from utils.config import Configuration
-from utils.database import db_session, SlurUsageCase
-from utils.notes import fetch_notes
-from utils.perms import cb_is_mod
-from slurdetector import (
-    load_slurdetector,
-    detect_slur,
-)
-
-
-class ActionTakenButton(nextcord.ui.Button):
-    def __init__(self, config: Configuration):
-        super().__init__(label="Action Taken")
-        self.config = config
-
-    async def callback(self, interaction: nextcord.Interaction) -> None:
-        new_embed = interaction.message.embeds[0]
-        new_embed.add_field(
-            name="Action Taken By", value=interaction.user.mention, inline=False
-        )
-        new_embed.colour = nextcord.Colour.brand_green()
-        await interaction.message.edit(embed=new_embed, view=None)
-
-        # Logging
-        await interaction.guild.get_channel(self.config.channels.logging).send(
-            embed=SersiEmbed(
-                title="Action Taken Pressed",
-                description="Action has been taken by a moderator in response to a report.",
-                fields={
-                    "Report:": interaction.message.jump_url,
-                    "Moderator:": f"{interaction.user.mention} ({interaction.user.id})",
-                },
-            )
-        )
-
-        case_data = []
-        for field in new_embed.fields:
-            if field.name in ["User:", "Slurs Found:"]:
-                case_data.append(field.value)
-
-        member = interaction.guild.get_member(int(sanitize_mention(case_data[0])))
-
-        timestamp = datetime.now(timezone.utc)
-
-        with db_session(interaction.user) as session:
-            session.add(
-                SlurUsageCase(
-                    offender=member.id,
-                    moderator=interaction.user.id,
-                    slur_used=case_data[1],
-                )
-            )
-            session.commit()
-
-        await utils.logs.update_response(self.config, interaction.message, timestamp)
-
-
-class AcceptableUseButton(nextcord.ui.Button):
-    def __init__(self, config: Configuration):
-        super().__init__(label="Acceptable Use")
-        self.config = config
-
-    async def callback(self, interaction: nextcord.Interaction) -> None:
-        new_embed = interaction.message.embeds[0]
-        new_embed.add_field(
-            name="Usage Deemed Acceptable By",
-            value=interaction.user.mention,
-            inline=False,
-        )
-        new_embed.colour = nextcord.Colour.light_grey()
-        await interaction.message.edit(embed=new_embed, view=None)
-
-        # Logging
-        await interaction.guild.get_channel(self.config.channels.logging).send(
-            embed=SersiEmbed(
-                title="Acceptable Use Pressed",
-                description="Usage of a slur has been deemed acceptable by a moderator in response to a report.",
-                fields={
-                    "Report:": interaction.message.jump_url,
-                    "Moderator:": f"{interaction.user.mention} ({interaction.user.id})",
-                },
-            )
-        )
-
-        await utils.logs.update_response(
-            self.config, interaction.message, datetime.now(timezone.utc)
-        )
-
-
-class FalsePositiveButton(nextcord.ui.Button):
-    def __init__(self, config: Configuration):
-        super().__init__(label="False Positive")
-        self.config = config
-
-    async def callback(self, interaction: nextcord.Interaction) -> None:
-        new_embed = interaction.message.embeds[0]
-        new_embed.add_field(
-            name="Deemed As False Positive By:",
-            value=interaction.user.mention,
-            inline=False,
-        )
-        new_embed.colour = nextcord.Colour.brand_red()
-        await interaction.message.edit(embed=new_embed, view=None)
-        channel = interaction.guild.get_channel(self.config.channels.false_positives)
-
-        logging_embed: nextcord.Embed = SersiEmbed(title="Marked as false positive")
-
-        for field in new_embed.fields:
-            if field.name in ["Context:", "Slurs Found:"]:
-                logging_embed.add_field(
-                    name=field.name, value=field.value, inline=False
-                )
-
-        logging_embed.add_field(
-            name="Report URL:", value=interaction.message.jump_url, inline=False
-        )
-        await channel.send(embed=logging_embed)
-
-        # Logging
-        await interaction.guild.get_channel(self.config.channels.logging).send(
-            embed=SersiEmbed(
-                title="False Positive Pressed",
-                description="Detected slur has been deemed a false positive by a moderator in response to a report.",
-                fields={
-                    "Report:": interaction.message.jump_url,
-                    "Moderator:": f"{interaction.user.mention} ({interaction.user.id})",
-                },
-            )
-        )
-
-        await utils.logs.update_response(
-            self.config, interaction.message, datetime.now(timezone.utc)
-        )
-
-
-class ViewCasesButton(nextcord.ui.Button):
-    def __init__(self, config: Configuration):
-        super().__init__(label="View Slur Cases", row=1)
-        self.config = config
-
-    async def callback(self, interaction: nextcord.Interaction) -> None:
-        await interaction.response.defer(ephemeral=True)
-
-        original_embed = interaction.message.embeds[0]
-
-        for field in original_embed.fields:
-            if field.name.lower() == "user:":
-                offender = interaction.guild.get_member(
-                    convert_mention_to_id(field.value)
-                )
-                break
-
-        else:
-            interaction.followup.send(
-                f"{self.config.emotes.fail} Failed to return user cases"
-            )
-            return
-
-        cases_embed = SersiEmbed(title=f"{offender.name}'s Cases")
-        cases_embed.set_thumbnail(offender.display_avatar.url)
-
-        view = PageView(
-            config=self.config,
-            base_embed=cases_embed,
-            fetch_function=fetch_all_cases,
-            author=interaction.user,
-            entry_form="{entry}",
-            field_title="{entries[0].list_entry_header}",
-            inline_fields=False,
-            cols=10,
-            per_col=1,
-            offender_id=offender.id,
-            case_type="Slur Usage",
-        )
-
-        await view.send_followup(interaction)
-
-
-class ViewNotesButton(nextcord.ui.Button):
-    def __init__(self, config: Configuration):
-        super().__init__(label="View Notes", row=1)
-        self.config = config
-
-    async def callback(self, interaction: nextcord.Interaction) -> None:
-        await interaction.response.defer(ephemeral=True)
-
-        original_embed = interaction.message.embeds[0]
-
-        for field in original_embed.fields:
-            if field.name.lower() == "user:":
-                user = interaction.guild.get_member(convert_mention_to_id(field.value))
-                break
-
-        else:
-            interaction.followup.send(
-                f"{self.config.emotes.fail} Failed to return user notes"
-            )
-            return
-
-        note_embed = SersiEmbed(title=f"{user.name}'s Notes")
-        note_embed.set_thumbnail(user.display_avatar.url)
-
-        view = PageView(
-            config=self.config,
-            base_embed=note_embed,
-            fetch_function=fetch_notes,
-            author=interaction.user,
-            entry_form=format_entry,
-            field_title="{entries[0][0]}",
-            inline_fields=False,
-            cols=5,
-            per_col=1,
-            init_page=0,
-            member_id=str(user.id),
-        )
-
-        await view.send_followup(interaction)
-
-
-class SlurAlertButtons(nextcord.ui.View):
-    def __init__(self, config: Configuration, interaction_check):
-        super().__init__(timeout=None)
-        self.add_item(ActionTakenButton(config))
-        self.add_item(AcceptableUseButton(config))
-        self.add_item(FalsePositiveButton(config))
-        self.add_item(ViewCasesButton(config))
-        self.add_item(ViewNotesButton(config))
-        self.interaction_check(interaction_check)
+from utils.detection import SlurDetector, highlight_matches
+from utils.sersi_embed import SersiEmbed
 
 
 class Slur(commands.Cog):
     def __init__(self, bot: commands.Bot, config: Configuration):
         self.bot = bot
         self.config = config
-        self.sersisuccess = config.emotes.success
-        self.sersifail = config.emotes.fail
-        load_slurdetector()
+
+        self.slur_detector = SlurDetector()
 
     def _get_previous_cases(
         self, user: nextcord.User | nextcord.Member, slurs: list[str]
@@ -257,164 +21,150 @@ class Slur(commands.Cog):
         if slur_virgin(user):
             return f"{self.config.emotes.fail} The user is a first time offender."
 
-        else:
-            cases = slur_history(user, slurs)
+        cases = slur_history(user, slurs)
 
-            if not cases:
-                return (
-                    f"{self.config.emotes.success} The user has a history of using slurs that were not detected "
-                    f"in this message."
-                )
+        if not cases:
+            return (
+                f"{self.config.emotes.success} The user has a history of using slurs that were not detected "
+                f"in this message."
+            )
 
-            else:
-                prev_offences = (
-                    f"{self.config.emotes.success} The user has a history of using a slur detected in "
-                    "this message:"
-                )
-                for slur_case in cases:
-                    prev_offences += f"\n`{slur_case.id}` {slur_case.slur_used} <t:{int(slur_case.created.timestamp())}:R>"
+        prev_offences = (
+            f"{self.config.emotes.success} The user has a history of using a slur detected in "
+            "this message:"
+        )
+        for slur_case in cases:
+            prev_offences += f"\n`{slur_case.id}` {slur_case.slur_used} <t:{int(slur_case.created.timestamp())}:R>"
 
-                return prev_offences
+        return prev_offences
 
-    # events
     @commands.Cog.listener()
-    async def on_message(self, message: nextcord.message.Message):
+    async def on_message(self, message: nextcord.Message):
         if ignored_message(self.config, message):
             return
 
-        detected_slurs: list[str] = detect_slur(message.content)
+        slur_matches = self.slur_detector.find_slurs(message.content)
+        if not slur_matches:
+            return
 
-        if len(detected_slurs) > 0:  # checks slur heat
-            alert = await self.bot.get_channel(self.config.channels.alert).send(
-                embed=SersiEmbed(
-                    title="Slur(s) Detected",
-                    description="A slur has been detected. Moderation action is advised.",
-                    footer="Sersi Slur Detection Alert",
-                    fields={
-                        "Channel:": message.channel.mention,
-                        "User:": message.author.mention,
-                        "Context:": message.content
-                        if len(message.content) < 1024
-                        else "`MESSAGE TOO LONG`",
-                        "Slurs Found:": ", ".join(set(detected_slurs)),
-                        "URL:": message.jump_url,
-                        "Previous Slur Uses:": self._get_previous_cases(
-                            message.author, detected_slurs
-                        ),
-                    },
-                ),
-                view=SlurAlertButtons(self.config, cb_is_mod),
-            )
+        slurs = slur_matches.keys()
+        highlited = highlight_matches(message.content, sum(slur_matches.values(), []))
 
-            await utils.logs.create_alert_log(
-                self.config, alert, utils.logs.AlertType.Slur, alert.created_at
-            )
+        embed = SersiEmbed(
+            title="Slur(s) Detected in Message",
+            description=limit_string(highlited, 4096),
+            fields=[
+                {
+                    "User:": message.author.mention,
+                    "Channel:": message.channel.mention,
+                    "Message:": message.jump_url,
+                },
+                {"Slurs Found:": ", ".join(slurs)},
+                {
+                    "Previous Slur Uses:": self._get_previous_cases(
+                        message.author, slurs
+                    ),
+                },
+            ],
+        ).set_author(
+            name=message.author.display_name,
+            icon_url=str(message.author.avatar.url),
+        )
 
-            await asyncio.sleep(10800)  # 3 hours
-            updated_message = await alert.channel.fetch_message(alert.id)
-            if not updated_message.edited_at:
-                await alert.reply(
-                    content=f"<@&{self.config.permission_roles.moderator}> This alert has not had a recorded response."
-                )
-
+        await self.bot.get_channel(self.config.channels.alert).send(embed=embed)
+    
     @commands.Cog.listener()
     async def on_presence_update(self, before: nextcord.Member, after: nextcord.Member):
-        slurs: list[str] = detect_slur(after.status)
-        if slurs:
-            alert: nextcord.Message = await after.guild.get_channel(
-                self.config.channels.alert
-            ).send(
-                embed=SersiEmbed(
-                    title="Member changed their status to contain slurs",
-                    description="A slur has been detected. Moderation action is advised.",
-                    footer="Sersi Slur Detection Alert",
-                    fields={
-                        "User:": after.mention,
-                        "Status:": after.status,
-                        "Slurs Found:": ", ".join(set(slurs)),
-                        "Previous Slur Uses:": self._get_previous_cases(after, slurs),
-                    },
-                ),
-                view=SlurAlertButtons(self.config, cb_is_mod),
-            )
+        if not after.status:
+            return
+        
+        slur_matches = self.slur_detector.find_slurs(after.status)
+        if not slur_matches:
+            return
+        
+        slurs = slur_matches.keys()
+        highlited = highlight_matches(after.status, sum(slur_matches.values(), []))
 
-            await utils.logs.create_alert_log(
-                self.config, alert, utils.logs.AlertType.Slur, alert.created_at
-            )
+        embed = SersiEmbed(
+            title="Member changed their status to contain slurs",
+            description="A slur has been detected. Moderation action is advised.",
+            footer="Sersi Slur Detection Alert",
+            fields=[
+                {
+                    "User:": after.mention,
+                    "Status:": highlited,
+                    "Slurs Found:": ", ".join(set(slurs)),
+                },
+                {"Previous Slur Uses:": self._get_previous_cases(after, slurs)},
+            ],
+        ).set_author(
+            name=after.display_name,
+            icon_url=str(after.avatar.url),
+        )
 
-            await asyncio.sleep(10800)  # 3 hours
-            updated_message = await alert.channel.fetch_message(alert.id)
-            if not updated_message.edited_at:
-                await alert.reply(
-                    content=f"<@&{self.config.permission_roles.moderator}> This alert has not had a recorded response."
-                )
+        await self.bot.get_channel(self.config.channels.alert).send(embed=embed)
 
     @commands.Cog.listener()
     async def on_user_update(self, before: nextcord.User, after: nextcord.User):
-        slurs: list[str] = detect_slur(after.name)
-        if slurs:
-            alert: nextcord.Message = await self.bot.get_channel(
-                self.config.channels.alert
-            ).send(
-                embed=SersiEmbed(
-                    title="Member changed their username to contain slurs",
-                    description="A slur has been detected. Moderation action is advised.",
-                    footer="Sersi Slur Detection Alert",
-                    fields={
-                        "User:": after.mention,
-                        "Name:": after.name,
-                        "Slurs Found:": ", ".join(set(slurs)),
-                        "Previous Slur Uses:": self._get_previous_cases(after, slurs),
-                    },
-                ),
-                view=SlurAlertButtons(self.config, cb_is_mod),
-            )
+        if not after.name:
+            return
 
-            await utils.logs.create_alert_log(
-                self.config, alert, utils.logs.AlertType.Slur, alert.created_at
-            )
+        slur_matches = self.slur_detector.find_slurs(after.name)
+        if not slur_matches:
+            return
 
-            await asyncio.sleep(10800)  # 3 hours
-            updated_message = await alert.channel.fetch_message(alert.id)
-            if not updated_message.edited_at:
-                await alert.reply(
-                    content=f"<@&{self.config.permission_roles.moderator}> This alert has not had a recorded response."
-                )
+        slurs = slur_matches.keys()
+        highlited = highlight_matches(after.name, sum(slur_matches.values(), []))
+
+        embed = SersiEmbed(
+            title="User changed their username to contain slurs",
+            description="A slur has been detected. Moderation action is advised.",
+            footer="Sersi Slur Detection Alert",
+            fields=[
+                {
+                    "User:": after.mention,
+                    "Username:": highlited,
+                    "Slurs Found:": ", ".join(set(slurs)),
+                },
+                {"Previous Slur Uses:": self._get_previous_cases(after, slurs)},
+            ],
+        ).set_author(
+            name=after.display_name,
+            icon_url=str(after.avatar.url),
+        )
+
+        await self.bot.get_channel(self.config.channels.alert).send(embed=embed)
 
     @commands.Cog.listener()
     async def on_member_update(self, before: nextcord.Member, after: nextcord.Member):
         if not after.nick:
             return
 
-        slurs: list[str] = detect_slur(after.nick)
-        if slurs:
-            alert: nextcord.Message = await self.bot.get_channel(
-                self.config.channels.alert
-            ).send(
-                embed=SersiEmbed(
-                    title="Member changed their nickname to contain slurs",
-                    description="A slur has been detected. Moderation action is advised.",
-                    footer="Sersi Slur Detection Alert",
-                    fields={
-                        "User:": after.mention,
-                        "Nickname:": after.nick,
-                        "Slurs Found:": ", ".join(set(slurs)),
-                        "Previous Slur Uses:": self._get_previous_cases(after, slurs),
-                    },
-                ),
-                view=SlurAlertButtons(self.config, cb_is_mod),
-            )
+        slur_matches = self.slur_detector.find_slurs(after.nick)
+        if not slur_matches:
+            return
 
-            await utils.logs.create_alert_log(
-                self.config, alert, utils.logs.AlertType.Slur, alert.created_at
-            )
+        slurs = slur_matches.keys()
+        highlited = highlight_matches(after.nick, sum(slur_matches.values(), []))
 
-            await asyncio.sleep(10800)  # 3 hours
-            updated_message = await alert.channel.fetch_message(alert.id)
-            if not updated_message.edited_at:
-                await alert.reply(
-                    content=f"<@&{self.config.permission_roles.moderator}> This alert has not had a recorded response."
-                )
+        embed = SersiEmbed(
+            title="Member changed their nickname to contain slurs",
+            description="A slur has been detected. Moderation action is advised.",
+            footer="Sersi Slur Detection Alert",
+            fields=[
+                {
+                    "User:": after.mention,
+                    "Nickname:": highlited,
+                    "Slurs Found:": ", ".join(set(slurs)),
+                },
+                {"Previous Slur Uses:": self._get_previous_cases(after, slurs)},
+            ],
+        ).set_author(
+            name=after.display_name,
+            icon_url=str(after.avatar.url),
+        )
+
+        await self.bot.get_channel(self.config.channels.alert).send(embed=embed)
 
 
 def setup(bot: commands.Bot, **kwargs):

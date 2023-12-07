@@ -32,6 +32,19 @@ def _leet(word: str) -> list[str]:
     return ["".join(permutations) for permutations in product(*possibles)]
 
 
+def highlight_matches(text: str, matches: list[re.Match]) -> str | list[str]:
+    highlighted = ""
+    pos = 0
+    for match in matches:
+        highlighted += text[pos : match.start()]
+        highlighted += f"***__{text[match.start() : match.end()]}__***"
+        pos = match.end()
+
+    highlighted += text[pos:]
+
+    return re.sub(r"__\*{6}__", "", highlighted)
+
+
 @dataclass
 class SlurPattern:
     slur: str
