@@ -25,6 +25,8 @@ async def create_alert_log(
         session.add(alert)
         session.commit()
 
+        return session.query(Alert).order_by(Alert.id.desc()).first().id
+
 
 async def add_response_time(
     alert_id: str,
