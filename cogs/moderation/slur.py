@@ -25,7 +25,7 @@ from utils.logs import create_alert_log, AlertType, add_response_time
 class ActionTakenButton(nextcord.ui.Button):
     def __init__(self, config: Configuration, alert_id: str):
         super().__init__(label="Action Taken")
-        super().__init__(custom_id=alert_id)
+        super().__init__(custom_id=f"action_taken:{alert_id}")
         self.config = config
 
     async def callback(self, interaction: nextcord.Interaction) -> None:
@@ -65,13 +65,13 @@ class ActionTakenButton(nextcord.ui.Button):
             )
             session.commit()
 
-        await add_response_time(interaction.data["custom_id"])
+        await add_response_time(interaction.data["custom_id"].split(":")[1])
 
 
 class AcceptableUseButton(nextcord.ui.Button):
     def __init__(self, config: Configuration, alert_id: str):
         super().__init__(label="Acceptable Use")
-        super().__init__(custom_id=alert_id)
+        super().__init__(custom_id=f"acceptable_use:{alert_id}")
         self.config = config
 
     async def callback(self, interaction: nextcord.Interaction) -> None:
@@ -96,13 +96,13 @@ class AcceptableUseButton(nextcord.ui.Button):
             )
         )
 
-        await add_response_time(interaction.data["custom_id"])
+        await add_response_time(interaction.data["custom_id"].split(":")[1])
 
 
 class FalsePositiveButton(nextcord.ui.Button):
     def __init__(self, config: Configuration, alert_id: str):
         super().__init__(label="False Positive")
-        super().__init__(custom_id=alert_id)
+        super().__init__(custom_id=f"false_positive:{alert_id}")
         self.config = config
 
     async def callback(self, interaction: nextcord.Interaction) -> None:
@@ -141,7 +141,7 @@ class FalsePositiveButton(nextcord.ui.Button):
             )
         )
 
-        await add_response_time(interaction.data["custom_id"])
+        await add_response_time(interaction.data["custom_id"].split(":")[1])
 
 
 class ViewCasesButton(nextcord.ui.Button):
