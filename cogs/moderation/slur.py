@@ -72,16 +72,16 @@ class Slur(commands.Cog):
         )
 
         await self.bot.get_channel(self.config.channels.alert).send(embed=embed)
-    
+
     @commands.Cog.listener()
     async def on_presence_update(self, before: nextcord.Member, after: nextcord.Member):
         if not after.status:
             return
-        
+
         slur_matches = self.slur_detector.find_slurs(after.status)
         if not slur_matches:
             return
-        
+
         slurs = slur_matches.keys()
         highlited = highlight_matches(after.status, sum(slur_matches.values(), []))
 
