@@ -1,14 +1,12 @@
-# Nextcord Imports
-import nextcord
-import nextcord.ext.commands as commands
-from nextcord.ui import View, Button
-
-# Library Imports
+import io
 import re
 import datetime
-from shortuuid.main import int_to_string, string_to_int
 
-# Sersi Config Imports
+import nextcord
+import nextcord.ext.commands as commands
+from shortuuid.main import int_to_string, string_to_int
+from chat_exporter import export
+
 import utils.config
 
 
@@ -188,3 +186,55 @@ def decode_button_id(custom_id: str) -> tuple[str, list[str], dict[str, str]]:
         kwargs[key] = value
 
     return label, args, kwargs
+
+
+async def get_message_from_url(bot: commands.Bot, url: str) -> nextcord.Message | None:
+    *_, guild_id, channel_id, message_id = url.split("/")
+
+    guild = bot.get_guild(int(guild_id))
+    if guild is None:
+        return None
+
+    channel = guild.get_channel(int(channel_id))
+    if channel is None:
+        return None
+
+    try:
+        return await channel.fetch_message(int(message_id))
+    except nextcord.HTTPException:
+        return None
+
+
+def parse_roles(guild: nextcord.Guild, *roles: nextcord.Role | int):
+    """Parses roles for use in role assignment/removal on member."""
+    for role in roles:
+        match role:
+            case nextcord.Role():
+                yield role
+            case int():
+                role_obj = guild.get_role(role)
+                if role_obj is not None:
+                    yield role_obj
+
+
+async def make_transcript(
+    from_channel: nextcord.TextChannel,
+    to_channel: nextcord.TextChannel = None,
+    embed: nextcord.Embed = None,
+) -> str | None:
+    """Make a transcript from a channel and send it to another channel if specified."""
+    transcript: str = await export(from_channel, military_time=True)
+
+    if transcript is None:
+        return None
+
+    transcript_file = nextcord.File(
+        io.BytesIO(transcript.encode()),
+        filename=f"transcript-{from_channel.name}.html",
+    )
+
+    if to_channel is not None:
+        await to_channel.send(file=transcript_file, embed=embed)
+
+    return transcript
+

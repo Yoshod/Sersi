@@ -8,11 +8,11 @@ from utils.perms import (
     is_senior_mod,
     is_cet,
     is_mod,
+    blacklist_check,
 )
 from utils.sersi_embed import SersiEmbed
 from datetime import datetime
 import pytz
-from utils.roles import blacklist_check
 
 
 class ModAppModal(Modal):

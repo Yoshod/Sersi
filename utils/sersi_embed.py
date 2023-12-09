@@ -13,6 +13,7 @@ class SersiEmbed(nextcord.Embed):
         footer: str = nextcord.embeds.EmptyEmbed,
         footer_icon: str = nextcord.embeds.EmptyEmbed,
         thumbnail_url: str = nextcord.embeds.EmptyEmbed,
+        author: nextcord.Member = nextcord.embeds.EmptyEmbed,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -31,6 +32,13 @@ class SersiEmbed(nextcord.Embed):
         # Configure Fields
         if fields:
             self.parse_fields(fields)
+        
+        # Configure Author
+        if author:
+            self.set_author(
+                name=author.display_name,
+                icon_url=author.display_avatar.url,
+            )
 
     def add_id_field(self, ids: dict):
         id_string: str = "```ini"

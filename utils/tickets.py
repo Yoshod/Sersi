@@ -5,8 +5,7 @@ from datetime import datetime
 import nextcord
 from nextcord.ui import View, Button, Modal, TextInput
 
-from utils.base import get_page
-from utils.channels import make_transcript
+from utils.base import get_page, make_transcript
 from utils.config import Configuration
 from utils.database import db_session, Ticket, TicketSurvey, TicketAudit
 from utils.sersi_embed import SersiEmbed

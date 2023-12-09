@@ -237,16 +237,6 @@ class PeerReview(_Base):
     timestamp = Column(DateTime, default=datetime.utcnow)
 
 
-class StaffBlacklist(_Base):
-    __tablename__ = "staff_blacklist"
-
-    blacklisted_user = Column(Integer, primary_key=True)
-    staff_member = Column(Integer, nullable=False)
-    reason = Column(String, nullable=False)
-
-    timestamp = Column(DateTime, default=datetime.utcnow)
-
-
 class CaseApproval(_Base):
     __tablename__ = "case_approvals"
 
@@ -529,6 +519,16 @@ class VoteRecord(_Base):
 
     vote = Column(String, nullable=False)
     comment = Column(String)
+
+    timestamp = Column(DateTime, default=datetime.utcnow)
+
+
+class StaffBlacklist(_Base):
+    __tablename__ = "staff_blacklist"
+
+    blacklisted_user = Column(Integer, primary_key=True)
+    staff_member = Column(Integer, nullable=False)
+    reason = Column(String, nullable=False)
 
     timestamp = Column(DateTime, default=datetime.utcnow)
 

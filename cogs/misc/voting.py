@@ -4,7 +4,7 @@ import nextcord
 from nextcord.ext import tasks, commands
 from sqlalchemy import func
 
-from utils.channels import get_message_from_url
+from utils.base import get_message_from_url
 from utils.config import Configuration, VoteType
 from utils.database import db_session, VoteDetails, VoteRecord
 from utils.perms import permcheck, is_mod, is_sersi_contributor

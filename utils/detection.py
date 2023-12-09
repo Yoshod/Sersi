@@ -117,7 +117,7 @@ class SlurDetector:
                 self.unleet.update({leet: slur.slur for leet in _leet(slur.slur)})
 
     def find_slurs(self, __value: str) -> dict[str, list[re.Match]]:
-        slurs = {}
+        slurs: dict[str, list] = {}
 
         pos = 0
         while match := self.regex.search(__value, pos):
