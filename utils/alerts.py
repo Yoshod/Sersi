@@ -73,7 +73,7 @@ class AlertView(nextcord.ui.View):
                         user=encode_snowflake(user.id),
                         type="Slur Usage"
                         if alert_type == AlertType.Slur
-                        else "Bad Faith Ping",
+                        else "Ping",
                     ),
                     row=1,
                 ),

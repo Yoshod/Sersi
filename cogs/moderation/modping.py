@@ -50,7 +50,7 @@ class ModPing(commands.Cog):
             )
 
             alert = await channel.send(embed=alert_embed, view=AlertView(AlertType.Ping, message.author))
-            await create_alert_log(message=alert, alert_type=AlertType.Ping)
+            create_alert_log(message=alert, alert_type=AlertType.Ping)
 
 
 def setup(bot: commands.Bot, **kwargs):

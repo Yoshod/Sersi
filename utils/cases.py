@@ -253,7 +253,7 @@ def get_case_by_id(case_id: str) -> typing.Type[Case] | None:
         match case.type:
             case "Ban":
                 return session.query(BanCase).filter_by(id=case_id).first()
-            case "Bad Faith Ping":
+            case "Ping":
                 return session.query(BadFaithPingCase).filter_by(id=case_id).first()
             case "Kick":
                 return session.query(KickCase).filter_by(id=case_id).first()

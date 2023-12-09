@@ -72,7 +72,7 @@ class Cases(commands.Cog):
             required=False,
             choices=[
                 "Ban",
-                "Bad Faith Ping",
+                "Ping",
                 "Kick",
                 "Probation",
                 "Reformation",
