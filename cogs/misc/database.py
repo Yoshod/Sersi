@@ -1,7 +1,5 @@
 import sqlite3
-import pickle
 import yaml
-from datetime import datetime
 
 import nextcord
 from nextcord.ext import commands
@@ -10,10 +8,6 @@ from utils.database import (
     db_session,
     Case,
     CaseAudit,
-    BadFaithPingCase,
-    ProbationCase,
-    ReformationCase,
-    SlurUsageCase,
     CaseApproval,
     ScrubbedCase,
     PeerReview,
@@ -28,7 +22,6 @@ from utils.database import (
 from utils.config import Configuration
 from utils.perms import is_sersi_contributor, permcheck
 from utils.sersi_embed import SersiEmbed
-from slurdetector import leet
 
 
 class Database(commands.Cog):
@@ -105,165 +98,6 @@ class Database(commands.Cog):
             session.commit()
 
         await interaction.followup.send(f"{self.config.emotes.success} Complete")
-
-    @database.subcommand(
-        description="Used to migrate case data",
-    )
-    async def case_migration(self, interaction: nextcord.Interaction):
-        if not await permcheck(interaction, is_sersi_contributor):
-            return
-
-        await interaction.response.defer(ephemeral=True)
-
-        # Load the first pickle file containing the case data
-        with open("files/Cases/casehistory.pkl", "rb") as f:
-            cases_dict = pickle.load(f)
-
-        # Load the second pickle file containing the case details
-        with open("files/Cases/casedetails.pkl", "rb") as f:
-            details_dict = pickle.load(f)
-
-        with db_session() as session:
-            for __, case_list in cases_dict.items():
-                for case in case_list:
-                    case_id, case_type, timestamp = case
-                    # Ignore Anonymous Message Mute cases
-                    if case_type == "Anonymous Message Mute":
-                        continue
-                    # Process the case details
-                    if case_id in details_dict:
-                        details_list = details_dict[case_id]
-                        case_type = details_list[0]
-                        if case_type == "Bad Faith Ping":
-                            (
-                                report_url,
-                                offender_id,
-                                moderator_id,
-                                timestamp,
-                            ) = details_list[1:]
-                            session.add(
-                                BadFaithPingCase(
-                                    id=case_id[0:10],
-                                    report_url=report_url,
-                                    offender=offender_id,
-                                    moderator=moderator_id,
-                                    created=datetime.fromtimestamp(timestamp),
-                                )
-                            )
-                        elif case_type == "Probation":
-                            (
-                                offender_id,
-                                primary_moderator_id,
-                                secondary_moderator_id,
-                                reason,
-                                timestamp,
-                            ) = details_list[1:]
-                            session.add(
-                                ProbationCase(
-                                    id=case_id[0:10],
-                                    offender=offender_id,
-                                    moderator=primary_moderator_id,
-                                    reason=reason,
-                                    created=datetime.fromtimestamp(timestamp),
-                                )
-                            )
-                            if secondary_moderator_id:
-                                session.add(
-                                    CaseApproval(
-                                        case_id=case_id[0:10],
-                                        action="Add",
-                                        approval_type="Dual Custody",
-                                        approver=secondary_moderator_id,
-                                    )
-                                )
-                        elif case_type == "Reformation":
-                            (
-                                case_number,
-                                offender_id,
-                                moderator_id,
-                                channel_id,
-                                reason,
-                                timestamp,
-                            ) = details_list[1:]
-                            session.add(
-                                ReformationCase(
-                                    id=case_id[0:10],
-                                    case_number=case_number,
-                                    offender=offender_id,
-                                    moderator=moderator_id,
-                                    cell_channel=channel_id,
-                                    details=reason,
-                                    created=datetime.fromtimestamp(timestamp),
-                                )
-                            )
-                        elif case_type == "Slur Usage":
-                            (
-                                slur_used,
-                                report_url,
-                                offender_id,
-                                moderator_id,
-                                timestamp,
-                            ) = details_list[1:]
-                            session.add(
-                                SlurUsageCase(
-                                    id=case_id[0:10],
-                                    slur_used=slur_used,
-                                    report_url=report_url,
-                                    offender=offender_id,
-                                    moderator=moderator_id,
-                                    created=datetime.fromtimestamp(timestamp),
-                                )
-                            )
-
-            session.commit()
-
-        await interaction.followup.send(f"{self.config.emotes.success} Complete")
-
-    @database.subcommand(
-        description="Used to migrate the slur detection stuff",
-    )
-    async def migrate_slur_detection(self, interaction: nextcord.Interaction):
-        if not await permcheck(interaction, is_sersi_contributor):
-            return
-
-        await interaction.response.defer(ephemeral=True)
-
-        with open("files/SlurAlerts/slurs.txt") as f:
-            slur_list = [slur.replace("\n", "") for slur in f]
-
-        with open("files/SlurAlerts/goodword.txt", "r") as f:
-            goodword_list = [goodword.replace("\n", "") for goodword in f]
-
-        with db_session() as session:
-            for slur in slur_list:
-                session.merge(
-                    Slur(
-                        slur=slur,
-                        added_by=interaction.user.id,
-                    )
-                )
-
-            for goodword in goodword_list:
-                matched_slur = None
-                for slur in slur_list:
-                    for leet_slur in leet(slur):
-                        if leet_slur in goodword:
-                            matched_slur = slur
-                            break
-
-                session.merge(
-                    Goodword(
-                        goodword=goodword,
-                        slur=matched_slur,
-                        added_by=interaction.user.id,
-                    )
-                )
-
-            session.commit()
-
-        await interaction.followup.send(
-            f"{self.config.emotes.success} Complete, imported {len(slur_list)} slurs and {len(goodword_list)} goodwords"
-        )
 
     @database.subcommand(
         description="Used to drop a table from the Sersi Database",
