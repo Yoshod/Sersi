@@ -2,11 +2,12 @@ import nextcord
 from nextcord.ext import commands
 
 from utils.sersi_embed import SersiEmbed
-from utils.base import PageView
+from utils.base import PageView, decode_button_id
 from utils.notes import (
     fetch_notes,
     fetch_notes_by_partial_id,
     create_note_embed,
+    decode_note_kwargs,
 )
 from utils.database import db_session, Note
 from utils.config import Configuration
@@ -310,6 +311,42 @@ class Notes(commands.Cog):
             return
 
         await interaction.response.send_modal(NoteModal(self.config, message))
+    
+    @commands.Cog.listener()
+    async def on_interaction(self, interaction: nextcord.Interaction):
+        try:
+            btn_id = interaction.data["custom_id"]
+        except KeyError:
+            return
+
+        if not btn_id.startswith("notes"):
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        action, args, kwargs = decode_button_id(btn_id)
+
+        match action:
+            case "notes":
+                note_embed = SersiEmbed(title=f"{interaction.guild.name} Notes")
+                note_embed.set_thumbnail(interaction.guild.icon.url)
+
+                view = PageView(
+                    config=self.config,
+                    base_embed=note_embed,
+                    fetch_function=fetch_notes,
+                    author=interaction.user,
+                    entry_form="{entry}",
+                    field_title="{entries[0].list_entry_header}",
+                    inline_fields=False,
+                    cols=5,
+                    per_col=1,
+                    init_page=1,
+                    ephemeral=True,
+                    **decode_note_kwargs(kwargs),
+                )
+
+                await view.send_followup(interaction)
 
 
 def setup(bot: commands.Bot, **kwargs):

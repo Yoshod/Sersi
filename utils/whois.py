@@ -19,7 +19,7 @@ class WhoisNotesButton(nextcord.ui.Button):
         super().__init__(
             style=nextcord.ButtonStyle.blurple,
             label="Notes",
-            custom_id=f"whois-notes:{user_id}",
+            custom_id=encode_button_id("notes", user=encode_snowflake(user_id)),
             disabled=False,
         )
 
