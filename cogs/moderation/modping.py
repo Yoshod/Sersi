@@ -1,11 +1,10 @@
 import asyncio
-from datetime import datetime, timezone
 
 import nextcord
 from nextcord.ext import commands
 from nextcord.ui import Button, View
 
-from utils import logs
+from utils.logs import add_response_time, create_alert_log, AlertType
 from utils.sersi_embed import SersiEmbed
 from utils.base import (
     modmention_check,
@@ -47,9 +46,7 @@ class ModPing(commands.Cog):
         channel = self.bot.get_channel(self.config.channels.logging)
         await channel.send(embed=logging_embed)
 
-        await logs.update_response(
-            self.config, interaction.message, datetime.now(timezone.utc)
-        )
+        await add_response_time(interaction.data["custom_id"].split(":")[1])
 
     async def cb_action_not_necessary(self, interaction: nextcord.Interaction):
         new_embed = interaction.message.embeds[0]
@@ -73,9 +70,7 @@ class ModPing(commands.Cog):
         channel = self.bot.get_channel(self.config.channels.logging)
         await channel.send(embed=logging_embed)
 
-        await logs.update_response(
-            self.config, interaction.message, datetime.now(timezone.utc)
-        )
+        await add_response_time(interaction.data["custom_id"].split(":")[1])
 
     async def cb_bad_faith_ping(self, interaction: nextcord.Interaction):
         new_embed = interaction.message.embeds[0]
@@ -115,9 +110,7 @@ class ModPing(commands.Cog):
             )
             session.commit()
 
-        await logs.update_response(
-            self.config, interaction.message, datetime.now(timezone.utc)
-        )
+        await add_response_time(interaction.data["custom_id"].split(":")[1])
 
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.Message):
@@ -153,13 +146,26 @@ class ModPing(commands.Cog):
                 footer="Sersi Moderator Ping Detection",
             )
 
-            action_taken = Button(label="Action Taken")
+            alert = await channel.send(embed=alert_embed)
+
+            alert_id = await create_alert_log(
+                message=message, alert_type=AlertType.Ping
+            )
+
+            action_taken = Button(
+                label="Action Taken", custom_id=f"action_taken:{alert_id}"
+            )
             action_taken.callback = self.cb_action_taken
 
-            action_not_necessary = Button(label="Action Not Necessary")
+            action_not_necessary = Button(
+                label="Action Not Necessary",
+                custom_id=f"action_not_necessary:{alert_id}",
+            )
             action_not_necessary.callback = self.cb_action_not_necessary
 
-            bad_faith_ping = Button(label="Bad Faith Ping")
+            bad_faith_ping = Button(
+                label="Bad Faith Ping", custom_id=f"bad_faith_ping:{alert_id}"
+            )
             bad_faith_ping.callback = self.cb_bad_faith_ping
 
             button_view = View(timeout=None)
@@ -168,11 +174,7 @@ class ModPing(commands.Cog):
             button_view.add_item(bad_faith_ping)
             button_view.interaction_check = cb_is_mod
 
-            alert = await channel.send(embed=alert_embed, view=button_view)
-
-            await logs.create_alert_log(
-                self.config, alert, logs.AlertType.Ping, alert.created_at
-            )
+            await alert.edit(view=button_view)
 
             await asyncio.sleep(10800)  # 3 hours
             updated_message = await alert.channel.fetch_message(alert.id)

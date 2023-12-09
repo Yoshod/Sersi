@@ -1,55 +1,38 @@
-import datetime
 import enum
-import pickle
 
 import nextcord
 
-from utils.config import Configuration
+from datetime import datetime
+from utils.database import Alert, db_session
 
 
 class AlertType(enum.Enum):
-    Slur = "slur"
-    Ping = "ping"
-    Toxic = "toxic"
+    Slur = "Slur Usage"
+    Ping = "Bad Faith Ping"
+    Toxic = "Toxic Message"
 
 
 async def create_alert_log(
-    config: Configuration,
     message: nextcord.Message,
     alert_type: AlertType,
-    timestamp: datetime.datetime,
 ):
-    pass
-    # TODO: implement using database
-    # # ['message_url',"alert_type", "creation_time", "time_took_for_response"]
-    # try:
-    #     with open("files/Alerts/alerts.pkl", "rb") as file:
-    #         data: dict[str:dict] = pickle.load(file)
-    # except (EOFError, FileNotFoundError):
-    #     data: dict[str:dict] = {}
+    """Creates an alert log entry in the database."""
+    with db_session() as session:
+        alert = Alert(
+            alert_type=alert_type.value,
+            report_url=message.jump_url,
+        )
+        session.add(alert)
+        session.commit()
 
-    # data[message.jump_url] = {
-    #     "alert_type": alert_type.value,
-    #     "creation_time": timestamp,
-    #     "time_took_for_response": None,
-    # }
-
-    # with open("files/Alerts/alerts.pkl", "wb") as file:
-    #     pickle.dump(data, file)
+        return session.query(Alert).order_by(Alert.id.desc()).first().id
 
 
-async def update_response(
-    config: Configuration, message: nextcord.Message, reacted_time: datetime.datetime
+async def add_response_time(
+    alert_id: str,
 ):
-    pass
-    # TODO: implement using database
-    # with open("files/Alerts/alerts.pkl", "rb") as file:
-    #     data: dict[str:dict] = pickle.load(file)
-
-    # time_took: datetime.timedelta = (
-    #     reacted_time - data[message.jump_url]["creation_time"]
-    # )
-    # data[message.jump_url]["time_took_for_response"] = time_took.seconds / 60
-
-    # with open("files/Alerts/alerts.pkl", "wb") as file:
-    #     pickle.dump(data, file)
+    """Adds the response time to an alert log entry in the database."""
+    with db_session() as session:
+        alert = session.query(Alert).filter_by(id=alert_id).first()
+        alert.response_time = datetime.utcnow()
+        session.commit()
