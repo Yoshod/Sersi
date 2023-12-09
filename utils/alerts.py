@@ -7,15 +7,15 @@ from utils.database import Alert, db_session
 
 
 class AlertType(enum.Enum):
-    Slur = "Slur Usage"
-    Ping = "Bad Faith Ping"
+    Slur = "Slur Detected"
+    Ping = "Staff Ping"
     Toxic = "Toxic Message"
 
 
 async def create_alert_log(
     message: nextcord.Message,
     alert_type: AlertType,
-):
+) -> int:
     """Creates an alert log entry in the database."""
     with db_session() as session:
         alert = Alert(
@@ -25,7 +25,7 @@ async def create_alert_log(
         session.add(alert)
         session.commit()
 
-        return session.query(Alert).order_by(Alert.id.desc()).first().id
+        return alert.id
 
 
 async def add_response_time(
