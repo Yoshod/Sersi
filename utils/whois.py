@@ -1,7 +1,8 @@
 import nextcord
-from utils.base import SersiEmbed, encode_button_id, encode_snowflake
+from utils.base import encode_button_id, encode_snowflake
 from utils.config import Configuration
 from utils.database import WarningCase, db_session, VoteDetails, BanCase
+from utils.sersi_embed import SersiEmbed
 
 
 class WhoisCasesButton(nextcord.ui.Button):

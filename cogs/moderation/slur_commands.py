@@ -2,7 +2,7 @@ import nextcord.ext.commands
 from nextcord.ext import commands
 
 from utils.sersi_embed import SersiEmbed
-from utils.base import PageView, DualCustodyView
+from utils.views import PageView, DualCustodyView
 from utils.database import db_session, Slur, Goodword
 from utils.config import Configuration
 from utils.perms import permcheck, is_mod, is_full_mod, is_dark_mod

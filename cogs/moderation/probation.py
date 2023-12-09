@@ -1,7 +1,7 @@
 import nextcord
 from nextcord.ext import commands
 
-from utils.base import ConfirmView, DualCustodyView
+from utils.views import ConfirmView, DualCustodyView
 from utils.database import db_session, ProbationCase, CaseApproval
 from utils.sersi_embed import SersiEmbed
 from utils.config import Configuration

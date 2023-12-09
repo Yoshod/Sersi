@@ -3,7 +3,7 @@ from nextcord import SlashOption
 from nextcord.ext import commands
 
 from utils.sersi_embed import SersiEmbed
-from utils.base import ConfirmView, DualCustodyView
+from utils.views import ConfirmView, DualCustodyView
 from utils.config import Configuration
 from utils.perms import (
     permcheck,

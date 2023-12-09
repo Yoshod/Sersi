@@ -1,6 +1,7 @@
 from datetime import datetime
 
 import nextcord
+from nextcord.ext import commands
 
 from utils.tickets import (
     ticket_check,
@@ -14,10 +15,11 @@ from utils.tickets import (
     SurveyModal,
     ReportModal,
 )
-from nextcord.ext import commands
+
 from utils.database import db_session, Ticket, TicketCategory, TicketSurvey
 from utils.config import Configuration
-from utils.base import SersiEmbed, PageView
+from utils.sersi_embed import SersiEmbed
+from utils.views import PageView
 
 
 class TicketingSystem(commands.Cog):

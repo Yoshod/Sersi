@@ -3,10 +3,8 @@ from nextcord.ext import commands
 import nextcord
 
 from utils.base import (
-    PageView,
     convert_to_timedelta,
     decode_button_id,
-    decode_snowflake,
 )
 from utils.cases import (
     fetch_cases_by_partial_id,
@@ -31,6 +29,7 @@ from utils.database import (
 from utils.offences import fetch_offences_by_partial_name
 from utils.perms import permcheck, is_mod, is_senior_mod, is_dark_mod
 from utils.sersi_embed import SersiEmbed
+from utils.views import PageView
 
 
 class Cases(commands.Cog):

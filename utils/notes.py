@@ -1,8 +1,9 @@
 import nextcord
 
 from utils.config import Configuration
-from utils.base import SersiEmbed, get_page, decode_snowflake
+from utils.base import get_page, decode_snowflake
 from utils.database import db_session, Note
+from utils.sersi_embed import SersiEmbed
 
 
 def fetch_notes(

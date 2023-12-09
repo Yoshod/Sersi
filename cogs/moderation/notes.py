@@ -2,7 +2,7 @@ import nextcord
 from nextcord.ext import commands
 
 from utils.sersi_embed import SersiEmbed
-from utils.base import PageView, decode_button_id
+from utils.base import decode_button_id
 from utils.notes import (
     fetch_notes,
     fetch_notes_by_partial_id,
@@ -12,6 +12,7 @@ from utils.notes import (
 from utils.database import db_session, Note
 from utils.config import Configuration
 from utils.perms import permcheck, is_mod, is_senior_mod, is_dark_mod
+from utils.views import PageView
 
 
 class NoteModal(nextcord.ui.Modal):
