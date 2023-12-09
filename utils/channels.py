@@ -27,8 +27,11 @@ async def make_transcript(
     return transcript
 
 
-async def get_message_from_url(bot: commands.Bot, url: str):
+async def get_message_from_url(bot: commands.Bot, url: str) -> nextcord.Message | None:
     *_, guild_id, channel_id, message_id = url.split("/")
     guild = bot.get_guild(int(guild_id))
     channel = guild.get_channel(int(channel_id))
-    return await channel.fetch_message(int(message_id))
+    try:
+        return await channel.fetch_message(int(message_id))
+    except nextcord.HTTPException:
+        return None

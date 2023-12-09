@@ -1,6 +1,7 @@
 import nextcord
 from nextcord.ext import commands
 
+from utils.alerts import AlertType, AlertView, create_alert_log
 from utils.base import ignored_message, limit_string
 from utils.cases import slur_history, slur_virgin
 from utils.config import Configuration
@@ -71,7 +72,11 @@ class Slur(commands.Cog):
             icon_url=str(message.author.avatar.url),
         )
 
-        await self.bot.get_channel(self.config.channels.alert).send(embed=embed)
+        alert = await self.bot.get_channel(self.config.channels.alert).send(
+            embed=embed, view=AlertView(AlertType.Slur, message.author)
+        )
+
+        create_alert_log(alert, AlertType.Slur)
 
     @commands.Cog.listener()
     async def on_presence_update(self, before: nextcord.Member, after: nextcord.Member):
@@ -102,7 +107,11 @@ class Slur(commands.Cog):
             icon_url=str(after.avatar.url),
         )
 
-        await self.bot.get_channel(self.config.channels.alert).send(embed=embed)
+        alert = await self.bot.get_channel(self.config.channels.alert).send(
+            embed=embed, view=AlertView(AlertType.Slur, after)
+        )
+
+        create_alert_log(alert, AlertType.Slur)
 
     @commands.Cog.listener()
     async def on_user_update(self, before: nextcord.User, after: nextcord.User):
@@ -133,14 +142,18 @@ class Slur(commands.Cog):
             icon_url=str(after.avatar.url),
         )
 
-        await self.bot.get_channel(self.config.channels.alert).send(embed=embed)
+        alert = await self.bot.get_channel(self.config.channels.alert).send(
+            embed=embed, view=AlertView(AlertType.Slur, after.id)
+        )
+
+        create_alert_log(alert, AlertType.Slur)
 
     @commands.Cog.listener()
     async def on_member_update(self, before: nextcord.Member, after: nextcord.Member):
         if not after.nick:
             return
 
-        slur_matches = self.slur_detector.find_slurs(after.nick)
+        slur_matches = self.slur_detector.find_slurs(after)
         if not slur_matches:
             return
 
@@ -164,7 +177,11 @@ class Slur(commands.Cog):
             icon_url=str(after.avatar.url),
         )
 
-        await self.bot.get_channel(self.config.channels.alert).send(embed=embed)
+        alert = await self.bot.get_channel(self.config.channels.alert).send(
+            embed=embed, view=AlertView(AlertType.Slur, after)
+        )
+
+        create_alert_log(alert, AlertType.Slur)
 
 
 def setup(bot: commands.Bot, **kwargs):
