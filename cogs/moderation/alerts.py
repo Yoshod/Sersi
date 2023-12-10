@@ -18,8 +18,12 @@ class Alerts(commands.Cog):
         if bot.is_ready():
             self.alerts_reminder.start()
 
+    def cog_unload(self):
+        self.alerts_reminder.cancel()
+
     @tasks.loop(minutes=1)
     async def alerts_reminder(self):
+        print("Alerts reminder task running...")
         with db_session() as session:
             alerts: list[Alert] = (
                 session.query(Alert)
@@ -30,15 +34,18 @@ class Alerts(commands.Cog):
 
         for alert in alerts:
             time_since_alert: timedelta = datetime.utcnow() - alert.creation_time
+            print(time_since_alert, time_since_alert.seconds // 60 % 60)
             if time_since_alert.seconds // 60 % 60 != 0:
                 continue
 
+            print(alert.report_url)
             message = await get_message_from_url(self.bot, alert.report_url)
 
             if message is None or not message.components:
-                add_response_time(message)
+                add_response_time(alert.id)
                 continue
 
+            print("sending reminder...")
             await message.reply(
                 f"<@&{self.config.permission_roles.moderator}> This alert has not had a recorded response for {time_since_alert.seconds//3600} hours.",
             )
