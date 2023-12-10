@@ -3,6 +3,7 @@ import yaml
 
 import nextcord
 from nextcord.ext import commands
+from sqlalchemy.sql import text
 
 from utils.database import (
     db_session,
@@ -153,18 +154,18 @@ class Database(commands.Cog):
 
         await interaction.response.defer(ephemeral=True)
 
-        conn = sqlite3.connect(self.config.datafiles.sersi_db)
-        cursor = conn.cursor()
+        session = db_session(interaction.user)
 
         try:
-            cursor.execute(query)
-            conn.commit()
+            session.execute(text(query))
+            session.commit()
+
             await interaction.followup.send(
                 f"{self.config.emotes.success}The query has been executed."
             )
 
             # logging
-            interaction.guild.get_channel(self.config.channels.logging).send(
+            await interaction.guild.get_channel(self.config.channels.logging).send(
                 embed=SersiEmbed(
                     title="SQL Query Executed",
                     fields={
@@ -179,12 +180,12 @@ class Database(commands.Cog):
             )
 
         except sqlite3.Error as error_code:
+            session.rollback()
             await interaction.followup.send(
                 f"{self.config.emotes.fail}An error occurred: {error_code}"
             )
         finally:
-            cursor.close()
-            conn.close()
+            session.close()
 
     @database.subcommand()
     async def cleanup(self, interaction: nextcord.Interaction):
