@@ -45,7 +45,7 @@ class SersiEmbed(nextcord.Embed):
         for key in ids:
             id_string += f"\n{key} = {ids[key]}"
         id_string += "```"
-        self.add_field(name="IDs", value=limit_string(id_string), inline=False)
+        self.add_field(name="IDs", value=limit_string(str(id_string)), inline=False)
         return self
 
     def parse_fields(self, fields, inline=False):
@@ -56,7 +56,7 @@ class SersiEmbed(nextcord.Embed):
             case dict():
                 for field in fields:
                     self.add_field(
-                        name=limit_string(field, 256),
-                        value=limit_string(fields[field]),
+                        name=limit_string(str(field), 256),
+                        value=limit_string(str(fields[field])),
                         inline=inline if len(fields) > 1 else False,
                     )
