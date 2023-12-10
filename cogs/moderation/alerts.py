@@ -41,6 +41,12 @@ class Alerts(commands.Cog):
             if message is None or not message.components:
                 add_response_time(alert.id)
                 continue
+                
+            if self.config.bot.dev_mode:
+                await message.reply(
+                    f"This alert has not had a recorded response for {time_since_alert.seconds//3600} hours."
+                )
+                continue
 
             await message.reply(
                 f"<@&{self.config.permission_roles.moderator}> This alert has not had a recorded response for {time_since_alert.seconds//3600} hours.",
