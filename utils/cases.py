@@ -18,6 +18,7 @@ from utils.database import (
     SlurUsageCase,
     TimeoutCase,
     WarningCase,
+    AdultBlacklistCase,
     ScrubbedCase,
     PeerReview,
 )
@@ -54,52 +55,17 @@ def create_case_embed(
         },
     ]
 
-    with db_session(interaction.user) as session:
-        review_case = session.query(PeerReview).filter_by(case_id=case.id).first()
-
-    try:
-        match review_case.review_outcome:
-            case "Approved":
-                outcome = config.emotes.success
-                reviewer = f"{interaction.guild.get_member(review_case.reviewer).mention} `{interaction.guild.get_member(review_case.reviewer).id}`"
-
-            case "Objection":
-                outcome = config.emotes.fail
-                reviewer = f"{interaction.guild.get_member(review_case.reviewer).mention} `{interaction.guild.get_member(review_case.reviewer).id}`"
-
-            case None:
-                outcome = config.emotes.inherit
-                reviewer = f"{interaction.guild.get_member(review_case.reviewer).mention} `{interaction.guild.get_member(review_case.reviewer).id}`"
-
-    except AttributeError:
-        outcome = config.emotes.inherit
-        reviewer = "In Progress"
-
     match case:
         case BanCase():
             fields.append({"Details": f"{case.details}"})
-
-            if case.ban_type == "emergency":
-                fields.append(
-                    {
-                        "Ban Type": "`Immediate`",
-                        "Active": config.emotes.success
-                        if case.active
-                        else config.emotes.fail,
-                        "Review": outcome,
-                    }
-                )
-                fields.append({"Reviewer": reviewer})
-
-            else:
-                fields.append(
-                    {
-                        "Ban Type": "`Vote`",
-                        "Active": config.emotes.success
-                        if case.active
-                        else config.emotes.fail,
-                    }
-                )
+            fields.append(
+                {
+                    "Ban Type": case.ban_type,
+                    "Active": config.emotes.success
+                    if case.active
+                    else config.emotes.fail,
+                }
+            )
 
             if case.active is False:
                 fields[-1].update(
@@ -113,12 +79,6 @@ def create_case_embed(
             fields[1].update({"Report": case.report_url})
         case KickCase():
             fields.append({"Details": f"{case.details}"})
-            fields.append(
-                {
-                    "Review": outcome,
-                    "Reviewer": reviewer,
-                }
-            )
         case ProbationCase():
             fields.append({"Reason": f"{case.reason}"})
             fields.append(
@@ -162,12 +122,6 @@ def create_case_embed(
                     "Active": config.emotes.success if active else config.emotes.fail,
                 }
             )
-            fields.append(
-                {
-                    "Review": outcome,
-                    "Reviewer": reviewer,
-                }
-            )
             if case.actual_end is not None:
                 fields.append(
                     {
@@ -188,21 +142,62 @@ def create_case_embed(
                         "Deactivate Reason": f"{case.deactivate_reason}",
                     }
                 )
+        case AdultBlacklistCase():
+            fields.append({"Details": f"{case.details}"})
             fields.append(
-                {
-                    "Review": outcome,
-                    "Reviewer": reviewer,
-                }
+                {"Active": config.emotes.success if case.active else config.emotes.fail}
             )
+            if not case.active:
+                fields[-1].update(
+                    {
+                        "Removed By": f"<@{case.removed_by}> `{case.removed_by}`",
+                        "Removal Reason": f"{case.removal_reason}",
+                    }
+                )
 
-    if review_case and review_case.review_outcome is None:
-        fields.append({"Review Status": config.emotes.inherit})
+    # TODO: reimplement review properly
 
-    elif review_case and review_case.review_outcome == "Approve":
-        fields.append({"Review Status": config.emotes.success})
+    # with db_session(interaction.user) as session:
+    #     review_case = session.query(PeerReview).filter_by(case_id=case.id).first()
 
-    elif review_case and review_case.review_outcome == "None":
-        fields.append({"Review Status": config.emotes.fail})
+    # try:
+    #     match review_case.review_outcome:
+    #         case "Approved":
+    #             outcome = config.emotes.success
+    #             reviewer = f"{interaction.guild.get_member(review_case.reviewer).mention} `{interaction.guild.get_member(review_case.reviewer).id}`"
+
+    #         case "Objection":
+    #             outcome = config.emotes.fail
+    #             reviewer = f"{interaction.guild.get_member(review_case.reviewer).mention} `{interaction.guild.get_member(review_case.reviewer).id}`"
+
+    #         case None:
+    #             outcome = config.emotes.inherit
+    #             reviewer = f"{interaction.guild.get_member(review_case.reviewer).mention} `{interaction.guild.get_member(review_case.reviewer).id}`"
+
+    # except AttributeError:
+    #     outcome = config.emotes.inherit
+    #     reviewer = "In Progress"
+
+    # if review_case and review_case.review_outcome is None:
+    #     fields.append({"Review Status": config.emotes.inherit})
+
+    # elif review_case and review_case.review_outcome == "Approve":
+    #     fields.append(
+    #         {
+    #             "Review Status": config.emotes.success,
+    #             "Reviewer": reviewer,
+    #             "Review": outcome,
+    #         }
+    #     )
+
+    # elif review_case and review_case.review_outcome == "None":
+    #     fields.append(
+    #         {
+    #             "Review Status": config.emotes.fail,
+    #             "Reviewer": reviewer,
+    #             "Review": outcome,
+    #         }
+    #     )
 
     if case.scrubbed:
         with db_session() as session:
@@ -267,6 +262,8 @@ def get_case_by_id(case_id: str) -> typing.Type[Case] | None:
                 return session.query(TimeoutCase).filter_by(id=case_id).first()
             case "Warning":
                 return session.query(WarningCase).filter_by(id=case_id).first()
+            case "Adult Blacklist":
+                return session.query(AdultBlacklistCase).filter_by(id=case_id).first()
             case _:
                 return None
 
@@ -447,3 +444,17 @@ def decode_case_kwargs(kwargs: dict):
         decoded["moderator_id"] = decode_snowflake(moderator_id)
 
     return decoded
+
+
+def aoa_is_blacklisted(user: nextcord.Member) -> bool:
+    with db_session() as session:
+        blacklist_case: AdultBlacklistCase = (
+            session.query(AdultBlacklistCase)
+            .filter_by(offender=user.id, active=True)
+            .first()
+        )
+
+    if blacklist_case:
+        return True
+
+    return False

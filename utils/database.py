@@ -212,6 +212,19 @@ class WarningCase(Case):
     __mapper_args__ = {"polymorphic_identity": "Warning"}
 
 
+class AdultBlacklistCase(Case):
+    __tablename__ = "adult_blacklist_cases"
+
+    id = Column(String, ForeignKey("cases.id"), primary_key=True)
+
+    details = Column(String)
+    active = Column(Boolean, default=True)
+    removed_by = Column(Integer)
+    removal_reason = Column(String)
+
+    __mapper_args__ = {"polymorphic_identity": "Adult Blacklist"}
+
+
 class ScrubbedCase(_Base):
     __tablename__ = "scrubbed_cases"
 
