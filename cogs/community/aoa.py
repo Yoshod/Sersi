@@ -29,7 +29,7 @@ class AdultAccessModal(Modal):
 
         self.whyjoin = nextcord.ui.TextInput(
             label="Why do you want access to the channel?",
-            min_length=2,
+            min_length=10,
             max_length=1024,
             required=True,
             style=nextcord.TextInputStyle.paragraph,
@@ -191,8 +191,8 @@ class AdultAccess(commands.Cog):
         reason: str = nextcord.SlashOption(
             name="reason",
             description="Reason for bypassing user",
-            min_length=12,
-            max_length=1240,
+            min_length=10,
+            max_length=1024,
         ),
     ):
         if not await permcheck(interaction, is_dark_mod):
@@ -244,14 +244,14 @@ class AdultAccess(commands.Cog):
         details: str = nextcord.SlashOption(
             name="details",
             description="Details for the offence",
-            min_length=12,
+            min_length=10,
             max_length=1024,
             required=False,
         ),
     ):
         if not await permcheck(interaction, is_mod):
             return
-        
+
         if is_staff(member):
             await interaction.response.send_message(
                 f"{self.config.emotes.fail} You cannot revoke access from a staff member.",
@@ -345,6 +345,60 @@ class AdultAccess(commands.Cog):
         return fetch_offences_by_partial_name(offence)
 
     @adult_access.subcommand(
+        name="blacklist_remove",
+        description="Used to remove a user from the blacklist",
+    )
+    async def adult_blacklist_remove(
+        self,
+        interaction: nextcord.Interaction,
+        user: nextcord.Member,
+        reason: str = nextcord.SlashOption(
+            name="reason",
+            description="Reason for removing user from blacklist",
+            min_length=10,
+            max_length=1024,
+        ),
+    ):
+        if not await permcheck(interaction, is_senior_mod):
+            return
+
+        if not aoa_is_blacklisted(user):
+            await interaction.response.send_message(
+                f"{self.config.emotes.fail} User is not blacklisted.",
+                ephemeral=True,
+            )
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        with db_session() as session:
+            case: AdultBlacklistCase = (
+                session.query(AdultBlacklistCase)
+                .filter_by(offender=user.id, active=True)
+                .first()
+            )
+
+            case.active = False
+            case.removed_by = interaction.user.id
+            case.removal_reason = reason
+            session.commit()
+
+        logging_embed = SersiEmbed(
+            title="Over 18 Access Blacklist Removed",
+            description=f"Member {user.mention} ({user.id}) has been removed from the blacklist by "
+            f"{interaction.user.mention}",
+            fields={"Reason:": reason},
+            footer="Sersi Adult Verification",
+            author=interaction.user,
+        )
+        logging_channel = interaction.guild.get_channel(self.config.channels.logging)
+        await logging_channel.send(embed=logging_embed)
+
+        await interaction.followup.send(
+            f"{self.config.emotes.success} User has been removed from the blacklist."
+        )
+
+    @adult_access.subcommand(
         name="verify",
         description="Used to verify a user as an adult",
     )
@@ -371,7 +425,7 @@ class AdultAccess(commands.Cog):
             description="The year portion of the date of birth",
             required=True,
             min_value=1950,
-            max_value=2023,
+            max_value=datetime.now().year,
         ),
     ):
         if not await permcheck(interaction, is_senior_mod) and not await permcheck(
