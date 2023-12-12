@@ -40,8 +40,8 @@ class Suggestions(commands.Cog):
         suggestion: str = nextcord.SlashOption(
             name="suggestion",
             description="The suggestion you wish to make",
-            min_length=8,
-            max_length=1240,
+            min_length=10,
+            max_length=1024,
         ),
         media_url: str = nextcord.SlashOption(
             name="suggestion_media",

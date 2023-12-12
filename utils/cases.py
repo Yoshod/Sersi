@@ -155,49 +155,24 @@ def create_case_embed(
                     }
                 )
 
-    # TODO: reimplement review properly
+    if case.type in ["Ban", "Timeout", "Warning"]:
+        with db_session() as session:
+            review: PeerReview = (
+                session.query(PeerReview).filter_by(case_id=case.id).first()
+            )
 
-    # with db_session(interaction.user) as session:
-    #     review_case = session.query(PeerReview).filter_by(case_id=case.id).first()
+        if review:
+            fields.append(
+                {
+                    "Review Outcome": config.emotes.success
+                    if review.review_outcome == "Approve"
+                    else config.emotes.fail,
+                    "Reviewer": f"<@{review.reviewer}> `{review.reviewer}`",
+                }
+            )
 
-    # try:
-    #     match review_case.review_outcome:
-    #         case "Approved":
-    #             outcome = config.emotes.success
-    #             reviewer = f"{interaction.guild.get_member(review_case.reviewer).mention} `{interaction.guild.get_member(review_case.reviewer).id}`"
-
-    #         case "Objection":
-    #             outcome = config.emotes.fail
-    #             reviewer = f"{interaction.guild.get_member(review_case.reviewer).mention} `{interaction.guild.get_member(review_case.reviewer).id}`"
-
-    #         case None:
-    #             outcome = config.emotes.inherit
-    #             reviewer = f"{interaction.guild.get_member(review_case.reviewer).mention} `{interaction.guild.get_member(review_case.reviewer).id}`"
-
-    # except AttributeError:
-    #     outcome = config.emotes.inherit
-    #     reviewer = "In Progress"
-
-    # if review_case and review_case.review_outcome is None:
-    #     fields.append({"Review Status": config.emotes.inherit})
-
-    # elif review_case and review_case.review_outcome == "Approve":
-    #     fields.append(
-    #         {
-    #             "Review Status": config.emotes.success,
-    #             "Reviewer": reviewer,
-    #             "Review": outcome,
-    #         }
-    #     )
-
-    # elif review_case and review_case.review_outcome == "None":
-    #     fields.append(
-    #         {
-    #             "Review Status": config.emotes.fail,
-    #             "Reviewer": reviewer,
-    #             "Review": outcome,
-    #         }
-    #     )
+            if review.review_comment:
+                fields.append({"Review Comment": review.review_comment})
 
     if case.scrubbed:
         with db_session() as session:
