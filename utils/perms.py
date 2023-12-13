@@ -111,11 +111,11 @@ def is_compliance(member: nextcord.Member) -> bool:
     return is_allowed(member, [config.permission_roles.compliance])
 
 
-def is_dark_mod(member: nextcord.Member) -> bool:
+def is_admin(member: nextcord.Member) -> bool:
     return is_allowed(member, [config.permission_roles.dark_moderator])
 
 
-def is_senior_mod(member: nextcord.Member) -> bool:
+def is_mod_lead(member: nextcord.Member) -> bool:
     return is_allowed(
         member,
         [
@@ -149,6 +149,11 @@ def is_cet(member: nextcord.Member) -> bool:
     return is_allowed(
         member, [config.permission_roles.cet, config.permission_roles.cet_lead]
     )
+
+
+# legacy function aliases
+is_dark_mod: callable = is_admin
+is_senior_mod: callable = is_mod_lead
 
 
 def is_immune(member: nextcord.Member) -> bool:
@@ -246,3 +251,19 @@ def blacklist_check(user: nextcord.Member):
 
         else:
             return False
+
+
+def get_member_level(member: nextcord.Member) -> int:
+    for level, role in config.level_roles.items():
+        level_role = member.guild.get_role(role)
+        if level_role in member.roles:
+            return level
+    return 0
+
+
+def is_level(member: nextcord.Member, level: int) -> bool:
+    return get_member_level(member) >= level
+
+
+def level_check(level: int):
+    return lambda member: is_level(member, level)

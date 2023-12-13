@@ -155,6 +155,7 @@ class Configuration(YAMLWizard):
     opt_in_roles: dict[str, int]
     permission_roles: ConfigurationPermissionRoles
     punishment_roles: dict[str, int]
+    level_roles: dict[int, int]
     emotes: ConfigurationEmotes
     guilds: ConfigurationGuilds
     voting: dict[str, VoteType]
