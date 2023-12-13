@@ -61,6 +61,12 @@ class Staff(commands.Cog):
     ):
         if not permcheck(interaction, is_senior_mod):
             return
+        
+        if blacklist_check(member):
+            interaction.response.send_message(
+                f"{self.config.emotes.fail} This user is blacklisted from the Staff Team. Speak to an Administrator."
+            )
+            return
 
         trial_moderator: nextcord.Role = interaction.guild.get_role(
             self.config.permission_roles.trial_moderator
@@ -96,12 +102,6 @@ class Staff(commands.Cog):
     )
     async def promote(self, interaction: nextcord.Interaction, member: nextcord.Member):
         if not permcheck(interaction, is_senior_mod):
-            return
-
-        if blacklist_check(member):
-            interaction.response.send_message(
-                f"{self.config.emotes.fail} This user is blacklisted from the Staff Team. Speak to an Administrator."
-            )
             return
 
         await interaction.response.defer()
@@ -143,6 +143,57 @@ class Staff(commands.Cog):
             embed=log_embed
         )
 
+        await interaction.guild.get_channel(self.config.channels.mod_logs).send(
+            embed=log_embed
+        )
+
+    @add_to_staff.subcommand(description="Reinstates a retired Moderator")
+    async def reinstate_moderator(self, interaction: nextcord.Interaction, member: nextcord.Member):
+        if not permcheck(interaction, is_senior_mod):
+            return
+        
+        if blacklist_check(member):
+            interaction.response.send_message(
+                f"{self.config.emotes.fail} This user is blacklisted from the Staff Team. Speak to an Administrator."
+            )
+            return
+        
+        honourable_member: nextcord.Role = interaction.guild.get_role(
+            self.config.roles.honourable_member
+        )
+        moderator: nextcord.Role = interaction.guild.get_role(
+            self.config.permission_roles.moderator
+        )
+
+        if honourable_member not in member.roles:
+            await interaction.followup.send(
+                f"{self.config.emotes.fail} This user is not an Honourable Member and therefore cannot be reinstated as a Moderator."
+            )
+            return
+        
+        await interaction.response.defer()
+
+        await member.remove_roles(honourable_member, reason="Sersi command", atomic=True)
+        await member.add_roles(moderator, reason="Sersi command", atomic=True)
+
+        await interaction.followup.send(
+            f"{self.config.emotes.success} {member.mention} was given the {moderator.name} role.\n"
+            "Welcome back to the team! :)",
+        )
+
+        # logging
+        log_embed = SersiEmbed(
+            title="Honourable Member reinstated as a Moderator.",
+            fields={
+                "Responsible Moderator:": interaction.user.mention,
+                "New Moderator:": member.mention,
+            },
+            footer="Sersi Add Trial Mod",
+            author=interaction.user,
+        )
+        await interaction.guild.get_channel(self.config.channels.logging).send(
+            embed=log_embed
+        )
         await interaction.guild.get_channel(self.config.channels.mod_logs).send(
             embed=log_embed
         )
