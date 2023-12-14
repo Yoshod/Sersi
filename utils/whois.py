@@ -1,7 +1,7 @@
 import nextcord
 from utils.base import encode_button_id, encode_snowflake
 from utils.config import Configuration
-from utils.database import WarningCase, db_session, VoteDetails, BanCase
+from utils.database import WarningCase, db_session, VoteDetails, BanCase, BlacklistCase
 from utils.sersi_embed import SersiEmbed
 
 
@@ -69,12 +69,16 @@ async def create_whois_embed(
             .first()
         )
 
+        blacklists = (
+            session.query(BlacklistCase).filter_by(offender=user.id, active=True).all()
+        )
+
     try:
         if user.communication_disabled_until:
-            timeout_string = f"**Timeout**: {config.emotes.success} <t:{int(user.communication_disabled_until.timestamp())}:R>"
+            timeout_string = f"**Timeout**: {config.emotes.success} <t:{int(user.communication_disabled_until.timestamp())}:R>\n"
 
         else:
-            timeout_string = f"**Timeout**: {config.emotes.fail}"
+            timeout_string = f"**Timeout**: {config.emotes.fail}\n"
 
         guild_member = True
 
@@ -88,23 +92,31 @@ async def create_whois_embed(
 
             for ban in guild_bans:
                 if ban.user.id == user.id:
-                    timeout_string = f"**User Banned**: {config.emotes.success} `Non Sersi Ban: {ban.reason}`"
+                    timeout_string = f"**User Banned**: {config.emotes.success} `Non Sersi Ban: {ban.reason}`\n"
                     break
 
             if not timeout_string:
-                timeout_string = f"**User Banned**: {config.emotes.fail}"
+                timeout_string = f"**User Banned**: {config.emotes.fail}\n"
 
         else:
-            timeout_string = f"**User Banned**: {config.emotes.success} `{ban_case.id}` (<t:{int(ban_case.created.timestamp())}:R>)"
+            timeout_string = f"**User Banned**: {config.emotes.success} `{ban_case.id}` (<t:{int(ban_case.created.timestamp())}:R>)\n"
 
         guild_member = False
+
+    blacklists_string = ""
+    if blacklists:
+        blacklists_string = (
+            f"{config.emotes.blank}**Blacklisted from**: "
+            + ", ".join([f"`{blacklist.blacklist}`" for blacklist in blacklists])
+            + "\n"
+        )
 
     if guild_member:
         whois_embed = SersiEmbed(
             title=f"Whois {user.display_name}?",
             fields={
                 "General Information": f"{config.emotes.blank}**Username**: {user.name}\n{config.emotes.blank}**Global Name**: {user.global_name}\n{config.emotes.blank}**Nickname**: {user.nick}\n{config.emotes.blank}**User ID**: {user.id}\n{config.emotes.blank}**Mention**: {user.mention}\n{config.emotes.blank}**Creation Date**: <t:{int(user.created_at.timestamp())}:R>\n{config.emotes.blank}**Join Date**: <t:{int(user.joined_at.timestamp())}:R>",
-                "Sersi Information": f"{config.emotes.blank}**Active Warns**: {user_warns}\n{config.emotes.blank}**Ban Vote**: {config.emotes.success if ban_vote else config.emotes.fail}\n{config.emotes.blank}{timeout_string}",
+                "Sersi Information": f"{config.emotes.blank}**Active Warns**: {user_warns}\n{config.emotes.blank}**Ban Vote**: {config.emotes.success if ban_vote else config.emotes.fail}\n{config.emotes.blank}{timeout_string}{blacklists_string}",
             },
         )
         whois_embed.set_footer(text="Sersi Whois - Server Member")
@@ -115,7 +127,7 @@ async def create_whois_embed(
             title=f"Whois {user.display_name}?",
             fields={
                 "General Information": f"{config.emotes.blank}**Username**: {user.name}\n{config.emotes.blank}**Global Name**: {user.global_name}\n{config.emotes.blank}**User ID**: {user.id}\n{config.emotes.blank}**Creation Date**: <t:{int(user.created_at.timestamp())}:R>",
-                "Sersi Information": f"{config.emotes.blank}**Active Warns**: {user_warns}\n{config.emotes.blank}{timeout_string}",
+                "Sersi Information": f"{config.emotes.blank}**Active Warns**: {user_warns}\n{config.emotes.blank}{timeout_string}{blacklists_string}",
             },
         )
         whois_embed.set_footer(text="Sersi Whois - Not a Server Member")
