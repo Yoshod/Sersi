@@ -244,7 +244,7 @@ def blacklist_check(user: nextcord.Member, blacklist: str = "Staff"):
     with db_session() as session:
         blacklisted = (
             session.query(BlacklistCase)
-            .filter_by(blacklisted_user=user.id, active=True, blacklist=blacklist)
+            .filter_by(offender=user.id, active=True, blacklist=blacklist)
             .first()
         )
 

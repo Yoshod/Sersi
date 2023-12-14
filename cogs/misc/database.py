@@ -119,7 +119,7 @@ class Database(commands.Cog):
                         moderator=blacklist.staff_member,
                         blacklist="Staff",
                         reason=blacklist.reason,
-                        created_at=blacklist.timestamp,
+                        created=blacklist.timestamp,
                     )
                 )
             session.commit()

@@ -4,9 +4,16 @@ from nextcord.ext import commands
 from utils.base import ban, parse_roles, make_transcript
 from utils.cases import get_reformation_next_case_number
 from utils.config import Configuration
-from utils.database import db_session, BanCase, ReformationCase, VoteDetails, VoteRecord
+from utils.database import (
+    db_session,
+    BanCase,
+    ReformationCase,
+    VoteDetails,
+    VoteRecord,
+    BlacklistCase,
+)
 from utils.offences import fetch_offences_by_partial_name
-from utils.perms import permcheck, is_mod, is_senior_mod
+from utils.perms import permcheck, is_mod, is_mod_lead, blacklist_check
 from utils.sersi_embed import SersiEmbed
 from utils.views import ConfirmView
 from utils.voting import VoteView, vote_planned_end
@@ -386,7 +393,7 @@ class Reformation(commands.Cog):
             max_length=1024,
         ),
     ):
-        if not await permcheck(interaction, is_senior_mod):
+        if not await permcheck(interaction, is_mod_lead):
             return
 
         # member have reformation role check
@@ -523,6 +530,73 @@ class Reformation(commands.Cog):
             await cell_channel.delete()
 
             return
+
+    @reformation.subcommand(
+        description="Remove reformist role from a user and add them to reformist blacklist."
+    )
+    async def remove_reformist(
+        self,
+        interaction: nextcord.Interaction,
+        member: nextcord.Member = nextcord.SlashOption(
+            description="Member to remove reformist role from", required=True
+        ),
+        reason: str = nextcord.SlashOption(
+            description="Reason for removing and blacklisting the user",
+            min_length=10,
+            max_length=1024,
+        ),
+    ):
+        if not await permcheck(interaction, is_mod):
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        if not blacklist_check(member, "Reformist"):
+            with db_session() as session:
+                case: BlacklistCase = BlacklistCase(
+                    offender=member.id,
+                    moderator=interaction.user.id,
+                    blacklist="Reformist",
+                    reason=reason,
+                )
+                session.add(case)
+                session.commit()
+
+            await interaction.followup.send(
+                f"{self.config.emotes.success} User {member.mention} has been added to the reformist blacklist.",
+                ephemeral=True,
+            )
+
+        reformist_role = interaction.guild.get_role(
+            self.config.permission_roles.reformist
+        )
+
+        if reformist_role not in member.roles:
+            await interaction.followup.send(
+                f"{self.sersifail} Member is not a reformist.", ephemeral=True
+            )
+            return
+
+        await member.remove_roles(reformist_role, reason=reason)
+
+        await interaction.followup.send(
+            f"{self.config.emotes.success} User {member.mention} has been removed from the reformist role.",
+            ephemeral=True,
+        )
+
+        #logging
+        embed = SersiEmbed(
+            title="User Removed from Reformist Role",
+            description=f"User {member.mention} ({member.id}) has been removed from the reformist role by "
+            f"{interaction.user.mention} ({interaction.user.id}).",
+            fields={
+                "Reason": reason,
+            },
+            author=interaction.user,
+        )
+
+        channel = interaction.guild.get_channel(self.config.channels.logging)
+        await channel.send(embed=embed)
 
     @commands.Cog.listener()
     async def on_member_remove(self, member: nextcord.Member):

@@ -541,6 +541,7 @@ class VoteRecord(_Base):
 
 
 class StaffBlacklist(_Base):
+    # TODO: remove in 5.2.0
     __tablename__ = "staff_blacklist"
 
     blacklisted_user = Column(Integer, primary_key=True)

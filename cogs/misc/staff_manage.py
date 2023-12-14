@@ -445,7 +445,7 @@ class Staff(commands.Cog):
         with db_session(interaction.user) as session:
             case: BlacklistCase = (
                 session.query(BlacklistCase)
-                .filter_by(blacklisted_user=member.id, active=True, blacklist="Staff")
+                .filter_by(offender=member.id, active=True, blacklist="Staff")
                 .first()
             )
             case.active = False

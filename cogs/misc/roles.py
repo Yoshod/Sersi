@@ -2,7 +2,7 @@ from nextcord.ext import commands
 from utils.config import Configuration
 import datetime
 import pytz
-from utils.perms import permcheck, is_admin, is_level
+from utils.perms import permcheck, is_admin, is_level, blacklist_check
 from utils.sersi_embed import SersiEmbed
 from nextcord.ui import View, Select, Button
 import nextcord
@@ -411,6 +411,12 @@ class Roles(commands.Cog):
         
         match interaction.data["custom_id"]:
             case "roles-reformist_opt_in":
+                if blacklist_check(interaction.user, "Reformist"):
+                    await interaction.response.send_message(
+                        "You are blacklisted from the Reformist role.",
+                        ephemeral=True,
+                    )
+                    return
                 if not is_level(interaction.user, 4):
                     await interaction.response.send_message(
                         "You must be level 4 or above to be eligible for the reformist role.",
@@ -419,7 +425,7 @@ class Roles(commands.Cog):
                     return
 
                 reformist_role = interaction.guild.get_role(
-                    self.config.opt_in_roles["reformist"]
+                    self.config.permission_roles.reformist
                 )
                 await interaction.user.add_roles(
                     reformist_role,
@@ -432,7 +438,7 @@ class Roles(commands.Cog):
             
             case "roles-reformist_opt_out":
                 reformist_role = interaction.guild.get_role(
-                    self.config.opt_in_roles["reformist"]
+                    self.config.permission_roles.reformist
                 )
                 await interaction.user.remove_roles(
                     reformist_role,

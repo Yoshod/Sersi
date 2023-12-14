@@ -237,7 +237,7 @@ class AdultAccess(commands.Cog):
         interaction: nextcord.Interaction,
         member: nextcord.Member,
         reason: str = nextcord.SlashOption(
-            name="details",
+            name="reason",
             description="Reason for revoking access",
             min_length=10,
             max_length=1024,
@@ -322,15 +322,6 @@ class AdultAccess(commands.Cog):
             f"{self.config.emotes.success} {member.mention} no longer has access to any 18+ channels."
         )
 
-    @adult_revoke.on_autocomplete("offence")
-    async def autocomplete_offence(
-        self, interaction: nextcord.Interaction, offence: str
-    ):
-        if not is_mod(interaction.user):
-            return
-
-        return fetch_offences_by_partial_name(offence)
-
     @adult_access.subcommand(
         name="blacklist_remove",
         description="Used to remove a user from the blacklist",
@@ -358,7 +349,7 @@ class AdultAccess(commands.Cog):
 
         await interaction.response.defer(ephemeral=True)
 
-        with db_session() as session:
+        with db_session(interaction.user) as session:
             case: BlacklistCase = (
                 session.query(BlacklistCase)
                 .filter_by(offender=user.id, active=True, blacklist="Adult Only Access")
