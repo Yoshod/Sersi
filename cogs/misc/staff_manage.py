@@ -8,13 +8,13 @@ from utils.config import Configuration
 from utils.perms import (
     permcheck,
     is_staff,
-    is_senior_mod,
+    is_mod_lead,
     is_slt,
-    is_dark_mod,
+    is_admin,
     is_cet_lead,
     blacklist_check,
 )
-from utils.database import StaffBlacklist, db_session
+from utils.database import db_session, BlacklistCase, CaseApproval
 
 
 class Staff(commands.Cog):
@@ -59,7 +59,7 @@ class Staff(commands.Cog):
     async def trial_moderator(
         self, interaction: nextcord.Interaction, member: nextcord.Member
     ):
-        if not permcheck(interaction, is_senior_mod):
+        if not permcheck(interaction, is_mod_lead):
             return
         
         if blacklist_check(member):
@@ -101,7 +101,7 @@ class Staff(commands.Cog):
         description="Promotes a Trial Moderator to Moderator",
     )
     async def promote(self, interaction: nextcord.Interaction, member: nextcord.Member):
-        if not permcheck(interaction, is_senior_mod):
+        if not permcheck(interaction, is_mod_lead):
             return
 
         await interaction.response.defer()
@@ -149,7 +149,7 @@ class Staff(commands.Cog):
 
     @add_to_staff.subcommand(description="Reinstates a retired Moderator")
     async def reinstate_moderator(self, interaction: nextcord.Interaction, member: nextcord.Member):
-        if not permcheck(interaction, is_senior_mod):
+        if not permcheck(interaction, is_mod_lead):
             return
         
         if blacklist_check(member):
@@ -293,7 +293,7 @@ class Staff(commands.Cog):
                 "Reason:": reason,
                 "Responsible Member:": interaction.user.mention,
             }
-            if bypass_reason and is_dark_mod(interaction.user):
+            if bypass_reason and is_admin(interaction.user):
                 embed_fields["Bypass Reason:"] = bypass_reason
             else:
                 embed_fields["Confirming Member:"] = confirming_moderator.mention
@@ -312,12 +312,22 @@ class Staff(commands.Cog):
             await channel.send(embed=log_embed)
 
             with db_session(interaction.user) as session:
-                blacklist_instance = StaffBlacklist(
-                    blacklisted_user=member.id,
-                    staff_member=interaction.user.id,
+                case: BlacklistCase = BlacklistCase(
+                    offender=member.id,
+                    moderator=interaction.user.id,
+                    blacklist="Staff",
                     reason=reason,
                 )
-                session.add(blacklist_instance)
+                session.add(case)
+
+                if confirming_moderator != interaction.user:
+                    session.add(
+                        CaseApproval(
+                            case_id=case.id,
+                            approver=confirming_moderator.id,
+                            approved=True,
+                        )
+                    )
                 session.commit()
 
         await execute(self.bot, self.config, interaction)
@@ -397,12 +407,13 @@ class Staff(commands.Cog):
         interaction.response.defer()
 
         with db_session(interaction.user) as session:
-            blacklist_instance = StaffBlacklist(
-                blacklisted_user=member.id,
-                staff_member=interaction.user.id,
+            case: BlacklistCase = BlacklistCase(
+                offender=member.id,
+                moderator=interaction.user.id,
+                blacklist="Staff",
                 reason=reason,
             )
-            session.add(blacklist_instance)
+            session.add(case)
             session.commit()
 
         interaction.followup.send(
@@ -418,10 +429,10 @@ class Staff(commands.Cog):
             description="Who to blacklist.",
         ),
         reason: str = SlashOption(
-            description="The reason you are blacklisting this user."
+            description="The reason you are removing this user from the blacklist."
         ),
     ):
-        if not await permcheck(interaction, is_dark_mod):
+        if not await permcheck(interaction, is_admin):
             return
 
         if not blacklist_check(member):
@@ -432,12 +443,14 @@ class Staff(commands.Cog):
         interaction.response.defer()
 
         with db_session(interaction.user) as session:
-            blacklist_instance = (
-                session.query(StaffBlacklist)
-                .filter_by(blacklisted_user=member.id)
+            case: BlacklistCase = (
+                session.query(BlacklistCase)
+                .filter_by(blacklisted_user=member.id, active=True, blacklist="Staff")
                 .first()
             )
-            session.delete(blacklist_instance)
+            case.active = False
+            case.removed_by = interaction.user.id
+            case.removal_reason = reason
             session.commit()
 
         interaction.followup.send(

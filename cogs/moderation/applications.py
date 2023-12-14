@@ -3,9 +3,9 @@ from nextcord.ext import commands
 from nextcord.ui import Button, View, Modal
 from utils.config import Configuration
 from utils.perms import (
-    is_dark_mod,
+    is_admin,
     permcheck,
-    is_senior_mod,
+    is_mod_lead,
     is_cet,
     is_mod,
     blacklist_check,
@@ -64,7 +64,7 @@ class ModAppModal(Modal):
         """Run whenever the 'submit' button is pressed."""
         applicant_id = interaction.user.id
 
-        if blacklist_check(interaction.user.id):
+        if blacklist_check(interaction.user):
             embed_fields = {
                 self.aboutq.label: self.aboutq.value,
                 self.whymod.label: self.whymod.value,
@@ -229,7 +229,7 @@ class Applications(commands.Cog):
 
     @commands.command()
     async def mod_apps(self, ctx):
-        if not await permcheck(ctx, is_dark_mod):
+        if not await permcheck(ctx, is_admin):
             return
 
         await ctx.message.delete()
@@ -252,7 +252,7 @@ class Applications(commands.Cog):
 
     @commands.command()
     async def staff_info(self, ctx):
-        if not await permcheck(ctx, is_dark_mod):
+        if not await permcheck(ctx, is_admin):
             return
 
         await ctx.message.delete()
@@ -281,7 +281,7 @@ class Applications(commands.Cog):
 
     @commands.command()
     async def cet_apps(self, ctx: commands.Context):
-        if not await permcheck(ctx, is_dark_mod):
+        if not await permcheck(ctx, is_admin):
             return
 
         await ctx.message.delete()
@@ -371,7 +371,7 @@ class Applications(commands.Cog):
 
         match btn_id.split(":", 1):
             case ["mod-application-next-steps", user_id]:
-                if await permcheck(interaction, is_senior_mod):
+                if await permcheck(interaction, is_mod_lead):
                     if blacklist_check(interaction.guild.get_member(user_id)):
                         interaction.response.send_message(
                             f"{self.config.emotes.fail} This user is on the staff team blacklist. Please speak to an Administrator."
@@ -395,7 +395,7 @@ class Applications(commands.Cog):
                     await user.send(embed=advance_embed)
 
             case ["mod-application-reject", user_id]:
-                if await permcheck(interaction, is_senior_mod):
+                if await permcheck(interaction, is_mod_lead):
                     user = interaction.guild.get_member(int(user_id))
 
                     updated_form = interaction.message.embeds[0]
@@ -413,7 +413,7 @@ class Applications(commands.Cog):
                     await user.send(embed=rejection_embed)
 
             case ["mod-application-review", user_id]:
-                if await permcheck(interaction, is_senior_mod):
+                if await permcheck(interaction, is_mod_lead):
                     user = interaction.guild.get_member(int(user_id))
 
                     updated_form = interaction.message.embeds[0]

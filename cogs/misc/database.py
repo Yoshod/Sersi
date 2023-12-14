@@ -19,6 +19,8 @@ from utils.database import (
     Slur,
     Goodword,
     create_db_tables,
+    BlacklistCase,
+    StaffBlacklist,
 )
 from utils.config import Configuration
 from utils.perms import is_sersi_contributor, permcheck
@@ -94,6 +96,30 @@ class Database(commands.Cog):
                         detail=offence["detail"],
                         warn_severity=offence["severity"],
                         punishments="|".join(offence["punishments"]),
+                    )
+                )
+            session.commit()
+
+        await interaction.followup.send(f"{self.config.emotes.success} Complete")
+    
+    @database.subcommand(
+        description="Migrates staff blacklist to Blacklist cases",
+    )
+    async def migrate_staff_blacklist(self, interaction: nextcord.Interaction):
+        if not await permcheck(interaction, is_sersi_contributor):
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        with db_session(interaction.user) as session:
+            for blacklist in session.query(StaffBlacklist).all():
+                session.add(
+                    BlacklistCase(
+                        offender=blacklist.blacklisted_user,
+                        moderator=blacklist.staff_member,
+                        blacklist="Staff",
+                        reason=blacklist.reason,
+                        created_at=blacklist.timestamp,
                     )
                 )
             session.commit()

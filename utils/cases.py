@@ -12,13 +12,13 @@ from utils.database import (
     CaseAudit,
     BanCase,
     BadFaithPingCase,
+    BlacklistCase,
     KickCase,
     ProbationCase,
     ReformationCase,
     SlurUsageCase,
     TimeoutCase,
     WarningCase,
-    AdultBlacklistCase,
     ScrubbedCase,
     PeerReview,
 )
@@ -56,6 +56,9 @@ def create_case_embed(
     ]
 
     match case:
+        case BadFaithPingCase():
+            fields[1].popitem()
+            fields[1].update({"Report": case.report_url})
         case BanCase():
             fields.append({"Details": f"{case.details}"})
             fields.append(
@@ -74,9 +77,20 @@ def create_case_embed(
                         "Unban Reason": f"{case.unban_reason}",
                     }
                 )
-        case BadFaithPingCase():
+        case BlacklistCase():
             fields[1].popitem()
-            fields[1].update({"Report": case.report_url})
+            fields[1].update({"Blacklist": case.blacklist})
+            fields.append({"Reason": f"{case.reason}"})
+            fields.append(
+                {"Active": config.emotes.success if case.active else config.emotes.fail}
+            )
+            if not case.active:
+                fields[-1].update(
+                    {
+                        "Removed By": f"<@{case.removed_by}> `{case.removed_by}`",
+                        "Removal Reason": f"{case.removal_reason}",
+                    }
+                )
         case KickCase():
             fields.append({"Details": f"{case.details}"})
         case ProbationCase():
@@ -140,18 +154,6 @@ def create_case_embed(
                     {
                         "Deactivated By": f"<@{case.deactivated_by}> `{case.deactivated_by}`",
                         "Deactivate Reason": f"{case.deactivate_reason}",
-                    }
-                )
-        case AdultBlacklistCase():
-            fields.append({"Details": f"{case.details}"})
-            fields.append(
-                {"Active": config.emotes.success if case.active else config.emotes.fail}
-            )
-            if not case.active:
-                fields[-1].update(
-                    {
-                        "Removed By": f"<@{case.removed_by}> `{case.removed_by}`",
-                        "Removal Reason": f"{case.removal_reason}",
                     }
                 )
 
@@ -221,8 +223,12 @@ def get_case_by_id(case_id: str) -> typing.Type[Case] | None:
             return None
 
         match case.type:
+            case "Bad Faith Ping":
+                return session.query(BadFaithPingCase).filter_by(id=case_id).first()
             case "Ban":
                 return session.query(BanCase).filter_by(id=case_id).first()
+            case "Blacklist":
+                return session.query(BlacklistCase).filter_by(id=case_id).first()
             case "Ping":
                 return session.query(BadFaithPingCase).filter_by(id=case_id).first()
             case "Kick":
@@ -237,8 +243,6 @@ def get_case_by_id(case_id: str) -> typing.Type[Case] | None:
                 return session.query(TimeoutCase).filter_by(id=case_id).first()
             case "Warning":
                 return session.query(WarningCase).filter_by(id=case_id).first()
-            case "Adult Blacklist":
-                return session.query(AdultBlacklistCase).filter_by(id=case_id).first()
             case _:
                 return None
 
@@ -419,17 +423,3 @@ def decode_case_kwargs(kwargs: dict):
         decoded["moderator_id"] = decode_snowflake(moderator_id)
 
     return decoded
-
-
-def aoa_is_blacklisted(user: nextcord.Member) -> bool:
-    with db_session() as session:
-        blacklist_case: AdultBlacklistCase = (
-            session.query(AdultBlacklistCase)
-            .filter_by(offender=user.id, active=True)
-            .first()
-        )
-
-    if blacklist_case:
-        return True
-
-    return False

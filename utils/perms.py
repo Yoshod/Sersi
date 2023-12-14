@@ -2,7 +2,7 @@ import nextcord
 import nextcord.ext.commands
 
 from utils.config import Configuration
-from utils.database import db_session, StaffBlacklist
+from utils.database import db_session, BlacklistCase
 from utils.sersi_embed import SersiEmbed
 
 config = Configuration.from_yaml_file("./persistent_data/config.yaml")
@@ -59,7 +59,7 @@ async def permcheck(
             await hook.response.send_message(
                 f"{config.emotes.fail} Permission denied.", ephemeral=True
             )
-            
+
             embed_fields = {
                 "User:": f"{hook.user} ({hook.user.id})",
                 "Channel:": f"{hook.channel.mention} ({hook.channel.id})",
@@ -240,17 +240,18 @@ async def cb_is_cet(interaction) -> bool:
     return await permcheck(interaction, is_cet)
 
 
-def blacklist_check(user: nextcord.Member):
+def blacklist_check(user: nextcord.Member, blacklist: str = "Staff"):
     with db_session() as session:
         blacklisted = (
-            session.query(StaffBlacklist).filter_by(blacklisted_user=user.id).first()
+            session.query(BlacklistCase)
+            .filter_by(blacklisted_user=user.id, active=True, blacklist=blacklist)
+            .first()
         )
 
         if blacklisted:
             return True
 
-        else:
-            return False
+        return False
 
 
 def get_member_level(member: nextcord.Member) -> int:

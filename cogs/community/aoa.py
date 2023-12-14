@@ -5,20 +5,19 @@ import nextcord
 import pytz
 from nextcord.ext import commands
 from nextcord.ui import Button, View, Modal
-
-from utils.cases import aoa_is_blacklisted
-from utils.database import db_session, AdultBlacklistCase
+from utils.database import db_session, BlacklistCase
 from utils.sersi_embed import SersiEmbed
 from utils.config import Configuration
-from utils.offences import fetch_offences_by_partial_name, offence_validity_check
+from utils.offences import fetch_offences_by_partial_name
 from utils.perms import (
     is_cet,
-    is_dark_mod,
+    is_admin,
     is_mod,
-    is_senior_mod,
+    is_mod_lead,
     is_slt,
     is_staff,
     permcheck,
+    blacklist_check,
 )
 
 
@@ -152,7 +151,7 @@ class AdultAccess(commands.Cog):
     @commands.command(name="adultaccess")
     async def adult_access_embed(self, ctx: commands.Context):
         """Single use Command for the 'Create Application' Embed."""
-        if not await permcheck(ctx, is_dark_mod):
+        if not await permcheck(ctx, is_admin):
             return
 
         await ctx.message.delete()
@@ -195,7 +194,7 @@ class AdultAccess(commands.Cog):
             max_length=1024,
         ),
     ):
-        if not await permcheck(interaction, is_dark_mod):
+        if not await permcheck(interaction, is_admin):
             return
 
         await interaction.response.defer(ephemeral=True)
@@ -237,16 +236,11 @@ class AdultAccess(commands.Cog):
         self,
         interaction: nextcord.Interaction,
         member: nextcord.Member,
-        offence: str = nextcord.SlashOption(
-            name="offence",
-            description="Reason for revoking user access",
-        ),
-        details: str = nextcord.SlashOption(
+        reason: str = nextcord.SlashOption(
             name="details",
-            description="Details for the offence",
+            description="Reason for revoking access",
             min_length=10,
             max_length=1024,
-            required=False,
         ),
     ):
         if not await permcheck(interaction, is_mod):
@@ -259,23 +253,16 @@ class AdultAccess(commands.Cog):
             )
             return
 
-        if not offence_validity_check(offence):
-            await interaction.response.send_message(
-                f"{self.config.emotes.fail} The offence you have entered is not valid. Please try again.",
-                ephemeral=True,
-            )
-            return
-
         await interaction.response.defer(ephemeral=True)
 
-        if not aoa_is_blacklisted(member):
+        if not blacklist_check(member, "Adult Only Access"):
             with db_session() as session:
                 session.add(
-                    AdultBlacklistCase(
+                    BlacklistCase(
                         offender=member.id,
                         moderator=interaction.user.id,
-                        offence=offence,
-                        details=details,
+                        blacklist="Adult Only Access",
+                        reason=reason
                     )
                 )
                 session.commit()
@@ -318,7 +305,7 @@ class AdultAccess(commands.Cog):
             title="Over 18 Access Revoked",
             description=f"Member {member.mention} ({member.id}) has had their access to the over 18 channels revoked by "
             f"{interaction.user.mention}",
-            fields={"Offence:": offence, "Detail:": details},
+            fields={"Reason:": reason},
             footer="Sersi Adult Verification",
             author=interaction.user,
         )
@@ -359,10 +346,10 @@ class AdultAccess(commands.Cog):
             max_length=1024,
         ),
     ):
-        if not await permcheck(interaction, is_senior_mod):
+        if not await permcheck(interaction, is_mod_lead):
             return
 
-        if not aoa_is_blacklisted(user):
+        if not blacklist_check(user, "Adult Only Access"):
             await interaction.response.send_message(
                 f"{self.config.emotes.fail} User is not blacklisted.",
                 ephemeral=True,
@@ -372,9 +359,9 @@ class AdultAccess(commands.Cog):
         await interaction.response.defer(ephemeral=True)
 
         with db_session() as session:
-            case: AdultBlacklistCase = (
-                session.query(AdultBlacklistCase)
-                .filter_by(offender=user.id, active=True)
+            case: BlacklistCase = (
+                session.query(BlacklistCase)
+                .filter_by(offender=user.id, active=True, blacklist="Adult Only Access")
                 .first()
             )
 
@@ -428,7 +415,7 @@ class AdultAccess(commands.Cog):
             max_value=datetime.now().year,
         ),
     ):
-        if not await permcheck(interaction, is_senior_mod) and not await permcheck(
+        if not await permcheck(interaction, is_mod_lead) and not await permcheck(
             interaction, is_cet
         ):
             return
@@ -502,7 +489,7 @@ class AdultAccess(commands.Cog):
 
         match btn_id.split(":", 1):
             case ["adult-channel-start"]:
-                if aoa_is_blacklisted(interaction.user):
+                if blacklist_check(interaction.user, "Adult Only Access"):
                     await interaction.response.send_message(
                         f"{self.config.emotes.fail} You have been blacklisted from applying to the Over 18's channels.",
                         ephemeral=True,
