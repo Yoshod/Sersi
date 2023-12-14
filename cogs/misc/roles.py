@@ -47,7 +47,7 @@ class Roles(commands.Cog):
             )
         )
 
-        await ctx.send(embed=reformist_embed)
+        await ctx.send(embed=reformist_embed, view=view)
 
     @commands.command()
     async def add_roles(self, ctx: commands.Context):
