@@ -20,8 +20,8 @@ channels:
     mod_logs:                 1166770864595943516
     reformation:              1166770864197468235
     reformation_info:         1166770864197468233
-    dm_forward:                                0
-    errors:                   987397664280817754
+    dm_forward:                                 0
+    errors:                    987397664280817754
     teachers_lounge:          1166770864197468235
     reform public log:        1166770864197468234
     photography:              1166770863387983918
@@ -48,10 +48,12 @@ channels:
     dark_mod_review:          1166770862150651978
     senior_mod_review:        1166770862150651979
     moderator_review:         1166770862150651980
-    moderation_votes:                          0
-    suggestion_discussion:   1166770862989525000
-    suggestion_voting:       1166770862989524999
-    suggestion_review:       1166770862435876978   
+    moderation_votes:                           0
+    suggestion_discussion:    1166770862989525000
+    suggestion_voting:        1166770862989524999
+    suggestion_review:        1166770862435876978
+    staff_votes:                                0
+    cet_votes:                                  0
 
 ignored_categories:
     - IMPORTANT STUFF
@@ -142,4 +144,9 @@ voting:
     urgent-ban:
         name: Urgent Ban
         action: vote_ban
-        difference: 2
+    honoured-member-revoke:
+        name: Honoured Member Revocation
+        action: revoke_honoured_member
+        group: staff
+        duration: 168
+        supermajority: true

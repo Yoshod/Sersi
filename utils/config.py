@@ -30,6 +30,8 @@ class ConfigurationChannels(YAMLWizard):
     senior_mod_review: int
     moderator_review: int
     moderation_votes: int
+    staff_votes: int
+    cet_votes: int
 
     # debugging channels
     errors: int
@@ -137,10 +139,12 @@ class VoteType(YAMLWizard):
     name: str
     action: str
 
+    group: str = "mod"
     duration: int = 72
     threshold: int = 3
     difference: int = 1
 
+    supermajority: bool = False
     comment_required: bool = True
     end_on_threshold: bool = True
 

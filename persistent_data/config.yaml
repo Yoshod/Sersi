@@ -60,6 +60,8 @@ channels:
     suggestion_discussion:   1168987121936253078
     suggestion_voting:       1168987296452845669
     suggestion_review:       1168176532750082119
+    staff_votes:                               0
+    cet_votes:                                 0
 
 ignored_categories:
     - IMPORTANT STUFF
@@ -159,3 +161,9 @@ voting:
         name: Urgent Ban
         action: vote_ban
         difference: 2
+    honour-revoke:
+        name: Honoured Member Revocation
+        action: honoured_member_revoke
+        group: staff
+        duration: 168
+        supermajority: true

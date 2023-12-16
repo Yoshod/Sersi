@@ -57,6 +57,8 @@ channels:
     senior_mod_review: 1147602514154377247
     moderator_review: 1147602548971278407
     moderation_votes: 0
+    staff_votes: 0
+    cet_votes: 0
 
 ignored_categories:
     - alerts
@@ -150,4 +152,9 @@ voting:
     urgent-ban:
         name: Urgent Ban
         action: vote_ban
-        difference: 2
+    honoured-member-revoke:
+        name: Honoured Member Revocation
+        action: honoured_member_revoke
+        group: staff
+        duration: 168
+        supermajority: true
