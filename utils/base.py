@@ -7,7 +7,7 @@ import nextcord.ext.commands as commands
 from shortuuid.main import int_to_string, string_to_int
 from chat_exporter import export
 
-import utils.config
+from utils.config import Configuration
 
 
 def get_discord_timestamp(time: datetime.datetime, *, relative: bool = False) -> str:
@@ -60,7 +60,7 @@ async def ban(
     await member.ban(reason=reason, delete_message_days=0)
 
 
-def modmention_check(config: utils.config.Configuration, message: str) -> bool:
+def modmention_check(config: Configuration, message: str) -> bool:
     modmentions: list[str] = [
         f"<@&{config.permission_roles.trial_moderator}>",
         f"<@&{config.permission_roles.moderator}>",
@@ -102,12 +102,13 @@ def convert_mention_to_id(mention: str) -> int:
 
 
 def ignored_message(
-    config: utils.config.Configuration,
+    config: Configuration,
     message: nextcord.Message,
     *,
     ignore_bots: bool = True,
     ignore_channels: bool = True,
     ignore_categories: bool = True,
+    ignore_other_guilds: bool = True,
 ) -> bool:
     """Check if a message should be ignored by the bot."""
     if message.guild is None:
@@ -118,6 +119,8 @@ def ignored_message(
         return True  # ignore specified channels
     if ignore_categories and message.channel.category.name in config.ignored_categories:
         return True  # ignore specified categories
+    if ignore_other_guilds and message.guild.id != config.guilds.main:
+        return True  # ignore other guilds
     return False
 
 
@@ -161,13 +164,11 @@ def decode_snowflake(string: str) -> int:
 
 
 def encode_button_id(label: str, *args, **kwargs) -> str:
-    id = ":".join(
-        [label, *args, *[f"{key}={value}" for key, value in kwargs.items()]]
-    )
+    id = ":".join([label, *args, *[f"{key}={value}" for key, value in kwargs.items()]])
 
     if len(id) > 100:
         raise ValueError("Button ID too long, must be <= 100 characters.")
-    
+
     return id
 
 
@@ -238,3 +239,10 @@ async def make_transcript(
 
     return transcript
 
+
+def get_member_level(config: Configuration, member: nextcord.Member) -> int:
+    for level, role in config.level_roles.items():
+        level_role = member.guild.get_role(role)
+        if level_role in member.roles:
+            return level
+    return 0

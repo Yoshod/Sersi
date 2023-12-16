@@ -1,6 +1,7 @@
 import nextcord
 import nextcord.ext.commands
 
+from utils.base import get_member_level
 from utils.config import Configuration
 from utils.database import db_session, BlacklistCase
 from utils.sersi_embed import SersiEmbed
@@ -254,16 +255,8 @@ def blacklist_check(user: nextcord.Member, blacklist: str = "Staff"):
         return False
 
 
-def get_member_level(member: nextcord.Member) -> int:
-    for level, role in config.level_roles.items():
-        level_role = member.guild.get_role(role)
-        if level_role in member.roles:
-            return level
-    return 0
-
-
 def is_level(member: nextcord.Member, level: int) -> bool:
-    return get_member_level(member) >= level
+    return get_member_level(config, member) >= level
 
 
 def level_check(level: int):
