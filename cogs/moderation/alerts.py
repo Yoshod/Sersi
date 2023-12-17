@@ -99,6 +99,17 @@ class Alerts(commands.Cog):
                         session.add(case)
                         session.commit()
 
+                elif alert_type == AlertType.Ping:
+                    with db_session() as session:
+                        case = BadFaithPingCase(
+                            offender=user_id,
+                            moderator=interaction.user.id,
+                            report_url=interaction.message.jump_url,
+                        )
+
+                        session.add(case)
+                        session.commit()
+
             case "alert_action_not_necessary":
                 embed.add_field(
                     name="Action Deemed Not Necessary By:",
