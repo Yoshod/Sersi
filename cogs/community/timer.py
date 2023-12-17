@@ -30,7 +30,7 @@ class Timer(commands.Cog):
 
         await asyncio.sleep(time_minutes * 60)
 
-        await interaction.followup.send(interaction.user.mention)
+        await message.reply(f"{interaction.user.mention} time is up!")
         await message.delete()
 
 
