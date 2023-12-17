@@ -1,15 +1,13 @@
-import datetime
-
 import nextcord
 
-from utils import logs
+from utils.alerts import add_response_time
 from utils.config import Configuration
 from utils.database import db_session, PeerReview, Case
 from utils.perms import (
     permcheck,
     is_compliance,
-    is_dark_mod,
-    is_senior_mod,
+    is_admin,
+    is_mod_lead,
     is_full_mod,
 )
 from utils.sersi_embed import SersiEmbed
@@ -57,11 +55,7 @@ class ObjectionButton(nextcord.ui.Button):
             )
         )
 
-        await logs.update_response(
-            self.config,
-            interaction.message,
-            datetime.datetime.now(datetime.timezone.utc),
-        )
+        add_response_time(interaction.message)
 
 
 class ApprovalButton(nextcord.ui.Button):
@@ -106,11 +100,7 @@ class ApprovalButton(nextcord.ui.Button):
             )
         )
 
-        await logs.update_response(
-            self.config,
-            interaction.message,
-            datetime.datetime.now(datetime.timezone.utc),
-        )
+        add_response_time(interaction.message)
 
 
 class AlertView(nextcord.ui.View):
@@ -128,9 +118,9 @@ class AlertView(nextcord.ui.View):
             case self.config.permission_roles.compliance:
                 return await permcheck(interaction, is_compliance)
             case self.config.permission_roles.dark_moderator:
-                return await permcheck(interaction, is_dark_mod)
+                return await permcheck(interaction, is_admin)
             case self.config.permission_roles.senior_moderator:
-                return await permcheck(interaction, is_senior_mod)
+                return await permcheck(interaction, is_mod_lead)
             case self.config.permission_roles.moderator:
                 return await permcheck(interaction, is_full_mod)
             case _:

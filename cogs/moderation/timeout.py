@@ -1,12 +1,10 @@
 import datetime
 
 import nextcord
-
 from nextcord.ext import commands
-from pytz import timezone
-from utils import logs
 
-from utils.cases import create_case_embed, check_if_timeout
+from utils.alerts import add_response_time
+from utils.cases import create_case_embed
 from utils.config import Configuration
 from utils.database import db_session, TimeoutCase
 from utils.objection import AlertView
@@ -14,7 +12,7 @@ from utils.offences import fetch_offences_by_partial_name, offence_validity_chec
 from utils.perms import (
     permcheck,
     is_mod,
-    is_dark_mod,
+    is_admin,
     is_immune,
     target_eligibility,
 )
@@ -54,9 +52,7 @@ class TimeoutSystem(commands.Cog):
         channel = self.bot.get_channel(self.config.channels.logging)
         await channel.send(embed=logging_embed)
 
-        await logs.update_response(
-            self.config, interaction.message, datetime.now(timezone.utc)
-        )
+        add_response_time(interaction.message)
 
     async def cb_objection(self, interaction: nextcord.Interaction):
         new_embed = interaction.message.embeds[0]
@@ -84,9 +80,7 @@ class TimeoutSystem(commands.Cog):
         channel = self.bot.get_channel(self.config.channels.logging)
         await channel.send(embed=logging_embed)
 
-        await logs.update_response(
-            self.config, interaction.message, datetime.now(timezone.utc)
-        )
+        add_response_time(interaction.message)
 
     @nextcord.slash_command(
         dm_permission=False,
@@ -174,7 +168,7 @@ class TimeoutSystem(commands.Cog):
             return
 
         if is_immune(offender):
-            if not await permcheck(interaction, is_dark_mod):
+            if not await permcheck(interaction, is_admin):
                 await interaction.followup.send(
                     f"{self.config.emotes.fail} {offender.mention} is immune."
                 )

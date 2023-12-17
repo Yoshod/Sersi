@@ -2,13 +2,12 @@ import nextcord
 
 from nextcord.ext import commands
 from nextcord.ui import Button, View
-from pytz import timezone
 import datetime
 
+from utils.alerts import add_response_time
 from utils.cases import (
     create_case_embed,
     get_case_by_id,
-    check_if_banned,
 )
 from utils.config import Configuration
 from utils.database import VoteRecord, db_session, BanCase, VoteDetails
@@ -20,13 +19,12 @@ from utils.perms import (
     is_mod,
     is_immune,
     target_eligibility,
-    is_senior_mod,
-    is_dark_mod,
+    is_mod_lead,
+    is_admin,
     unban_eligibility,
 )
 from utils.sersi_embed import SersiEmbed
 from utils.review import create_alert
-from utils import logs
 from utils.voting import VoteView, vote_planned_end
 from utils.base import convert_to_timedelta
 
@@ -62,9 +60,7 @@ class BanSystem(commands.Cog):
         channel = self.bot.get_channel(self.config.channels.logging)
         await channel.send(embed=logging_embed)
 
-        await logs.update_response(
-            self.config, interaction.message, datetime.datetime.now(timezone.utc)
-        )
+        add_response_time(interaction.message)
 
     async def cb_objection(self, interaction: nextcord.Interaction):
         new_embed = interaction.message.embeds[0]
@@ -92,9 +88,7 @@ class BanSystem(commands.Cog):
         channel = self.bot.get_channel(self.config.channels.logging)
         await channel.send(embed=logging_embed)
 
-        await logs.update_response(
-            self.config, interaction.message, datetime.now(timezone.utc)
-        )
+        add_response_time(interaction.message)
 
     @nextcord.slash_command(
         dm_permission=False,
@@ -355,7 +349,7 @@ class BanSystem(commands.Cog):
             max_length=22,
         ),
     ):
-        if not await permcheck(interaction, is_senior_mod):
+        if not await permcheck(interaction, is_mod_lead):
             return
 
         try:
@@ -370,7 +364,7 @@ class BanSystem(commands.Cog):
 
         with db_session(interaction.user) as session:
             if original_case == "LEGACY":
-                if not await permcheck(interaction, is_dark_mod):
+                if not await permcheck(interaction, is_admin):
                     return
 
                 await interaction.guild.unban(
