@@ -1,7 +1,7 @@
 import math
 from datetime import datetime
 from enum import Enum
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import nextcord
 from nextcord.ext import commands, tasks
@@ -22,7 +22,8 @@ class MemberReport:
     level: int
     xp: int
 
-    last_message: dict[int, int] = {}
+    last_message: dict[int, int] = field(default_factory=dict)
+    updated: bool = False
 
 
 class Levelling(commands.Cog):
@@ -50,11 +51,11 @@ class Levelling(commands.Cog):
 
         if member.id not in self.reports:
             member_level = (
-                self.session.query(MemberLevel).filter_by(member_id=member.id).first()
+                self.session.query(MemberLevel).filter_by(member=member.id).first()
             )
             if member_level is None:
                 member_level = MemberLevel(
-                    member_id=member.id,
+                    member=member.id,
                     level=get_member_level(self.config, member),
                     xp=0,
                 )
@@ -68,14 +69,14 @@ class Levelling(commands.Cog):
             )
 
         self.reports[member.id].xp += amount
-        self.reports[member.id].last_message[member.guild.id] = datetime.utcnow().timestamp()
+        self.reports[member.id].updated = True
 
         self.session.add(
             ExperienceJournal(
-                member_id=member.id,
+                member=member.id,
                 timestamp=datetime.utcnow(),
-                amount=amount,
-                type=type.value,
+                xp_type=type.value,
+                xp=amount,
             )
         )
 
@@ -91,6 +92,17 @@ class Levelling(commands.Cog):
                     continue
 
                 await self.earn_xp(member, len(channel.members), XPType.VOICE)
+        
+        for member_id, report in self.reports.items():
+            if not report.updated:
+                continue
+
+            self.session.query(MemberLevel).filter_by(member=member_id).update(
+                {
+                    "level": report.level,
+                    "xp": report.xp,
+                }
+            )
 
         self.session.commit()
         self.session.close()
@@ -109,10 +121,17 @@ class Levelling(commands.Cog):
         if (
             message.author.id not in self.reports
             or message.channel.id not in self.reports[message.author.id].last_message
+            or message.created_at.timestamp() - self.reports[message.author.id].last_message[
+                message.channel.id
+            ] >= 60
         ):
             xp += 5
 
         await self.earn_xp(message.author, xp, XPType.MESSAGE)
+
+        self.reports[message.author.id].last_message[
+            message.channel.id
+        ] = message.created_at.timestamp()
 
 
 def setup(bot: commands.Bot, **kwargs):
