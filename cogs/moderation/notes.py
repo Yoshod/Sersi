@@ -79,7 +79,7 @@ class Notes(commands.Cog):
         if not await permcheck(interaction, is_mod):
             return
 
-        await interaction.response.defer(ephemeral=False)
+        await interaction.response.defer(ephemeral=True)
 
         with db_session(interaction.user) as session:
             session.add(
