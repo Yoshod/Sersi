@@ -1,13 +1,14 @@
 import math
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
+from dataclasses import dataclass
 
 import nextcord
 from nextcord.ext import commands, tasks
 
-from utils.base import ignored_message
+from utils.base import ignored_message, get_member_level
 from utils.config import Configuration
-from utils.sersi_embed import SersiEmbed
+from utils.database import db_session, MemberLevel, ExperienceJournal
 
 
 class XPType(Enum):
@@ -15,88 +16,85 @@ class XPType(Enum):
     VOICE = "voice chat"
 
 
+@dataclass
+class MemberReport:
+    member: nextcord.Member
+    level: int
+    xp: int
+
+    last_message: dict[int, int] = {}
+
+
 class Levelling(commands.Cog):
     def __init__(self, bot: commands.Bot, config: Configuration):
         self.bot = bot
         self.config = config
 
-        self.last_mesage: dict[tuple(int, int), int] = {}
-        self.xp_earned: dict[int, int] = {}
+        self.reports: dict[int, MemberReport] = {}
+
+        self.session = db_session()
 
         if self.bot.is_ready():
-            self.daily_xp_report.start()
             self.voice_xp.start()
-    
+
     def cog_unload(self):
-        self.daily_xp_report.cancel()
         self.voice_xp.cancel()
 
     @commands.Cog.listener()
     async def on_ready(self):
-        self.daily_xp_report.start()
         self.voice_xp.start()
 
     async def earn_xp(self, member: nextcord.Member, amount: int, type: XPType):
         if amount <= 0:
             return
 
-        self.xp_earned[member.id] = self.xp_earned.get(member.id, 0) + amount
+        if member.id not in self.reports:
+            member_level = (
+                self.session.query(MemberLevel).filter_by(member_id=member.id).first()
+            )
+            if member_level is None:
+                member_level = MemberLevel(
+                    member_id=member.id,
+                    level=get_member_level(self.config, member),
+                    xp=0,
+                )
+                self.session.add(member_level)
+                self.session.commit()
+            
+            self.reports[member.id] = MemberReport(
+                member=member,
+                level=member_level.level,
+                xp=member_level.xp,
+            )
 
-        print(f"{member.name} earned {amount} XP for {type.value}.")
+        self.reports[member.id].xp += amount
+        self.reports[member.id].last_message[member.guild.id] = datetime.utcnow().timestamp()
 
-    @tasks.loop(hours=24)
-    async def daily_xp_report(self):
-        # wait until midnight
-        await nextcord.utils.sleep_until(
-            datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-            + timedelta(days=1)
+        self.session.add(
+            ExperienceJournal(
+                member_id=member.id,
+                timestamp=datetime.utcnow(),
+                amount=amount,
+                type=type.value,
+            )
         )
-
-        guild = self.bot.get_guild(self.config.guilds.main)
-
-        total = 0
-        description = ""
-        for member_id, xp in sorted(
-            self.xp_earned.items(), key=lambda x: x[1], reverse=True
-        ):
-            member = guild.get_member(member_id)
-            if member is None:
-                continue
-
-            if len(description) + len(member.mention) + 6 < 4000:
-                description += f"{member.mention}: {xp:4d}\n"
-
-            total += xp
-
-        alert_channel = guild.get_channel(self.config.channels.alert)
-        if alert_channel is None:
-            return
-
-        embed = SersiEmbed(
-            title="Daily XP Report",
-            description=description,
-            fields={"Total XP Earned": total},
-        )
-        await alert_channel.send(embed=embed)
-
-        self.xp_earned = {}
 
     @tasks.loop(minutes=1)
     async def voice_xp(self):
         guild = self.bot.get_guild(self.config.guilds.main)
 
-        for member in guild.members:
-            if (
-                member.voice is None
-                or member.voice.afk
-                or member.voice.self_deaf
-                or member.voice.mute
-            ):
+        for channel in guild.voice_channels:
+            if len(channel.members) < 2:
                 continue
+            for member in channel.members:
+                if member.bot:
+                    continue
 
-            xp = len(member.voice.channel.members)
+                await self.earn_xp(member, len(channel.members), XPType.VOICE)
 
-            await self.earn_xp(member, xp, XPType.VOICE)
+        self.session.commit()
+        self.session.close()
+        self.session = db_session()
 
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.Message):
@@ -109,16 +107,10 @@ class Levelling(commands.Cog):
         xp = min(math.floor(math.sqrt(len(message.content) * 3 / 5)), 30)
 
         if (
-            message.author.id,
-            message.channel.id,
-        ) not in self.last_mesage or message.created_at.timestamp() - self.last_mesage[
-            (message.author.id, message.channel.id)
-        ] > 60:
+            message.author.id not in self.reports
+            or message.channel.id not in self.reports[message.author.id].last_message
+        ):
             xp += 5
-
-        self.last_mesage[
-            (message.author.id, message.channel.id)
-        ] = message.created_at.timestamp()
 
         await self.earn_xp(message.author, xp, XPType.MESSAGE)
 

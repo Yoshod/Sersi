@@ -5,7 +5,7 @@ import re
 
 import nextcord
 import sqlalchemy
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, event
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, event, Date
 from sqlalchemy.orm import Session, relationship
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -549,6 +549,23 @@ class StaffBlacklist(_Base):
     reason = Column(String, nullable=False)
 
     timestamp = Column(DateTime, default=datetime.utcnow)
+
+
+class MemberLevel(_Base):
+    __tablename__ = "member_levels"
+
+    member = Column(Integer, primary_key=True)
+    level = Column(Integer, default=0)
+    xp = Column(Integer, default=0)
+
+
+class ExperienceJournal(_Base):
+    __tablename__ = "experience_journal"
+
+    member = Column(Integer, primary_key=True)
+    timestamp = Column(DateTime, primary_key=True, default=datetime.utcnow)
+    xp_type = Column(String, primary_key=True)
+    xp = Column(Integer, nullable=False)
 
 
 def create_db_tables():
