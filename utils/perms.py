@@ -1,7 +1,9 @@
 import nextcord
 import nextcord.ext.commands
 
+from utils.base import get_member_level
 from utils.config import Configuration
+from utils.database import db_session, BlacklistCase
 from utils.sersi_embed import SersiEmbed
 
 config = Configuration.from_yaml_file("./persistent_data/config.yaml")
@@ -58,7 +60,7 @@ async def permcheck(
             await hook.response.send_message(
                 f"{config.emotes.fail} Permission denied.", ephemeral=True
             )
-            
+
             embed_fields = {
                 "User:": f"{hook.user} ({hook.user.id})",
                 "Channel:": f"{hook.channel.mention} ({hook.channel.id})",
@@ -110,11 +112,11 @@ def is_compliance(member: nextcord.Member) -> bool:
     return is_allowed(member, [config.permission_roles.compliance])
 
 
-def is_dark_mod(member: nextcord.Member) -> bool:
+def is_admin(member: nextcord.Member) -> bool:
     return is_allowed(member, [config.permission_roles.dark_moderator])
 
 
-def is_senior_mod(member: nextcord.Member) -> bool:
+def is_mod_lead(member: nextcord.Member) -> bool:
     return is_allowed(
         member,
         [
@@ -148,6 +150,11 @@ def is_cet(member: nextcord.Member) -> bool:
     return is_allowed(
         member, [config.permission_roles.cet, config.permission_roles.cet_lead]
     )
+
+
+# legacy function aliases
+is_dark_mod: callable = is_admin
+is_senior_mod: callable = is_mod_lead
 
 
 def is_immune(member: nextcord.Member) -> bool:
@@ -232,3 +239,25 @@ async def cb_is_dark_mod(interaction) -> bool:
 
 async def cb_is_cet(interaction) -> bool:
     return await permcheck(interaction, is_cet)
+
+
+def blacklist_check(user: nextcord.Member, blacklist: str = "Staff"):
+    with db_session() as session:
+        blacklisted = (
+            session.query(BlacklistCase)
+            .filter_by(offender=user.id, active=True, blacklist=blacklist)
+            .first()
+        )
+
+        if blacklisted:
+            return True
+
+        return False
+
+
+def is_level(member: nextcord.Member, level: int) -> bool:
+    return get_member_level(config, member) >= level
+
+
+def level_check(level: int):
+    return lambda member: is_level(member, level)

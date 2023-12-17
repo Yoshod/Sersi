@@ -1,16 +1,17 @@
 import nextcord
 
 from utils.config import Configuration
-from utils.base import SersiEmbed, get_page
+from utils.base import get_page, decode_snowflake
 from utils.database import db_session, Note
+from utils.sersi_embed import SersiEmbed
 
 
 def fetch_notes(
     config: Configuration,
     page: int,
     per_page: int,
-    member_id: int | None,
-    author_id: int | None,
+    member_id: int | None = None,
+    author_id: int | None = None,
 ) -> str | tuple[list, int, int]:
     with db_session() as session:
         if member_id and author_id:
@@ -94,3 +95,19 @@ def create_note_embed(note: Note, interaction: nextcord.Interaction) -> SersiEmb
         )
 
     return note_embed
+
+
+def decode_note_kwargs(kwargs: dict[str, str]) -> dict[str, str]:
+    decoded = {**kwargs}
+
+    member_id = decoded.pop("user", None)
+    author_id = decoded.pop("author", None)
+
+    if member_id:
+        decoded["member_id"] = decode_snowflake(member_id)
+    if author_id:
+        decoded["author_id"] = decode_snowflake(author_id)
+    
+    return decoded
+
+

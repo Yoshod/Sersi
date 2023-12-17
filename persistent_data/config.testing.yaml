@@ -1,32 +1,12 @@
 # Default configuration; no IDs nor a token have been set.
 
-datafiles:
-    author_list:        "files/about/authors.md"
-    keyfile:            "files/AnonMessages/key.bin"
-    slurfile:           "files/SlurAlerts/slurs.txt"
-    goodwordfile:       "files/SlurAlerts/goodword.txt"
-    blacklist:          "files/WBList/blacklist.csv"
-    casedetails:        "files/Cases/casedetails.pkl"
-    casehistory:        "files/Cases/casehistory.pkl"
-    gifblacklist:       "files/WBList/gifblacklist.txt"
-    secret_dms:         "files/AnonMessages/secret_dms.pkl"
-    secret_mutes:       "files/AnonMessages/banned.csv"
-    reform_iter:        "files/Reformation/reformationiter.txt"
-    reformation_cases:  "files/Reformation/reformationcases.pkl"
-    watchlist:          "files/WBList/watchlist.csv"
-    ticketers:          "files/Tickets/ticketers.pkl"
-    video_history:      "files/youtube/processed_videos.txt"
-    alert_logs:         "files/Alerts/alerts.pkl"
-    alert_csv:          "files/Alerts/alerts.csv"
-    sersi_db:           "persistent_data/sersi.db"
-
 bot:
     dev_mode: true
     prefix: "s!"
     status: "melanie did this"
     port:   8113 # 8074 for live, 8113 for unstable
     minimum caps length: 8
-    version: "5.0.2"
+    version: "5.1.0"
     git_url: "https://github.com/Yoshod/Sersi"
     authors:
         - "• Hekkland#0001 `261870562798731266`"
@@ -77,6 +57,8 @@ channels:
     senior_mod_review: 1147602514154377247
     moderator_review: 1147602548971278407
     moderation_votes: 0
+    staff_votes: 0
+    cet_votes: 0
 
 ignored_categories:
     - alerts
@@ -127,6 +109,18 @@ permission_roles:
     cet_lead:          1149386994464608387
     compliance:        1147603484431089705
 
+level_roles:
+    1:  0
+    2:  0
+    3:  0
+    4:  0
+    5:  0
+    6:  0
+    7:  0
+    8:  0
+    9:  0
+    10: 0
+
 emotes:
     success: "<:sersisuccess:979066662856822844>"
     fail:    "<:sersifail:979070135799279698>"
@@ -158,4 +152,15 @@ voting:
     urgent-ban:
         name: Urgent Ban
         action: vote_ban
-        difference: 2
+    honoured-member-revoke:
+        name: Honoured Member Revocation
+        action: honoured_member_revoke
+        group: staff
+        duration: 168
+        supermajority: true
+    honour-revoke:
+        name: Honoured Member Revocation
+        action: honoured_member_revoke
+        group: staff
+        duration: 168
+        supermajority: true

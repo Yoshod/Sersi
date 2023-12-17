@@ -2,6 +2,8 @@ from datetime import datetime, timezone
 
 import nextcord
 
+from utils.base import limit_string
+
 
 class SersiEmbed(nextcord.Embed):
     def __init__(
@@ -11,6 +13,7 @@ class SersiEmbed(nextcord.Embed):
         footer: str = nextcord.embeds.EmptyEmbed,
         footer_icon: str = nextcord.embeds.EmptyEmbed,
         thumbnail_url: str = nextcord.embeds.EmptyEmbed,
+        author: nextcord.Member = nextcord.embeds.EmptyEmbed,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -29,13 +32,20 @@ class SersiEmbed(nextcord.Embed):
         # Configure Fields
         if fields:
             self.parse_fields(fields)
+        
+        # Configure Author
+        if author:
+            self.set_author(
+                name=author.display_name,
+                icon_url=author.display_avatar.url,
+            )
 
     def add_id_field(self, ids: dict):
-        id_string: str = f"```ini"
+        id_string: str = "```ini"
         for key in ids:
             id_string += f"\n{key} = {ids[key]}"
         id_string += "```"
-        self.add_field(name="IDs", value=id_string, inline=False)
+        self.add_field(name="IDs", value=limit_string(str(id_string)), inline=False)
         return self
 
     def parse_fields(self, fields, inline=False):
@@ -46,7 +56,7 @@ class SersiEmbed(nextcord.Embed):
             case dict():
                 for field in fields:
                     self.add_field(
-                        name=field,
-                        value=fields[field],
+                        name=limit_string(str(field), 256),
+                        value=limit_string(str(fields[field])),
                         inline=inline if len(fields) > 1 else False,
                     )

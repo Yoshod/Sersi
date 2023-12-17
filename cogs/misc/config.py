@@ -8,7 +8,7 @@ from utils.perms import (
     permcheck,
     is_sersi_contributor,
     is_staff,
-    is_dark_mod,
+    is_admin,
     is_cet_lead,
 )
 
@@ -175,7 +175,7 @@ class Config(commands.Cog):
             description="Channel to set"
         ),
     ):
-        if not await permcheck(interaction, is_dark_mod):
+        if not await permcheck(interaction, is_admin):
             return
 
         self.set_config("channels", setting, channel)
@@ -188,7 +188,7 @@ class Config(commands.Cog):
     async def set_channel_setting(
         self, interaction: nextcord.Interaction, setting: str
     ):
-        if not is_dark_mod(interaction.user):
+        if not is_admin(interaction.user):
             return
 
         await interaction.response.send_autocomplete(
@@ -211,7 +211,7 @@ class Config(commands.Cog):
             description="Channel to add"
         ),
     ):
-        if not await permcheck(interaction, is_dark_mod):
+        if not await permcheck(interaction, is_admin):
             return
 
         self.config.load()
@@ -235,7 +235,7 @@ class Config(commands.Cog):
             description="Channel to remove",
         ),
     ):
-        if not await permcheck(interaction, is_dark_mod):
+        if not await permcheck(interaction, is_admin):
             return
 
         self.config.load()
@@ -253,7 +253,7 @@ class Config(commands.Cog):
 
     @remove_channel.on_autocomplete("channel")
     async def remove_channel_id(self, interaction: nextcord.Interaction, channel: str):
-        if not is_dark_mod(interaction.user):
+        if not is_admin(interaction.user):
             return
 
         await interaction.response.send_autocomplete(
@@ -272,7 +272,7 @@ class Config(commands.Cog):
             description="Category to add"
         ),
     ):
-        if not await permcheck(interaction, is_dark_mod):
+        if not await permcheck(interaction, is_admin):
             return
 
         self.config.load()
@@ -298,7 +298,7 @@ class Config(commands.Cog):
             description="Category to remove",
         ),
     ):
-        if not await permcheck(interaction, is_dark_mod):
+        if not await permcheck(interaction, is_admin):
             return
 
         self.config.load()
@@ -318,7 +318,7 @@ class Config(commands.Cog):
     async def remove_category_name(
         self, interaction: nextcord.Interaction, category: str
     ):
-        if not is_dark_mod(interaction.user):
+        if not is_admin(interaction.user):
             return
 
         await interaction.response.send_autocomplete(
@@ -338,7 +338,7 @@ class Config(commands.Cog):
         ),
         role: nextcord.Role = nextcord.SlashOption(description="Role to set"),
     ):
-        if not await permcheck(interaction, is_dark_mod):
+        if not await permcheck(interaction, is_admin):
             return
 
         self.set_config("roles", setting, role)
@@ -349,7 +349,7 @@ class Config(commands.Cog):
 
     @set_role.on_autocomplete("setting")
     async def set_role_setting(self, interaction: nextcord.Interaction, setting):
-        if not is_dark_mod(interaction.user):
+        if not is_admin(interaction.user):
             return
 
         await interaction.response.send_autocomplete(
@@ -369,7 +369,7 @@ class Config(commands.Cog):
         ),
         role: nextcord.Role = nextcord.SlashOption(description="Role to set"),
     ):
-        if not await permcheck(interaction, is_dark_mod):
+        if not await permcheck(interaction, is_admin):
             return
 
         self.set_config("permission_roles", setting, role)
@@ -382,7 +382,7 @@ class Config(commands.Cog):
     async def set_permission_role_setting(
         self, interaction: nextcord.Interaction, setting: str
     ):
-        if not is_dark_mod(interaction.user):
+        if not is_admin(interaction.user):
             return
 
         await interaction.response.send_autocomplete(
@@ -405,7 +405,7 @@ class Config(commands.Cog):
         interaction: nextcord.Interaction,
         role: nextcord.Role = nextcord.SlashOption(description="Role to add"),
     ):
-        if not await permcheck(interaction, is_dark_mod):
+        if not await permcheck(interaction, is_admin):
             return
 
         self.config.load()
@@ -429,7 +429,7 @@ class Config(commands.Cog):
         interaction: nextcord.Interaction,
         role: str = nextcord.SlashOption(description="Role to remove"),
     ):
-        if not await permcheck(interaction, is_dark_mod):
+        if not await permcheck(interaction, is_admin):
             return
 
         self.config.load()
@@ -449,7 +449,7 @@ class Config(commands.Cog):
     async def remove_punishment_role_name(
         self, interaction: nextcord.Interaction, role: str
     ):
-        if not is_dark_mod(interaction.user):
+        if not is_admin(interaction.user):
             return
 
         await interaction.response.send_autocomplete(
@@ -534,6 +534,37 @@ class Config(commands.Cog):
 
         await interaction.response.send_message(
             f"{self.config.emotes.success} Config reloaded."
+        )
+    
+    @configuration.subcommand(description="Select a level role to set in config")
+    async def set_level_role(
+        self,
+        interaction: nextcord.Interaction,
+        level: int = nextcord.SlashOption(
+            description="Level to set",
+            min_value=1,
+            max_value=99,
+        ),
+        role: nextcord.Role = nextcord.SlashOption(description="Role to set"),
+    ):
+        if not await permcheck(interaction, is_cet_lead):
+            return
+
+        self.config.load()
+        if role.id in self.config.level_roles.values():
+            await interaction.response.send_message(
+                f"{self.config.emotes.fail} Role {role.mention} already in level roles."
+            )
+        if level > max(self.config.level_roles.keys()) + 1:
+            await interaction.response.send_message(
+                f"{self.config.emotes.fail} Level {level} is more than 1 above the current highest level role."
+            )
+            return
+        self.config.level_roles[level] = role.id
+        self.config.save()
+
+        await interaction.response.send_message(
+            f"{self.config.emotes.success} Level {level} set to {role.mention}."
         )
 
 

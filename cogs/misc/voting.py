@@ -4,10 +4,17 @@ import nextcord
 from nextcord.ext import tasks, commands
 from sqlalchemy import func
 
-from utils.channels import get_message_from_url
+from utils.base import get_message_from_url
 from utils.config import Configuration, VoteType
 from utils.database import db_session, VoteDetails, VoteRecord
-from utils.perms import permcheck, is_mod, is_sersi_contributor
+from utils.perms import (
+    permcheck,
+    is_mod,
+    is_sersi_contributor,
+    is_cet,
+    is_staff,
+    is_admin,
+)
 from utils.sersi_embed import SersiEmbed
 
 
@@ -123,17 +130,41 @@ class Voting(commands.Cog):
                 }
 
                 diff = votes.get("yes", 0) - votes.get("no", 0)
+
+                def accepted():
+                    threshold = vote_type.threshold
+                    if vote_type.supermajority:
+                        match vote_type.group:
+                            case "staff":
+                                role_id = self.config.permission_roles.staff
+                            case "mod":
+                                role_id = self.config.permission_roles.moderator
+                            case "cet":
+                                role_id = self.config.permission_roles.cet
+                            case _:
+                                role_id = self.config.permission_roles.dark_moderator
+
+                        threshold = (
+                            len(
+                                self.bot.get_guild(self.config.guilds.main)
+                                .get_role(role_id)
+                                .members
+                            )
+                            * 2
+                            // 3
+                            + 1
+                        )
+                    elif diff < vote_type.difference:
+                        return False
+                    if votes.get("yes", 0) < threshold:
+                        return False
+                    return True
+
                 colour = None
-                if (
-                    votes.get("yes", 0) >= vote_type.threshold
-                    and diff >= vote_type.difference
-                ):
+                if accepted():
                     details.outcome = "Accepted"
                     colour = nextcord.Colour.brand_green()
-                elif (
-                    votes.get("no", 0) >= vote_type.threshold
-                    and -diff >= vote_type.difference
-                ):
+                elif diff <= -1:
                     details.outcome = "Rejected"
                     colour = nextcord.Colour.brand_red()
                 elif not end_vote:
@@ -165,9 +196,6 @@ class Voting(commands.Cog):
         if not interaction.data["custom_id"].startswith("vote"):
             return
 
-        if not await permcheck(interaction, is_mod):
-            return
-
         _, vote_id, vote = interaction.data["custom_id"].split(":")
         vote_id = int(vote_id)
 
@@ -178,6 +206,22 @@ class Voting(commands.Cog):
                     "This vote does not exist", ephemeral=True
                 )
                 return
+
+            vote_type = self.config.voting[vote_details.vote_type]
+            match vote_type.group:
+                case "staff":
+                    if not await permcheck(interaction, is_staff):
+                        return
+                case "mod":
+                    if not await permcheck(interaction, is_mod):
+                        return
+                case "cet":
+                    if not await permcheck(interaction, is_cet):
+                        return
+                case _:
+                    if not await permcheck(interaction, is_admin):
+                        return
+
             if vote_details.outcome is not None:
                 await interaction.response.send_message(
                     "This vote has already been decided", ephemeral=True

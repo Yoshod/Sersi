@@ -5,15 +5,14 @@ from datetime import datetime
 import nextcord
 from nextcord.ui import View, Button, Modal, TextInput
 
-from utils.base import get_page
-from utils.channels import make_transcript
+from utils.base import get_page, make_transcript
 from utils.config import Configuration
 from utils.database import db_session, Ticket, TicketSurvey, TicketAudit
 from utils.sersi_embed import SersiEmbed
 from utils.perms import (
     permcheck,
-    is_dark_mod,
-    is_senior_mod,
+    is_admin,
+    is_mod_lead,
     is_mod,
     is_cet,
     is_cet_lead,
@@ -42,13 +41,13 @@ async def ticket_permcheck(
         case "Moderator":
             return await permcheck(interaction, is_mod)
         case "Moderation Lead":
-            return await permcheck(interaction, is_senior_mod)
+            return await permcheck(interaction, is_mod_lead)
         case "Community Engagement":
             return await permcheck(interaction, is_cet)
         case "Community Engagement Lead":
             return await permcheck(interaction, is_cet_lead)
         case _:
-            return await permcheck(interaction, is_dark_mod)
+            return await permcheck(interaction, is_admin)
 
 
 def allowed_escalation_levels(member: nextcord.Member) -> list[str]:
@@ -56,13 +55,13 @@ def allowed_escalation_levels(member: nextcord.Member) -> list[str]:
 
     if is_mod(member):
         available_levels.append("Moderator")
-    if is_senior_mod(member):
+    if is_mod_lead(member):
         available_levels.append("Moderation Lead")
     if is_cet(member):
         available_levels.append("Community Engagement")
     if is_cet_lead(member):
         available_levels.append("Community Engagement Lead")
-    if is_dark_mod(member):
+    if is_admin(member):
         available_levels.append("Administrator")
 
     return available_levels
@@ -104,7 +103,10 @@ def ticket_overwrites(
                 {
                     guild.get_role(
                         config.permission_roles.moderator
-                    ): nextcord.PermissionOverwrite(read_messages=True)
+                    ): nextcord.PermissionOverwrite(read_messages=True),
+                    guild.get_role(
+                        config.permission_roles.trial_moderator
+                    ): nextcord.PermissionOverwrite(read_messages=True),
                 }
             )
 
@@ -113,7 +115,7 @@ def ticket_overwrites(
                 {
                     guild.get_role(
                         config.permission_roles.senior_moderator
-                    ): nextcord.PermissionOverwrite(read_messages=True)
+                    ): nextcord.PermissionOverwrite(read_messages=True),
                 }
             )
 
@@ -122,7 +124,7 @@ def ticket_overwrites(
                 {
                     guild.get_role(
                         config.permission_roles.cet
-                    ): nextcord.PermissionOverwrite(read_messages=True)
+                    ): nextcord.PermissionOverwrite(read_messages=True),
                 }
             )
 
@@ -131,7 +133,7 @@ def ticket_overwrites(
                 {
                     guild.get_role(
                         config.permission_roles.cet_lead
-                    ): nextcord.PermissionOverwrite(read_messages=True)
+                    ): nextcord.PermissionOverwrite(read_messages=True),
                 }
             )
 

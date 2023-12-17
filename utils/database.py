@@ -120,6 +120,23 @@ class BadFaithPingCase(Case):
     __mapper_args__ = {"polymorphic_identity": "Ping"}
 
 
+class BlacklistCase(Case):
+    __tablename__ = "blacklist_cases"
+
+    id = Column(String, ForeignKey("cases.id"), primary_key=True)
+
+    active = Column(Boolean, default=True)
+    blacklist = Column(String, nullable=False)
+    reason = Column(String, nullable=False)
+    removed_by = Column(Integer)
+    removal_reason = Column(String)
+
+    __mapper_args__ = {"polymorphic_identity": "Blacklist"}
+
+    def __repr__(self):
+        return f"*{self.type}* <@{self.offender}> `{self.blacklist}`"
+
+
 class BanCase(Case):
     __tablename__ = "ban_cases"
 
@@ -233,16 +250,6 @@ class PeerReview(_Base):
     reviewer = Column(Integer, nullable=False)
     review_outcome = Column(String, nullable=False)
     review_comment = Column(String)
-
-    timestamp = Column(DateTime, default=datetime.utcnow)
-
-
-class StaffBlacklist(_Base):
-    __tablename__ = "staff_blacklist"
-
-    blacklisted_user = Column(Integer, primary_key=True)
-    staff_member = Column(Integer, nullable=False)
-    reason = Column(String, nullable=False)
 
     timestamp = Column(DateTime, default=datetime.utcnow)
 
@@ -531,6 +538,34 @@ class VoteRecord(_Base):
     comment = Column(String)
 
     timestamp = Column(DateTime, default=datetime.utcnow)
+
+
+class StaffBlacklist(_Base):
+    # TODO: remove in 5.2.0
+    __tablename__ = "staff_blacklist"
+
+    blacklisted_user = Column(Integer, primary_key=True)
+    staff_member = Column(Integer, nullable=False)
+    reason = Column(String, nullable=False)
+
+    timestamp = Column(DateTime, default=datetime.utcnow)
+
+
+class MemberLevel(_Base):
+    __tablename__ = "member_levels"
+
+    member = Column(Integer, primary_key=True)
+    level = Column(Integer, default=0)
+    xp = Column(Integer, default=0)
+
+
+class ExperienceJournal(_Base):
+    __tablename__ = "experience_journal"
+
+    member = Column(Integer, primary_key=True)
+    timestamp = Column(DateTime, primary_key=True, default=datetime.utcnow)
+    xp_type = Column(String, primary_key=True)
+    xp = Column(Integer, nullable=False)
 
 
 def create_db_tables():

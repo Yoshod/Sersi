@@ -1,17 +1,13 @@
-# Nextcord Imports
-import nextcord
-import nextcord.ext.commands as commands
-from nextcord.ui import View, Button
-
-# Library Imports
+import io
 import re
 import datetime
-from shortuuid.main import int_to_string, string_to_int
 
-# Sersi Config Imports
-import utils.config
-from utils.perms import permcheck, is_dark_mod
-from utils.sersi_embed import SersiEmbed
+import nextcord
+import nextcord.ext.commands as commands
+from shortuuid.main import int_to_string, string_to_int
+from chat_exporter import export
+
+from utils.config import Configuration
 
 
 def get_discord_timestamp(time: datetime.datetime, *, relative: bool = False) -> str:
@@ -64,7 +60,7 @@ async def ban(
     await member.ban(reason=reason, delete_message_days=0)
 
 
-def modmention_check(config: utils.config.Configuration, message: str) -> bool:
+def modmention_check(config: Configuration, message: str) -> bool:
     modmentions: list[str] = [
         f"<@&{config.permission_roles.trial_moderator}>",
         f"<@&{config.permission_roles.moderator}>",
@@ -101,275 +97,18 @@ def format_entry(entry: tuple[str]) -> str:
         return "`{}` <t:{}:R>".format(entry[3], entry[4])
 
 
-class ConfirmView(nextcord.ui.View):
-    def __init__(
-        self,
-        on_proceed,
-        timeout: float = 60.0,
-    ):
-        super().__init__(timeout=timeout)
-        btn_proceed = Button(label="Proceed", style=nextcord.ButtonStyle.green)
-        btn_proceed.callback = on_proceed
-        btn_cancel = Button(label="Cancel", style=nextcord.ButtonStyle.red)
-        btn_cancel.callback = self.cb_cancel
-        self.add_item(btn_proceed)
-        self.add_item(btn_cancel)
-        self.message: nextcord.Message
-        self.author: nextcord.Member
-
-    async def cb_cancel(self, interaction: nextcord.Interaction):
-        await interaction.message.edit(
-            content="Action canceled!", embed=None, view=None
-        )
-
-    async def on_timeout(self):
-        self.message = await self.message.channel.fetch_message(self.message.id)
-        if self.message.components != []:
-            await self.message.edit(content="Action timed out!", embed=None, view=None)
-
-    async def interaction_check(self, interaction: nextcord.Interaction):
-        return interaction.user == self.author
-
-    async def send_as_reply(
-        self, ctx: commands.Context, content: str = None, embed=None
-    ):
-        self.author = ctx.author
-        self.message = await ctx.reply(content, embed=embed, view=self)
-
-    async def send_as_followup_response(
-        self, interaction: nextcord.Interaction, content: str = None, embed=None
-    ):
-        self.author = interaction.user
-        self.message = await interaction.followup.send(content, embed=embed, view=self)
-
-    @staticmethod
-    def query(title: str, prompt: str, embed_args: dict = {}) -> callable:
-        def wrapper(func: callable) -> callable:
-            async def confirm(
-                bot: commands.Bot,
-                config: utils.config.Configuration,
-                interaction: nextcord.Interaction,
-            ):
-                embed_fields = embed_args.copy()
-                dialog_embed = SersiEmbed(
-                    title=title,
-                    description=prompt,
-                    fields=embed_fields,
-                )
-
-                async def cb_proceed(interaction: nextcord.Interaction):
-                    await interaction.message.edit(view=None)
-                    new_embed = await func(bot, config, interaction)
-                    if new_embed is not None:
-                        await interaction.message.edit(embed=new_embed)
-
-                view = ConfirmView(cb_proceed)
-                await view.send_as_followup_response(interaction, embed=dialog_embed)
-
-            return confirm
-
-        return wrapper
-
-
-class DualCustodyView(View):
-    def __init__(self, on_confirm, author, has_perms, timeout: float = 600.0):
-        super().__init__(timeout=timeout)
-        btn_confirm = Button(label="Confirm Action", style=nextcord.ButtonStyle.green)
-        btn_confirm.callback = on_confirm
-        self.add_item(btn_confirm)
-        self.has_perms = has_perms
-        self.author = author
-        self.message: nextcord.Message
-
-    async def on_timeout(self):
-        await self.message.edit(view=None)
-
-    async def interaction_check(self, interaction: nextcord.Interaction):
-        if interaction.user == self.author:
-            return False
-
-        return await permcheck(interaction, self.has_perms)
-
-    async def send_dialogue(self, channel, content: str = None, embed=None):
-        self.message = await channel.send(content, embed=embed, view=self)
-
-    @staticmethod
-    def query(
-        title: str,
-        prompt: str,
-        perms: callable,
-        embed_args: dict = {},
-        bypass: bool = False,
-    ) -> callable:
-        def wrapper(func: callable) -> callable:
-            async def dual_custody(
-                bot: commands.Bot,
-                config: utils.config.Configuration,
-                interaction: nextcord.Interaction,
-            ) -> nextcord.Embed:
-                # if command used by admin, skip dual custody query
-                if bypass and is_dark_mod(interaction.user):
-                    return await func(
-                        bot, config, interaction, confirming_moderator=interaction.user
-                    )
-
-                embed_fields = embed_args.copy()
-                embed_fields.update({"Moderator": interaction.user.mention})
-                dialog_embed = SersiEmbed(
-                    title=title,
-                    description=prompt,
-                    fields=embed_fields,
-                )
-
-                async def cb_confirm(interaction: nextcord.Interaction):
-                    await interaction.message.edit(view=None)
-                    new_embed = await func(
-                        bot, config, interaction, confirming_moderator=interaction.user
-                    )
-                    if new_embed is None:
-                        new_embed = dialog_embed
-                    new_embed.add_field(
-                        name="Confirmed by:", value=interaction.user.mention
-                    )
-                    await interaction.message.edit(embed=new_embed)
-
-                channel = bot.get_channel(config.channels.alert)
-                view = DualCustodyView(cb_confirm, interaction.user, perms)
-                await view.send_dialogue(channel, embed=dialog_embed)
-
-                await interaction.followup.send(
-                    embed=SersiEmbed(
-                        title=title,
-                        description="Pending review by another moderator",
-                    ),
-                    ephemeral=True,
-                )
-
-            return dual_custody
-
-        return wrapper
-
-
-class PageView(View):
-    def __init__(
-        self,
-        config: utils.config.Configuration,
-        base_embed: nextcord.Embed,
-        fetch_function: callable,
-        author: nextcord.Member,
-        entry_form: str = "**•**\u00A0{entry}",
-        field_title: str = "{start} \u2014 {end}",
-        inline_fields: bool = True,
-        cols: int = 1,
-        per_col: int = 10,
-        init_page: int = 1,
-        no_entries: str = "{config.emotes.fail} There are no entries to display.",
-        ephemeral: bool = False,
-        **kwargs,
-    ):
-        super().__init__()
-        btn_prev = Button(label="< prev")
-        btn_prev.callback = self.cb_prev_page
-        btn_next = Button(label="next >")
-        btn_next.callback = self.cb_next_page
-        self.add_item(btn_prev)
-        self.add_item(btn_next)
-        self.config = config
-        self.page = init_page
-        self.kwargs = kwargs
-        self.author = author
-        self.columns = cols
-        self.per_column = per_col
-        self.embed_base = base_embed
-        self.entry_format = entry_form
-        self.column_title = field_title
-        self.inline_fields = inline_fields
-        self.get_entries = fetch_function
-        self.no_entries = no_entries
-        self.ephemeral = ephemeral
-        self.message: nextcord.Message
-
-    def make_column(self, entries):
-        entry_list = []
-        if callable(self.entry_format):
-            for entry in entries:
-                entry_list.append(self.entry_format(config=self.config, entry=entry))
-        elif isinstance(self.entry_format, str):
-            for entry in entries:
-                entry_list.append(
-                    self.entry_format.format(config=self.config, entry=entry)
-                )
-        else:
-            raise ValueError(
-                "Invalid entry_format type. Must be a function or a string."
-            )
-        return "\n".join(entry_list)
-
-    def make_embed(self, page: int):
-        embed = self.embed_base.copy()
-        entries, pages, self.page = self.get_entries(
-            self.config,
-            page=page,
-            per_page=self.columns * self.per_column,
-            **self.kwargs,
-        )
-        if not entries:
-            embed.description = self.no_entries.format(config=self.config)
-            return embed
-        cols = min(self.columns, 1 + (len(entries) - 1) // self.per_column)
-        offset = (self.page - 1) * self.columns * self.per_column
-        for col in range(1, cols + 1):
-            col_start = (col - 1) * self.per_column
-            col_end = len(entries) if col == cols else col * self.per_column
-            col_entries = entries[col_start:col_end]
-            embed.add_field(
-                name=self.column_title.format(
-                    config=self.config,
-                    start=col_start + offset + 1,
-                    end=col_end + offset,
-                    entries=col_entries,
-                ),
-                value=self.make_column(col_entries),
-                inline=self.inline_fields,
-            )
-        embed.set_footer(text=f"page {self.page}/{pages}")
-        return embed
-
-    async def update_embed(self, page: int):
-        await self.message.edit(embed=self.make_embed(page))
-
-    async def cb_next_page(self, interaction: nextcord.Interaction):
-        await self.update_embed(self.page + 1)
-
-    async def cb_prev_page(self, interaction: nextcord.Interaction):
-        await self.update_embed(self.page - 1)
-
-    async def on_timeout(self):
-        await self.message.edit(view=None)
-
-    async def interaction_check(self, interaction: nextcord.Interaction):
-        return interaction.user == self.author
-
-    async def send_embed(self, channel: nextcord.TextChannel):
-        self.message = await channel.send(embed=self.make_embed(self.page), view=self)
-
-    async def send_followup(self, interaction: nextcord.Interaction):
-        self.message = await interaction.followup.send(
-            embed=self.make_embed(self.page), view=self, ephemeral=self.ephemeral
-        )
-
-
 def convert_mention_to_id(mention: str) -> int:
     return int(re.sub(r"\D", "", mention))
 
 
 def ignored_message(
-    config: utils.config.Configuration,
+    config: Configuration,
     message: nextcord.Message,
     *,
     ignore_bots: bool = True,
     ignore_channels: bool = True,
     ignore_categories: bool = True,
+    ignore_other_guilds: bool = True,
 ) -> bool:
     """Check if a message should be ignored by the bot."""
     if message.guild is None:
@@ -380,6 +119,8 @@ def ignored_message(
         return True  # ignore specified channels
     if ignore_categories and message.channel.category.name in config.ignored_categories:
         return True  # ignore specified categories
+    if ignore_other_guilds and message.guild.id != config.guilds.main:
+        return True  # ignore other guilds
     return False
 
 
@@ -423,13 +164,11 @@ def decode_snowflake(string: str) -> int:
 
 
 def encode_button_id(label: str, *args, **kwargs) -> str:
-    id = ":".join(
-        [label, *args, *[f"{key}={value}" for key, value in kwargs.items()]]
-    )
+    id = ":".join([label, *args, *[f"{key}={value}" for key, value in kwargs.items()]])
 
     if len(id) > 100:
         raise ValueError("Button ID too long, must be <= 100 characters.")
-    
+
     return id
 
 
@@ -448,3 +187,62 @@ def decode_button_id(custom_id: str) -> tuple[str, list[str], dict[str, str]]:
         kwargs[key] = value
 
     return label, args, kwargs
+
+
+async def get_message_from_url(bot: commands.Bot, url: str) -> nextcord.Message | None:
+    *_, guild_id, channel_id, message_id = url.split("/")
+
+    guild = bot.get_guild(int(guild_id))
+    if guild is None:
+        return None
+
+    channel = guild.get_channel(int(channel_id))
+    if channel is None:
+        return None
+
+    try:
+        return await channel.fetch_message(int(message_id))
+    except nextcord.HTTPException:
+        return None
+
+
+def parse_roles(guild: nextcord.Guild, *roles: nextcord.Role | int):
+    """Parses roles for use in role assignment/removal on member."""
+    for role in roles:
+        match role:
+            case nextcord.Role():
+                yield role
+            case int():
+                role_obj = guild.get_role(role)
+                if role_obj is not None:
+                    yield role_obj
+
+
+async def make_transcript(
+    from_channel: nextcord.TextChannel,
+    to_channel: nextcord.TextChannel = None,
+    embed: nextcord.Embed = None,
+) -> str | None:
+    """Make a transcript from a channel and send it to another channel if specified."""
+    transcript: str = await export(from_channel, military_time=True)
+
+    if transcript is None:
+        return None
+
+    transcript_file = nextcord.File(
+        io.BytesIO(transcript.encode()),
+        filename=f"transcript-{from_channel.name}.html",
+    )
+
+    if to_channel is not None:
+        await to_channel.send(file=transcript_file, embed=embed)
+
+    return transcript
+
+
+def get_member_level(config: Configuration, member: nextcord.Member) -> int:
+    for level, role in config.level_roles.items():
+        level_role = member.guild.get_role(role)
+        if level_role in member.roles:
+            return level
+    return 0

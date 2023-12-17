@@ -2,9 +2,9 @@ from nextcord.ext import commands
 from utils.config import Configuration
 import datetime
 import pytz
-from utils.perms import is_dark_mod, permcheck
+from utils.perms import permcheck, is_admin, is_level, blacklist_check
 from utils.sersi_embed import SersiEmbed
-from nextcord.ui import View, Select
+from nextcord.ui import View, Select, Button
 import nextcord
 
 
@@ -14,9 +14,45 @@ class Roles(commands.Cog):
         self.config = config
 
     @commands.command()
+    async def reformist_opt_in(self, ctx: commands.Context):
+        """Embed for the Reformist role opt-in in reformation information."""
+        if not await permcheck(ctx, is_admin):
+            return
+
+        await ctx.message.delete()
+
+        reformist_embed = SersiEmbed(
+            title="Reformist Role",
+            description="This role is for people who are interested in helping to "
+            "reform members who have been sent to the reformation centre by the "
+            "moderation team. If you would like to opt in to this role, please click"
+            'the "Opt In" button below. You will be pinged whenever a member is sent '
+            "to the reformation centre. You can opt out at any time by clicking the "
+            '"Opt Out" button below.',
+            thumbnail_url=ctx.guild.icon.url,
+        )
+        view = View(auto_defer=False)
+        view.add_item(
+            Button(
+                style=nextcord.ButtonStyle.green,
+                label="Opt In",
+                custom_id="roles-reformist_opt_in",
+            )
+        )
+        view.add_item(
+            Button(
+                style=nextcord.ButtonStyle.red,
+                label="Opt Out",
+                custom_id="roles-reformist_opt_out",
+            )
+        )
+
+        await ctx.send(embed=reformist_embed, view=view)
+
+    @commands.command()
     async def add_roles(self, ctx: commands.Context):
         """Single use Command for the 'Add Roles' Embed."""
-        if not await permcheck(ctx, is_dark_mod):
+        if not await permcheck(ctx, is_admin):
             return
 
         await ctx.message.delete()
@@ -368,79 +404,124 @@ class Roles(commands.Cog):
 
     @commands.Cog.listener()
     async def on_interaction(self, interaction: nextcord.Interaction):
-        try:
-            dropdown_value = interaction.data["values"][0]
-        except KeyError:
+        if interaction.data is None or interaction.data.get("custom_id") is None:
             return
+        if not interaction.data["custom_id"].startswith("roles"):
+            return
+        
+        match interaction.data["custom_id"]:
+            case "roles-reformist_opt_in":
+                if blacklist_check(interaction.user, "Reformist"):
+                    await interaction.response.send_message(
+                        "You are blacklisted from the Reformist role.",
+                        ephemeral=True,
+                    )
+                    return
+                if not is_level(interaction.user, 4):
+                    await interaction.response.send_message(
+                        "You must be level 4 or above to be eligible for the reformist role.",
+                        ephemeral=True,
+                    )
+                    return
 
-        match dropdown_value:
-            case ["gaming"]:
-                print("identified case")
-                print(self.config.opt_in_roles)
-                await interaction.user.add_roles(
-                    self.config.opt_in_roles["gaming"],
-                    reason="Sersi role self assignment",
+                reformist_role = interaction.guild.get_role(
+                    self.config.permission_roles.reformist
                 )
-                print("role given")
-
-            case ["tech"]:
                 await interaction.user.add_roles(
-                    self.config.opt_in_roles["tech_compsci"],
-                    reason="Sersi role self assignment",
+                    reformist_role,
+                    reason="Reformist role self assignment",
                 )
-
-            case ["food"]:
-                await interaction.user.add_roles(
-                    self.config.opt_in_roles["food_and_drink"],
-                    reason="Sersi role self assignment",
+                await interaction.response.send_message(
+                    "You have been given the Reformist role.",
+                    ephemeral=True,
                 )
-
-            case ["history"]:
-                await interaction.user.add_roles(
-                    self.config.opt_in_roles["history"],
-                    reason="Sersi role self assignment",
+            
+            case "roles-reformist_opt_out":
+                reformist_role = interaction.guild.get_role(
+                    self.config.permission_roles.reformist
                 )
-
-            case ["art"]:
-                await interaction.user.add_roles(
-                    self.config.opt_in_roles["art"],
-                    reason="Sersi role self assignment",
+                await interaction.user.remove_roles(
+                    reformist_role,
+                    reason="Reformist role self assignment",
                 )
-            case ["anime"]:
-                await interaction.user.add_roles(
-                    self.config.opt_in_roles["anime"],
-                    reason="Sersi role self assignment",
-                )
-
-            case ["furry"]:
-                await interaction.user.add_roles(
-                    self.config.opt_in_roles["furry"],
-                    reason="Sersi role self assignment",
+                await interaction.response.send_message(
+                    "You have been removed from the Reformist role.",
+                    ephemeral=True,
                 )
 
-            case ["models"]:
-                await interaction.user.add_roles(
-                    self.config.opt_in_roles["models"],
-                    reason="Sersi role self assignment",
-                )
+        # try:
+        #     dropdown_value = interaction.data["values"][0]
+        # except KeyError:
+        #     return
 
-            case ["shillposting"]:
-                await interaction.user.add_roles(
-                    self.config.opt_in_roles["shillposting"],
-                    reason="Sersi role self assignment",
-                )
+        # match dropdown_value:
+        #     case ["gaming"]:
+        #         print("identified case")
+        #         print(self.config.opt_in_roles)
+        #         await interaction.user.add_roles(
+        #             self.config.opt_in_roles["gaming"],
+        #             reason="Sersi role self assignment",
+        #         )
+        #         print("role given")
 
-            case ["photo"]:
-                await interaction.user.add_roles(
-                    self.config.opt_in_roles["photography"],
-                    reason="Sersi role self assignment",
-                )
+        #     case ["tech"]:
+        #         await interaction.user.add_roles(
+        #             self.config.opt_in_roles["tech_compsci"],
+        #             reason="Sersi role self assignment",
+        #         )
 
-            case ["enviro"]:
-                await interaction.user.add_roles(
-                    self.config.opt_in_roles["environment"],
-                    reason="Sersi role self assignment",
-                )
+        #     case ["food"]:
+        #         await interaction.user.add_roles(
+        #             self.config.opt_in_roles["food_and_drink"],
+        #             reason="Sersi role self assignment",
+        #         )
+
+        #     case ["history"]:
+        #         await interaction.user.add_roles(
+        #             self.config.opt_in_roles["history"],
+        #             reason="Sersi role self assignment",
+        #         )
+
+        #     case ["art"]:
+        #         await interaction.user.add_roles(
+        #             self.config.opt_in_roles["art"],
+        #             reason="Sersi role self assignment",
+        #         )
+        #     case ["anime"]:
+        #         await interaction.user.add_roles(
+        #             self.config.opt_in_roles["anime"],
+        #             reason="Sersi role self assignment",
+        #         )
+
+        #     case ["furry"]:
+        #         await interaction.user.add_roles(
+        #             self.config.opt_in_roles["furry"],
+        #             reason="Sersi role self assignment",
+        #         )
+
+        #     case ["models"]:
+        #         await interaction.user.add_roles(
+        #             self.config.opt_in_roles["models"],
+        #             reason="Sersi role self assignment",
+        #         )
+
+        #     case ["shillposting"]:
+        #         await interaction.user.add_roles(
+        #             self.config.opt_in_roles["shillposting"],
+        #             reason="Sersi role self assignment",
+        #         )
+
+        #     case ["photo"]:
+        #         await interaction.user.add_roles(
+        #             self.config.opt_in_roles["photography"],
+        #             reason="Sersi role self assignment",
+        #         )
+
+        #     case ["enviro"]:
+        #         await interaction.user.add_roles(
+        #             self.config.opt_in_roles["environment"],
+        #             reason="Sersi role self assignment",
+        #         )
 
 
 def setup(bot: commands.Bot, **kwargs):

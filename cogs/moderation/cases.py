@@ -3,10 +3,8 @@ from nextcord.ext import commands
 import nextcord
 
 from utils.base import (
-    PageView,
     convert_to_timedelta,
     decode_button_id,
-    decode_snowflake,
 )
 from utils.cases import (
     fetch_cases_by_partial_id,
@@ -29,8 +27,9 @@ from utils.database import (
     Offence,
 )
 from utils.offences import fetch_offences_by_partial_name
-from utils.perms import permcheck, is_mod, is_senior_mod, is_dark_mod
+from utils.perms import permcheck, is_mod, is_mod_lead, is_admin
 from utils.sersi_embed import SersiEmbed
+from utils.views import PageView
 
 
 class Cases(commands.Cog):
@@ -72,8 +71,10 @@ class Cases(commands.Cog):
             description="The specific case type you are looking for",
             required=False,
             choices=[
-                "Ban",
                 "Bad Faith Ping",
+                "Ban",
+                "Blacklist",
+                "Ping",
                 "Kick",
                 "Probation",
                 "Reformation",
@@ -102,7 +103,7 @@ class Cases(commands.Cog):
             return
 
         if case_type == "scrubbed_cases" and not await permcheck(
-            interaction, is_senior_mod
+            interaction, is_mod_lead
         ):
             return
 
@@ -223,7 +224,7 @@ class Cases(commands.Cog):
             max_length=1024,
         ),
     ):
-        if not await permcheck(interaction, is_senior_mod):
+        if not await permcheck(interaction, is_mod_lead):
             return
 
         await interaction.response.defer(ephemeral=False)
@@ -290,7 +291,7 @@ class Cases(commands.Cog):
             max_length=1024,
         ),
     ):
-        if not await permcheck(interaction, is_dark_mod):
+        if not await permcheck(interaction, is_admin):
             return
 
         await interaction.response.defer(ephemeral=False)
@@ -756,7 +757,7 @@ class Cases(commands.Cog):
             required=False,
         ),
     ):
-        if not await permcheck(interaction, is_senior_mod):
+        if not await permcheck(interaction, is_mod_lead):
             return
 
         if not self.config.bot.dev_mode:

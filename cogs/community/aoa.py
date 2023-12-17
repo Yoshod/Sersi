@@ -5,10 +5,19 @@ import nextcord
 import pytz
 from nextcord.ext import commands
 from nextcord.ui import Button, View, Modal
-
+from utils.database import db_session, BlacklistCase
 from utils.sersi_embed import SersiEmbed
 from utils.config import Configuration
-from utils.perms import is_dark_mod, permcheck, is_senior_mod, is_cet, is_slt, is_staff
+from utils.perms import (
+    is_cet,
+    is_admin,
+    is_mod,
+    is_mod_lead,
+    is_slt,
+    is_staff,
+    permcheck,
+    blacklist_check,
+)
 
 
 class AdultAccessModal(Modal):
@@ -18,7 +27,7 @@ class AdultAccessModal(Modal):
 
         self.whyjoin = nextcord.ui.TextInput(
             label="Why do you want access to the channel?",
-            min_length=2,
+            min_length=10,
             max_length=1024,
             required=True,
             style=nextcord.TextInputStyle.paragraph,
@@ -38,7 +47,7 @@ class AdultAccessModal(Modal):
         )
         self.add_item(self.ageproof)
 
-    async def callback(self, interaction):
+    async def callback(self, interaction: nextcord.Interaction):
         """Run whenever the 'submit' button is pressed."""
         applicant_id: int = interaction.user.id
 
@@ -138,13 +147,10 @@ class AdultAccess(commands.Cog):
         self.bot = bot
         self.config = config
 
-    async def cb_open_adult_modal(self, interaction):
-        await interaction.response.send_modal(AdultAccessModal(self.config))
-
-    @commands.command()
-    async def adult_access(self, ctx):
+    @commands.command(name="adultaccess")
+    async def adult_access_embed(self, ctx: commands.Context):
         """Single use Command for the 'Create Application' Embed."""
-        if not await permcheck(ctx, is_dark_mod):
+        if not await permcheck(ctx, is_admin):
             return
 
         await ctx.message.delete()
@@ -158,9 +164,8 @@ class AdultAccess(commands.Cog):
             label="Request Access",
             style=nextcord.ButtonStyle.blurple,
         )
-        open_modal.callback = self.cb_open_adult_modal
 
-        button_view = View(timeout=None)
+        button_view = View(auto_defer=False)
         button_view.add_item(open_modal)
 
         await ctx.send(embed=test_embed, view=button_view)
@@ -168,6 +173,13 @@ class AdultAccess(commands.Cog):
     @nextcord.slash_command(
         dm_permission=False,
         guild_ids=[1166770860787515422, 977377117895536640, 856262303795380224],
+        description="Used to handle access to the adult only channels",
+    )
+    async def adult_access(self, interaction: nextcord.Interaction):
+        pass
+
+    @adult_access.subcommand(
+        name="bypass",
         description="Used to bypass verification to the adult only channels",
     )
     async def adult_bypass(
@@ -177,11 +189,11 @@ class AdultAccess(commands.Cog):
         reason: str = nextcord.SlashOption(
             name="reason",
             description="Reason for bypassing user",
-            min_length=12,
-            max_length=1240,
+            min_length=10,
+            max_length=1024,
         ),
     ):
-        if not await permcheck(interaction, is_dark_mod):
+        if not await permcheck(interaction, is_admin):
             return
 
         await interaction.response.defer(ephemeral=True)
@@ -215,10 +227,9 @@ class AdultAccess(commands.Cog):
             f"{self.config.emotes.success} User has received access to the Over 18s channels."
         )
 
-    @nextcord.slash_command(
-        dm_permission=False,
-        guild_ids=[1166770860787515422, 977377117895536640, 856262303795380224],
-        description="Used to revoke a user's access to the adult channels",
+    @adult_access.subcommand(
+        name="revoke",
+        description="Used to revoke a user's access to the adult channels and blacklist them from applying again",
     )
     async def adult_revoke(
         self,
@@ -226,15 +237,39 @@ class AdultAccess(commands.Cog):
         member: nextcord.Member,
         reason: str = nextcord.SlashOption(
             name="reason",
-            description="Reason for revoking user access",
-            min_length=12,
-            max_length=1240,
+            description="Reason for revoking access",
+            min_length=10,
+            max_length=1024,
         ),
     ):
-        if not await permcheck(interaction, is_staff):
+        if not await permcheck(interaction, is_mod):
+            return
+
+        if is_staff(member):
+            await interaction.response.send_message(
+                f"{self.config.emotes.fail} You cannot revoke access from a staff member.",
+                ephemeral=True,
+            )
             return
 
         await interaction.response.defer(ephemeral=True)
+
+        if not blacklist_check(member, "Adult Only Access"):
+            with db_session() as session:
+                session.add(
+                    BlacklistCase(
+                        offender=member.id,
+                        moderator=interaction.user.id,
+                        blacklist="Adult Only Access",
+                        reason=reason
+                    )
+                )
+                session.commit()
+
+            await interaction.followup.send(
+                f"{self.config.emotes.success} User has been blacklisted from applying to the Over 18s channels.",
+                ephemeral=True,
+            )
 
         adult_access_role: nextcord.Role = member.guild.get_role(
             self.config.roles.adult_access
@@ -242,6 +277,14 @@ class AdultAccess(commands.Cog):
         adult_verified_role: nextcord.Role = member.guild.get_role(
             self.config.roles.adult_verified
         )
+
+        if adult_access_role not in member.roles:
+            await interaction.followup.send(
+                f"{self.config.emotes.fail} User does not have access to the Over 18s channels.",
+                ephemeral=True,
+            )
+            return
+
         try:
             await member.remove_roles(
                 adult_access_role,
@@ -252,7 +295,8 @@ class AdultAccess(commands.Cog):
         except nextcord.HTTPException:
             await interaction.followup.send(
                 f"{self.config.emotes.fail} Removing roles failed. Please request an Administrator or "
-                f"Community Engagement Team member to manually remove the roles."
+                f"Community Engagement Team member to manually remove the roles.",
+                ephemeral=True,
             )
             return
 
@@ -262,8 +306,8 @@ class AdultAccess(commands.Cog):
             f"{interaction.user.mention}",
             fields={"Reason:": reason},
             footer="Sersi Adult Verification",
+            author=interaction.user,
         )
-        logging_embed.timestamp = datetime.now(pytz.UTC)
         logging_channel = interaction.guild.get_channel(self.config.channels.logging)
         await logging_channel.send(embed=logging_embed)
 
@@ -277,9 +321,62 @@ class AdultAccess(commands.Cog):
             f"{self.config.emotes.success} {member.mention} no longer has access to any 18+ channels."
         )
 
-    @nextcord.slash_command(
-        dm_permission=False,
-        guild_ids=[1166770860787515422, 977377117895536640, 856262303795380224],
+    @adult_access.subcommand(
+        name="blacklist_remove",
+        description="Used to remove a user from the blacklist",
+    )
+    async def adult_blacklist_remove(
+        self,
+        interaction: nextcord.Interaction,
+        user: nextcord.Member,
+        reason: str = nextcord.SlashOption(
+            name="reason",
+            description="Reason for removing user from blacklist",
+            min_length=10,
+            max_length=1024,
+        ),
+    ):
+        if not await permcheck(interaction, is_mod_lead):
+            return
+
+        if not blacklist_check(user, "Adult Only Access"):
+            await interaction.response.send_message(
+                f"{self.config.emotes.fail} User is not blacklisted.",
+                ephemeral=True,
+            )
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        with db_session(interaction.user) as session:
+            case: BlacklistCase = (
+                session.query(BlacklistCase)
+                .filter_by(offender=user.id, active=True, blacklist="Adult Only Access")
+                .first()
+            )
+
+            case.active = False
+            case.removed_by = interaction.user.id
+            case.removal_reason = reason
+            session.commit()
+
+        logging_embed = SersiEmbed(
+            title="Over 18 Access Blacklist Removed",
+            description=f"Member {user.mention} ({user.id}) has been removed from the blacklist by "
+            f"{interaction.user.mention}",
+            fields={"Reason:": reason},
+            footer="Sersi Adult Verification",
+            author=interaction.user,
+        )
+        logging_channel = interaction.guild.get_channel(self.config.channels.logging)
+        await logging_channel.send(embed=logging_embed)
+
+        await interaction.followup.send(
+            f"{self.config.emotes.success} User has been removed from the blacklist."
+        )
+
+    @adult_access.subcommand(
+        name="verify",
         description="Used to verify a user as an adult",
     )
     async def adult_verify(
@@ -305,10 +402,10 @@ class AdultAccess(commands.Cog):
             description="The year portion of the date of birth",
             required=True,
             min_value=1950,
-            max_value=2023,
+            max_value=datetime.now().year,
         ),
     ):
-        if not await permcheck(interaction, is_senior_mod) and not await permcheck(
+        if not await permcheck(interaction, is_mod_lead) and not await permcheck(
             interaction, is_cet
         ):
             return
@@ -382,6 +479,13 @@ class AdultAccess(commands.Cog):
 
         match btn_id.split(":", 1):
             case ["adult-channel-start"]:
+                if blacklist_check(interaction.user, "Adult Only Access"):
+                    await interaction.response.send_message(
+                        f"{self.config.emotes.fail} You have been blacklisted from applying to the Over 18's channels.",
+                        ephemeral=True,
+                    )
+                    return
+
                 await interaction.response.send_modal(AdultAccessModal(self.config))
 
             case ["adult-application-approve", user_id]:

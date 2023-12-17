@@ -2,19 +2,27 @@ import nextcord
 from nextcord import SlashOption
 from nextcord.ext import commands
 
+from utils.base import encode_snowflake
 from utils.sersi_embed import SersiEmbed
-from utils.base import ConfirmView, DualCustodyView
+from utils.views import ConfirmView, DualCustodyView
 from utils.config import Configuration
 from utils.perms import (
     permcheck,
     is_staff,
-    is_senior_mod,
+    is_mod_lead,
     is_slt,
-    is_dark_mod,
+    is_admin,
     is_cet_lead,
+    blacklist_check,
 )
-from utils.database import StaffBlacklist, db_session
-from utils.roles import blacklist_check
+from utils.database import (
+    db_session,
+    BlacklistCase,
+    CaseApproval,
+    VoteDetails,
+    VoteRecord,
+)
+from utils.voting import VoteView, vote_planned_end
 
 
 class Staff(commands.Cog):
@@ -59,7 +67,13 @@ class Staff(commands.Cog):
     async def trial_moderator(
         self, interaction: nextcord.Interaction, member: nextcord.Member
     ):
-        if not permcheck(interaction, is_senior_mod):
+        if not permcheck(interaction, is_mod_lead):
+            return
+
+        if blacklist_check(member):
+            interaction.response.send_message(
+                f"{self.config.emotes.fail} This user is blacklisted from the Staff Team. Speak to an Administrator."
+            )
             return
 
         trial_moderator: nextcord.Role = interaction.guild.get_role(
@@ -95,13 +109,7 @@ class Staff(commands.Cog):
         description="Promotes a Trial Moderator to Moderator",
     )
     async def promote(self, interaction: nextcord.Interaction, member: nextcord.Member):
-        if not permcheck(interaction, is_senior_mod):
-            return
-
-        if blacklist_check(member):
-            interaction.response.send_message(
-                f"{self.config.emotes.fail} This user is blacklisted from the Staff Team. Speak to an Administrator."
-            )
+        if not permcheck(interaction, is_mod_lead):
             return
 
         await interaction.response.defer()
@@ -143,6 +151,61 @@ class Staff(commands.Cog):
             embed=log_embed
         )
 
+        await interaction.guild.get_channel(self.config.channels.mod_logs).send(
+            embed=log_embed
+        )
+
+    @add_to_staff.subcommand(description="Reinstates a retired Moderator")
+    async def reinstate_moderator(
+        self, interaction: nextcord.Interaction, member: nextcord.Member
+    ):
+        if not permcheck(interaction, is_mod_lead):
+            return
+
+        if blacklist_check(member):
+            interaction.response.send_message(
+                f"{self.config.emotes.fail} This user is blacklisted from the Staff Team. Speak to an Administrator."
+            )
+            return
+
+        honourable_member: nextcord.Role = interaction.guild.get_role(
+            self.config.roles.honourable_member
+        )
+        moderator: nextcord.Role = interaction.guild.get_role(
+            self.config.permission_roles.moderator
+        )
+
+        if honourable_member not in member.roles:
+            await interaction.followup.send(
+                f"{self.config.emotes.fail} This user is not an Honourable Member and therefore cannot be reinstated as a Moderator."
+            )
+            return
+
+        await interaction.response.defer()
+
+        await member.remove_roles(
+            honourable_member, reason="Sersi command", atomic=True
+        )
+        await member.add_roles(moderator, reason="Sersi command", atomic=True)
+
+        await interaction.followup.send(
+            f"{self.config.emotes.success} {member.mention} was given the {moderator.name} role.\n"
+            "Welcome back to the team! :)",
+        )
+
+        # logging
+        log_embed = SersiEmbed(
+            title="Honourable Member reinstated as a Moderator.",
+            fields={
+                "Responsible Moderator:": interaction.user.mention,
+                "New Moderator:": member.mention,
+            },
+            footer="Sersi Add Trial Mod",
+            author=interaction.user,
+        )
+        await interaction.guild.get_channel(self.config.channels.logging).send(
+            embed=log_embed
+        )
         await interaction.guild.get_channel(self.config.channels.mod_logs).send(
             embed=log_embed
         )
@@ -242,7 +305,7 @@ class Staff(commands.Cog):
                 "Reason:": reason,
                 "Responsible Member:": interaction.user.mention,
             }
-            if bypass_reason and is_dark_mod(interaction.user):
+            if bypass_reason and is_admin(interaction.user):
                 embed_fields["Bypass Reason:"] = bypass_reason
             else:
                 embed_fields["Confirming Member:"] = confirming_moderator.mention
@@ -261,12 +324,22 @@ class Staff(commands.Cog):
             await channel.send(embed=log_embed)
 
             with db_session(interaction.user) as session:
-                blacklist_instance = StaffBlacklist(
-                    blacklisted_user=member.id,
-                    staff_member=interaction.user.id,
+                case: BlacklistCase = BlacklistCase(
+                    offender=member.id,
+                    moderator=interaction.user.id,
+                    blacklist="Staff",
                     reason=reason,
                 )
-                session.add(blacklist_instance)
+                session.add(case)
+
+                if confirming_moderator != interaction.user:
+                    session.add(
+                        CaseApproval(
+                            case_id=case.id,
+                            approver=confirming_moderator.id,
+                            approved=True,
+                        )
+                    )
                 session.commit()
 
         await execute(self.bot, self.config, interaction)
@@ -346,12 +419,13 @@ class Staff(commands.Cog):
         interaction.response.defer()
 
         with db_session(interaction.user) as session:
-            blacklist_instance = StaffBlacklist(
-                blacklisted_user=member.id,
-                staff_member=interaction.user.id,
+            case: BlacklistCase = BlacklistCase(
+                offender=member.id,
+                moderator=interaction.user.id,
+                blacklist="Staff",
                 reason=reason,
             )
-            session.add(blacklist_instance)
+            session.add(case)
             session.commit()
 
         interaction.followup.send(
@@ -367,10 +441,10 @@ class Staff(commands.Cog):
             description="Who to blacklist.",
         ),
         reason: str = SlashOption(
-            description="The reason you are blacklisting this user."
+            description="The reason you are removing this user from the blacklist."
         ),
     ):
-        if not await permcheck(interaction, is_dark_mod):
+        if not await permcheck(interaction, is_admin):
             return
 
         if not blacklist_check(member):
@@ -381,18 +455,183 @@ class Staff(commands.Cog):
         interaction.response.defer()
 
         with db_session(interaction.user) as session:
-            blacklist_instance = (
-                session.query(StaffBlacklist)
-                .filter_by(blacklisted_user=member.id)
+            case: BlacklistCase = (
+                session.query(BlacklistCase)
+                .filter_by(offender=member.id, active=True, blacklist="Staff")
                 .first()
             )
-            session.delete(blacklist_instance)
+            case.active = False
+            case.removed_by = interaction.user.id
+            case.removal_reason = reason
             session.commit()
 
         interaction.followup.send(
             f"{self.config.emotes.success} The user is no longer blacklisted from the Staff Team."
         )
         return
+
+    @staff.subcommand(
+        description="Revoke a user's Honourable Member status and blacklist them from the Staff Team"
+    )
+    async def revoke_honoured_member(
+        self,
+        interaction: nextcord.Interaction,
+        member: nextcord.Member = SlashOption(
+            description="Member to revoke Honourable Member status from",
+        ),
+        reason: str = SlashOption(
+            description="Reason for revoking Honourable Member status",
+            min_length=10,
+            max_length=1024,
+        ),
+        bypass_reason: str = nextcord.SlashOption(
+            description="ADMINISTRATOR ONLY! Reason to bypass vote",
+            min_length=10,
+            max_length=1024,
+            required=False,
+        ),
+    ):
+        if not await permcheck(interaction, is_staff):
+            return
+
+        honourable_member: nextcord.Role = interaction.guild.get_role(
+            self.config.roles.honourable_member
+        )
+
+        if honourable_member not in member.roles:
+            interaction.response.send_message(
+                f"{self.config.emotes.fail} This user is not an Honourable Member."
+            )
+            return
+
+        if blacklist_check(member):
+            member.remove_roles(
+                honourable_member, reason="Blacklisted from staff", atomic=True
+            )
+            interaction.response.send_message(
+                f"{self.config.emotes.success} This user is already blacklisted from the Staff Team"
+                " and has been removed from the Honourable Member role immediately."
+            )
+            return
+
+        interaction.response.defer(ephemeral=True)
+
+        if bypass_reason and permcheck(interaction, is_admin):
+            await member.remove_roles(
+                honourable_member, reason="Blacklisted from staff", atomic=True
+            )
+            interaction.followup.send(
+                f"{self.config.emotes.success} {member.mention} has been removed from the Honourable Member role."
+            )
+
+            # logging
+            log_embed = SersiEmbed(
+                title="Honoured Member status revoked.",
+                fields={
+                    "Responsible Administrator:": interaction.user.mention,
+                    "Removed Honoured Member:": member.mention,
+                    "Reason:": reason,
+                    "Bypass Reason:": bypass_reason
+                },
+            ).set_author(
+                name=interaction.user, icon_url=interaction.user.display_avatar.url
+            )
+
+            await interaction.guild.get_channel(self.config.channels.logging).send(
+                embed=log_embed
+            )
+            await interaction.guild.get_channel(self.config.channels.mod_logs).send(
+                embed=log_embed
+            )
+
+            return
+
+        # start the vote to revoke honoured member role
+        vote_embed = SersiEmbed(
+            title=f"Revoke Honourable Member Status of {member.name}",
+            description=f"{member.mention} has been nominated to have their Honourable Member status revoked. \n"
+            f"__Reason stated by {interaction.user.mention}:__ \n\n{reason}",
+            author=interaction.user,
+        )
+
+        vote_channel = self.config.channels.staff_votes
+
+        vote_message = await interaction.guild.get_channel(vote_channel).send(
+            embed=vote_embed
+        )
+
+        vote_type = self.config.voting["honour-revoke"]
+        with db_session(interaction.user) as session:
+            case: BlacklistCase = BlacklistCase(
+                id=encode_snowflake(interaction.id),
+                offender=member.id,
+                moderator=interaction.user.id,
+                active=False,
+                blacklist="Staff",
+                reason=reason,
+                scrubbed=True,
+            )
+            session.add(case)
+
+            vote: VoteDetails = VoteDetails(
+                vote_type="honour-revoke",
+                vote_url=vote_message.jump_url,
+                case_id=case.id,
+                started_by=interaction.user.id,
+                planned_end=vote_planned_end(vote_type),
+            )
+            session.add(vote)
+            session.commit()
+
+            await vote_message.edit(view=VoteView(vote_type, vote))
+        
+        await interaction.followup.send(
+            f"{self.config.emotes.success} Vote to revoke Honourable Member status has been started."
+        )
+
+    @commands.Cog.listener()
+    async def on_honoured_member_revoke(self, details: VoteDetails):
+        if details.outcome != "Accepted":
+            return
+
+        guild = self.bot.get_guild(self.config.guilds.main)
+
+        with db_session(self.bot.user) as session:
+            case: BlacklistCase = (
+                session.query(BlacklistCase).filter_by(id=details.case_id).first()
+            )
+            case.active = True
+            case.scrubbed = False
+            session.commit()
+
+            yes_voters = [
+                guild.get_member(vote[0]).mention
+                for vote in session.query(VoteRecord.voter)
+                .filter_by(vote_id=details.vote_id, vote="yes")
+                .all()
+            ]
+
+            member = guild.get_member(case.offender)
+        honourable_member = guild.get_role(self.config.roles.honourable_member)
+
+        await member.remove_roles(
+            honourable_member, reason="Honoured member removal vote", atomic=True
+        )
+
+        # logging
+        log_embed = SersiEmbed(
+            title="Honoured Member status revoked.",
+            description=f"{member.mention} has been removed from the Honourable Member role "
+            f"due to a successful vote and blacklisted from staff.",
+            fields={
+                "Removed Honoured Member:": member.mention,
+                "Reason:": case.reason,
+                "Voters:": "- " + "\n- ".join(yes_voters),
+            },
+        )
+
+        await guild.get_channel(self.config.channels.logging).send(embed=log_embed)
+        await guild.get_channel(self.config.channels.mod_logs).send(embed=log_embed)
 
 
 def setup(bot: commands.Bot, **kwargs):

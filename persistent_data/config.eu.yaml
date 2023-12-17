@@ -1,32 +1,12 @@
 # Default configuration; no IDs nor a token have been set.
 
-datafiles:
-    author_list:        "files/about/authors.md"
-    keyfile:            "files/AnonMessages/key.bin"
-    slurfile:           "files/SlurAlerts/slurs.txt"
-    goodwordfile:       "files/SlurAlerts/goodword.txt"
-    blacklist:          "files/WBList/blacklist.csv"
-    casedetails:        "files/Cases/casedetails.pkl"
-    casehistory:        "files/Cases/casehistory.pkl"
-    gifblacklist:       "files/WBList/gifblacklist.txt"
-    secret_dms:         "files/AnonMessages/secret_dms.pkl"
-    secret_mutes:       "files/AnonMessages/banned.csv"
-    reform_iter:        "files/Reformation/reformationiter.txt"
-    reformation_cases:  "files/Reformation/reformationcases.pkl"
-    watchlist:          "files/WBList/watchlist.csv"
-    ticketers:          "files/Tickets/ticketers.pkl"
-    video_history:      "files/youtube/processed_videos.txt"
-    alert_logs:         "files/Alerts/alerts.pkl"
-    alert_csv:          "files/Alerts/alerts.csv"
-    sersi_db:           "persistent_data/sersi.db"
-
 bot:
     dev_mode: true
     prefix: "s!"
     status: "Sword and shield"
     port:   8113 # 8074 for live, 8113 for unstable
     minimum caps length: 8
-    version: "5.0.2"
+    version: "5.1.0"
     git_url: "https://github.com/Yoshod/Sersi"
     authors:
         - "• Hekkland#0001 `261870562798731266`"
@@ -40,8 +20,8 @@ channels:
     mod_logs:                 1166770864595943516
     reformation:              1166770864197468235
     reformation_info:         1166770864197468233
-    dm_forward:                                0
-    errors:                   987397664280817754
+    dm_forward:                                 0
+    errors:                    987397664280817754
     teachers_lounge:          1166770864197468235
     reform public log:        1166770864197468234
     photography:              1166770863387983918
@@ -68,10 +48,12 @@ channels:
     dark_mod_review:          1166770862150651978
     senior_mod_review:        1166770862150651979
     moderator_review:         1166770862150651980
-    moderation_votes:                          0
-    suggestion_discussion:   1166770862989525000
-    suggestion_voting:       1166770862989524999
-    suggestion_review:       1166770862435876978   
+    moderation_votes:                           0
+    suggestion_discussion:    1166770862989525000
+    suggestion_voting:        1166770862989524999
+    suggestion_review:        1166770862435876978
+    staff_votes:                                0
+    cet_votes:                                  0
 
 ignored_categories:
     - IMPORTANT STUFF
@@ -123,6 +105,18 @@ permission_roles:
     cet_lead:          1166770861211123712
     compliance:        1166770861211123713
 
+level_roles:
+    1:  1166770861064323093
+    2:  1166770861064323094
+    3:  1166770861064323095
+    4:  1166770861064323096
+    5:  1166770861064323097
+    6:  1166770861064323098
+    7:  1166770861064323099
+    8:  1166770861064323100
+    9:  1166770861064323101
+    10: 1166770861081104465
+
 punishment roles:
     annoying:                 925191425904238592
     terrible_ideas:           912816038163398727
@@ -150,4 +144,15 @@ voting:
     urgent-ban:
         name: Urgent Ban
         action: vote_ban
-        difference: 2
+    honoured-member-revoke:
+        name: Honoured Member Revocation
+        action: revoke_honoured_member
+        group: staff
+        duration: 168
+        supermajority: true
+    honour-revoke:
+        name: Honoured Member Revocation
+        action: honoured_member_revoke
+        group: staff
+        duration: 168
+        supermajority: true

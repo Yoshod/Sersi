@@ -12,6 +12,7 @@ from utils.database import (
     CaseAudit,
     BanCase,
     BadFaithPingCase,
+    BlacklistCase,
     KickCase,
     ProbationCase,
     ReformationCase,
@@ -54,52 +55,20 @@ def create_case_embed(
         },
     ]
 
-    with db_session(interaction.user) as session:
-        review_case = session.query(PeerReview).filter_by(case_id=case.id).first()
-
-    try:
-        match review_case.review_outcome:
-            case "Approved":
-                outcome = config.emotes.success
-                reviewer = f"{interaction.guild.get_member(review_case.reviewer).mention} `{interaction.guild.get_member(review_case.reviewer).id}`"
-
-            case "Objection":
-                outcome = config.emotes.fail
-                reviewer = f"{interaction.guild.get_member(review_case.reviewer).mention} `{interaction.guild.get_member(review_case.reviewer).id}`"
-
-            case None:
-                outcome = config.emotes.inherit
-                reviewer = f"{interaction.guild.get_member(review_case.reviewer).mention} `{interaction.guild.get_member(review_case.reviewer).id}`"
-
-    except AttributeError:
-        outcome = config.emotes.inherit
-        reviewer = "In Progress"
-
     match case:
+        case BadFaithPingCase():
+            fields[1].popitem()
+            fields[1].update({"Report": case.report_url})
         case BanCase():
             fields.append({"Details": f"{case.details}"})
-
-            if case.ban_type == "emergency":
-                fields.append(
-                    {
-                        "Ban Type": "`Immediate`",
-                        "Active": config.emotes.success
-                        if case.active
-                        else config.emotes.fail,
-                        "Review": outcome,
-                    }
-                )
-                fields.append({"Reviewer": reviewer})
-
-            else:
-                fields.append(
-                    {
-                        "Ban Type": "`Vote`",
-                        "Active": config.emotes.success
-                        if case.active
-                        else config.emotes.fail,
-                    }
-                )
+            fields.append(
+                {
+                    "Ban Type": case.ban_type,
+                    "Active": config.emotes.success
+                    if case.active
+                    else config.emotes.fail,
+                }
+            )
 
             if case.active is False:
                 fields[-1].update(
@@ -108,17 +77,22 @@ def create_case_embed(
                         "Unban Reason": f"{case.unban_reason}",
                     }
                 )
-        case BadFaithPingCase():
+        case BlacklistCase():
             fields[1].popitem()
-            fields[1].update({"Report": case.report_url})
+            fields[1].update({"Blacklist": case.blacklist})
+            fields.append({"Reason": f"{case.reason}"})
+            fields.append(
+                {"Active": config.emotes.success if case.active else config.emotes.fail}
+            )
+            if not case.active:
+                fields[-1].update(
+                    {
+                        "Removed By": f"<@{case.removed_by}> `{case.removed_by}`",
+                        "Removal Reason": f"{case.removal_reason}",
+                    }
+                )
         case KickCase():
             fields.append({"Details": f"{case.details}"})
-            fields.append(
-                {
-                    "Review": outcome,
-                    "Reviewer": reviewer,
-                }
-            )
         case ProbationCase():
             fields.append({"Reason": f"{case.reason}"})
             fields.append(
@@ -162,12 +136,6 @@ def create_case_embed(
                     "Active": config.emotes.success if active else config.emotes.fail,
                 }
             )
-            fields.append(
-                {
-                    "Review": outcome,
-                    "Reviewer": reviewer,
-                }
-            )
             if case.actual_end is not None:
                 fields.append(
                     {
@@ -188,21 +156,25 @@ def create_case_embed(
                         "Deactivate Reason": f"{case.deactivate_reason}",
                     }
                 )
+
+    if case.type in ["Ban", "Timeout", "Warning"]:
+        with db_session() as session:
+            review: PeerReview = (
+                session.query(PeerReview).filter_by(case_id=case.id).first()
+            )
+
+        if review:
             fields.append(
                 {
-                    "Review": outcome,
-                    "Reviewer": reviewer,
+                    "Review Outcome": config.emotes.success
+                    if review.review_outcome == "Approve"
+                    else config.emotes.fail,
+                    "Reviewer": f"<@{review.reviewer}> `{review.reviewer}`",
                 }
             )
 
-    if review_case and review_case.review_outcome is None:
-        fields.append({"Review Status": config.emotes.inherit})
-
-    elif review_case and review_case.review_outcome == "Approve":
-        fields.append({"Review Status": config.emotes.success})
-
-    elif review_case and review_case.review_outcome == "None":
-        fields.append({"Review Status": config.emotes.fail})
+            if review.review_comment:
+                fields.append({"Review Comment": review.review_comment})
 
     if case.scrubbed:
         with db_session() as session:
@@ -251,9 +223,13 @@ def get_case_by_id(case_id: str) -> typing.Type[Case] | None:
             return None
 
         match case.type:
+            case "Bad Faith Ping":
+                return session.query(BadFaithPingCase).filter_by(id=case_id).first()
             case "Ban":
                 return session.query(BanCase).filter_by(id=case_id).first()
-            case "Bad Faith Ping":
+            case "Blacklist":
+                return session.query(BlacklistCase).filter_by(id=case_id).first()
+            case "Ping":
                 return session.query(BadFaithPingCase).filter_by(id=case_id).first()
             case "Kick":
                 return session.query(KickCase).filter_by(id=case_id).first()

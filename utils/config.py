@@ -3,28 +3,6 @@ from dataclass_wizard import YAMLWizard
 
 
 @dataclass
-class ConfigurationDatafiles(YAMLWizard):
-    author_list: str
-    keyfile: str
-    slurfile: str
-    goodwordfile: str
-    blacklist: str
-    casedetails: str
-    casehistory: str
-    gifblacklist: str
-    secret_dms: str
-    secret_mutes: str
-    reform_iter: str
-    reformation_cases: str
-    watchlist: str
-    ticketers: str
-    video_history: str
-    alert_logs: str
-    alert_csv: str
-    sersi_db: str
-
-
-@dataclass
 class ConfigurationBot(YAMLWizard):
     prefix: str
     status: str
@@ -52,6 +30,8 @@ class ConfigurationChannels(YAMLWizard):
     senior_mod_review: int
     moderator_review: int
     moderation_votes: int
+    staff_votes: int
+    cet_votes: int
 
     # debugging channels
     errors: int
@@ -159,17 +139,18 @@ class VoteType(YAMLWizard):
     name: str
     action: str
 
+    group: str = "mod"
     duration: int = 72
     threshold: int = 3
     difference: int = 1
 
+    supermajority: bool = False
     comment_required: bool = True
     end_on_threshold: bool = True
 
 
 @dataclass(frozen=True)
 class Configuration(YAMLWizard):
-    datafiles: ConfigurationDatafiles
     bot: ConfigurationBot
     channels: ConfigurationChannels
     ignored_channels: dict[str, int]
@@ -178,6 +159,7 @@ class Configuration(YAMLWizard):
     opt_in_roles: dict[str, int]
     permission_roles: ConfigurationPermissionRoles
     punishment_roles: dict[str, int]
+    level_roles: dict[int, int]
     emotes: ConfigurationEmotes
     guilds: ConfigurationGuilds
     voting: dict[str, VoteType]

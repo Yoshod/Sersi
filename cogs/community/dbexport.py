@@ -24,7 +24,7 @@ class DBExport(commands.Cog):
         await interaction.response.defer(ephemeral=True)
 
         buffer = io.StringIO()
-        con = sqlite3.connect(self.config.datafiles.sersi_db)
+        con = sqlite3.connect("persistent_data/sersi.db")
 
         for line in con.iterdump():
             buffer.write("%s\n" % line)

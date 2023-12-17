@@ -1,32 +1,12 @@
 # Default configuration; no IDs nor a token have been set.
 
-datafiles:
-    author_list:        "files/about/authors.md"
-    keyfile:            "files/AnonMessages/key.bin"
-    slurfile:           "files/SlurAlerts/slurs.txt"
-    goodwordfile:       "files/SlurAlerts/goodword.txt"
-    blacklist:          "files/WBList/blacklist.csv"
-    casedetails:        "files/Cases/casedetails.pkl"
-    casehistory:        "files/Cases/casehistory.pkl"
-    gifblacklist:       "files/WBList/gifblacklist.txt"
-    secret_dms:         "files/AnonMessages/secret_dms.pkl"
-    secret_mutes:       "files/AnonMessages/banned.csv"
-    reform_iter:        "files/Reformation/reformationiter.txt"
-    reformation_cases:  "files/Reformation/reformationcases.pkl"
-    watchlist:          "files/WBList/watchlist.csv"
-    ticketers:          "files/Tickets/ticketers.pkl"
-    video_history:      "files/youtube/processed_videos.txt"
-    alert_logs:         "files/Alerts/alerts.pkl"
-    alert_csv:          "files/Alerts/alerts.csv"
-    sersi_db:           "persistent_data/sersi.db"
-
 bot:
     dev_mode: false
     prefix: "s!"
     status: "Sword and shield"
     port:   8074 # 8074 for live, 8113 for unstable
     minimum caps length: 8
-    version: "5.0.2"
+    version: "5.1.0"
     git_url: "https://github.com/Yoshod/Sersi"
     authors:
         - "• Hekkland#0001 `261870562798731266`"
@@ -80,6 +60,8 @@ channels:
     suggestion_discussion:   1168987121936253078
     suggestion_voting:       1168987296452845669
     suggestion_review:       1168176532750082119
+    staff_votes:                               0
+    cet_votes:                                 0
 
 ignored_categories:
     - IMPORTANT STUFF
@@ -133,13 +115,25 @@ permission_roles:
     cet_lead:         1022923124053921853
     compliance:       1147601480526856202
 
-punishment roles:
+punishment_roles:
     annoying:                 925191425904238592
     terrible_ideas:           912816038163398727
     politics_and_debate_mute: 931474944611745812
     ancap:                    877680362829021194
     problem_child:            903368456433451069
     role_lock:               1118235612089159720
+
+level_roles:
+    1:   909607701070352434
+    2:   909607934357553193
+    3:   909608028586782800
+    4:   909608089949450280
+    5:   909608227283558430
+    6:   909608315800154173
+    7:   909608360121368638
+    8:   909608459287265291
+    9:   909608720504348704
+    10:  909608554393133136
 
 emotes:
     success: "<:sersisuccess:979066662856822844>"
@@ -167,3 +161,9 @@ voting:
         name: Urgent Ban
         action: vote_ban
         difference: 2
+    honour-revoke:
+        name: Honoured Member Revocation
+        action: honoured_member_revoke
+        group: staff
+        duration: 168
+        supermajority: true
