@@ -150,3 +150,9 @@ voting:
         group: staff
         duration: 168
         supermajority: true
+    honour-revoke:
+        name: Honoured Member Revocation
+        action: honoured_member_revoke
+        group: staff
+        duration: 168
+        supermajority: true

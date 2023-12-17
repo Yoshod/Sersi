@@ -560,7 +560,7 @@ class Staff(commands.Cog):
             embed=vote_embed
         )
 
-        vote_type = self.config.voting["honoured-member-revoke"]
+        vote_type = self.config.voting["honour-revoke"]
         with db_session(interaction.user) as session:
             case: BlacklistCase = BlacklistCase(
                 id=encode_snowflake(interaction.id),
@@ -574,7 +574,7 @@ class Staff(commands.Cog):
             session.add(case)
 
             vote: VoteDetails = VoteDetails(
-                vote_type="honoured-member-revoke",
+                vote_type="honour-revoke",
                 vote_url=vote_message.jump_url,
                 case_id=case.id,
                 started_by=interaction.user.id,
@@ -611,7 +611,7 @@ class Staff(commands.Cog):
                 .all()
             ]
 
-        member = guild.get_member(case.offender)
+            member = guild.get_member(case.offender)
         honourable_member = guild.get_role(self.config.roles.honourable_member)
 
         await member.remove_roles(
