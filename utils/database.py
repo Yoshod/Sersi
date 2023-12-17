@@ -5,7 +5,7 @@ import re
 
 import nextcord
 import sqlalchemy
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, event, Date
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, event
 from sqlalchemy.orm import Session, relationship
 from sqlalchemy.ext.declarative import declarative_base
 

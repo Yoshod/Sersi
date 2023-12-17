@@ -8,7 +8,6 @@ from nextcord.ui import Button, View, Modal
 from utils.database import db_session, BlacklistCase
 from utils.sersi_embed import SersiEmbed
 from utils.config import Configuration
-from utils.offences import fetch_offences_by_partial_name
 from utils.perms import (
     is_cet,
     is_admin,
