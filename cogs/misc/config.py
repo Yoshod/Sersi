@@ -64,6 +64,7 @@ class Config(commands.Cog):
                 "permission_roles",
                 "punishment_roles",
                 "opt_in_roles",
+                "level_roles",
                 "emotes",
                 "guilds",
             ],
@@ -136,6 +137,11 @@ class Config(commands.Cog):
             case "opt_in_roles":
                 config_dict = {
                     name: eval_role(id) for name, id in self.config.opt_in_roles.items()
+                }
+            case "level_roles":
+                config_dict = {
+                    f"Level {level}": eval_role(id)
+                    for level, id in self.config.level_roles.items()
                 }
             case "emotes":
                 config_dict = {
