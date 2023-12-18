@@ -196,10 +196,11 @@ class TicketingSystem(commands.Cog):
                     session.add(survey)
                     session.commit()
 
-        await interaction.followup.send(
-            f"{self.config.emotes.success} Ticket has been closed!",
-            ephemeral=True,
-        )
+        if interaction.channel.id != channel.id:
+            await interaction.followup.send(
+                f"{self.config.emotes.success} Ticket has been closed!",
+                ephemeral=True,
+            )
 
     @ticket.subcommand(description="Used to change ticket escalation level")
     async def escalate(
