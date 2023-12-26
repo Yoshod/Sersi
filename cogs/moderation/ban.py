@@ -494,7 +494,10 @@ class BanSystem(commands.Cog):
                         self.config.channels.logging
                     ).send(embed=logging_embed)
 
-                    await offender.ban(reason=f"Sersi Ban {sersi_case['Details']}")
+                    await offender.ban(
+                        reason=f"Sersi Ban {sersi_case['Details']}",
+                        delete_message_days=0,
+                    )
 
                     await interaction.followup.send(
                         embed=SersiEmbed(
@@ -591,7 +594,9 @@ class BanSystem(commands.Cog):
                 )
 
                 await interaction.guild.ban(
-                    offender, reason=f"{[sersi_case.details]} -{interaction.user.name}"
+                    offender,
+                    reason=f"{[sersi_case.details]} -{interaction.user.name}",
+                    delete_message_days=0,
                 )
 
                 with db_session(interaction.user) as session:
@@ -713,7 +718,9 @@ class BanSystem(commands.Cog):
             if isinstance(user, nextcord.Member):
                 await user.edit(timeout=None, reason="Ban Vote Successfull")
 
-            await guild.ban(user, reason=f"Sersi Ban {case.details}")
+            await guild.ban(
+                user, reason=f"Sersi Ban {case.details}", delete_message_days=0
+            )
 
             session.commit()
             case: BanCase = session.query(BanCase).get(detail.case_id)
