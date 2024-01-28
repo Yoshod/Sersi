@@ -24,14 +24,11 @@ class Timer(commands.Cog):
             datetime.datetime.now() + datetime.timedelta(minutes=time_minutes),
             relative=True,
         )
-        message: nextcord.WebhookMessage = await interaction.followup.send(
-            f"{timestamp} left."
-        )
+        message: nextcord.WebhookMessage = await interaction.followup.send(timestamp)
 
         await asyncio.sleep(time_minutes * 60)
 
         await message.reply(f"{interaction.user.mention} time is up!")
-        await message.delete()
 
 
 def setup(bot: commands.Bot, **kwargs):

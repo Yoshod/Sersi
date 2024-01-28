@@ -167,7 +167,7 @@ def create_case_embed(
             fields.append(
                 {
                     "Review Outcome": config.emotes.success
-                    if review.review_outcome == "Approve"
+                    if review.review_outcome == "Approved"
                     else config.emotes.fail,
                     "Reviewer": f"<@{review.reviewer}> `{review.reviewer}`",
                 }
