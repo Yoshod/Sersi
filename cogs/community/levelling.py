@@ -1,17 +1,14 @@
 import math
-import io
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
 from dataclasses import dataclass, field
 
 import nextcord
 from nextcord.ext import commands, tasks
-from sqlalchemy import func
 
 from utils.base import ignored_message, get_member_level
 from utils.config import Configuration
 from utils.database import db_session, MemberLevel, ExperienceJournal
-from utils.perms import permcheck, is_sersi_contributor
 
 
 class XPType(Enum):
@@ -43,7 +40,6 @@ class Levelling(commands.Cog):
 
     def cog_unload(self):
         self.voice_xp.cancel()
-        self.session.commit()
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -65,7 +61,7 @@ class Levelling(commands.Cog):
                 )
                 self.session.add(member_level)
                 self.session.commit()
-
+            
             self.reports[member.id] = MemberReport(
                 member=member,
                 level=member_level.level,
@@ -96,7 +92,7 @@ class Levelling(commands.Cog):
                     continue
 
                 await self.earn_xp(member, len(channel.members), XPType.VOICE)
-
+        
         for member_id, report in self.reports.items():
             if not report.updated:
                 continue
@@ -112,67 +108,6 @@ class Levelling(commands.Cog):
         self.session.close()
         self.session = db_session()
 
-    @nextcord.slash_command(
-        description="daily user experience report",
-        guild_ids=[1166770860787515422, 977377117895536640, 856262303795380224],
-        dm_permission=False,
-    )
-    async def daily_report(self, interaction: nextcord.Interaction):
-        if not await permcheck(interaction, is_sersi_contributor):
-            return
-
-        await interaction.response.defer()
-
-        with db_session() as session:
-            journals: list[tuple[int, str, int]] = (
-                session.query(
-                    ExperienceJournal.member,
-                    ExperienceJournal.xp_type,
-                    func.sum(ExperienceJournal.xp).label("xp"),
-                )
-                .filter(
-                    ExperienceJournal.timestamp
-                    < datetime.utcnow().replace(
-                        hour=0, minute=0, second=0, microsecond=0
-                    )
-                )
-                .group_by(ExperienceJournal.member, ExperienceJournal.xp_type)
-                .order_by(ExperienceJournal.member)
-                .all()
-            )
-
-            session.query(ExperienceJournal).filter(
-                ExperienceJournal.timestamp
-                < datetime.utcnow().replace(
-                    hour=0, minute=0, second=0, microsecond=0
-                )
-            ).delete()
-            session.commit()
-        
-        if journals is None or len(journals) == 0:
-            await interaction.followup.send("No data to report!", ephemeral=True)
-            return
-
-        csv = "member,member_id,xp_type,xp\n"
-
-        for journal in journals:
-            user = self.bot.get_user(journal[0])
-            name = user.name if user is not None else "n/a"
-
-            csv += f"{name},{journal[0]},{journal[1]},{journal[2]}\n"
-
-        yesterday = datetime.utcnow().replace(
-            hour=0, minute=0, second=0, microsecond=0
-        ) - timedelta(days=1)
-
-        file = nextcord.File(
-            io.BytesIO(csv.encode("utf-8")), filename=f"crossroads_xp_report_{yesterday.date()}.csv"
-        )
-        
-        await interaction.followup.send(
-            "Here's the daily report!", file=file
-        )
-
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.Message):
         if ignored_message(self.config, message):
@@ -186,9 +121,9 @@ class Levelling(commands.Cog):
         if (
             message.author.id not in self.reports
             or message.channel.id not in self.reports[message.author.id].last_message
-            or message.created_at.timestamp()
-            - self.reports[message.author.id].last_message[message.channel.id]
-            >= 60
+            or message.created_at.timestamp() - self.reports[message.author.id].last_message[
+                message.channel.id
+            ] >= 60
         ):
             xp += 5
 
