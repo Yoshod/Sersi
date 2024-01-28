@@ -345,6 +345,12 @@ class Jokes(commands.Cog):
                         f'{message.author.mention} is a degenerate furry. How do I know? They just said "{message.content}".'
                     )
 
+                case r".*g(o|ö)mb(o|ö)c.*":
+                    gombik = message.guild.get_member(264502855602274306)
+                    await gombik.edit(nick="Gömböc")
+                    await message.channel.send(gombik.mention, delete_after=1)
+
+
         # don't know what to do with this -mel
         # maybe we could rebalance the chances? -gombik
         if message.author.is_on_mobile():
