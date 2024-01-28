@@ -284,7 +284,9 @@ class BanSystem(commands.Cog):
                         self.config.channels.moderation_votes
                     )
                     vote_message = await channel.send(
-                        embed=vote_embed, view=VoteView(vote_type, vote_case)
+                        f"<@&{self.config.permission_roles.moderator}> <@&{self.config.permission_roles.trial_moderator}>",
+                        embed=vote_embed,
+                        view=VoteView(vote_type, vote_case),
                     )
 
                     vote_case.vote_url = vote_message.jump_url
