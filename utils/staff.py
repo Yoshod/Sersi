@@ -11,15 +11,15 @@ class Branch(enum.Enum):
 
 
 class StaffRole(enum.Enum):
-    """Staff Roles"""
+    """Staff Role IDs"""
 
-    ADMIN = "Administrator"
-    COMPLIANCE = "Compliance Officer"
-    HEAD_MOD = "Moderation Lead"
-    MOD = "Moderator"
-    TRIAL_MOD = "Trial Moderator"
-    CET_LEAD = "Community Engagement Team Lead"
-    CET = "Community Engagement Team Member"
+    ADMIN = 1166770861232099369
+    COMPLIANCE = 1166770861211123713
+    HEAD_MOD = 1166770861211123721
+    MOD = 1166770861211123720
+    TRIAL_MOD = 1166770861211123719
+    CET_LEAD = 1166770861211123712
+    CET = 1166770861169197155
 
 
 def add_staff_to_db(

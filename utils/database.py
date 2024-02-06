@@ -534,7 +534,7 @@ class ActiveStaff(_Base):
 
     member = Column(Integer, ForeignKey("staff_members.member"), primary_key=True)
     branch = Column(String, ForeignKey("staff_branches.branch"))
-    role = Column(String, ForeignKey("staff_roles.role_id"))
+    role = Column(Integer, ForeignKey("staff_roles.role_id"))
     joined = Column(DateTime, default=datetime.utcnow)
     added_by = Column(Integer, nullable=False)
 
@@ -544,7 +544,7 @@ class FormerStaff(_Base):
 
     member = Column(Integer, ForeignKey("staff_members.member"), primary_key=True)
     branch = Column(String, ForeignKey("staff_branches.branch"))
-    role = Column(String, ForeignKey("staff_roles.role_id"))
+    role = Column(Integer, ForeignKey("staff_roles.role_id"))
     joined = Column(DateTime, default=datetime.utcnow)
     added_by = Column(Integer, nullable=False)
     left = Column(DateTime, default=datetime.utcnow)
