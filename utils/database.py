@@ -561,7 +561,7 @@ class StaffStrikes(_Base):
 
     offender = Column(Integer, ForeignKey("staff_members.member"), primary_key=True)
     strike_type = Column(String, nullable=False)
-    striker = Column(Integer, foreign_key="staff_members.member", nullable=False)
+    striker = Column(Integer, ForeignKey("staff_members.member"), nullable=False)
     reason = Column(String, nullable=False)
     timestamp = Column(DateTime, default=datetime.utcnow)
     active = Column(Boolean, default=True)
