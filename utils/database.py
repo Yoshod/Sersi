@@ -536,6 +536,25 @@ class StaffMembers(_Base):
     discharge_reason = Column(String, default=None)
 
 
+class ModerationRecords(_Base):
+    __tablename__ = "moderation_records"
+
+    member = Column(Integer, ForeignKey("staff_members.member"), primary_key=True)
+    trial_start = Column(DateTime, default=datetime.utcnow)
+    trial_end = Column(DateTime)
+    trial_passed = Column(Boolean, default=None)
+
+
+class TrialModReviews(_Base):
+    __tablename__ = "trial_mod_reviews"
+
+    member = Column(Integer, ForeignKey("staff_members.member"), primary_key=True)
+    review_type = Column(String, primary_key=True)
+    review_passed = Column(Boolean, nullable=False)
+    review_comment = Column(String, nullable=False)
+    reviewer = Column(Integer, nullable=False)
+
+
 class StaffStrikes(_Base):
     __tablename__ = "staff_strikes"
 
