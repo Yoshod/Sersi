@@ -1,6 +1,7 @@
 import enum
 from utils.database import db_session, StaffMembers
 from utils.config import Configuration
+from datetime import datetime
 
 CONFIG = Configuration()
 
@@ -94,4 +95,5 @@ def staff_retire(
         staff_member.removed_by = remover_id
         staff_member.discharge_type = removal_type.value
         staff_member.discharge_reason = removal_reason
+        staff_member.left = datetime.utcnow()
         session.commit()
