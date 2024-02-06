@@ -504,6 +504,64 @@ class Goodword(_Base):
     added_by = Column(Integer, nullable=False)
 
 
+### Staff Records ###
+
+
+class StaffBranches(_Base):
+    __tablename__ = "staff_branches"
+
+    branch = Column(String, primary_key=True)
+
+
+class StaffRoles(_Base):
+    __tablename__ = "staff_roles"
+
+    role = Column(String, primary_key=True)
+    branch = Column(String, ForeignKey("staff_branches.branch"), nullable=False)
+
+
+class StaffMembers(_Base):
+    __tablename__ = "staff_members"
+
+    member = Column(Integer, primary_key=True)
+    active = Column(Boolean, default=True)
+
+
+class ActiveStaff(_Base):
+    __tablename__ = "active_staff"
+
+    member = Column(Integer, ForeignKey("staff_members.member"), primary_key=True)
+    branch = Column(String, ForeignKey("staff_branches.branch"))
+    role = Column(String, ForeignKey("staff_roles.role"))
+    joined = Column(DateTime, default=datetime.utcnow)
+    added_by = Column(Integer, nullable=False)
+
+
+class FormerStaff(_Base):
+    __tablename__ = "former_staff"
+
+    member = Column(Integer, ForeignKey("staff_members.member"), primary_key=True)
+    branch = Column(String, ForeignKey("staff_branches.branch"))
+    role = Column(String, ForeignKey("staff_roles.role"))
+    joined = Column(DateTime, default=datetime.utcnow)
+    added_by = Column(Integer, nullable=False)
+    left = Column(DateTime, default=datetime.utcnow)
+    removed_by = Column(Integer, nullable=False)
+    discharge_type = Column(String, nullable=False)
+    discharge_reason = Column(String, nullable=False)
+
+
+class StaffStrikes(_Base):
+    __tablename__ = "staff_strikes"
+
+    offender = Column(Integer, ForeignKey("staff_members.member"), primary_key=True)
+    strike_type = Column(String, nullable=False)
+    striker = Column(Integer, foreign_key="staff_members.member", nullable=False)
+    reason = Column(String, nullable=False)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+    active = Column(Boolean, default=True)
+
+
 ### Vote Models ###
 
 
