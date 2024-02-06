@@ -26,6 +26,18 @@ class StaffRole(enum.Enum):
     CET = CONFIG.permission_roles.cet
 
 
+class StaffRoleName(enum.Enum):
+    """Staff Role Names"""
+
+    ADMIN = "Administrator"
+    COMPLIANCE = "Compliance Officer"
+    HEAD_MOD = "Moderation Lead"
+    MOD = "Moderator"
+    TRIAL_MOD = "Trial Moderator"
+    CET_LEAD = "CET Lead"
+    CET = "CET"
+
+
 class RemovalType(enum.Enum):
     """Staff Removal Types"""
 
@@ -96,4 +108,5 @@ def staff_retire(
         staff_member.discharge_type = removal_type.value
         staff_member.discharge_reason = removal_reason
         staff_member.left = datetime.utcnow()
+        staff_member.active = False
         session.commit()
