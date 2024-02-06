@@ -8,9 +8,9 @@ CONFIG = Configuration()
 class Branch(enum.Enum):
     """Staff Branches"""
 
-    ADMIN = CONFIG.permission_roles.dark_moderator.name
-    MOD = CONFIG.permission_roles.moderator.name
-    CET = CONFIG.permission_roles.cet.name
+    ADMIN = "Administration"
+    MOD = "Moderation"
+    CET = "Community Engagement Team"
 
 
 class StaffRole(enum.Enum):
