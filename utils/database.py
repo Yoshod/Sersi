@@ -516,8 +516,8 @@ class StaffBranches(_Base):
 class StaffRoles(_Base):
     __tablename__ = "staff_roles"
 
-    role_id = Column(Integer, nullable=False)
-    role_name = Column(String, primary_key=True)
+    role_id = Column(Integer, primary_key=True)
+    role_name = Column(String, nullable=False)
     branch = Column(String, ForeignKey("staff_branches.branch"), nullable=False)
     rank = Column(Integer, nullable=False)
 
