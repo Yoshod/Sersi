@@ -23,6 +23,7 @@ from utils.database import (
     VoteRecord,
 )
 from utils.voting import VoteView, vote_planned_end
+from utils.staff import StaffRole, Branch, add_staff_to_db
 
 
 class Staff(commands.Cog):
@@ -86,6 +87,8 @@ class Staff(commands.Cog):
         )
 
         # logging
+        add_staff_to_db(member.id, Branch.MOD, StaffRole.TRIAL_MOD, interaction.user.id)
+
         log_embed = SersiEmbed(
             title="New Trial Moderator added.",
             fields={
@@ -531,7 +534,7 @@ class Staff(commands.Cog):
                     "Responsible Administrator:": interaction.user.mention,
                     "Removed Honoured Member:": member.mention,
                     "Reason:": reason,
-                    "Bypass Reason:": bypass_reason
+                    "Bypass Reason:": bypass_reason,
                 },
             ).set_author(
                 name=interaction.user, icon_url=interaction.user.display_avatar.url
@@ -584,7 +587,7 @@ class Staff(commands.Cog):
             session.commit()
 
             await vote_message.edit(view=VoteView(vote_type, vote))
-        
+
         await interaction.followup.send(
             f"{self.config.emotes.success} Vote to revoke Honourable Member status has been started."
         )
