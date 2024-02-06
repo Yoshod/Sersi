@@ -1,5 +1,5 @@
 import enum
-from utils.database import db_session, StaffMembers, ActiveStaff, FormerStaff
+from utils.database import db_session, StaffMembers
 
 
 class Branch(enum.Enum):
@@ -30,11 +30,7 @@ def add_staff_to_db(
 ):
     """Adds a staff member to the database."""
     with db_session() as session:
-        staff = StaffMembers(member=staff_id)
-        session.add(staff)
-        session.commit()  # We need to do the commit twice to prevent an IntegrityError which is caused by the foreign key constraint / DUMB
-
-        active_staff = ActiveStaff(
+        active_staff = StaffMembers(
             member=staff_id,
             branch=branch.value,
             role=role.value,
