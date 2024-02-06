@@ -526,31 +526,14 @@ class StaffMembers(_Base):
     __tablename__ = "staff_members"
 
     member = Column(Integer, primary_key=True)
-    active = Column(Boolean, default=True)
-
-
-class ActiveStaff(_Base):
-    __tablename__ = "active_staff"
-
-    member = Column(Integer, ForeignKey("staff_members.member"), primary_key=True)
     branch = Column(String, ForeignKey("staff_branches.branch"))
     role = Column(Integer, ForeignKey("staff_roles.role_id"))
     joined = Column(DateTime, default=datetime.utcnow)
     added_by = Column(Integer, nullable=False)
-
-
-class FormerStaff(_Base):
-    __tablename__ = "former_staff"
-
-    member = Column(Integer, ForeignKey("staff_members.member"), primary_key=True)
-    branch = Column(String, ForeignKey("staff_branches.branch"))
-    role = Column(Integer, ForeignKey("staff_roles.role_id"))
-    joined = Column(DateTime, default=datetime.utcnow)
-    added_by = Column(Integer, nullable=False)
-    left = Column(DateTime, default=datetime.utcnow)
-    removed_by = Column(Integer, nullable=False)
-    discharge_type = Column(String, nullable=False)
-    discharge_reason = Column(String, nullable=False)
+    left = Column(DateTime, default=None)
+    removed_by = Column(Integer, default=None)
+    discharge_type = Column(String, default=None)
+    discharge_reason = Column(String, default=None)
 
 
 class StaffStrikes(_Base):
