@@ -526,6 +526,7 @@ class StaffMembers(_Base):
     __tablename__ = "staff_members"
 
     member = Column(Integer, primary_key=True)
+    active = Column(Boolean, default=True)
     branch = Column(String, ForeignKey("staff_branches.branch"))
     role = Column(Integer, ForeignKey("staff_roles.role_id"))
     joined = Column(DateTime, default=datetime.utcnow)
