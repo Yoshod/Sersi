@@ -93,4 +93,5 @@ def staff_retire(
         staff_member = session.query(StaffMembers).filter_by(member=removed_id).first()
         staff_member.removed_by = remover_id
         staff_member.discharge_type = removal_type.value
+        staff_member.discharge_reason = removal_reason
         session.commit()
