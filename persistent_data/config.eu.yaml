@@ -95,15 +95,25 @@ opt_in_roles:
 
 permission_roles:
     staff:             1166770861169197147
+        name: Staff
     reformist:         1166770861169197148
+        name: Reformist
     sersi_contributor: 1166770861169197153
+        name: Sersi Contributor
     trial_moderator:   1166770861211123719
+        name: Trial Moderator
     moderator:         1166770861211123720
+        name: Moderator
     senior_moderator:  1166770861211123721
+        name: Moderation Lead
     dark_moderator:    1166770861232099369
+        name: Administrator
     cet:               1166770861169197155
+        name: Community Engagement Team Member
     cet_lead:          1166770861211123712
+        name: Community Engagement Team Lead
     compliance:        1166770861211123713
+        name: Compliance Officer
 
 level_roles:
     1:  1166770861064323093
