@@ -23,7 +23,7 @@ from utils.database import (
     VoteRecord,
 )
 from utils.voting import VoteView, vote_planned_end
-from utils.staff import StaffRole, Branch, add_staff_to_db
+from utils.staff import StaffRole, Branch, add_staff_to_db, staff_retire, RemovalType
 
 
 class Staff(commands.Cog):
@@ -302,6 +302,10 @@ class Staff(commands.Cog):
         async def execute(*args, confirming_moderator: nextcord.Member, **kwargs):
             # remove staff/permission roles
             await self.remove_all_permission_roles(member)
+
+            staff_retire(
+                member, RemovalType.REMOVED_BAD_STANDING, interaction.user.id, reason
+            )
 
             embed_fields = {
                 "Discharged Member:": member.mention,
