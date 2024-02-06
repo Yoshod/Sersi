@@ -25,6 +25,17 @@ class StaffRole(enum.Enum):
     CET = CONFIG.permission_roles.cet
 
 
+class RemovalType(enum.Enum):
+    """Staff Removal Types"""
+
+    RETIRE = "Retirement"
+    RETIRE_GOOD_STANDING = "Retirement in Good Standing"
+    RETIRE_BAD_STANDING = "Retirement in Bad Standing"
+    FAILED_TRIAL = "Failed Trial"
+    REMOVED_GOOD_STANDING = "Removed in Good Standing"
+    REMOVED_BAD_STANDING = "Removed in Bad Standing"
+
+
 def add_staff_to_db(
     staff_id: int,
     branch: Branch,
@@ -33,11 +44,53 @@ def add_staff_to_db(
 ):
     """Adds a staff member to the database."""
     with db_session() as session:
-        active_staff = StaffMembers(
+        staff_member = StaffMembers(
             member=staff_id,
             branch=branch.value,
             role=role.value,
             added_by=approver,
         )
-        session.add(active_staff)
+        session.add(staff_member)
+        session.commit()
+
+
+def staff_role_change(
+    staff_id: int,
+    role: StaffRole,
+    approver: int,
+):
+    """Changes the role of a staff member."""
+    with db_session() as session:
+        staff_member = session.query(StaffMembers).filter_by(member=staff_id).first()
+        staff_member.role = role.value
+        staff_member.added_by = approver
+        session.commit()
+
+
+def staff_branch_change(
+    staff_id: int,
+    branch: Branch,
+    role: StaffRole,
+    approver: int,
+):
+    """Changes the branch of a staff member."""
+    with db_session() as session:
+        staff_member = session.query(StaffMembers).filter_by(member=staff_id).first()
+        staff_member.branch = branch.value
+        staff_member.role = role.value
+        staff_member.added_by = approver
+        session.commit()
+
+
+def staff_retire(
+    removed_id: int,
+    remover_id: int,
+    removal_type: RemovalType,
+    removal_reason: str | None,
+):
+    """Retires a staff member."""
+    with db_session() as session:
+        staff_member = session.query(StaffMembers).filter_by(member=removed_id).first()
+        staff_member.removed_by = remover_id
+        staff_member.discharge_type = removal_type.value
         session.commit()
