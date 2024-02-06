@@ -32,6 +32,7 @@ def add_staff_to_db(
     with db_session() as session:
         staff = StaffMembers(member=staff_id)
         session.add(staff)
+        session.commit()  # We need to do the commit twice to prevent an IntegrityError which is caused by the foreign key constraint / DUMB
 
         active_staff = ActiveStaff(
             member=staff_id,
