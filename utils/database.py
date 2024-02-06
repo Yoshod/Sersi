@@ -540,6 +540,7 @@ class ModerationRecords(_Base):
     __tablename__ = "moderation_records"
 
     member = Column(Integer, ForeignKey("staff_members.member"), primary_key=True)
+    mentor = Column(Integer, ForeignKey("staff_members.member"), nullable=False)
     trial_start = Column(DateTime, default=datetime.utcnow)
     trial_end = Column(DateTime)
     trial_passed = Column(Boolean, default=None)
@@ -552,7 +553,7 @@ class TrialModReviews(_Base):
     review_type = Column(String, primary_key=True)
     review_passed = Column(Boolean, nullable=False)
     review_comment = Column(String, nullable=False)
-    reviewer = Column(Integer, nullable=False)
+    reviewer = Column(Integer, ForeignKey("moderation_records.mentor"), nullable=False)
 
 
 class StaffStrikes(_Base):
