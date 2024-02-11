@@ -435,6 +435,12 @@ class Staff(commands.Cog):
                 f"{self.config.emotes.fail} This user is already blacklisted from the Staff Team."
             )
 
+        if member == interaction.user:
+            interaction.response.send_message(
+                f"{self.config.emotes.fail} You cannot blacklist yourself."
+            )
+            return
+
         interaction.response.defer()
 
         with db_session(interaction.user) as session:
