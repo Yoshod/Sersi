@@ -110,3 +110,22 @@ def staff_retire(
         staff_member.left = datetime.utcnow()
         staff_member.active = False
         session.commit()
+
+
+def transfer_validity_check(staff_id: int, branch: Branch):
+    """Checks if a staff member can be transferred to a new branch."""
+    with db_session() as session:
+        staff_member = session.query(StaffMembers).filter_by(member=staff_id).first()
+        if staff_member.branch == branch.value:
+            return False
+        return True
+
+
+def determine_transfer_type(staff_id: int, branch: Branch):
+    """Determines the transfer type of a staff member."""
+    with db_session() as session:
+        staff_member = session.query(StaffMembers).filter_by(member=staff_id).first()
+        if staff_member.branch == Branch.MOD.value and branch == Branch.CET:
+            return "mod_to_cet"
+        if staff_member.branch == Branch.CET.value and branch == Branch.MOD:
+            return "cet_to_mod"

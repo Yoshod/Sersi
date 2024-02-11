@@ -23,7 +23,16 @@ from utils.database import (
     VoteRecord,
 )
 from utils.voting import VoteView, vote_planned_end
-from utils.staff import StaffRole, Branch, add_staff_to_db, staff_retire, RemovalType
+from utils.staff import (
+    StaffRole,
+    Branch,
+    add_staff_to_db,
+    staff_retire,
+    RemovalType,
+    staff_branch_change,
+    transfer_validity_check,
+    determine_transfer_type,
+)
 
 
 class Staff(commands.Cog):
@@ -248,6 +257,120 @@ class Staff(commands.Cog):
         )
 
         await interaction.guild.get_channel(self.config.channels.logging).send(
+            embed=log_embed
+        )
+
+    @add_to_staff.subcommand(description="Transfer a staff member to another branch")
+    async def transfer(
+        self,
+        interaction: nextcord.Interaction,
+        member: nextcord.Member,
+        branch: Branch = SlashOption(
+            description="Branch to transfer the member to",
+            choices=[(branch.name, branch) for branch in Branch],
+        ),
+        role: StaffRole = SlashOption(
+            description="Role to assign to the member",
+            choices=[(role.name, role) for role in StaffRole],
+        ),
+    ):
+
+        if not await permcheck(interaction, is_admin):
+            return
+
+        if not permcheck(member, is_staff):
+            interaction.response.send_message(
+                f"{self.config.emotes.fail} This user is not a staff member."
+            )
+            return
+
+        await interaction.response.defer()
+
+        if not transfer_validity_check(member, branch):
+            interaction.followup.send(
+                f"{self.config.emotes.fail} The user is already in the specified branch."
+            )
+            return
+
+        staff_branch_change(member, branch, role, interaction.user.id)
+
+        match determine_transfer_type(member, branch):
+            case "mod_to_cet":
+                await member.add_roles(
+                    interaction.guild.get_role(self.config.permission_roles.cet)
+                )
+
+                try:
+                    await member.remove_roles(
+                        interaction.guild.get_role(
+                            self.config.permission_roles.moderator
+                        )
+                    )
+                except (nextcord.Forbidden, nextcord.HTTPException, AttributeError):
+                    pass
+
+                try:  # remove trial mod role
+                    await member.remove_roles(
+                        interaction.guild.get_role(
+                            self.config.permission_roles.trial_moderator
+                        )
+                    )
+
+                except (nextcord.Forbidden, nextcord.HTTPException, AttributeError):
+                    pass
+
+                try:  # remove moderation lead role
+                    await member.remove_roles(
+                        interaction.guild.get_role(
+                            self.config.permission_roles.senior_moderator
+                        )
+                    )
+
+                except (nextcord.Forbidden, nextcord.HTTPException, AttributeError):
+                    pass
+
+            case "cet_to_mod":
+                await member.add_roles(
+                    interaction.guild.get_role(self.config.permission_roles.moderator)
+                )
+
+                try:
+                    await member.remove_roles(
+                        interaction.guild.get_role(self.config.permission_roles.cet)
+                    )
+                except (nextcord.Forbidden, nextcord.HTTPException, AttributeError):
+                    pass
+
+                try:  # remove cet lead role
+                    await member.remove_roles(
+                        interaction.guild.get_role(
+                            self.config.permission_roles.cet_lead
+                        )
+                    )
+
+                except (nextcord.Forbidden, nextcord.HTTPException, AttributeError):
+                    pass
+
+        await interaction.followup.send(
+            f"{self.config.emotes.success} {member.mention} has been transferred to the {branch.name} branch."
+        )
+
+        # logging
+        log_embed: nextcord.Embed = SersiEmbed(
+            title="Staff member has been transferred.",
+            fields={
+                "Responsible Administrator:": interaction.user.mention,
+                "Transferred Staff Member:": member.mention,
+                "New Branch:": branch.name,
+                "New Role:": role.name,
+            },
+        )
+
+        await interaction.guild.get_channel(self.config.channels.logging).send(
+            embed=log_embed
+        )
+
+        await interaction.guild.get_channel(self.config.channels.mod_logs).send(
             embed=log_embed
         )
 
