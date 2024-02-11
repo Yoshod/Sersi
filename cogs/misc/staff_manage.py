@@ -324,6 +324,10 @@ class Staff(commands.Cog):
                 footer="Staff Discharge",
             )
 
+            staff_retire(
+                member.id, RemovalType.REMOVED_BAD_STANDING, interaction.user.id, reason
+            )
+
             if bypass_reason:
                 await interaction.followup.send(embed=log_embed)
 
@@ -361,6 +365,12 @@ class Staff(commands.Cog):
             required=False,
             description="Who to retire; Specify yourself to retire yourself.",
         ),
+        reason: str = SlashOption(
+            required=True,
+            description="Reason for retiring from the staff team;",
+            min_length=8,
+            max_length=1024,
+        ),
     ):
         if member is None:
             member = interaction.user
@@ -375,6 +385,8 @@ class Staff(commands.Cog):
         await interaction.response.defer()
 
         await self.remove_all_permission_roles(member)
+
+        staff_retire(member, RemovalType.RETIRE, interaction.user.id, reason)
 
         try:
             await member.add_roles(
