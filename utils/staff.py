@@ -1,9 +1,14 @@
 import enum
+import os
 from utils.database import db_session, StaffMembers
 from utils.config import Configuration
 from datetime import datetime
 
-CONFIG = Configuration()
+parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+config_path = os.path.join(parent_dir, "persistent_data/config.yaml")
+
+CONFIG = Configuration.from_yaml_file(config_path)
 
 
 class Branch(enum.Enum):
@@ -34,8 +39,8 @@ class StaffRoleName(enum.Enum):
     HEAD_MOD = "Moderation Lead"
     MOD = "Moderator"
     TRIAL_MOD = "Trial Moderator"
-    CET_LEAD = "CET Lead"
-    CET = "CET"
+    CET_LEAD = "Community Engagement Team Lead"
+    CET = "Community Engagement Team Member"
 
 
 class RemovalType(enum.Enum):
@@ -83,7 +88,7 @@ def staff_role_change(
 def staff_branch_change(
     staff_id: int,
     branch: Branch,
-    role: StaffRole,
+    role: StaffRoleName,
     approver: int,
 ):
     """Changes the branch of a staff member."""

@@ -24,7 +24,7 @@ from utils.database import (
 )
 from utils.voting import VoteView, vote_planned_end
 from utils.staff import (
-    StaffRole,
+    StaffRoleName as StaffRole,
     Branch,
     add_staff_to_db,
     staff_retire,
@@ -265,13 +265,25 @@ class Staff(commands.Cog):
         self,
         interaction: nextcord.Interaction,
         member: nextcord.Member,
-        branch: Branch = SlashOption(
+        branch: str = SlashOption(
             description="Branch to transfer the member to",
-            choices=[(branch.name, branch) for branch in Branch],
+            choices={
+                "Administration": "Administration",
+                "Moderation": "Moderation",
+                "Community Engagement Team": "Community Engagement Team",
+            },
         ),
-        role: StaffRole = SlashOption(
+        role: str = SlashOption(
             description="Role to assign to the member",
-            choices=[(role.name, role) for role in StaffRole],
+            choices={
+                "Administrator": "Administrator",
+                "Compliance Officer": "Compliance Officer",
+                "Moderation Lead": "Moderation Lead",
+                "Moderator": "Moderator",
+                "Trial Moderator": "Trial Moderator",
+                "CET Lead": "Community Engagement Team Lead",
+                "CET": "Community Engagement Team Member",
+            },
         ),
     ):
 
@@ -286,15 +298,33 @@ class Staff(commands.Cog):
 
         await interaction.response.defer()
 
-        if not transfer_validity_check(member, branch):
+        branches = {
+            "Administration": Branch.ADMIN,
+            "Moderation": Branch.MOD,
+            "Community Engagement Team": Branch.CET,
+        }
+
+        roles = {
+            "Administrator": StaffRole.ADMIN,
+            "Compliance Officer": StaffRole.COMPLIANCE,
+            "Moderation Lead": StaffRole.HEAD_MOD,
+            "Moderator": StaffRole.MOD,
+            "Trial Moderator": StaffRole.TRIAL_MOD,
+            "CET Lead": StaffRole.CET_LEAD,
+            "CET": StaffRole.CET,
+        }
+
+        if not transfer_validity_check(member.id, branches[branch], roles[role]):
             interaction.followup.send(
                 f"{self.config.emotes.fail} The user is already in the specified branch."
             )
             return
 
-        staff_branch_change(member, branch, role, interaction.user.id)
+        staff_branch_change(
+            member.id, branches[branch], roles[role], interaction.user.id
+        )
 
-        match determine_transfer_type(member, branch):
+        match determine_transfer_type(member.id, branches[branch]):
             case "mod_to_cet":
                 await member.add_roles(
                     interaction.guild.get_role(self.config.permission_roles.cet)
@@ -352,7 +382,7 @@ class Staff(commands.Cog):
                     pass
 
         await interaction.followup.send(
-            f"{self.config.emotes.success} {member.mention} has been transferred to the {branch.name} branch."
+            f"{self.config.emotes.success} {member.mention} has been transferred to the {branch} branch."
         )
 
         # logging
@@ -484,15 +514,15 @@ class Staff(commands.Cog):
     async def retire(
         self,
         interaction: nextcord.Interaction,
-        member: nextcord.Member = SlashOption(
-            required=False,
-            description="Who to retire; Specify yourself to retire yourself.",
-        ),
         reason: str = SlashOption(
             required=True,
             description="Reason for retiring from the staff team;",
             min_length=8,
             max_length=1024,
+        ),
+        member: nextcord.Member = SlashOption(
+            required=False,
+            description="Who to retire; Specify yourself to retire yourself.",
         ),
     ):
         if member is None:
