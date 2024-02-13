@@ -104,27 +104,16 @@ opt_in_roles:
 
 permission_roles:
     staff:             974166116618350642
-        name: Staff
     reformist:         943193811574751314
-        name: Reformist
     ticket_support:    897927184767914024
-        name: Ticket Support
     sersi_contributor: 977602747786493972
-        name: Sersi Contributor
     trial_moderator:   883255791610638366
-        name: Trial Moderator
     moderator:         856424878437040168
-        name: Moderator
     senior_moderator:  963537133589643304
-        name: Moderation Lead
     dark_moderator:    875805670799179799
-        name: Administrator
     cet:               956795983621132289
-        name: Community Engagement Team Member
     cet_lead:         1022923124053921853
-        name: Community Engagement Team Lead
     compliance:       1147601480526856202
-        name: Compliance Officer
 
 punishment_roles:
     annoying:                 925191425904238592
