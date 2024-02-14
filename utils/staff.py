@@ -6,6 +6,7 @@ from utils.database import db_session, StaffMembers, ModerationRecords, TrialMod
 from utils.config import Configuration
 from datetime import datetime
 from utils.sersi_embed import SersiEmbed
+import datetime
 
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -103,6 +104,56 @@ def add_mod_record(staff_id: int, mentor_id: int):
             mentor=mentor_id,
         )
         session.add(mod_record)
+        session.commit()
+
+
+def add_staff_legacy(
+    staff_id: int,
+    branch: str,
+    role: int,
+    approver: int,
+):
+    """Adds a staff member to the database for legacy staff members."""
+    with db_session() as session:
+        staff_member = StaffMembers(
+            member=staff_id,
+            branch=branch,
+            role=role,
+            added_by=approver,
+            joined=datetime.datetime.now() - datetime.timedelta(days=180),
+        )
+        session.add(staff_member)
+        session.commit()
+
+
+def add_mod_record_legacy(staff_id: int, mentor_id: int):
+    """Adds a moderation record to the database for legacy staff members."""
+    with db_session() as session:
+        mod_record = ModerationRecords(
+            staff_member=staff_id,
+            mentor=mentor_id,
+            trial_start=datetime.datetime.now() - datetime.timedelta(days=180),
+            trial_end=datetime.datetime.now() - datetime.timedelta(days=150),
+            trial_passed=True,
+        )
+        session.add(mod_record)
+        session.commit()
+
+    with db_session() as session:
+        first_review = TrialModReviews(
+            staff_member=staff_id,
+            reviewer=mentor_id,
+            review_date=datetime.datetime.now() - datetime.timedelta(days=180),
+            review_outcome=True,
+        )
+        second_review = TrialModReviews(
+            staff_member=staff_id,
+            reviewer=mentor_id,
+            review_date=datetime.datetime.now() - datetime.timedelta(days=150),
+            review_outcome=True,
+        )
+        session.add(first_review)
+        session.add(second_review)
         session.commit()
 
 

@@ -1,3 +1,4 @@
+import os
 import nextcord
 from nextcord import SlashOption
 from nextcord.ext import commands
@@ -39,7 +40,15 @@ from utils.staff import (
     determine_staff_member,
     add_mod_record,
     mentor_check,
+    add_staff_legacy,
+    add_mod_record_legacy,
 )
+
+parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+config_path = os.path.join(parent_dir, "persistent_data/config.yaml")
+
+CONFIG = Configuration.from_yaml_file(config_path)
 
 
 class Staff(commands.Cog):
@@ -84,8 +93,12 @@ class Staff(commands.Cog):
     async def trial_moderator(
         self,
         interaction: nextcord.Interaction,
-        member: nextcord.Member,
-        mentor: nextcord.Member,
+        member: nextcord.Member = SlashOption(
+            description="Member to make a Trial Moderator"
+        ),
+        mentor: nextcord.Member = SlashOption(
+            description="Mentor for the new Trial Moderator"
+        ),
     ):
         if not permcheck(interaction, is_mod_lead):
             return
@@ -798,7 +811,7 @@ class Staff(commands.Cog):
                 "Sixth Review",
             ],
         ),
-        outcome: str = SlashOption(
+        outcome: bool = SlashOption(
             description="Outcome of the review",
             choices={"Passed": True, "Failed": False},
         ),
@@ -855,6 +868,51 @@ class Staff(commands.Cog):
         )
 
         await member.send(embed=review_embed)
+
+    @add_to_staff.subcommand(description="Add legacy staff member to the database")
+    async def add_legacy_staff(
+        self,
+        interaction: nextcord.Interaction,
+        member: nextcord.Member = SlashOption(
+            description="Member to add to the database",
+        ),
+        branch: str = SlashOption(
+            description="Branch the member was in",
+            choices=["Administration", "Moderation", "Community Engagement Team"],
+        ),
+        role: str = SlashOption(
+            description="Role the member had",
+            choices={
+                "Administrator": CONFIG.permission_roles.dark_moderator,
+                "Compliance Officer": CONFIG.permission_roles.compliance,
+                "Moderation Lead": CONFIG.permission_roles.senior_moderator,
+                "Moderator": CONFIG.permission_roles.moderator,
+                "Trial Moderator": CONFIG.permission_roles.trial_moderator,
+                "CET Lead": CONFIG.permission_roles.cet_lead,
+                "CET": CONFIG.permission_roles.cet,
+            },
+        ),
+        added_by: nextcord.Member = SlashOption(
+            description="Who added the member to the database",
+        ),
+        mentor: nextcord.Member = SlashOption(
+            description="Who mentored the member",
+            required=False,
+        ),
+    ):
+        if not await permcheck(interaction, is_admin):
+            return
+
+        await interaction.response.defer()
+
+        add_staff_legacy(member.id, branch, role, added_by.id)
+
+        if mentor:
+            add_mod_record(member.id, mentor.id)
+
+        interaction.followup.send(
+            f"{self.config.emotes.success} {member.mention} has been added to the database."
+        )
 
     @commands.Cog.listener()
     async def on_honoured_member_revoke(self, details: VoteDetails):
