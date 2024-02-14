@@ -24,7 +24,7 @@ from utils.database import (
 )
 from utils.voting import VoteView, vote_planned_end
 from utils.staff import (
-    StaffRoleName as StaffRole,
+    StaffRole,
     Branch,
     add_staff_to_db,
     staff_retire,
@@ -290,12 +290,6 @@ class Staff(commands.Cog):
         if not await permcheck(interaction, is_admin):
             return
 
-        if not permcheck(member, is_staff):
-            interaction.response.send_message(
-                f"{self.config.emotes.fail} This user is not a staff member."
-            )
-            return
-
         await interaction.response.defer()
 
         branches = {
@@ -310,21 +304,23 @@ class Staff(commands.Cog):
             "Moderation Lead": StaffRole.HEAD_MOD,
             "Moderator": StaffRole.MOD,
             "Trial Moderator": StaffRole.TRIAL_MOD,
-            "CET Lead": StaffRole.CET_LEAD,
-            "CET": StaffRole.CET,
+            "Community Engagement Team Lead": StaffRole.CET_LEAD,
+            "Community Engagement Team Member": StaffRole.CET,
         }
 
-        if not transfer_validity_check(member.id, branches[branch], roles[role]):
+        if not transfer_validity_check(member.id, branches[branch]):
             interaction.followup.send(
-                f"{self.config.emotes.fail} The user is already in the specified branch."
+                f"{self.config.emotes.fail} The user is already in the specified branch or is not a staff member."
             )
             return
+
+        transfer_type = determine_transfer_type(member.id, branches[branch])
 
         staff_branch_change(
             member.id, branches[branch], roles[role], interaction.user.id
         )
 
-        match determine_transfer_type(member.id, branches[branch]):
+        match transfer_type:
             case "mod_to_cet":
                 await member.add_roles(
                     interaction.guild.get_role(self.config.permission_roles.cet)
@@ -391,8 +387,8 @@ class Staff(commands.Cog):
             fields={
                 "Responsible Administrator:": interaction.user.mention,
                 "Transferred Staff Member:": member.mention,
-                "New Branch:": branch.name,
-                "New Role:": role.name,
+                "New Branch:": branches[branch].value,
+                "New Role:": roles[role].value,
             },
         )
 

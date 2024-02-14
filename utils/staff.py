@@ -57,7 +57,7 @@ class RemovalType(enum.Enum):
 def add_staff_to_db(
     staff_id: int,
     branch: Branch,
-    role: StaffRole,
+    role: StaffRoleName,
     approver: int,
 ):
     """Adds a staff member to the database."""
@@ -74,7 +74,7 @@ def add_staff_to_db(
 
 def staff_role_change(
     staff_id: int,
-    role: StaffRole,
+    role: StaffRoleName,
     approver: int,
 ):
     """Changes the role of a staff member."""
@@ -121,9 +121,12 @@ def transfer_validity_check(staff_id: int, branch: Branch):
     """Checks if a staff member can be transferred to a new branch."""
     with db_session() as session:
         staff_member = session.query(StaffMembers).filter_by(member=staff_id).first()
-        if staff_member.branch == branch.value:
+        try:
+            if staff_member.branch == branch.value:
+                return False
+            return True
+        except AttributeError:
             return False
-        return True
 
 
 def determine_transfer_type(staff_id: int, branch: Branch):
@@ -132,5 +135,10 @@ def determine_transfer_type(staff_id: int, branch: Branch):
         staff_member = session.query(StaffMembers).filter_by(member=staff_id).first()
         if staff_member.branch == Branch.MOD.value and branch == Branch.CET:
             return "mod_to_cet"
-        if staff_member.branch == Branch.CET.value and branch == Branch.MOD:
+        elif staff_member.branch == Branch.CET.value and branch == Branch.MOD:
             return "cet_to_mod"
+
+        else:
+            raise ValueError(
+                f"Invalid branch transfer. {staff_member.branch} to {branch.value}"
+            )
