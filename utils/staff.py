@@ -1,14 +1,37 @@
 import enum
 import os
-from utils.database import db_session, StaffMembers
+import nextcord
+from utils.base import encode_button_id, encode_snowflake, get_discord_timestamp
+from utils.database import db_session, StaffMembers, ModerationRecords, TrialModReviews
 from utils.config import Configuration
 from datetime import datetime
+from utils.sersi_embed import SersiEmbed
 
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 config_path = os.path.join(parent_dir, "persistent_data/config.yaml")
 
 CONFIG = Configuration.from_yaml_file(config_path)
+
+
+class ModerationDataButton(nextcord.ui.Button):
+    def __init__(self, user_id: int):
+        super().__init__(
+            style=nextcord.ButtonStyle.red,
+            label="Moderation Data",
+            custom_id=encode_button_id("mod_data", user=encode_snowflake(user_id)),
+            disabled=False,
+        )
+
+
+class StaffDataButton(nextcord.ui.Button):
+    def __init__(self, user_id: int):
+        super().__init__(
+            style=nextcord.ButtonStyle.red,
+            label="Staff Data",
+            custom_id=encode_button_id("staff_data", user=encode_snowflake(user_id)),
+            disabled=False,
+        )
 
 
 class Branch(enum.Enum):
@@ -142,3 +165,63 @@ def determine_transfer_type(staff_id: int, branch: Branch):
             raise ValueError(
                 f"Invalid branch transfer. {staff_member.branch} to {branch.value}"
             )
+
+
+def get_staff_embed(staff_id: int, interaction: nextcord.Interaction):
+    """Gets an embed of a staff member's information."""
+    with db_session() as session:
+        staff_member = session.query(StaffMembers).filter_by(member=staff_id).first()
+        if staff_member:
+            embed = SersiEmbed(
+                title="Staff Member",
+                description=f"**Staff Information**\n"
+                f"{CONFIG.emotes.blank}**Member:** {interaction.guild.get_member(staff_member.member).mention} ({staff_member.member})\n"
+                f"{CONFIG.emotes.blank}**Branch:** {staff_member.branch}\n"
+                f"{CONFIG.emotes.blank}**Role:** {interaction.guild.get_role(staff_member.role).mention}\n"
+                f"{CONFIG.emotes.blank}**Added By:** {interaction.guild.get_member(staff_member.added_by).mention} ({staff_member.added_by})\n"
+                f"{CONFIG.emotes.blank}**Date Added:** {get_discord_timestamp(staff_member.joined, relative=True)}\n"
+                f"{CONFIG.emotes.blank}**Active:** {CONFIG.emotes.success if staff_member.active else CONFIG.emotes.fail}\n",
+            )
+
+            return embed
+        else:
+            return SersiEmbed(
+                title="Staff Member",
+                description=f"{CONFIG.emotes.fail} There are no records of this user being a staff member.",
+            )
+
+
+def get_moderation_embed(staff_id: int, interaction: nextcord.Interaction):
+    """Gets an embed of a staff member's moderation data."""
+    pass
+    with db_session() as session:
+        staff_member = session.query(StaffMembers).filter_by(member=staff_id).first()
+        if not staff_member:
+            return SersiEmbed(
+                title="Moderation Data",
+                description=f"{CONFIG.emotes.fail} There are no records of this user being a staff member.",
+            )
+
+        mod_records = (
+            session.query(ModerationRecords).filter_by(staff_member=staff_id).first()
+        )
+
+        if not mod_records:
+            return SersiEmbed(
+                title="Moderation Data",
+                description=f"{CONFIG.emotes.fail} There are no moderation records for this user.",
+            )
+
+        embed = SersiEmbed(
+            title="Moderation Data", description=f"**Moderation Data**\n"
+        )
+
+
+def determine_staff_member(staff_id: int):
+    """Determines if a user is a staff member."""
+    with db_session() as session:
+        staff_member = session.query(StaffMembers).filter_by(member=staff_id).first()
+        if staff_member:
+            return staff_member
+        else:
+            return None

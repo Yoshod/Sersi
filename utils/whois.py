@@ -3,6 +3,7 @@ from utils.base import encode_button_id, encode_snowflake
 from utils.config import Configuration
 from utils.database import WarningCase, db_session, VoteDetails, BanCase, BlacklistCase
 from utils.sersi_embed import SersiEmbed
+from utils.staff import StaffDataButton, ModerationDataButton, determine_staff_member
 
 
 class WhoisCasesButton(nextcord.ui.Button):
@@ -43,6 +44,10 @@ class WhoisView(nextcord.ui.View):
         self.add_item(WhoisCasesButton(user_id))
         self.add_item(WhoisNotesButton(user_id))
         self.add_item(WhoisWarningsButton(user_id))
+
+        if determine_staff_member(user_id):
+            self.add_item(StaffDataButton(user_id))
+            self.add_item(ModerationDataButton(user_id))
 
 
 def _get_user_ban(user_id: int) -> BanCase | None:

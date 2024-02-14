@@ -2,11 +2,12 @@ import nextcord
 from nextcord import SlashOption
 from nextcord.ext import commands
 
-from utils.base import encode_snowflake
+from utils.base import decode_button_id, encode_snowflake, decode_snowflake
 from utils.sersi_embed import SersiEmbed
 from utils.views import ConfirmView, DualCustodyView
 from utils.config import Configuration
 from utils.perms import (
+    is_mod,
     permcheck,
     is_staff,
     is_mod_lead,
@@ -32,6 +33,7 @@ from utils.staff import (
     staff_branch_change,
     transfer_validity_check,
     determine_transfer_type,
+    get_staff_embed,
 )
 
 
@@ -806,6 +808,37 @@ class Staff(commands.Cog):
 
         await guild.get_channel(self.config.channels.logging).send(embed=log_embed)
         await guild.get_channel(self.config.channels.mod_logs).send(embed=log_embed)
+
+    @commands.Cog.listener()
+    async def on_interaction(self, interaction: nextcord.Interaction):
+        print("Listener fired")
+        if interaction.data is None or interaction.data.get("custom_id") is None:
+            return
+        if not interaction.data["custom_id"].startswith(
+            "staff_data"
+        ) and not interaction.data["custom_id"].startswith("moderation_data"):
+            return
+
+        if not await permcheck(interaction, is_mod):
+            return
+
+        if not interaction.response.is_done():
+            await interaction.response.defer(ephemeral=True)
+
+        action, args, kwargs = decode_button_id(interaction.data["custom_id"])
+
+        match action:
+            case "staff_data":
+                embed = get_staff_embed(decode_snowflake(kwargs["user"]), interaction)
+
+            case "moderation_data":
+                pass
+                # embed = get_moderation_embed(decode_snowflake(kwargs["user"]))
+
+            case "disciplinary_data":
+                pass
+
+        await interaction.followup.send(embed=embed, ephemeral=True)
 
 
 def setup(bot: commands.Bot, **kwargs):
