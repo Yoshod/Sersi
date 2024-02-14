@@ -46,7 +46,9 @@ from utils.staff import (
 
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-config_path = os.path.join(parent_dir, "persistent_data/config.yaml")
+grandparent_dir = os.path.dirname(parent_dir)
+
+config_path = os.path.join(grandparent_dir, "persistent_data/config.yaml")
 
 CONFIG = Configuration.from_yaml_file(config_path)
 
@@ -883,13 +885,13 @@ class Staff(commands.Cog):
         role: str = SlashOption(
             description="Role the member had",
             choices={
-                "Administrator": CONFIG.permission_roles.dark_moderator,
-                "Compliance Officer": CONFIG.permission_roles.compliance,
-                "Moderation Lead": CONFIG.permission_roles.senior_moderator,
-                "Moderator": CONFIG.permission_roles.moderator,
-                "Trial Moderator": CONFIG.permission_roles.trial_moderator,
-                "CET Lead": CONFIG.permission_roles.cet_lead,
-                "CET": CONFIG.permission_roles.cet,
+                "Administrator": str(CONFIG.permission_roles.dark_moderator),
+                "Compliance Officer": str(CONFIG.permission_roles.compliance),
+                "Moderation Lead": str(CONFIG.permission_roles.senior_moderator),
+                "Moderator": str(CONFIG.permission_roles.moderator),
+                "Trial Moderator": str(CONFIG.permission_roles.trial_moderator),
+                "CET Lead": str(CONFIG.permission_roles.cet_lead),
+                "CET": str(CONFIG.permission_roles.cet),
             },
         ),
         added_by: nextcord.Member = SlashOption(
@@ -905,12 +907,13 @@ class Staff(commands.Cog):
 
         await interaction.response.defer()
 
-        add_staff_legacy(member.id, branch, role, added_by.id)
+        add_staff_legacy(member.id, branch, int(role), added_by.id)
 
         if mentor:
-            add_mod_record(member.id, mentor.id)
+            print(mentor.id)
+            add_mod_record_legacy(member.id, mentor.id)
 
-        interaction.followup.send(
+        await interaction.followup.send(
             f"{self.config.emotes.success} {member.mention} has been added to the database."
         )
 
