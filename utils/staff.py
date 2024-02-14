@@ -95,6 +95,17 @@ def add_staff_to_db(
         session.commit()
 
 
+def add_mod_record(staff_id: int, mentor_id: int):
+    """Adds a moderation record to the database."""
+    with db_session() as session:
+        mod_record = ModerationRecords(
+            staff_member=staff_id,
+            mentor=mentor_id,
+        )
+        session.add(mod_record)
+        session.commit()
+
+
 def staff_role_change(
     staff_id: int,
     role: StaffRoleName,

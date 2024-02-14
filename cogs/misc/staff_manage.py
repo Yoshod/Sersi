@@ -34,6 +34,8 @@ from utils.staff import (
     transfer_validity_check,
     determine_transfer_type,
     get_staff_embed,
+    determine_staff_member,
+    add_mod_record,
 )
 
 
@@ -77,7 +79,10 @@ class Staff(commands.Cog):
         description="Makes a server member a Trial Moderator",
     )
     async def trial_moderator(
-        self, interaction: nextcord.Interaction, member: nextcord.Member
+        self,
+        interaction: nextcord.Interaction,
+        member: nextcord.Member,
+        mentor: nextcord.Member,
     ):
         if not permcheck(interaction, is_mod_lead):
             return
@@ -85,6 +90,12 @@ class Staff(commands.Cog):
         if blacklist_check(member):
             interaction.response.send_message(
                 f"{self.config.emotes.fail} This user is blacklisted from the Staff Team. Speak to an Administrator."
+            )
+            return
+
+        if not determine_staff_member(mentor.id).branch == Branch.MOD.value:
+            interaction.response.send_message(
+                f"{self.config.emotes.fail} The mentor is not on the Moderation Team."
             )
             return
 
@@ -99,6 +110,7 @@ class Staff(commands.Cog):
 
         # logging
         add_staff_to_db(member.id, Branch.MOD, StaffRole.TRIAL_MOD, interaction.user.id)
+        add_mod_record(member.id, mentor.id)
 
         log_embed = SersiEmbed(
             title="New Trial Moderator added.",
