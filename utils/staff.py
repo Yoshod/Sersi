@@ -236,3 +236,13 @@ def determine_staff_member(staff_id: int):
             return staff_member
         else:
             return None
+
+
+def mentor_check(mentee_id: int, mentor_id: int):
+    """Checks if a user is a mentor to another user."""
+    with db_session() as session:
+        mentor = session.query(ModerationRecords).filter_by(member=mentee_id).first()
+        if mentor:
+            return mentor.mentor == mentor_id
+        else:
+            return False
