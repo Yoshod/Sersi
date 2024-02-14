@@ -1,6 +1,7 @@
 import nextcord
 from nextcord import SlashOption
 from nextcord.ext import commands
+import sqlalchemy
 
 from utils.base import decode_button_id, encode_snowflake, decode_snowflake
 from utils.sersi_embed import SersiEmbed
@@ -22,6 +23,7 @@ from utils.database import (
     CaseApproval,
     VoteDetails,
     VoteRecord,
+    TrialModReviews,
 )
 from utils.voting import VoteView, vote_planned_end
 from utils.staff import (
@@ -36,6 +38,7 @@ from utils.staff import (
     get_staff_embed,
     determine_staff_member,
     add_mod_record,
+    mentor_check,
 )
 
 
@@ -776,6 +779,82 @@ class Staff(commands.Cog):
         await interaction.followup.send(
             f"{self.config.emotes.success} Vote to revoke Honourable Member status has been started."
         )
+
+    @staff.subcommand(description="Complete a weekly review for a trial moderator")
+    async def trial_mod_review(
+        self,
+        interaction: nextcord.Interaction,
+        member: nextcord.Member = SlashOption(
+            description="Member to review",
+        ),
+        review_type: str = SlashOption(
+            description="Type of review",
+            choices=[
+                "First Review",
+                "Second Review",
+                "Third Review",
+                "Fourth Review",
+                "Fifth Review",
+                "Sixth Review",
+            ],
+        ),
+        outcome: str = SlashOption(
+            description="Outcome of the review",
+            choices={"Passed": True, "Failed": False},
+        ),
+        comment: str = SlashOption(
+            description="Comments on the review",
+        ),
+    ):
+        if not await permcheck(interaction, is_mod):
+            return
+
+        if not determine_staff_member(member.id).role == StaffRole.TRIAL_MOD.value:
+            interaction.response.send_message(
+                f"{self.config.emotes.fail} This user is not a Trial Moderator."
+            )
+            return
+
+        if not mentor_check(member.id, interaction.user.id):
+            interaction.response.send_message(
+                f"{self.config.emotes.fail} You are not the mentor of this user."
+            )
+            return
+
+        interaction.response.defer(ephemeral=True)
+
+        try:
+            with db_session(interaction.user) as session:
+                record_review = TrialModReviews(
+                    member=member.id,
+                    review_type=review_type,
+                    review_passed=outcome,
+                    review_comment=comment,
+                    reviewer=interaction.user.id,
+                )
+                session.add(record_review)
+                session.commit()
+
+        except sqlalchemy.exc.IntegrityError:
+            interaction.followup.send(
+                f"{self.config.emotes.fail} This user has already had a {review_type} review."
+            )
+            return
+
+        interaction.followup.send(
+            f"{self.config.emotes.success} Review has been recorded."
+        )
+
+        review_embed = SersiEmbed(
+            title=f"Trial Mod Review: {review_type}",
+            description=f"Your {review_type} review has been completed by {interaction.user.mention}.",
+            fields={
+                "Outcome:": f"{'Passed' if outcome else 'Failed'}",
+                "Comments:": comment,
+            },
+        )
+
+        await member.send(embed=review_embed)
 
     @commands.Cog.listener()
     async def on_honoured_member_revoke(self, details: VoteDetails):
