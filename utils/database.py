@@ -548,6 +548,17 @@ class ModerationRecords(_Base):
 
 
 class TrialModReviews(_Base):
+    """
+    Represents a trial moderation review.
+
+    Attributes:
+        member (int): The ID of the staff member being reviewed.
+        review_type (str): The type of review.
+        review_passed (bool): Indicates whether the review passed or not.
+        review_comment (str): The comment provided for the review.
+        reviewer (int): The ID of the mentor who conducted the review.
+    """
+
     __tablename__ = "trial_mod_reviews"
 
     member = Column(Integer, ForeignKey("staff_members.member"), primary_key=True)
