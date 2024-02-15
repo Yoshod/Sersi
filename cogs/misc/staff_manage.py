@@ -130,7 +130,11 @@ class Staff(commands.Cog):
         trial_moderator: nextcord.Role = interaction.guild.get_role(
             self.config.permission_roles.trial_moderator
         )
+        staff: nextcord.Role = interaction.guild.get_role(
+            self.config.permission_roles.staff
+        )
         await member.add_roles(trial_moderator, reason="Sersi command", atomic=True)
+        await member.add_roles(staff, reason="Sersi command", atomic=True)
 
         await interaction.send(
             f"{self.config.emotes.success} {member.mention} was given the {trial_moderator.name} role."
@@ -228,6 +232,9 @@ class Staff(commands.Cog):
         moderator: nextcord.Role = interaction.guild.get_role(
             self.config.permission_roles.moderator
         )
+        staff: nextcord.Role = interaction.guild.get_role(
+            self.config.permission_roles.staff
+        )
 
         if honourable_member not in member.roles:
             await interaction.followup.send(
@@ -241,6 +248,7 @@ class Staff(commands.Cog):
             honourable_member, reason="Sersi command", atomic=True
         )
         await member.add_roles(moderator, reason="Sersi command", atomic=True)
+        await member.add_roles(staff, reason="Sersi command", atomic=True)
 
         await interaction.followup.send(
             f"{self.config.emotes.success} {member.mention} was given the {moderator.name} role.\n"
@@ -280,7 +288,11 @@ class Staff(commands.Cog):
         cet: nextcord.Role = interaction.guild.get_role(
             self.config.permission_roles.cet
         )
+        staff: nextcord.Role = interaction.guild.get_role(
+            self.config.permission_roles.staff
+        )
         await member.add_roles(cet, reason="Sersi command", atomic=True)
+        await member.add_roles(staff, reason="Sersi command", atomic=True)
 
         await interaction.send(
             f"{self.config.emotes.success} {member.mention} was given the {cet.name} role."
@@ -513,10 +525,6 @@ class Staff(commands.Cog):
                 description="Member has been purged from staff and mod team and added to blacklist.",
                 fields=embed_fields,
                 footer="Staff Discharge",
-            )
-
-            staff_retire(
-                member.id, RemovalType.REMOVED_BAD_STANDING, interaction.user.id, reason
             )
 
             if bypass_reason:
