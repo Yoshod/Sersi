@@ -414,3 +414,23 @@ def get_moderation_stats(staff_id: int):
         }
 
         return cases
+
+
+def promotion_validity_check(staff_id: int):
+    """Checks if a Trial Moderator has passed at least 80% of their trial mod reviews."""
+    with db_session() as session:
+        mod_reviews = session.query(TrialModReviews).filter_by(member=staff_id).all()
+        passed_reviews = 0
+        total_reviews = len(mod_reviews)
+
+        for review in mod_reviews:
+            if review.review_passed:
+                passed_reviews += 1
+
+        if total_reviews % 2 != 0:
+            return False
+
+        if total_reviews < 2:
+            return False
+
+        return (passed_reviews / total_reviews) >= 0.65

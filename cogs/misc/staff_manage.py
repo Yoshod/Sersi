@@ -43,6 +43,7 @@ from utils.staff import (
     mentor_check,
     add_staff_legacy,
     add_mod_record_legacy,
+    promotion_validity_check,
 )
 
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -171,6 +172,12 @@ class Staff(commands.Cog):
             return
 
         await interaction.response.defer()
+
+        if not promotion_validity_check(member.id):
+            interaction.followup.send(
+                f"{self.config.emotes.fail} This user has not met the criteria to be promoted to a Moderator."
+            )
+            return
 
         trial_moderator: nextcord.Role = interaction.guild.get_role(
             self.config.permission_roles.trial_moderator
