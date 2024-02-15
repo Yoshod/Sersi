@@ -411,6 +411,7 @@ def get_moderation_stats(staff_id: int):
             .filter_by(moderator=staff_id, type="Ping")
             .count(),
             "Approved Peer Reviews": approved_percentage,
+            "Total Cases": len(all_cases),
         }
 
         return cases
@@ -434,3 +435,103 @@ def promotion_validity_check(staff_id: int):
             return False
 
         return (passed_reviews / total_reviews) >= 0.65
+
+
+def get_moderation_leaderboard_embed(
+    interaction: nextcord.Interaction,
+    case_type: str | None = None,
+):
+    """Gets a moderation leaderboard embed."""
+    # The first thing we should do is get the IDs of all the moderation staff
+    with db_session() as session:
+        staff_members = session.query(StaffMembers).all()
+        mod_ids = [staff.member for staff in staff_members]
+
+    # Now we can get the moderation stats for each staff member
+    mod_stats = {}
+    for staff_id in mod_ids:
+        mod_stats[staff_id] = get_moderation_stats(staff_id)
+
+    # Now we determine the case type to display if one is specified
+
+    match case_type:
+        case "Warns":
+            sorted_mods = sorted(
+                mod_stats, key=lambda x: mod_stats[x]["Warns"], reverse=True
+            )
+
+        case "Timeouts":
+            sorted_mods = sorted(
+                mod_stats, key=lambda x: mod_stats[x]["Timeouts"], reverse=True
+            )
+
+        case "Bans":
+            sorted_mods = sorted(
+                mod_stats, key=lambda x: mod_stats[x]["Bans"], reverse=True
+            )
+
+        case "Slurs":
+            sorted_mods = sorted(
+                mod_stats, key=lambda x: mod_stats[x]["Slurs"], reverse=True
+            )
+
+        case "Reformations":
+            sorted_mods = sorted(
+                mod_stats, key=lambda x: mod_stats[x]["Reformations"], reverse=True
+            )
+
+        case "Bad Faith Pings":
+            sorted_mods = sorted(
+                mod_stats, key=lambda x: mod_stats[x]["Bad Faith Pings"], reverse=True
+            )
+
+        case "Approved Peer Reviews":
+            try:
+                sorted_mods = sorted(
+                    mod_stats,
+                    key=lambda x: float(mod_stats[x]["Approved Peer Reviews"]),
+                    reverse=True,
+                )
+            except ValueError:
+                sorted_mods = [
+                    mod
+                    for mod in mod_stats
+                    if mod_stats[mod]["Approved Peer Reviews"]
+                    != "This moderator has not had any peer reviews."
+                ]
+                sorted_mods = sorted(
+                    sorted_mods,
+                    key=lambda x: float(mod_stats[x]["Approved Peer Reviews"]),
+                    reverse=True,
+                )
+
+        case None:
+            sorted_mods = sorted(
+                mod_stats, key=lambda x: mod_stats[x]["Total Cases"], reverse=True
+            )
+
+    # Now we can create the embed
+    embed = SersiEmbed(
+        title="Moderation Leaderboard",
+        description="The moderation leaderboard displays the top 10 moderation staff members by the specified metric.",
+    )
+
+    for i, staff_id in enumerate(sorted_mods[:10]):
+        member = interaction.guild.get_member(staff_id)
+        if not member:
+            member = "Unknown Member"
+        else:
+            member = member.display_name
+
+        if case_type:
+            case_value = mod_stats[staff_id][case_type]
+        else:
+            case_value = mod_stats[staff_id]["Total Cases"]
+
+        embed.add_field(
+            name=f"{i+1}. {member}",
+            value=f"{case_type}: {case_value}",
+            inline=False,
+        )
+
+    return embed
