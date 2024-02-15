@@ -111,14 +111,18 @@ class Staff(commands.Cog):
             )
             return
 
-        print(determine_staff_member(mentor.id).branch)
-
         if (
             not determine_staff_member(mentor.id).branch == Branch.MOD.value
             and not determine_staff_member(mentor.id).branch == Branch.ADMIN.value
         ):
             await interaction.response.send_message(
                 f"{self.config.emotes.fail} The mentor is not on the Moderation Team."
+            )
+            return
+
+        if member.id == mentor.id:
+            await interaction.response.send_message(
+                f"{self.config.emotes.fail} A trial moderator cannot mentor themselves."
             )
             return
 
