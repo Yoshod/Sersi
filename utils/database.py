@@ -538,6 +538,17 @@ class StaffMembers(_Base):
 
 
 class ModerationRecords(_Base):
+    """
+    Represents a table for storing moderation records.
+
+    Attributes:
+        member (int): The ID of the member being moderated.
+        mentor (int): The ID of the staff member acting as the mentor.
+        trial_start (datetime): The start date and time of the moderation trial.
+        trial_end (datetime): The end date and time of the moderation trial.
+        trial_passed (bool): Indicates whether the moderation trial was passed or not.
+    """
+
     __tablename__ = "moderation_records"
 
     member = Column(Integer, ForeignKey("staff_members.member"), primary_key=True)
@@ -555,7 +566,8 @@ class TrialModReviews(_Base):
         member (int): The ID of the staff member being reviewed.
         review_type (str): The type of review.
         review_passed (bool): Indicates whether the review passed or not.
-        review_comment (str): The comment provided for the review.
+        review_date (datetime): The date of the review.
+        review_comment (str): The comment provided during the review.
         reviewer (int): The ID of the mentor who conducted the review.
     """
 
@@ -564,8 +576,9 @@ class TrialModReviews(_Base):
     member = Column(Integer, ForeignKey("staff_members.member"), primary_key=True)
     review_type = Column(String, primary_key=True)
     review_passed = Column(Boolean, nullable=False)
+    review_date = Column(DateTime, default=datetime.utcnow)
     review_comment = Column(String, nullable=False)
-    reviewer = Column(Integer, ForeignKey("moderation_records.mentor"), nullable=False)
+    reviewer = Column(Integer, ForeignKey("staff_members.member"), nullable=False)
 
 
 class StaffStrikes(_Base):
