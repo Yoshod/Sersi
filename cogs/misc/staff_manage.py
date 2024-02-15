@@ -174,7 +174,7 @@ class Staff(commands.Cog):
         await interaction.response.defer()
 
         if not promotion_validity_check(member.id):
-            interaction.followup.send(
+            await interaction.followup.send(
                 f"{self.config.emotes.fail} This user has not met the criteria to be promoted to a Moderator."
             )
             return
