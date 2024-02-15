@@ -830,13 +830,13 @@ class Staff(commands.Cog):
             return
 
         if not determine_staff_member(member.id).role == StaffRole.TRIAL_MOD.value:
-            interaction.response.send_message(
+            await interaction.response.send_message(
                 f"{self.config.emotes.fail} This user is not a Trial Moderator."
             )
             return
 
         if not mentor_check(member.id, interaction.user.id):
-            interaction.response.send_message(
+            await interaction.response.send_message(
                 f"{self.config.emotes.fail} You are not the mentor of this user."
             )
             return
@@ -856,12 +856,12 @@ class Staff(commands.Cog):
                 session.commit()
 
         except sqlalchemy.exc.IntegrityError:
-            interaction.followup.send(
+            await interaction.followup.send(
                 f"{self.config.emotes.fail} This user has already had a {review_type} review."
             )
             return
 
-        interaction.followup.send(
+        await interaction.followup.send(
             f"{self.config.emotes.success} Review has been recorded."
         )
 
