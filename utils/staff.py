@@ -2,7 +2,14 @@ import enum
 import os
 import nextcord
 from utils.base import encode_button_id, encode_snowflake, get_discord_timestamp
-from utils.database import db_session, StaffMembers, ModerationRecords
+from utils.database import (
+    db_session,
+    StaffMembers,
+    ModerationRecords,
+    Case,
+    PeerReview,
+    TrialModReviews,
+)
 from utils.config import Configuration
 import datetime
 from utils.sersi_embed import SersiEmbed
@@ -237,7 +244,6 @@ def get_staff_embed(staff_id: int, interaction: nextcord.Interaction):
 
 def get_moderation_embed(staff_id: int, interaction: nextcord.Interaction):
     """Gets an embed of a staff member's moderation data."""
-    pass
     with db_session() as session:
         staff_member = session.query(StaffMembers).filter_by(member=staff_id).first()
         if not staff_member:
@@ -247,7 +253,7 @@ def get_moderation_embed(staff_id: int, interaction: nextcord.Interaction):
             )
 
         mod_records = (
-            session.query(ModerationRecords).filter_by(staff_member=staff_id).first()
+            session.query(ModerationRecords).filter_by(member=staff_id).first()
         )
 
         if not mod_records:
@@ -256,9 +262,73 @@ def get_moderation_embed(staff_id: int, interaction: nextcord.Interaction):
                 description=f"{CONFIG.emotes.fail} There are no moderation records for this user.",
             )
 
+        mod_stats = get_moderation_stats(staff_id)
+
+        reviews = get_trial_mod_reviews(staff_id)
+
+        # Here we set the strings which have a chance of being None values
+        # If we don't do this we may get varying errors when creating the embed
+
+        number_of_reviews = len(reviews)
+
+        review_string = ""
+
+        if number_of_reviews == 0:
+            review_string = f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}No reviews have been conducted for this moderator."
+
+        else:
+            for review in reviews:
+                result = (
+                    CONFIG.emotes.success if reviews[review] else CONFIG.emotes.fail
+                )
+                review_string += (
+                    f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}{review}: {result}\n"
+                )
+
+        try:
+            trial_start_string = get_discord_timestamp(
+                mod_records.trial_start, relative=True
+            )
+
+        except AttributeError:
+            trial_start_string = "N/A"
+
+        try:
+            trial_end_string = get_discord_timestamp(
+                mod_records.trial_end, relative=True
+            )
+
+        except AttributeError:
+            trial_end_string = "N/A"
+
+        try:
+            most_recent_case = {mod_stats["Most Recent Case"].id}
+
+        except AttributeError:
+            most_recent_case = "N/A"
+
         embed = SersiEmbed(
-            title="Moderation Data", description=f"**Moderation Data**\n"
+            title="Moderation Data",
+            description=f"**Trial Mod Stats**\n"
+            f"{CONFIG.emotes.blank}**Mentor:** {interaction.guild.get_member(mod_records.mentor).mention} ({mod_records.mentor})\n"
+            f"{CONFIG.emotes.blank}**Passed Trial Period:** {CONFIG.emotes.success if mod_records.trial_passed else CONFIG.emotes.fail if mod_records.trial_passed is not None else CONFIG.emotes.inherit}\n"
+            f"{CONFIG.emotes.blank}**Trial Period Start:** {trial_start_string}\n"
+            f"{CONFIG.emotes.blank}**Trial Period End:** {trial_end_string}\n"
+            f"{CONFIG.emotes.blank}**Number of Reviews:** {number_of_reviews}\n"
+            f"{CONFIG.emotes.blank}**Review Results:**\n"
+            f"{review_string}\n"
+            f"**Moderation Stats**\n"
+            f"{CONFIG.emotes.blank}**Most Recent Case:** `{most_recent_case}`\n"
+            f"{CONFIG.emotes.blank}**Warns:** {mod_stats['Warns']}\n"
+            f"{CONFIG.emotes.blank}**Timeouts:** {mod_stats['Timeouts']}\n"
+            f"{CONFIG.emotes.blank}**Bans:** {mod_stats['Bans']}\n"
+            f"{CONFIG.emotes.blank}**Slurs:** {mod_stats['Slurs']}\n"
+            f"{CONFIG.emotes.blank}**Reformations:** {mod_stats['Reformations']}\n"
+            f"{CONFIG.emotes.blank}**Bad Faith Pings:** {mod_stats['Bad Faith Pings']}\n"
+            f"{CONFIG.emotes.blank}**Approved Peer Reviews:** {mod_stats['Approved Peer Reviews']}\n",
         )
+
+        return embed
 
 
 def determine_staff_member(staff_id: int):
@@ -279,3 +349,68 @@ def mentor_check(mentee_id: int, mentor_id: int):
             return mentor.mentor == mentor_id
         else:
             return False
+
+
+def get_trial_mod_reviews(staff_id: int):
+    """Gets all trial moderator reviews for a staff member."""
+    with db_session() as session:
+        reviews = session.query(TrialModReviews).filter_by(member=staff_id).all()
+
+        review_records = {}
+
+        for i, review in enumerate(reviews):
+            review_records[f"Review {i+1}"] = review.review_passed
+
+        return review_records
+
+
+def get_moderation_stats(staff_id: int):
+    """Gets moderation stats for a staff member."""
+    with db_session() as session:
+        all_cases = session.query(Case).filter_by(moderator=staff_id).all()
+        approved_reviews = 0
+        total_reviews = 0
+
+        for case in all_cases:
+            case_id = case.id
+            with db_session() as session:
+                peer_reviews = (
+                    session.query(PeerReview).filter_by(case_id=case_id).all()
+                )
+                for review in peer_reviews:
+                    if review.review_outcome == "Approved":
+                        approved_reviews += 1
+                    total_reviews += 1
+
+        if total_reviews == 0:
+            approved_percentage = "This moderator has not had any peer reviews."
+        else:
+            approved_percentage = (approved_reviews / total_reviews) * 100
+
+        cases = {
+            "Most Recent Case": session.query(Case)
+            .filter_by(moderator=staff_id)
+            .order_by(Case.created.desc())
+            .first(),
+            "Warns": session.query(Case)
+            .filter_by(moderator=staff_id, type="Warning")
+            .count(),
+            "Timeouts": session.query(Case)
+            .filter_by(moderator=staff_id, type="Timeout")
+            .count(),
+            "Bans": session.query(Case)
+            .filter_by(moderator=staff_id, type="Ban")
+            .count(),
+            "Slurs": session.query(Case)
+            .filter_by(moderator=staff_id, type="Slur Usage")
+            .count(),
+            "Reformations": session.query(Case)
+            .filter_by(moderator=staff_id, type="Reformation")
+            .count(),
+            "Bad Faith Pings": session.query(Case)
+            .filter_by(moderator=staff_id, type="Ping")
+            .count(),
+            "Approved Peer Reviews": approved_percentage,
+        }
+
+        return cases

@@ -37,6 +37,7 @@ from utils.staff import (
     transfer_validity_check,
     determine_transfer_type,
     get_staff_embed,
+    get_moderation_embed,
     determine_staff_member,
     add_mod_record,
     mentor_check,
@@ -977,7 +978,7 @@ class Staff(commands.Cog):
             return
         if not interaction.data["custom_id"].startswith(
             "staff_data"
-        ) and not interaction.data["custom_id"].startswith("moderation_data"):
+        ) and not interaction.data["custom_id"].startswith("mod_data"):
             return
 
         if not await permcheck(interaction, is_mod):
@@ -992,9 +993,10 @@ class Staff(commands.Cog):
             case "staff_data":
                 embed = get_staff_embed(decode_snowflake(kwargs["user"]), interaction)
 
-            case "moderation_data":
-                pass
-                # embed = get_moderation_embed(decode_snowflake(kwargs["user"]))
+            case "mod_data":
+                embed = get_moderation_embed(
+                    decode_snowflake(kwargs["user"]), interaction
+                )
 
             case "disciplinary_data":
                 pass
