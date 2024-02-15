@@ -102,7 +102,7 @@ class Staff(commands.Cog):
             description="Mentor for the new Trial Moderator"
         ),
     ):
-        if not permcheck(interaction, is_mod_lead):
+        if not await permcheck(interaction, is_mod_lead):
             return
 
         if blacklist_check(member):
@@ -111,8 +111,13 @@ class Staff(commands.Cog):
             )
             return
 
-        if not determine_staff_member(mentor.id).branch == Branch.MOD.value:
-            interaction.response.send_message(
+        print(determine_staff_member(mentor.id).branch)
+
+        if (
+            not determine_staff_member(mentor.id).branch == Branch.MOD.value
+            and not determine_staff_member(mentor.id).branch == Branch.ADMIN.value
+        ):
+            await interaction.response.send_message(
                 f"{self.config.emotes.fail} The mentor is not on the Moderation Team."
             )
             return
