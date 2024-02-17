@@ -200,5 +200,4 @@ class Levelling(commands.Cog):
 
 
 def setup(bot: commands.Bot, **kwargs):
-    if kwargs["config"].bot.dev_mode:
-        bot.add_cog(Levelling(bot, kwargs["config"]))
+    bot.add_cog(Levelling(bot, kwargs["config"]))
