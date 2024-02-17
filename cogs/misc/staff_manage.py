@@ -1,3 +1,4 @@
+import datetime
 import os
 import nextcord
 from nextcord import SlashOption
@@ -25,6 +26,8 @@ from utils.database import (
     VoteDetails,
     VoteRecord,
     TrialModReviews,
+    ModerationRecords,
+    StaffMembers,
 )
 from utils.voting import VoteView, vote_planned_end
 from utils.staff import (
@@ -940,6 +943,357 @@ class Staff(commands.Cog):
 
         await interaction.followup.send(
             f"{self.config.emotes.success} {member.mention} has been added to the database."
+        )
+
+    @staff.subcommand(description="Modify records")
+    async def modify(
+        self,
+        interaction: nextcord.Interaction,
+    ):
+        pass
+
+    @modify.subcommand(description="Modify Trial Mod Reviews")
+    async def trial_review(
+        self,
+        interaction: nextcord.Interaction,
+        member: nextcord.Member = SlashOption(
+            description="Member to modify",
+        ),
+        review_type: str = SlashOption(
+            description="Type of review",
+            choices=[
+                "First Review",
+                "Second Review",
+                "Third Review",
+                "Fourth Review",
+                "Fifth Review",
+                "Sixth Review",
+            ],
+        ),
+        outcome: bool = SlashOption(
+            description="Outcome of the review",
+            choices={"Passed": True, "Failed": False},
+            required=False,
+        ),
+        comment: str = SlashOption(
+            description="Comments on the review",
+            required=False,
+        ),
+    ):
+        if not await permcheck(interaction, is_mod_lead):
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        if outcome is None and comment is None:
+            await interaction.followup.send(
+                f"{self.config.emotes.fail} You must provide a new outcome or comment to modify the review."
+            )
+            return
+
+        with db_session(interaction.user) as session:
+            review: TrialModReviews = (
+                session.query(TrialModReviews)
+                .filter_by(member=member.id, review_type=review_type)
+                .first()
+            )
+
+            if not review:
+                await interaction.followup.send(
+                    f"{self.config.emotes.fail} No review found for this user."
+                )
+                return
+
+            if outcome is not None:
+                review.review_passed = outcome
+
+            if comment is not None:
+                review.review_comment = comment
+
+            session.commit()
+
+        await interaction.followup.send(
+            f"{self.config.emotes.success} Review has been modified."
+        )
+
+    @modify.subcommand(description="Modify Moderation Records")
+    async def mod_record(
+        self,
+        interaction: nextcord.Interaction,
+        member: nextcord.Member = SlashOption(
+            description="Member to modify",
+        ),
+        mentor: nextcord.Member = SlashOption(
+            description="Mentor to modify",
+            required=False,
+        ),
+        trial_start_day: int = SlashOption(
+            description="Day the trial started",
+            required=False,
+        ),
+        trial_start_month: int = SlashOption(
+            description="Month the trial started",
+            required=False,
+        ),
+        trial_start_year: int = SlashOption(
+            description="Year the trial started",
+            required=False,
+        ),
+        trial_end_day: int = SlashOption(
+            description="Day the trial ended",
+            required=False,
+        ),
+        trial_end_month: int = SlashOption(
+            description="Month the trial ended",
+            required=False,
+        ),
+        trial_end_year: int = SlashOption(
+            description="Year the trial ended",
+            required=False,
+        ),
+        trial_passed: bool = SlashOption(
+            description="Whether the trial was passed",
+            required=False,
+        ),
+    ):
+        if not await permcheck(interaction, is_mod_lead):
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        if any(
+            date is not None
+            for date in [trial_end_day, trial_end_month, trial_end_year]
+        ):
+            if not all(
+                date is not None
+                for date in [trial_end_day, trial_end_month, trial_end_year]
+            ):
+                await interaction.followup.send(
+                    f"{self.config.emotes.fail} If you provide a trial end date, you must provide the day, month, and year."
+                )
+                return
+
+        if any(
+            date is not None
+            for date in [trial_start_day, trial_start_month, trial_start_year]
+        ):
+            if not all(
+                date is not None
+                for date in [trial_start_day, trial_start_month, trial_start_year]
+            ):
+                await interaction.followup.send(
+                    f"{self.config.emotes.fail} If you provide a trial start date, you must provide the day, month, and year."
+                )
+                return
+
+        try:
+            trial_start = datetime.date(
+                trial_start_year, trial_start_month, trial_start_day
+            )
+
+            if trial_start > datetime.date.today():
+                await interaction.followup.send(
+                    f"{self.config.emotes.fail} The trial start date cannot be in the future."
+                )
+                return
+
+        except ValueError:
+            await interaction.followup.send(
+                f"{self.config.emotes.fail} The trial start date is invalid."
+            )
+            return
+        except TypeError:
+            trial_start = None
+
+        try:
+            trial_end = datetime.date(trial_end_year, trial_end_month, trial_end_day)
+
+            if trial_end > datetime.date.today():
+                await interaction.followup.send(
+                    f"{self.config.emotes.fail} The trial end date cannot be in the future."
+                )
+                return
+
+        except ValueError:
+            await interaction.followup.send(
+                f"{self.config.emotes.fail} The trial end date is invalid."
+            )
+            return
+        except TypeError:
+            trial_end = None
+
+        if trial_end and trial_start and (trial_end - trial_start).days < 14:
+            await interaction.followup.send(
+                f"{self.config.emotes.fail} The trial must be at least 14 days long."
+            )
+            return
+
+        if trial_end and trial_start and trial_end < trial_start:
+            await interaction.followup.send(
+                f"{self.config.emotes.fail} The trial end date cannot be before the trial start date."
+            )
+            return
+
+        with db_session(interaction.user) as session:
+            record: ModerationRecords = (
+                session.query(ModerationRecords).filter_by(member=member.id).first()
+            )
+
+            if mentor:
+                record.mentor = mentor.id
+
+            if trial_start:
+                record.trial_start = trial_start
+
+            if trial_end and record.trial_end is not None:
+                record.trial_end = trial_end
+
+            if trial_passed is not None and record.trial_passed is not None:
+                record.trial_passed = trial_passed
+
+            session.commit()
+
+        await interaction.followup.send(
+            f"{self.config.emotes.success} Record has been modified."
+        )
+
+    @modify.subcommand(description="Modify Staff Records")
+    async def staff_record(
+        self,
+        interaction: nextcord.Interaction,
+        member: nextcord.Member = SlashOption(
+            description="Member to modify",
+        ),
+        branch: str = SlashOption(
+            description="Branch the member was in",
+            choices=["Administration", "Moderation", "Community Engagement Team"],
+            required=False,
+        ),
+        role: str = SlashOption(
+            description="Role the member had",
+            choices={
+                "Administrator": str(StaffRole.ADMIN.value),
+                "Compliance Officer": str(StaffRole.COMPLIANCE.value),
+                "Moderation Lead": str(StaffRole.HEAD_MOD.value),
+                "Moderator": str(StaffRole.MOD.value),
+                "Trial Moderator": str(StaffRole.TRIAL_MOD.value),
+                "CET Lead": str(StaffRole.CET_LEAD.value),
+                "CET": str(StaffRole.CET.value),
+            },
+            required=False,
+        ),
+        added_by: nextcord.Member = SlashOption(
+            description="Who added the member to the database",
+            required=False,
+        ),
+        active: bool = SlashOption(
+            description="Whether the member is active",
+            required=False,
+        ),
+        left_day: int = SlashOption(
+            description="Day the member left",
+            required=False,
+        ),
+        left_month: int = SlashOption(
+            description="Month the member left",
+            required=False,
+        ),
+        left_year: int = SlashOption(
+            description="Year the member left",
+            required=False,
+        ),
+        removed_by: nextcord.Member = SlashOption(
+            description="Who removed the member",
+            required=False,
+        ),
+        discharge_type: str = SlashOption(
+            description="Type of discharge",
+            choices={
+                "Removed Bad Standing": RemovalType.REMOVED_BAD_STANDING.value,
+                "Removed Good Standing": RemovalType.REMOVED_GOOD_STANDING.value,
+                "Retire": RemovalType.RETIRE.value,
+                "Retire Good Standing": RemovalType.RETIRE_GOOD_STANDING.value,
+                "Retire Bad Standing": RemovalType.RETIRE_BAD_STANDING.value,
+                "Failed Trial": RemovalType.FAILED_TRIAL.value,
+            },
+            required=False,
+        ),
+        discharge_reason: str = SlashOption(
+            description="Reason for discharge",
+            required=False,
+        ),
+    ):
+        if not await permcheck(interaction, is_admin):
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        if (
+            any(date is None for date in [left_day, left_month, left_year])
+            and discharge_type
+        ):
+            await interaction.followup.send(
+                f"{self.config.emotes.fail} If you provide a discharge date, you must provide the day, month, and year."
+            )
+            return
+
+        if discharge_type and not discharge_reason:
+            await interaction.followup.send(
+                f"{self.config.emotes.fail} You must provide a reason for the discharge."
+            )
+            return
+
+        try:
+            left_date = datetime.date(left_year, left_month, left_day)
+
+            if left_date > datetime.date.today():
+                await interaction.followup.send(
+                    f"{self.config.emotes.fail} The discharge date cannot be in the future."
+                )
+                return
+
+        except ValueError:
+            await interaction.followup.send(
+                f"{self.config.emotes.fail} The discharge date is invalid."
+            )
+            return
+        except TypeError:
+            left_date = None
+
+        with db_session(interaction.user) as session:
+            record: StaffMembers = (
+                session.query(StaffMembers).filter_by(member=member.id).first()
+            )
+
+            if branch:
+                record.branch = branch
+
+            if role:
+                record.role = int(role)
+
+            if added_by:
+                record.added_by = added_by.id
+
+            if active is not None:
+                record.active = active
+
+            if left_date:
+                record.left = left_date
+
+            if removed_by:
+                record.removed_by = removed_by.id
+
+            if discharge_type:
+                record.discharge_type = discharge_type
+
+            if discharge_reason:
+                record.discharge_reason = discharge_reason
+
+            session.commit()
+
+        await interaction.followup.send(
+            f"{self.config.emotes.success} Record has been modified."
         )
 
     @commands.Cog.listener()
