@@ -504,6 +504,94 @@ class Goodword(_Base):
     added_by = Column(Integer, nullable=False)
 
 
+### Staff Records ###
+
+
+class StaffBranches(_Base):
+    __tablename__ = "staff_branches"
+
+    branch = Column(String, primary_key=True)
+
+
+class StaffRoles(_Base):
+    __tablename__ = "staff_roles"
+
+    role_id = Column(Integer, primary_key=True)
+    role_name = Column(String, nullable=False)
+    branch = Column(String, ForeignKey("staff_branches.branch"), nullable=False)
+    rank = Column(Integer, nullable=False)
+
+
+class StaffMembers(_Base):
+    __tablename__ = "staff_members"
+
+    member = Column(Integer, primary_key=True)
+    active = Column(Boolean, default=True)
+    branch = Column(String, ForeignKey("staff_branches.branch"))
+    role = Column(Integer, ForeignKey("staff_roles.role_id"))
+    joined = Column(DateTime, default=datetime.utcnow)
+    added_by = Column(Integer, nullable=False)
+    left = Column(DateTime, default=None)
+    removed_by = Column(Integer, default=None)
+    discharge_type = Column(String, default=None)
+    discharge_reason = Column(String, default=None)
+
+
+class ModerationRecords(_Base):
+    """
+    Represents a table for storing moderation records.
+
+    Attributes:
+        member (int): The ID of the member being moderated.
+        mentor (int): The ID of the staff member acting as the mentor.
+        trial_start (datetime): The start date and time of the moderation trial.
+        trial_end (datetime): The end date and time of the moderation trial.
+        trial_passed (bool): Indicates whether the moderation trial was passed or not.
+    """
+
+    __tablename__ = "moderation_records"
+
+    member = Column(Integer, ForeignKey("staff_members.member"), primary_key=True)
+    mentor = Column(Integer, ForeignKey("staff_members.member"), nullable=False)
+    trial_start = Column(DateTime, default=datetime.utcnow)
+    trial_end = Column(DateTime)
+    trial_passed = Column(Boolean, default=None)
+
+
+class TrialModReviews(_Base):
+    """
+    Represents a trial moderation review.
+
+    Attributes:
+        member (int): The ID of the staff member being reviewed.
+        review_type (str): The type of review.
+        review_passed (bool): Indicates whether the review passed or not.
+        review_date (datetime): The date of the review.
+        review_comment (str): The comment provided during the review.
+        reviewer (int): The ID of the mentor who conducted the review.
+    """
+
+    __tablename__ = "trial_mod_reviews"
+
+    member = Column(Integer, ForeignKey("staff_members.member"), primary_key=True)
+    review_type = Column(String, primary_key=True)
+    review_passed = Column(Boolean, nullable=False)
+    review_date = Column(DateTime, default=datetime.utcnow)
+    review_comment = Column(String, nullable=False)
+    reviewer = Column(Integer, ForeignKey("staff_members.member"), nullable=False)
+
+
+class StaffStrikes(_Base):
+    __tablename__ = "staff_strikes"
+
+    offender = Column(Integer, ForeignKey("staff_members.member"), primary_key=True)
+    strike_type = Column(String, nullable=False)
+    striker = Column(Integer, ForeignKey("staff_members.member"), nullable=False)
+    reason = Column(String, nullable=False)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+    active = Column(Boolean, default=True)
+
+
 ### Vote Models ###
 
 

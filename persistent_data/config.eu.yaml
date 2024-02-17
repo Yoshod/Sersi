@@ -30,6 +30,8 @@ channels:
     admin_ticket_logs:        1166770862989524993
     senior_ticket_logs:       1166770862989524992
     mod_ticket_logs:          1166770862846906488
+    cet_ticket_logs:          0
+    cet_lead_ticket_logs:     0
     mod applications:         1166770861878018144
     cet applications:         1166770861878018139
     role_logs:                1166770864423964786
@@ -129,6 +131,7 @@ emotes:
     success: "<:sersisuccess:979066662856822844>"
     fail:    "<:sersifail:979070135799279698>"
     inherit: "<:sersiinherit:1098338822166683668>"
+    blank:   "<:sersiblank:1170445538303418378>"
 
 guilds:
     main:   1166770860787515422

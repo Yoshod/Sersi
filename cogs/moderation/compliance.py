@@ -10,7 +10,8 @@ from utils.compliance import (
     ModerationReport,
 )
 
-from utils.perms import permcheck, is_admin, is_compliance
+from utils.perms import is_mod, permcheck, is_admin, is_compliance
+from utils.staff import get_moderation_leaderboard_embed
 
 
 class Compliance(commands.Cog):
@@ -153,6 +154,37 @@ class Compliance(commands.Cog):
         )
 
         await interaction.followup.send(embed=embed)
+
+    @nextcord.slash_command(
+        dm_permission=False,
+        guild_ids=[1166770860787515422, 977377117895536640, 856262303795380224],
+        description="Moderation Leaderboard.",
+    )
+    async def moderation_leaderboard(
+        self,
+        interaction: nextcord.Interaction,
+        case_type: str = nextcord.SlashOption(
+            description="The type of case to display.",
+            choices={
+                "Warnings": "Warns",
+                "Timeouts": "Timeouts",
+                "Bans": "Bans",
+                "Reformations": "Reformations",
+                "Slur Alerts": "Slurs",
+                "Bad Faith Pings": "Bad Faith Pings",
+                "Peer Review Approval Rate": "Approved Peer Reviews",
+            },
+            required=False,
+        ),
+    ):
+        if not await permcheck(interaction, is_mod):
+            return
+
+        await interaction.response.defer()
+
+        await interaction.followup.send(
+            embed=get_moderation_leaderboard_embed(interaction, case_type)
+        )
 
     @tasks.loop(minutes=1)
     async def compliance_report_loop(self):
