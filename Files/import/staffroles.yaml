@@ -1,0 +1,34 @@
+- role_id: 1166770861211123719
+  role_name: Trial Moderator
+  branch: Moderation
+  rank: 15
+
+- role_id: 1166770861211123720
+  role_name: Moderator
+  branch: Moderation
+  rank: 20
+
+- role_id: 1166770861211123721
+  role_name: Moderation Lead
+  branch: Moderation
+  rank: 25
+
+- role_id: 1166770861232099369
+  role_name: Administrator
+  branch: Administration
+  rank: 50
+
+- role_id: 1166770861169197155
+  role_name: Community Engagement Team Member
+  branch: Community Engagement Team
+  rank: 20
+
+- role_id: 1166770861211123712
+  role_name: Community Engagement Team Lead
+  branch: Community Engagement Team
+  rank: 25
+
+- role_id: 1166770861211123713
+  role_name: Compliance Officer
+  branch: Administration
+  rank: 30

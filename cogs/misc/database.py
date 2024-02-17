@@ -21,6 +21,8 @@ from utils.database import (
     create_db_tables,
     BlacklistCase,
     StaffBlacklist,
+    StaffBranches,
+    StaffRoles,
 )
 from utils.config import Configuration
 from utils.perms import is_sersi_contributor, permcheck
@@ -78,6 +80,49 @@ class Database(commands.Cog):
         await interaction.followup.send(f"{self.config.emotes.success} Complete")
 
     @database.subcommand(
+        description="Used to populate the branches table",
+    )
+    async def import_branches(self, interaction: nextcord.Interaction):
+        if not await permcheck(interaction, is_sersi_contributor):
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        with open("files/import/branches.yaml", "r") as f:
+            branches = yaml.safe_load(f)
+        with db_session(interaction.user) as session:
+            for branch in branches:
+                session.merge(StaffBranches(branch=branch["branch"]))
+            session.commit()
+
+        await interaction.followup.send(f"{self.config.emotes.success} Complete")
+
+    @database.subcommand(
+        description="Used to populate the staff roles table",
+    )
+    async def import_staff_roles(self, interaction: nextcord.Interaction):
+        if not await permcheck(interaction, is_sersi_contributor):
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        with open("files/import/staff_roles.yaml", "r") as f:
+            roles = yaml.safe_load(f)
+        with db_session(interaction.user) as session:
+            for role in roles:
+                session.merge(
+                    StaffRoles(
+                        role_id=role["role_id"],
+                        role_name=role["role_name"],
+                        branch=role["branch"],
+                        rank=role["rank"],
+                    )
+                )
+            session.commit()
+
+        await interaction.followup.send(f"{self.config.emotes.success} Complete")
+
+    @database.subcommand(
         description="Used to populate the offences table",
     )
     async def import_offences(self, interaction: nextcord.Interaction):
@@ -101,7 +146,7 @@ class Database(commands.Cog):
             session.commit()
 
         await interaction.followup.send(f"{self.config.emotes.success} Complete")
-    
+
     @database.subcommand(
         description="Migrates staff blacklist to Blacklist cases",
     )
