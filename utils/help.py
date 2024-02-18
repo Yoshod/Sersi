@@ -131,6 +131,11 @@ class CommunitySelectedDropdown(nextcord.ui.Select):
                     value="polls",
                     description="Commands relating to polls.",
                 ),
+                nextcord.SelectOption(
+                    label="Suggestions",
+                    value="suggestions",
+                    description="Commands relating to suggestions.",
+                ),
             ],
             custom_id=encode_button_id(
                 "community",
@@ -481,7 +486,7 @@ def poll_dropdown_embed(preferred_view: str):
     else:
         return SersiEmbed(
             title="Sersi Help Menu - Community Commands",
-            description=f"</poll create:1168667156251164773>\n"
+            description=f"</poll create:1166849339763732581>\n"
             f"{CONFIG.emotes.blank}**Required Role**: `None`\n"
             f"{CONFIG.emotes.blank}**Required Arguments**:\n"
             f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`query`\n"
@@ -497,5 +502,76 @@ def poll_dropdown_embed(preferred_view: str):
             f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`option8`\n"
             f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`option9`\n"
             f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`option10`\n"
+            f"**This is the mobile version of the help menu. Please use the desktop version for a better experience.**",
+        ).set_footer(text="Sersi Help")
+
+
+def suggestion_dropdown_embed(interaction: nextcord.Interaction, preferred_view: str):
+    if preferred_view == "desktop":
+        return SersiEmbed(
+            title="Sersi Help Menu - Community Commands",
+            description=f"</suggestion submit:1169773626736791655>\n"
+            f"{CONFIG.emotes.blank}**Required Role**: `None`\n"
+            f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`suggestion: The suggestion to make.`\n"
+            f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`suggestion_media: Any media URL part of the suggestion.`\n"
+            f"{CONFIG.emotes.blank}**Description**:\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Submit a suggestion for review.`\n\n"
+            f"</suggestion review:1169773626736791655>\n"
+            f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.cet).mention}\n"
+            f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`suggestion_id: The ID of the suggestion to review.`\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`outcome: The outcome of the review.`\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Approve`\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Deny`\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`reason: The reason for the outcome.`\n"
+            f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+            f"{CONFIG.emotes.blank}**Description**:\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Review a suggestion.`\n\n"
+            f"</suggestion mark:1169773626736791655>\n"
+            f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.cet).mention}\n"
+            f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`suggestion_id: The ID of the suggestion to mark.`\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`outcome: The mark to apply to the suggestion.`\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Considering`\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Planned`\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}{CONFIG.emotes.blank}`In Progress`\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}{CONFIG.emotes.blank}`On Hold`\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Completed`\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Not Happening`\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`reason: The reason for the mark.`\n"
+            f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+            f"{CONFIG.emotes.blank}**Description**:\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Mark a suggestion.`",
+        ).set_footer(text="Sersi Help")
+
+    else:
+        return SersiEmbed(
+            title="Sersi Help Menu - Community Commands",
+            description=f"</suggestion submit:1169773626736791655>\n"
+            f"{CONFIG.emotes.blank}**Required Role**: `None`\n"
+            f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`suggestion`\n"
+            f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`suggestion_media`\n\n"
+            f"</suggestion review:1169773626736791655>\n"
+            f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.cet).mention}\n"
+            f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`suggestion_id`\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`outcome`\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`reason`\n"
+            f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n\n"
+            f"</suggestion mark:1169773626736791655>\n"
+            f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.cet).mention}\n"
+            f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`suggestion_id`\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`outcome`\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`reason`\n"
+            f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
             f"**This is the mobile version of the help menu. Please use the desktop version for a better experience.**",
         ).set_footer(text="Sersi Help")
