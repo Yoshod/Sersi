@@ -115,7 +115,19 @@ class Help(commands.Cog):
                         delete_after=1,
                     )
                 case "misc":
-                    pass
+                    message = await interaction.channel.fetch_message(
+                        decode_snowflake(kwargs["embed_message_id"])
+                    )
+                    await message.edit(
+                        embed=SersiHelp.misc_selected_embed(kwargs["preferred_view"]),
+                        view=HelpView(
+                            selected_type="misc",
+                            embed_message_id=message.id,
+                            author_id=interaction.user.id,
+                            preferred_view=kwargs["preferred_view"],
+                        ),
+                    )
+
                 case "moderation":
                     pass
                 case "close":
@@ -231,11 +243,79 @@ class Help(commands.Cog):
                         ),
                     )
 
-            await interaction.response.send_message(
-                f"{CONFIG.emotes.success} The help menu has been updated.",
-                ephemeral=True,
-                delete_after=1,
-            )
+        elif action == "misc":
+            selected_dropdown = interaction.data["values"][0]
+
+            match selected_dropdown:
+                case "config_1":
+                    message = await interaction.channel.fetch_message(
+                        decode_snowflake(kwargs["embed_message_id"])
+                    )
+                    await message.edit(
+                        embed=SersiHelp.config_dropdown_embed_1(
+                            interaction, kwargs["preferred_view"]
+                        ),
+                        view=HelpView(
+                            selected_type="misc",
+                            embed_message_id=message.id,
+                            author_id=interaction.user.id,
+                            preferred_view=kwargs["preferred_view"],
+                        ),
+                    )
+
+                case "config_2":
+                    message = await interaction.channel.fetch_message(
+                        decode_snowflake(kwargs["embed_message_id"])
+                    )
+                    await message.edit(
+                        embed=SersiHelp.config_dropdown_embed_2(
+                            interaction, kwargs["preferred_view"]
+                        ),
+                        view=HelpView(
+                            selected_type="misc",
+                            embed_message_id=message.id,
+                            author_id=interaction.user.id,
+                            preferred_view=kwargs["preferred_view"],
+                        ),
+                    )
+
+                case "config_3":
+                    message = await interaction.channel.fetch_message(
+                        decode_snowflake(kwargs["embed_message_id"])
+                    )
+                    await message.edit(
+                        embed=SersiHelp.config_dropdown_embed_3(
+                            interaction, kwargs["preferred_view"]
+                        ),
+                        view=HelpView(
+                            selected_type="misc",
+                            embed_message_id=message.id,
+                            author_id=interaction.user.id,
+                            preferred_view=kwargs["preferred_view"],
+                        ),
+                    )
+
+                case "config_4":
+                    message = await interaction.channel.fetch_message(
+                        decode_snowflake(kwargs["embed_message_id"])
+                    )
+                    await message.edit(
+                        embed=SersiHelp.config_dropdown_embed_4(
+                            interaction, kwargs["preferred_view"]
+                        ),
+                        view=HelpView(
+                            selected_type="misc",
+                            embed_message_id=message.id,
+                            author_id=interaction.user.id,
+                            preferred_view=kwargs["preferred_view"],
+                        ),
+                    )
+
+        await interaction.response.send_message(
+            f"{CONFIG.emotes.success} The help menu has been updated.",
+            ephemeral=True,
+            delete_after=1,
+        )
 
 
 def setup(bot: commands.Bot, **kwargs):
