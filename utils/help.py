@@ -186,6 +186,11 @@ class MiscSelectedDropdown(nextcord.ui.Select):
                     value="config_4",
                     description="Commands relating to config features.",
                 ),
+                nextcord.SelectOption(
+                    label="Embeds",
+                    value="embeds",
+                    description="Commands relating to embed features.",
+                ),
             ],
             custom_id=encode_button_id(
                 "misc",
@@ -984,6 +989,43 @@ class SersiHelpEmbeds:
                 f"{CONFIG.emotes.blank}**Required Arguments**:\n"
                 f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`setting`\n"
                 f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`role`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"**This is the mobile version of the help menu. Please use the desktop version for a better experience.**",
+            ).set_footer(text="Sersi Help")
+
+    @staticmethod
+    def embed_dropdown_embed(interaction: nextcord.Interaction, preferred_view: str):
+        if preferred_view == "desktop":
+            return SersiEmbed(
+                title="Sersi Help Menu - Misc Commands",
+                description=f"</embed send:1168667160571293820>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.staff).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`type: The type of embed.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Moderator`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Administrator`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Community Engagement`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Staff`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`channel: The channel to send the embed to.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`title: The title of the embed.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`body: The body of the embed.`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Create an embed.`",
+            ).set_footer(text="Sersi Help")
+
+        else:
+            return SersiEmbed(
+                title="Sersi Help Menu - Misc Commands",
+                description=f"</embed send:1168667160571293820>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.staff).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`type`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`channel`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`title`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`body`\n"
                 f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
                 f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
                 f"**This is the mobile version of the help menu. Please use the desktop version for a better experience.**",
