@@ -191,6 +191,11 @@ class MiscSelectedDropdown(nextcord.ui.Select):
                     value="embeds",
                     description="Commands relating to embed features.",
                 ),
+                nextcord.SelectOption(
+                    label="Help",
+                    value="help",
+                    description="Commands relating to help features.",
+                ),
             ],
             custom_id=encode_button_id(
                 "misc",
@@ -1028,5 +1033,34 @@ class SersiHelpEmbeds:
                 f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`body`\n"
                 f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
                 f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"**This is the mobile version of the help menu. Please use the desktop version for a better experience.**",
+            ).set_footer(text="Sersi Help")
+
+    @staticmethod
+    def help_dropdown_embed(preferred_view: str):
+        if preferred_view == "desktop":
+            return SersiEmbed(
+                title="Sersi Help Menu - Misc Commands",
+                description=f"</help:1208444716618752000>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: `None`\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`command: The command to get help for.`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`view_type: The type of view preferred.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Desktop View`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Mobile View`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Get help for a command.`",
+            ).set_footer(text="Sersi Help")
+
+        else:
+            return SersiEmbed(
+                title="Sersi Help Menu - Misc Commands",
+                description=f"</help:1208444716618752000>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: `None`\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`command`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`view_type`\n"
                 f"**This is the mobile version of the help menu. Please use the desktop version for a better experience.**",
             ).set_footer(text="Sersi Help")

@@ -327,6 +327,20 @@ class Help(commands.Cog):
                         ),
                     )
 
+                case "help":
+                    message = await interaction.channel.fetch_message(
+                        decode_snowflake(kwargs["embed_message_id"])
+                    )
+                    await message.edit(
+                        embed=SersiHelp.help_dropdown_embed(kwargs["preferred_view"]),
+                        view=HelpView(
+                            selected_type="misc",
+                            embed_message_id=message.id,
+                            author_id=interaction.user.id,
+                            preferred_view=kwargs["preferred_view"],
+                        ),
+                    )
+
         await interaction.response.send_message(
             f"{CONFIG.emotes.success} The help menu has been updated.",
             ephemeral=True,
