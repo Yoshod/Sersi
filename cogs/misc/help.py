@@ -9,6 +9,7 @@ from utils.help import (
     adult_dropdown_embed,
     community_selected_embed,
     fun_dropdown_embed,
+    poll_dropdown_embed,
 )
 from utils.sersi_embed import SersiEmbed
 from utils.config import Configuration
@@ -163,6 +164,20 @@ class Help(commands.Cog):
                     )
                     await message.edit(
                         embed=fun_dropdown_embed(interaction, kwargs["preferred_view"]),
+                        view=HelpView(
+                            selected_type="community",
+                            embed_message_id=message.id,
+                            author_id=interaction.user.id,
+                            preferred_view=kwargs["preferred_view"],
+                        ),
+                    )
+
+                case "polls":
+                    message = await interaction.channel.fetch_message(
+                        decode_snowflake(kwargs["embed_message_id"])
+                    )
+                    await message.edit(
+                        embed=poll_dropdown_embed(kwargs["preferred_view"]),
                         view=HelpView(
                             selected_type="community",
                             embed_message_id=message.id,

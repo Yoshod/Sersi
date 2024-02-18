@@ -126,6 +126,11 @@ class CommunitySelectedDropdown(nextcord.ui.Select):
                     value="jokes",
                     description="Commands relating to joke features.",
                 ),
+                nextcord.SelectOption(
+                    label="Polls",
+                    value="polls",
+                    description="Commands relating to polls.",
+                ),
             ],
             custom_id=encode_button_id(
                 "community",
@@ -443,5 +448,54 @@ def fun_dropdown_embed(interaction: nextcord.Interaction, preferred_view: str):
             f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`message`\n"
             f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
             f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n\n"
+            f"**This is the mobile version of the help menu. Please use the desktop version for a better experience.**",
+        ).set_footer(text="Sersi Help")
+
+
+def poll_dropdown_embed(preferred_view: str):
+    if preferred_view == "desktop":
+        return SersiEmbed(
+            title="Sersi Help Menu - Community Commands",
+            description=f"</poll create:1166849339763732581>\n"
+            f"{CONFIG.emotes.blank}**Required Role**: `None`\n"
+            f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`query: The question to ask.`\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`type: The type of poll to create.`\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Single Choice.`\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Multiple Choice.`\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`option1: The first option for the poll.`\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`option2: The second option for the poll.`\n"
+            f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`option3`\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`option4`\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`option5`\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`option6`\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`option7`\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`option8`\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`option9`\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`option10`\n"
+            f"{CONFIG.emotes.blank}**Description**:\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Create a poll.`",
+        ).set_footer(text="Sersi Help")
+
+    else:
+        return SersiEmbed(
+            title="Sersi Help Menu - Community Commands",
+            description=f"</poll create:1168667156251164773>\n"
+            f"{CONFIG.emotes.blank}**Required Role**: `None`\n"
+            f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`query`\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`type`\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`option1`\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`option2`\n"
+            f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`option3`\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`option4`\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`option5`\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`option6`\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`option7`\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`option8`\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`option9`\n"
+            f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`option10`\n"
             f"**This is the mobile version of the help menu. Please use the desktop version for a better experience.**",
         ).set_footer(text="Sersi Help")
