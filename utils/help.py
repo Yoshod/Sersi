@@ -141,6 +141,11 @@ class CommunitySelectedDropdown(nextcord.ui.Select):
                     value="timer",
                     description="Commands relating to timers.",
                 ),
+                nextcord.SelectOption(
+                    label="Voice",
+                    value="voice",
+                    description="Commands relating to voice features.",
+                ),
             ],
             custom_id=encode_button_id(
                 "community",
@@ -609,6 +614,35 @@ class SersiHelpEmbeds:
                 f"{CONFIG.emotes.blank}**Required Role**: `None`\n"
                 f"{CONFIG.emotes.blank}**Required Arguments**:\n"
                 f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`time_minutes`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"**This is the mobile version of the help menu. Please use the desktop version for a better experience.**",
+            ).set_footer(text="Sersi Help")
+
+    @staticmethod
+    def voice_dropdown_embed(interaction: nextcord.Interaction, preferred_view: str):
+        if preferred_view == "desktop":
+            return SersiEmbed(
+                title="Sersi Help Menu - Community Commands",
+                description=f"</mass_move:1172948462652903454>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`current: The channel to move users from.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`target: The channel to move users to.`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Mass move members from one VC to another.`",
+            ).set_footer(text="Sersi Help")
+
+        else:
+            return SersiEmbed(
+                title="Sersi Help Menu - Community Commands",
+                description=f"</mass_move:1172948462652903454>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.staff).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`current`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`target`\n"
                 f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
                 f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
                 f"**This is the mobile version of the help menu. Please use the desktop version for a better experience.**",
