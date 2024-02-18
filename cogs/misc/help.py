@@ -6,11 +6,7 @@ from utils.base import decode_button_id, decode_snowflake
 from utils.help import (
     HelpView,
     verify_author,
-    adult_dropdown_embed,
-    community_selected_embed,
-    fun_dropdown_embed,
-    poll_dropdown_embed,
-    suggestion_dropdown_embed,
+    SersiHelpEmbeds as SersiHelp,
 )
 from utils.sersi_embed import SersiEmbed
 from utils.config import Configuration
@@ -102,7 +98,7 @@ class Help(commands.Cog):
                         decode_snowflake(kwargs["embed_message_id"])
                     )
                     await message.edit(
-                        embed=community_selected_embed(
+                        embed=SersiHelp.community_selected_embed(
                             interaction, kwargs["preferred_view"]
                         ),
                         view=HelpView(
@@ -148,7 +144,7 @@ class Help(commands.Cog):
                         decode_snowflake(kwargs["embed_message_id"])
                     )
                     await message.edit(
-                        embed=adult_dropdown_embed(
+                        embed=SersiHelp.adult_dropdown_embed(
                             interaction, kwargs["preferred_view"]
                         ),
                         view=HelpView(
@@ -164,7 +160,9 @@ class Help(commands.Cog):
                         decode_snowflake(kwargs["embed_message_id"])
                     )
                     await message.edit(
-                        embed=fun_dropdown_embed(interaction, kwargs["preferred_view"]),
+                        embed=SersiHelp.fun_dropdown_embed(
+                            interaction, kwargs["preferred_view"]
+                        ),
                         view=HelpView(
                             selected_type="community",
                             embed_message_id=message.id,
@@ -178,7 +176,7 @@ class Help(commands.Cog):
                         decode_snowflake(kwargs["embed_message_id"])
                     )
                     await message.edit(
-                        embed=poll_dropdown_embed(kwargs["preferred_view"]),
+                        embed=SersiHelp.poll_dropdown_embed(kwargs["preferred_view"]),
                         view=HelpView(
                             selected_type="community",
                             embed_message_id=message.id,
@@ -192,7 +190,7 @@ class Help(commands.Cog):
                         decode_snowflake(kwargs["embed_message_id"])
                     )
                     await message.edit(
-                        embed=suggestion_dropdown_embed(
+                        embed=SersiHelp.suggestion_dropdown_embed(
                             interaction, kwargs["preferred_view"]
                         ),
                         view=HelpView(
