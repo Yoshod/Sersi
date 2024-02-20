@@ -121,6 +121,11 @@ def ignored_message(
         return True  # ignore specified categories
     if ignore_other_guilds and message.guild.id != config.guilds.main:
         return True  # ignore other guilds
+
+    match message.content:
+        case "<:sersisuccess:979066662856822844> The help menu has been updated.":
+            return True
+
     return False
 
 
