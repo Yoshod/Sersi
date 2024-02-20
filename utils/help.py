@@ -221,6 +221,16 @@ class MiscSelectedDropdown(nextcord.ui.Select):
                     value="staff_5",
                     description="Commands relating to staff management features.",
                 ),
+                nextcord.SelectOption(
+                    label="Tickets (I)",
+                    value="tickets_1",
+                    description="Commands relating to ticket features.",
+                ),
+                nextcord.SelectOption(
+                    label="Tickets (II)",
+                    value="tickets_2",
+                    description="Commands relating to ticket features.",
+                ),
             ],
             custom_id=encode_button_id(
                 "misc",
@@ -1439,5 +1449,135 @@ class SersiHelpEmbeds:
                 f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`reason`\n"
                 f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
                 f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`bypass_reason`\n"
+                f"**This is the mobile version of the help menu. Please use the desktop version for a better experience.**",
+            ).set_footer(text="Sersi Help")
+
+    @staticmethod
+    def ticket_dropdown_embed_1(interaction: nextcord.Interaction, preferred_view: str):
+        if preferred_view == "desktop":
+            return SersiEmbed(
+                title="Sersi Help Menu - Ticket Commands",
+                description=f"</ticket audit:1169396755788468345>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.staff).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`ticket: The ticket ID or channel to audit.`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Audit a ticket.`\n\n"
+                f"</ticket close:1169396755788468345>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.staff).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`closing_remarks: The remarks for closing the ticket.`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`ticket: The ticket ID or channel to close.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`category: The category of the ticket.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`subcategory: The sub category of the ticket.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`send_survey: Whether to send a survey or not.`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Close a ticket.`\n\n"
+                f"</ticket create:1169396755788468345>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: `None`\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`ticket_type: The type of ticket to create.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Moderator`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Moderation Lead`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Community Engagement`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Community Engagement Lead`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Administrator`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`opening_remarks: The remarks for opening the ticket.`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`category: The category of the ticket.`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Create a ticket.`",
+            ).set_footer(text="Sersi Help")
+
+        else:
+            return SersiEmbed(
+                title="Sersi Help Menu - Ticket Commands",
+                description=f"</ticket audit:1169396755788468345>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.staff).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`ticket`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n\n"
+                f"</ticket close:1169396755788468345>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.staff).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`closing_remarks`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`ticket`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`category`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`subcategory`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`send_survey`\n\n"
+                f"</ticket create:1169396755788468345>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: `None`\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`ticket_type`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`opening_remarks`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`category`\n"
+                f"**This is the mobile version of the help menu. Please use the desktop version for a better experience.**",
+            ).set_footer(text="Sersi Help")
+
+    @staticmethod
+    def ticket_dropdown_embed_2(interaction: nextcord.Interaction, preferred_view: str):
+        if preferred_view == "desktop":
+            return SersiEmbed(
+                title="Sersi Help Menu - Ticket Commands",
+                description=f"</ticket escalate:1169396755788468345>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.staff).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`escalation_level: The level of escalation.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Moderator`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Moderation Lead`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Community Engagement`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Community Engagement Lead`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Administrator`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`ticket: The ticket ID or channel to escalate.`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Escalate a ticket.`\n\n"
+                f"</ticket info:1169396755788468345>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.staff).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`ticket: The ticket ID or channel to get info on.`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Get info on a ticket.`\n\n"
+                f"</ticket recategorize:1169396755788468345>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.staff).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`category: The new category for the ticket.`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`subcategory: The new subcategory for the ticket.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`ticket: The ticket ID or channel to recategorize.`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Recategorize a ticket.`",
+            ).set_footer(text="Sersi Help")
+
+        else:
+            return SersiEmbed(
+                title="Sersi Help Menu - Ticket Commands",
+                description=f"</ticket escalate:1169396755788468345>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.staff).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`escalation_level`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`ticket`\n\n"
+                f"</ticket info:1169396755788468345>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.staff).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`ticket`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n\n"
+                f"</ticket recategorize:1169396755788468345>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.staff).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`category`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`subcategory`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`ticket`\n"
                 f"**This is the mobile version of the help menu. Please use the desktop version for a better experience.**",
             ).set_footer(text="Sersi Help")
