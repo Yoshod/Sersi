@@ -196,6 +196,31 @@ class MiscSelectedDropdown(nextcord.ui.Select):
                     value="help",
                     description="Commands relating to help features.",
                 ),
+                nextcord.SelectOption(
+                    label="Staff Management (I)",  # This is due to the 4096 character limit on the description
+                    value="staff_1",
+                    description="Commands relating to staff management features.",
+                ),
+                nextcord.SelectOption(
+                    label="Staff Management (II)",
+                    value="staff_2",
+                    description="Commands relating to staff management features.",
+                ),
+                nextcord.SelectOption(
+                    label="Staff Management (III)",
+                    value="staff_3",
+                    description="Commands relating to staff management features.",
+                ),
+                nextcord.SelectOption(
+                    label="Staff Management (IV)",
+                    value="staff_4",
+                    description="Commands relating to staff management features.",
+                ),
+                nextcord.SelectOption(
+                    label="Staff Management (V)",
+                    value="staff_5",
+                    description="Commands relating to staff management features.",
+                ),
             ],
             custom_id=encode_button_id(
                 "misc",
@@ -1062,5 +1087,357 @@ class SersiHelpEmbeds:
                 f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`command`\n"
                 f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
                 f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`view_type`\n"
+                f"**This is the mobile version of the help menu. Please use the desktop version for a better experience.**",
+            ).set_footer(text="Sersi Help")
+
+    @staticmethod
+    def staff_management_embed_1(
+        interaction: nextcord.Interaction, preferred_view: str
+    ):
+        if preferred_view == "desktop":
+            return SersiEmbed(
+                title="Sersi Help Menu - Staff Management",
+                description=f"</staff add legacy_staff:1207465701866995742>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.dark_moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`member: The user to add to the staff.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`branch: The branch to add the user to.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`role: The role to add the user to.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`added_by: The user who added the user to the staff.`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`mentor: The mentor for the user if they had one.`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Add an existing staff member to the staff system.`\n\n"
+                f"</staff add trial_moderator:1207465701866995742>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.senior_moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`member: The user to add to the staff.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`mentor: The mentor for the user.`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Add a trial moderator to the staff system.`\n\n"
+                f"</staff add promote:1207465701866995742>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.senior_moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`member: The user to promote.`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Promote a trial moderator to moderator.`\n\n"
+                f"</staff add community_engagement:1207465701866995742>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.senior_moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`member: The user to add to the staff.`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Add a community engagement member to the staff system.`",
+            ).set_footer(text="Sersi Help")
+
+        else:
+            return SersiEmbed(
+                title="Sersi Help Menu - Staff Management",
+                description=f"</staff add legacy_staff:1207465701866995742>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.dark_moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`member`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`branch`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`role`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`added_by`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`mentor`\n\n"
+                f"</staff add trial_moderator:1207465701866995742>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.senior_moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`member`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`mentor`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n\n"
+                f"</staff add promote:1207465701866995742>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.senior_moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`member`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n\n"
+                f"</staff add community_engagement:1207465701866995742>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.senior_moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`member`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"**This is the mobile version of the help menu. Please use the desktop version for a better experience.**",
+            ).set_footer(text="Sersi Help")
+
+    @staticmethod
+    def staff_management_embed_2(
+        interaction: nextcord.Interaction, preferred_view: str
+    ):
+        if preferred_view == "desktop":
+            return SersiEmbed(
+                title="Sersi Help Menu - Staff Management",
+                description=f"</staff add reinstate_moderator:1207465701866995742>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.senior_moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`member: The user to reinstate.`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Reinstate a moderator to the staff system.`\n\n"
+                f"</staff add transfer:1207465701866995742>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.dark_moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`member: The user to transfer.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`branch: The branch to transfer the user to.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`role: The role to transfer the user to.`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Transfer a staff member to a different branch.`\n\n"
+                f"</staff trial_mod_review:1207465701866995742>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`member: The user to review.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`review_type: The type of review.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}{CONFIG.emotes.blank}`First Review`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Second Review`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Third Review`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Fourth Review`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Fifth Review`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Sixth Review`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`outcome: The outcome of the review.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Pass`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Fail`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`comment: The comment for the review.`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Review a trial moderator.`",
+            ).set_footer(text="Sersi Help")
+
+        else:
+            return SersiEmbed(
+                title="Sersi Help Menu - Staff Management",
+                description=f"</staff add reinstate_moderator:1207465701866995742>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.senior_moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`member`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n\n"
+                f"</staff add transfer:1207465701866995742>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.dark_moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`member`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`branch`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`role`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n\n"
+                f"</staff trial_mod_review:1207465701866995742>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`member`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`review_type`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`outcome`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`comment`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"**This is the mobile version of the help menu. Please use the desktop version for a better experience.**",
+            ).set_footer(text="Sersi Help")
+
+    @staticmethod
+    def staff_management_embed_3(
+        interaction: nextcord.Interaction, preferred_view: str
+    ):
+        if preferred_view == "desktop":
+            return SersiEmbed(
+                title="Sersi Help Menu - Staff Management",
+                description=f"</staff blacklist add:1207465701866995742>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.senior_moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`member: The user to blacklist.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`reason: The reason for blacklisting the user.`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Blacklist a user from the staff system.`\n\n"
+                f"</staff blacklist remove:1207465701866995742>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.dark_moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`member: The user to remove from the blacklist.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`reason: The reason for removing the user from the blacklist.`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Remove a user from the staff blacklist.`\n\n"
+                f"</staff remove discharge:1207465701866995742>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.senior_moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`member: The user to discharge.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`reason: The reason for discharging the user.`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`bypass_reason: To bypass the dual custody system.`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Discharge a user from the staff system.`\n\n"
+                f"</staff remove retire:1207465701866995742>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.staff).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`reason: The reason for retiring.`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`member: The user to retire.`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Retire from the staff system.`",
+            ).set_footer(text="Sersi Help")
+
+        else:
+            return SersiEmbed(
+                title="Sersi Help Menu - Staff Management",
+                description=f"</staff blacklist add:1207465701866995742>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.senior_moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`member`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`reason`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n\n"
+                f"</staff blacklist remove:1207465701866995742>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.dark_moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`member`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`reason`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n\n"
+                f"</staff remove discharge:1207465701866995742>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.senior_moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`member`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`reason`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`bypass_reason`\n\n"
+                f"</staff remove retire:1207465701866995742>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.staff).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`reason`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`member`\n"
+                f"**This is the mobile version of the help menu. Please use the desktop version for a better experience.**",
+            ).set_footer(text="Sersi Help")
+
+    @staticmethod
+    def staff_management_embed_4(
+        interaction: nextcord.Interaction, preferred_view: str
+    ):
+        if preferred_view == "desktop":
+            return SersiEmbed(
+                title="Sersi Help Menu - Staff Management",
+                description=f"</staff modify mod_record:1207465701866995742>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.dark_moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`member: The user to modify the record of.`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`mentor: The mentor for the user.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`trial_start_day: The day the trial started.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`trial_start_month: The month the trial started.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`trial_start_year: The year the trial started.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`trial_end_day: The day the trial ended.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`trial_end_month: The month the trial ended.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`trial_end_year: The year the trial ended.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`trial_passed: The outcome of the trial.`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Modify the moderator record of a user.`\n\n"
+                f"</staff modify staff_record:1207465701866995742>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.dark_moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`member: The user to modify the record of.`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`branch: The branch the user is in.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`role: The role the user has.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`added_by: The user who added the user to the staff.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`active: The status of the user.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`left_day: The day the user left.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`left_month: The month the user left.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`left_year: The year the user left.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`removed_by: The user who removed the user from the staff.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`discharge_type: The type of discharge.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`discharge_reason: The reason for the discharge.`\n\n"
+                f"</staff modify trial_review:1207465701866995742>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.senior_moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`member: The user to modify the review of.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`review_type: The type of review.`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`outcome: The outcome of the review.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`comment: The comment for the review.`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Modify the trial review of a user.`",
+            ).set_footer(text="Sersi Help")
+
+        else:
+            return SersiEmbed(
+                title="Sersi Help Menu - Staff Management",
+                description=f"</staff modify mod_record:1207465701866995742>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.dark_moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`member`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`mentor`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`trial_start_day`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`trial_start_month`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`trial_start_year`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`trial_end_day`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`trial_end_month`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`trial_end_year`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`trial_passed`\n\n"
+                f"</staff modify staff_record:1207465701866995742>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.dark_moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`member`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`branch`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`role`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`added_by`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`active`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`left_day`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`left_month`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`left_year`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`removed_by`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`discharge_type`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`discharge_reason`\n"
+                f"</staff modify trial_review:1207465701866995742>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.senior_moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`member`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`review_type`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`outcome`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`comment`\n\n"
+                f"**This is the mobile version of the help menu. Please use the desktop version for a better experience.**",
+            ).set_footer(text="Sersi Help")
+
+    @staticmethod
+    def staff_management_embed_5(
+        interaction: nextcord.Interaction, preferred_view: str
+    ):
+        if preferred_view == "desktop":
+            return SersiEmbed(
+                title="Sersi Help Menu - Staff Management",
+                description=f"</staff revoke_honoured_member:1207465701866995742>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.senior_moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`member: The user to revoke the role from.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`reason: The reason for revoking the role.`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`bypass_reason: To bypass the dual custody system.`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Revoke the honoured member role from a user.`",
+            ).set_footer(text="Sersi Help")
+
+        else:
+            return SersiEmbed(
+                title="Sersi Help Menu - Staff Management",
+                description=f"</staff revoke_honoured_member:1207465701866995742>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.senior_moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`member`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`reason`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`bypass_reason`\n"
                 f"**This is the mobile version of the help menu. Please use the desktop version for a better experience.**",
             ).set_footer(text="Sersi Help")
