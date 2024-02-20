@@ -116,12 +116,19 @@ class Staff(commands.Cog):
             )
             return
 
-        if (
-            not determine_staff_member(mentor.id).branch == Branch.MOD.value
-            and not determine_staff_member(mentor.id).branch == Branch.ADMIN.value
-        ):
+        try:
+            if (
+                not determine_staff_member(mentor.id).branch == Branch.MOD.value
+                and not determine_staff_member(mentor.id).branch == Branch.ADMIN.value
+            ):
+                await interaction.response.send_message(
+                    f"{self.config.emotes.fail} The mentor is not on the Moderation Team."
+                )
+                return
+
+        except AttributeError:
             await interaction.response.send_message(
-                f"{self.config.emotes.fail} The mentor is not on the Moderation Team."
+                f"{self.config.emotes.fail} The mentor is not on the Staff Team."
             )
             return
 
