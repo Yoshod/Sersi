@@ -256,6 +256,16 @@ class ModerationSelectedDropdown(nextcord.ui.Select):
                     value="applications",
                     description="Commands relating to application features.",
                 ),
+                nextcord.SelectOption(
+                    label="Archive",
+                    value="archive",
+                    description="Commands relating to channel archiving features.",
+                ),
+                nextcord.SelectOption(
+                    label="Ban",
+                    value="ban",
+                    description="Commands relating to banning features.",
+                ),
             ],
             custom_id=encode_button_id(
                 "moderation",
@@ -1653,6 +1663,88 @@ class SersiHelpEmbeds:
                 f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
                 f"{CONFIG.emotes.blank}**Required Arguments**:\n"
                 f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`user`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"**This is the mobile version of the help menu. Please use the desktop version for a better experience.**",
+            ).set_footer(text="Sersi Help")
+
+    @staticmethod
+    def archive_dropdown_embed(interaction: nextcord.Interaction, preferred_view: str):
+        if preferred_view == "desktop":
+            return SersiEmbed(
+                title="Sersi Help Menu - Archive Commands",
+                description=f"</archive:1166849338404778056>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.dark_moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`logged_channel: The channel to archive.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`output_channel: The channel to output the archive to.`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Archive a channel.`",
+            ).set_footer(text="Sersi Help")
+
+        else:
+            return SersiEmbed(
+                title="Sersi Help Menu - Archive Commands",
+                description=f"</archive:1166849338404778056>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {CONFIG.permission_roles.dark_moderator}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`logged_channel`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`output_channel`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"**This is the mobile version of the help menu. Please use the desktop version for a better experience.**",
+            ).set_footer(text="Sersi Help")
+
+    @staticmethod
+    def ban_dropdown_embed(interaction: nextcord.Interaction, preferred_view: str):
+        if preferred_view == "desktop":
+            return SersiEmbed(
+                title="Sersi Help Menu - Ban Commands",
+                description=f"</ban add:1169383803219882126>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`offender: The member to ban.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`offence: The reason for the ban.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`detail: The details of the ban.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`type: The type of ban.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Immediate Ban`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Vote Ban`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`timeout: Whether to timeout during a vote ban.`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Ban a member.`\n\n"
+                f"</ban remove:1169383803219882126>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.senior_moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`offender: The member to unban.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`reason: The reason for the unban.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`ban_id: The ID of the ban to remove.`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Unban a member.`",
+            ).set_footer(text="Sersi Help")
+
+        else:
+            return SersiEmbed(
+                title="Sersi Help Menu - Ban Commands",
+                description=f"</ban add:1169383803219882126>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`offender`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`offence`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`detail`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`type`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`timeout`\n\n"
+                f"</ban remove:1169383803219882126>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.senior_moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`offender`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`reason`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`ban_id`\n"
                 f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
                 f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
                 f"**This is the mobile version of the help menu. Please use the desktop version for a better experience.**",
