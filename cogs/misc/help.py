@@ -129,7 +129,20 @@ class Help(commands.Cog):
                     )
 
                 case "moderation":
-                    pass
+                    message = await interaction.channel.fetch_message(
+                        decode_snowflake(kwargs["embed_message_id"])
+                    )
+                    await message.edit(
+                        embed=SersiHelp.moderation_selected_embed(
+                            kwargs["preferred_view"]
+                        ),
+                        view=HelpView(
+                            selected_type="moderation",
+                            embed_message_id=message.id,
+                            author_id=interaction.user.id,
+                            preferred_view=kwargs["preferred_view"],
+                        ),
+                    )
                 case "close":
                     message = await interaction.channel.fetch_message(
                         decode_snowflake(kwargs["embed_message_id"])
@@ -447,6 +460,27 @@ class Help(commands.Cog):
                         ),
                         view=HelpView(
                             selected_type="misc",
+                            embed_message_id=message.id,
+                            author_id=interaction.user.id,
+                            preferred_view=kwargs["preferred_view"],
+                        ),
+                    )
+
+        elif action == "moderation":
+            selected_dropdown = interaction.data["values"][0]
+
+            match selected_dropdown:
+                case "applications":
+                    message = await interaction.channel.fetch_message(
+                        decode_snowflake(kwargs["embed_message_id"])
+                    )
+
+                    await message.edit(
+                        embed=SersiHelp.application_dropdown_embed(
+                            interaction, kwargs["preferred_view"]
+                        ),
+                        view=HelpView(
+                            selected_type="moderation",
                             embed_message_id=message.id,
                             author_id=interaction.user.id,
                             preferred_view=kwargs["preferred_view"],

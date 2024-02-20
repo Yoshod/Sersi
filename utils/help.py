@@ -241,6 +241,31 @@ class MiscSelectedDropdown(nextcord.ui.Select):
         )
 
 
+class ModerationSelectedDropdown(nextcord.ui.Select):
+    def __init__(
+        self,
+        embed_message_id: int | None = None,
+        author_id: int = 0,
+        preferred_view: str = "desktop",
+    ):
+        super().__init__(
+            placeholder="Select a moderation command category",
+            options=[
+                nextcord.SelectOption(
+                    label="Applications",
+                    value="applications",
+                    description="Commands relating to application features.",
+                ),
+            ],
+            custom_id=encode_button_id(
+                "moderation",
+                embed_message_id=encode_snowflake(embed_message_id),
+                author_id=encode_snowflake(author_id),
+                preferred_view=preferred_view,
+            ),
+        )
+
+
 class HelpView(nextcord.ui.View):
     def __init__(
         self,
@@ -350,6 +375,13 @@ class HelpView(nextcord.ui.View):
                     HelpCloseButton(
                         embed_message_id=embed_message_id,
                         author_id=author_id,
+                    )
+                )
+                self.add_item(
+                    ModerationSelectedDropdown(
+                        embed_message_id=embed_message_id,
+                        author_id=author_id,
+                        preferred_view=preferred_view,
                     )
                 )
             case _:
@@ -1579,5 +1611,49 @@ class SersiHelpEmbeds:
                 f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
                 f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`subcategory`\n"
                 f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`ticket`\n"
+                f"**This is the mobile version of the help menu. Please use the desktop version for a better experience.**",
+            ).set_footer(text="Sersi Help")
+
+    @staticmethod
+    def moderation_selected_embed(preferred_view: str):
+        if preferred_view == "desktop":
+            return SersiEmbed(
+                title="Sersi Help Menu - Moderation Commands",
+                description="Please select a category from the dropdown to view commands.",
+            ).set_footer(text="Sersi Help")
+
+        else:
+            return SersiEmbed(
+                title="Sersi Help Menu - Moderation Commands",
+                description="Please select a category from the dropdown to view commands.\n\n"
+                "This is the mobile version of the help menu. Please use the desktop version for a better experience.",
+            ).set_footer(text="Sersi Help")
+
+    @staticmethod
+    def application_dropdown_embed(
+        interaction: nextcord.Interaction, preferred_view: str
+    ):
+        if preferred_view == "desktop":
+            return SersiEmbed(
+                title="Sersi Help Menu - Application Commands",
+                description=f"</moderator_invite:1175169053606809620>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`user: The member to invite.`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Invite a user to apply to the moderation team.`",
+            ).set_footer(text="Sersi Help")
+
+        else:
+            return SersiEmbed(
+                title="Sersi Help Menu - Application Commands",
+                description=f"</moderator_invite:1175169053606809620>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`user`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
                 f"**This is the mobile version of the help menu. Please use the desktop version for a better experience.**",
             ).set_footer(text="Sersi Help")
