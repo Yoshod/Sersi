@@ -306,6 +306,11 @@ class ModerationSelectedDropdown(nextcord.ui.Select):
                     value="slur_detection",
                     description="Commands relating to slur detection features.",
                 ),
+                nextcord.SelectOption(
+                    label="Timeout",
+                    value="timeout",
+                    description="Commands relating to timeout features.",
+                ),
             ],
             custom_id=encode_button_id(
                 "moderation",
@@ -2369,5 +2374,57 @@ class SersiHelpEmbeds:
                 f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`slur`\n"
                 f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
                 f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`bypass_reason`\n"
+                f"**This is the mobile version of the help menu. Please use the desktop version for a better experience.**",
+            ).set_footer(text="Sersi Help")
+
+    @staticmethod
+    def timeout_dropdown_embed(interaction: nextcord.Interaction, preferred_view: str):
+        if preferred_view == "desktop":
+            return SersiEmbed(
+                title="Sersi Help Menu - Timeout Commands",
+                description=f"</timeout add:1169383800090923068>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`offender: The member to timeout.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`offence: The offence for the timeout.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`detail: The details for the timeout.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`duration: The duration of the timeout.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`timespan: The timespan of the timeout.`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Timeout a user.`\n\n"
+                f"</timeout remove:1169383800090923068>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`case_id: The case ID of the timeout to remove.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`reason: The reason for the removal.`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Remove a timeout.`",
+            ).set_footer(text="Sersi Help")
+
+        else:
+
+            return SersiEmbed(
+                title="Sersi Help Menu - Timeout Commands",
+                description=f"</timeout add:1169383800090923068>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`offender`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`offence`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`detail`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`duration`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`timespan`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n\n"
+                f"</timeout remove:1169383800090923068>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`case_id`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`reason`\n"
+                f"**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
                 f"**This is the mobile version of the help menu. Please use the desktop version for a better experience.**",
             ).set_footer(text="Sersi Help")
