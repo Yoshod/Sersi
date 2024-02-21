@@ -286,6 +286,11 @@ class ModerationSelectedDropdown(nextcord.ui.Select):
                     value="notes",
                     description="Commands relating to note features.",
                 ),
+                nextcord.SelectOption(
+                    label="Probation",
+                    value="probation",
+                    description="Commands relating to probation features.",
+                ),
             ],
             custom_id=encode_button_id(
                 "moderation",
@@ -2049,5 +2054,53 @@ class SersiHelpEmbeds:
                 f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`user`\n"
                 f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`author`\n"
                 f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`page`\n"
+                f"**This is the mobile version of the help menu. Please use the desktop version for a better experience.**",
+            ).set_footer(text="Sersi Help")
+
+    @staticmethod
+    def probation_dropdown_embed(
+        interaction: nextcord.Interaction, preferred_view: str
+    ):
+        if preferred_view == "desktop":
+            return SersiEmbed(
+                title="Sersi Help Menu - Probation Commands",
+                description=f"</probation add:1169383712593563722>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`member: The member to add to probation.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`reason: The reason for the probation.`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`bypass_reason: Whether to bypass dual custody.`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Add a member to probation.`\n\n"
+                f"</probation remove:1169383712593563722>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`member: The member to remove from probation.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`reason: The reason for the removal.`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`bypass_reason: Whether to bypass dual custody.`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Remove a member from probation.`",
+            ).set_footer(text="Sersi Help")
+
+        else:
+
+            return SersiEmbed(
+                title="Sersi Help Menu - Probation Commands",
+                description=f"</probation add:1169383712593563722>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`member`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`reason`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`bypass_reason`\n\n"
+                f"</probation remove:1169383712593563722>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`member`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`reason`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`bypass_reason`\n"
                 f"**This is the mobile version of the help menu. Please use the desktop version for a better experience.**",
             ).set_footer(text="Sersi Help")
