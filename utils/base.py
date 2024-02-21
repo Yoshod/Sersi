@@ -251,3 +251,24 @@ def get_member_level(config: Configuration, member: nextcord.Member) -> int:
         if level_role in member.roles:
             return level
     return 0
+
+
+def serialise_timedelta(duration: int, timespan: str) -> str:
+    td = convert_to_timedelta(timespan, duration)
+
+    if td is None:
+        raise ValueError("Invalid duration/timespan combination")
+
+    total_seconds = td.total_seconds()
+    hours, remainder = divmod(total_seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    return f"PT{int(hours)}H{int(minutes)}M{int(seconds)}S"
+
+
+def deserialise_timedelta(td_str: str):
+    parts = td_str.strip("PT").strip("S").split("H")
+    hours = int(parts[0])
+    minutes, seconds = parts[1].split("M")
+    minutes = int(minutes)
+    seconds = int(seconds)
+    return datetime.timedelta(hours=hours, minutes=minutes, seconds=seconds)
