@@ -907,7 +907,7 @@ class Staff(commands.Cog):
         await member.send(embed=review_embed)
 
     @add_to_staff.subcommand(description="Add legacy staff member to the database")
-    async def add_legacy_staff(
+    async def legacy_staff(
         self,
         interaction: nextcord.Interaction,
         member: nextcord.Member = SlashOption(
