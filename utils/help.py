@@ -296,6 +296,11 @@ class ModerationSelectedDropdown(nextcord.ui.Select):
                     value="purge",
                     description="Commands relating to purging features.",
                 ),
+                nextcord.SelectOption(
+                    label="Reformation",
+                    value="reformation",
+                    description="Commands relating to reformation features.",
+                ),
             ],
             custom_id=encode_button_id(
                 "moderation",
@@ -2149,5 +2154,115 @@ class SersiHelpEmbeds:
                 f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`time`\n"
                 f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
                 f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`member`\n"
+                f"**This is the mobile version of the help menu. Please use the desktop version for a better experience.**",
+            ).set_footer(text="Sersi Help")
+
+    @staticmethod
+    def reformation_dropdown_embed(
+        interaction: nextcord.Interaction, preferred_view: str
+    ):
+        if preferred_view == "desktop":
+            return SersiEmbed(
+                title="Sersi Help Menu - Reformation Commands",
+                description=f"</reformation add:1169383883524022375>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`member: The member to reform.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`offence: The offence for the reformation.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`details: The details for the reformation.`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Add a member to the reformation cente.`\n\n"
+                f"</reformation delete_cell:1169383883524022375>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Delete a reformation cell.`\n\n"
+                f"</reformation query_failed:1169383883524022375>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`member: The member to query.`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`reason: The reason for the query.`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Query if attempts to reform should continue.`\n\n"
+                f"</reformation query_release:1169383883524022375>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`member: The member to query.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`reason: The reason for the query.`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Query if a member should be released from the reformation center.`\n\n"
+                f"</reformation release:1169383883524022375>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.senior_moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`member: The member to release.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`reason: The reason for the release.`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Release a member from the reformation center.`\n\n"
+                f"</reformation remove_reformist:1169383883524022375>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`member: The member to remove.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`reason: The reason for the removal.`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Remove a member from the reformation center.`",
+            ).set_footer(text="Sersi Help")
+
+        else:
+
+            return SersiEmbed(
+                title="Sersi Help Menu - Reformation Commands",
+                description=f"</reformation add:1169383883524022375>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`member`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`offence`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`details`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n\n"
+                f"</reformation delete_cell:1169383883524022375>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n\n"
+                f"</reformation query_failed:1169383883524022375>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`member`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`reason`\n\n"
+                f"</reformation query_release:1169383883524022375>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`member`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`reason`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n\n"
+                f"</reformation release:1169383883524022375>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.senior_moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`member`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`reason`\n"
+                f"**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n\n"
+                f"</reformation remove_reformist:1169383883524022375>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`member`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`reason`\n"
+                f"**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
                 f"**This is the mobile version of the help menu. Please use the desktop version for a better experience.**",
             ).set_footer(text="Sersi Help")
