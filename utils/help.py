@@ -316,6 +316,11 @@ class ModerationSelectedDropdown(nextcord.ui.Select):
                     value="warning",
                     description="Commands relating to warning features.",
                 ),
+                nextcord.SelectOption(
+                    label="WhoIs",
+                    value="whois",
+                    description="Commands relating to whois features.",
+                ),
             ],
             custom_id=encode_button_id(
                 "moderation",
@@ -2493,6 +2498,34 @@ class SersiHelpEmbeds:
                 f"{CONFIG.emotes.blank}**Required Arguments**:\n"
                 f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`case_id`\n"
                 f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`reason`\n"
+                f"**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"**This is the mobile version of the help menu. Please use the desktop version for a better experience.**",
+            ).set_footer(text="Sersi Help")
+
+    @staticmethod
+    def whois_dropdown_embed(interaction: nextcord.Interaction, preferred_view: str):
+        if preferred_view == "desktop":
+            return SersiEmbed(
+                title="Sersi Help Menu - WhoIs Commands",
+                description=f"</whois:1170485961772257330>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`user: The member to query.`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Query a user.`",
+            ).set_footer(text="Sersi Help")
+
+        else:
+
+            return SersiEmbed(
+                title="Sersi Help Menu - WhoIs Commands",
+                description=f"</whois:1170485961772257330>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`user`\n"
                 f"**Optional Arguments**:\n"
                 f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
                 f"**This is the mobile version of the help menu. Please use the desktop version for a better experience.**",
