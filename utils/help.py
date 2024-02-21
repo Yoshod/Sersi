@@ -311,6 +311,11 @@ class ModerationSelectedDropdown(nextcord.ui.Select):
                     value="timeout",
                     description="Commands relating to timeout features.",
                 ),
+                nextcord.SelectOption(
+                    label="Warning",
+                    value="warning",
+                    description="Commands relating to warning features.",
+                ),
             ],
             custom_id=encode_button_id(
                 "moderation",
@@ -2421,6 +2426,70 @@ class SersiHelpEmbeds:
                 f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n\n"
                 f"</timeout remove:1169383800090923068>\n"
                 f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`case_id`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`reason`\n"
+                f"**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"**This is the mobile version of the help menu. Please use the desktop version for a better experience.**",
+            ).set_footer(text="Sersi Help")
+
+    @staticmethod
+    def warn_dropdown_embed(interaction: nextcord.Interaction, preferred_view: str):
+        if preferred_view == "desktop":
+            return SersiEmbed(
+                title="Sersi Help Menu - Warn Commands",
+                description=f"</warn add:1169383880961314827>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`offender: The member to warn.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`offence: The offence for the warning.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`detail: The details for the warning.`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Warn a user.`\n\n"
+                f"</warn deactivate:1169383880961314827>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`case_id: The case ID of the warning to deactivate.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`reason: The reason for the deactivation.`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Deactivate a warning.`\n\n"
+                f"</warn delete:1169383880961314827>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.dark_moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`case_id: The case ID of the warning to delete.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`reason: The reason for the deletion.`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Delete a warning.`",
+            ).set_footer(text="Sersi Help")
+
+        else:
+
+            return SersiEmbed(
+                title="Sersi Help Menu - Warn Commands",
+                description=f"</warn add:1169383880961314827>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`offender`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`offence`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`detail`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n\n"
+                f"</warn deactivate:1169383880961314827>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`case_id`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`reason`\n"
+                f"**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n\n"
+                f"</warn delete:1169383880961314827>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.dark_moderator).mention}\n"
                 f"{CONFIG.emotes.blank}**Required Arguments**:\n"
                 f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`case_id`\n"
                 f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`reason`\n"
