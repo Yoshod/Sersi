@@ -291,6 +291,11 @@ class ModerationSelectedDropdown(nextcord.ui.Select):
                     value="probation",
                     description="Commands relating to probation features.",
                 ),
+                nextcord.SelectOption(
+                    label="Purge",
+                    value="purge",
+                    description="Commands relating to purging features.",
+                ),
             ],
             custom_id=encode_button_id(
                 "moderation",
@@ -2102,5 +2107,47 @@ class SersiHelpEmbeds:
                 f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`reason`\n"
                 f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
                 f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`bypass_reason`\n"
+                f"**This is the mobile version of the help menu. Please use the desktop version for a better experience.**",
+            ).set_footer(text="Sersi Help")
+
+    @staticmethod
+    def purge_dropdown_embed(interaction: nextcord.Interaction, preferred_view: str):
+        if preferred_view == "desktop":
+            return SersiEmbed(
+                title="Sersi Help Menu - Purge Commands",
+                description=f"</purge standard:1166849423788224613>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`amount: The amount of messages to purge.`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`member: The member to purge messages from.`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Purge messages from a channel.`\n\n"
+                f"</purge timed:1166849423788224613>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`time: How many minutes back should be purged.`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`member: The member to purge messages from.`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Purge messages from a channel within a time frame.`",
+            ).set_footer(text="Sersi Help")
+
+        else:
+
+            return SersiEmbed(
+                title="Sersi Help Menu - Purge Commands",
+                description=f"</purge standard:1166849423788224613>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`amount`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`member`\n\n"
+                f"</purge timed:1166849423788224613>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`time`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`member`\n"
                 f"**This is the mobile version of the help menu. Please use the desktop version for a better experience.**",
             ).set_footer(text="Sersi Help")
