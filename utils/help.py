@@ -281,6 +281,11 @@ class ModerationSelectedDropdown(nextcord.ui.Select):
                     value="compliance",
                     description="Commands relating to compliance features.",
                 ),
+                nextcord.SelectOption(
+                    label="Notes",
+                    value="notes",
+                    description="Commands relating to note features.",
+                ),
             ],
             custom_id=encode_button_id(
                 "moderation",
@@ -1966,5 +1971,83 @@ class SersiHelpEmbeds:
                 f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
                 f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
                 f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`case_type`\n"
+                f"**This is the mobile version of the help menu. Please use the desktop version for a better experience.**",
+            ).set_footer(text="Sersi Help")
+
+    @staticmethod
+    def notes_dropdown_embed(interaction: nextcord.Interaction, preferred_view: str):
+        if preferred_view == "desktop":
+            return SersiEmbed(
+                title="Sersi Help Menu - Note Commands",
+                description=f"</notes add:1170530851356950581>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`noted: The member to add the note to.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`note: The note to add.`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Add a note to a member.`\n\n"
+                f"</notes delete:1170530851356950581>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.senior_moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`reason: The reason for the deletion.`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`note_id: The ID of the note to delete.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`user: The user to delete all notes for.`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Delete a note.`\n\n"
+                f"</notes detail:1170530851356950581>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`note_id: The ID of the note to get details on.`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Get details on a note.`\n\n"
+                f"</notes list:1170530851356950581>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`user: The user to list notes for.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`author: The author to list notes for.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`page: The page to view.`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`List notes.`",
+            ).set_footer(text="Sersi Help")
+
+        else:
+
+            return SersiEmbed(
+                title="Sersi Help Menu - Note Commands",
+                description=f"</notes add:1170530851356950581>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`noted`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`note`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n\n"
+                f"</notes delete:1170530851356950581>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.senior_moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`reason`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`note_id`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`user`\n\n"
+                f"</notes detail:1170530851356950581>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`note_id`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n\n"
+                f"</notes list:1170530851356950581>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`user`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`author`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`page`\n"
                 f"**This is the mobile version of the help menu. Please use the desktop version for a better experience.**",
             ).set_footer(text="Sersi Help")
