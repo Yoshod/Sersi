@@ -266,6 +266,21 @@ class ModerationSelectedDropdown(nextcord.ui.Select):
                     value="ban",
                     description="Commands relating to banning features.",
                 ),
+                nextcord.SelectOption(
+                    label="Cases (I)",
+                    value="cases_1",
+                    description="Commands relating to case features.",
+                ),
+                nextcord.SelectOption(
+                    label="Cases (II)",
+                    value="cases_2",
+                    description="Commands relating to case features.",
+                ),
+                nextcord.SelectOption(
+                    label="Compliance",
+                    value="compliance",
+                    description="Commands relating to compliance features.",
+                ),
             ],
             custom_id=encode_button_id(
                 "moderation",
@@ -1747,5 +1762,209 @@ class SersiHelpEmbeds:
                 f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`ban_id`\n"
                 f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
                 f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"**This is the mobile version of the help menu. Please use the desktop version for a better experience.**",
+            ).set_footer(text="Sersi Help")
+
+    @staticmethod
+    def cases_dropdown_embed_1(interaction: nextcord.Interaction, preferred_view: str):
+        if preferred_view == "desktop":
+            return SersiEmbed(
+                title="Sersi Help Menu - Case Commands",
+                description=f"</cases detail:1169383795280056370>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`case_id: The ID of the case to get details on.`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`scrubbed: Whether the case is scrubbed or not.`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Get details on a case.`\n\n"
+                f"</cases list:1169383795280056370>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`page: The page to view.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`case_type: The type of case to list.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`moderator: The moderator to list cases for.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`offender: The user to list cases for.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`offence: The offence to list cases for.`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`List cases.`\n\n"
+                f"</cases audit:1169383795280056370>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`case_id: The ID of the case to audit.`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Audit changes to a case.`",
+            ).set_footer(text="Sersi Help")
+
+        else:
+            return SersiEmbed(
+                title="Sersi Help Menu - Case Commands",
+                description=f"</cases detail:1169383795280056370>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`case_id`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`scrubbed`\n\n"
+                f"</cases list:1169383795280056370>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`page`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`case_type`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`moderator`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`offender`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`offence`\n\n"
+                f"</cases audit:1169383795280056370>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`case_id`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"**This is the mobile version of the help menu. Please use the desktop version for a better experience.**",
+            ).set_footer(text="Sersi Help")
+
+    @staticmethod
+    def cases_dropdown_embed_2(interaction: nextcord.Interaction, preferred_view: str):
+        if preferred_view == "desktop":
+            return SersiEmbed(
+                title="Sersi Help Menu - Case Commands",
+                description=f"</cases delete:1169383795280056370>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.dark_moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`case_id: The ID of the case to delete.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`reason: The reason for the deletion.`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Delete a case.`\n\n"
+                f"</cases scrub:1169383795280056370>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.senior_moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`case_id: The ID of the case to scrub.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`reason: The reason for the scrub.`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Scrub a case.`\n\n"
+                f"</cases edit:1169383795280056370>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`case_type: The type of case to edit.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`case_id: The ID of the case to edit.`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`offence: The new offence for the case.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`detail: The new details for the case.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`duration: The new duration for the timeout case.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`timespan: The new timespan for the timeout case.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`state: The new state for the reformation case.`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Edit a case.`",
+            ).set_footer(text="Sersi Help")
+
+        else:
+            return SersiEmbed(
+                title="Sersi Help Menu - Case Commands",
+                description=f"</cases delete:1169383795280056370>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.dark_moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`case_id`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`reason`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n\n"
+                f"</cases scrub:1169383795280056370>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.senior_moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`case_id`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`reason`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n\n"
+                f"</cases edit:1169383795280056370>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`case_type`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`case_id`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`offence`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`detail`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`duration`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`timespan`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`state`\n"
+                f"**This is the mobile version of the help menu. Please use the desktop version for a better experience.**",
+            ).set_footer(text="Sersi Help")
+
+    @staticmethod
+    def compliance_dropdown_embed(
+        interaction: nextcord.Interaction, preferred_view: str
+    ):
+        if preferred_view == "desktop":
+            return SersiEmbed(
+                title="Sersi Help Menu - Compliance Commands",
+                description=f"</moderation_report create custom:1204461791497814087>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.compliance).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`start_day: The day the report starts.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`start_month: The month the report starts.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`start_year: The year the report starts.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`end_day: The day the report ends.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`end_month: The month the report ends.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`end_year: The year the report ends.`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Create a custom moderation report.`\n\n"
+                f"</moderation_report create preset:1204461791497814087>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.compliance).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`preset: The preset to use for the report.`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Month to Date`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Quarter to Date`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Year to Date`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}{CONFIG.emotes.blank}`All Time`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`Create a preset moderation report.`\n\n"
+                f"</moderation_leaderboard:1207748753881043004>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`case_type: The type of case to view the leaderboard for.`\n"
+                f"{CONFIG.emotes.blank}**Description**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`View the moderation leaderboard.`",
+            ).set_footer(text="Sersi Help")
+
+        else:
+
+            return SersiEmbed(
+                title="Sersi Help Menu - Compliance Commands",
+                description=f"</moderation_report create custom:1204461791497814087>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.compliance).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`start_day`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`start_month`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`start_year`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`end_day`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`end_month`\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`end_year`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n\n"
+                f"</moderation_report create preset:1204461791497814087>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.compliance).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`preset`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n\n"
+                f"</moderation_leaderboard:1207748753881043004>\n"
+                f"{CONFIG.emotes.blank}**Required Role**: {interaction.guild.get_role(CONFIG.permission_roles.moderator).mention}\n"
+                f"{CONFIG.emotes.blank}**Required Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`None`\n"
+                f"{CONFIG.emotes.blank}**Optional Arguments**:\n"
+                f"{CONFIG.emotes.blank}{CONFIG.emotes.blank}`case_type`\n"
                 f"**This is the mobile version of the help menu. Please use the desktop version for a better experience.**",
             ).set_footer(text="Sersi Help")

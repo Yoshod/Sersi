@@ -521,6 +521,57 @@ class Help(commands.Cog):
                         ),
                     )
 
+                case "cases_1":
+                    message = await interaction.channel.fetch_message(
+                        decode_snowflake(kwargs["embed_message_id"])
+                    )
+
+                    await message.edit(
+                        embed=SersiHelp.cases_dropdown_embed_1(
+                            interaction, kwargs["preferred_view"]
+                        ),
+                        view=HelpView(
+                            selected_type="moderation",
+                            embed_message_id=message.id,
+                            author_id=interaction.user.id,
+                            preferred_view=kwargs["preferred_view"],
+                        ),
+                    )
+
+                case "cases_2":
+                    message = await interaction.channel.fetch_message(
+                        decode_snowflake(kwargs["embed_message_id"])
+                    )
+
+                    await message.edit(
+                        embed=SersiHelp.cases_dropdown_embed_2(
+                            interaction, kwargs["preferred_view"]
+                        ),
+                        view=HelpView(
+                            selected_type="moderation",
+                            embed_message_id=message.id,
+                            author_id=interaction.user.id,
+                            preferred_view=kwargs["preferred_view"],
+                        ),
+                    )
+
+                case "compliance":
+                    message = await interaction.channel.fetch_message(
+                        decode_snowflake(kwargs["embed_message_id"])
+                    )
+
+                    await message.edit(
+                        embed=SersiHelp.compliance_dropdown_embed(
+                            interaction, kwargs["preferred_view"]
+                        ),
+                        view=HelpView(
+                            selected_type="moderation",
+                            embed_message_id=message.id,
+                            author_id=interaction.user.id,
+                            preferred_view=kwargs["preferred_view"],
+                        ),
+                    )
+
         await interaction.response.send_message(
             f"{CONFIG.emotes.success} The help menu has been updated.",
             ephemeral=True,
