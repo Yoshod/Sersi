@@ -1,24 +1,52 @@
 # nextcord imports
 import nextcord
-from nextcord.ext import commands
+from nextcord.ext import commands, tasks
 
 # other libs
 import datetime
 
 # sersi imports
-from utils.sersi_embed import SersiEmbed
-from utils.base import get_discord_timestamp
+from utils.base import get_discord_timestamp, serialise_timedelta, deserialise_timedelta
 from utils.config import Configuration
 from utils.perms import permcheck, is_mod, is_dark_mod, is_staff, is_cet
+from utils.database import Autopost as AutopostDB, db_session
+from utils.embeds import AutopostData, determine_embed_type
 
 
 class SendButton(nextcord.ui.Button):
-    def __init__(self, channel: nextcord.TextChannel):
+    def __init__(
+        self, channel: nextcord.TextChannel, autopost_data: AutopostData | None
+    ) -> None:
         super().__init__(label="Send Embed", style=nextcord.ButtonStyle.green)
         self.channel = channel
+        self.autopost_data = autopost_data
 
     async def callback(self, interaction: nextcord.Interaction):
-        await self.channel.send(embed=interaction.message.embeds[0])
+        if self.autopost_data:
+            with db_session() as session:
+                session.add(
+                    AutopostDB(
+                        author=self.autopost_data.author,
+                        title=self.autopost_data.title,
+                        description=self.autopost_data.description,
+                        type=self.autopost_data.embed_type,
+                        channel=self.autopost_data.channel,
+                        timedelta_str=self.autopost_data.timedelta,
+                    )
+                )
+                session.commit()
+
+                autopost = (
+                    session.query(AutopostDB)
+                    .order_by(AutopostDB.created.desc())
+                    .first()
+                )
+
+                autopost_id = autopost.autopost_id
+
+        message = await self.channel.send(embed=interaction.message.embeds[0])
+        print("MESSAGE ID:", message.id)
+
         await interaction.message.edit(
             embed=interaction.message.embeds[0].add_field(
                 name="Embed Sent",
@@ -27,7 +55,16 @@ class SendButton(nextcord.ui.Button):
             ),
             view=None,
         )
+
         await interaction.send("Embed sent!", ephemeral=True)
+
+        if self.autopost_data:
+            with db_session() as session:
+                autopost = (
+                    session.query(AutopostDB).filter_by(autopost_id=autopost_id).first()
+                )
+                autopost.last_post_id = message.id
+                session.commit()
 
 
 class CancelButton(nextcord.ui.Button):
@@ -40,10 +77,15 @@ class CancelButton(nextcord.ui.Button):
 
 
 class YesNoView(nextcord.ui.View):
-    def __init__(self, embed_creator: nextcord.Member, channel: nextcord.TextChannel):
+    def __init__(
+        self,
+        embed_creator: nextcord.Member,
+        channel: nextcord.TextChannel,
+        autopost_data: AutopostData | None,
+    ):
         super().__init__(timeout=None)
         self.embed_creator = embed_creator
-        self.add_item(SendButton(channel))
+        self.add_item(SendButton(channel, autopost_data))
         self.add_item(CancelButton())
 
     async def interaction_check(self, interaction: nextcord.Interaction) -> bool:
@@ -54,6 +96,16 @@ class Embeds(commands.Cog):
     def __init__(self, bot: commands.Bot, config: Configuration):
         self.bot = bot
         self.config = config
+
+        if self.bot.is_ready():
+            self.autopost_loop.start(bot=self.bot)
+
+    def cog_unload(self):
+        self.autopost_loop.cancel()
+
+    @commands.Cog.listener()
+    async def on_ready(self):
+        self.autopost_loop.start(bot=self.bot)
 
     @nextcord.slash_command(
         dm_permission=False,
@@ -101,53 +153,9 @@ class Embeds(commands.Cog):
 
         await interaction.response.defer()
 
-        # build embed
-        announcement_embed: nextcord.Embed = SersiEmbed(
-            title=title, description=body, footer="Sersi Announcement"
+        announcement_embed: nextcord.Embed = await determine_embed_type(
+            title, body, embed_type, interaction, self.config
         )
-
-        match embed_type:
-            case "moderator":
-                role: nextcord.Role = interaction.guild.get_role(
-                    self.config.permission_roles.moderator
-                )
-
-                announcement_embed.colour = role.colour
-                if role.icon:
-                    announcement_embed.set_author(
-                        name="Moderator Announcement", icon_url=role.icon.url
-                    )
-                else:
-                    announcement_embed.set_author(name="Moderator Announcement")
-
-            case "admin":
-                role: nextcord.Role = interaction.guild.get_role(
-                    self.config.permission_roles.dark_moderator
-                )
-
-                announcement_embed.colour = role.colour
-                if role.icon:
-                    announcement_embed.set_author(
-                        name="Administration Announcement", icon_url=role.icon.url
-                    )
-                else:
-                    announcement_embed.set_author(name="Administration Announcement")
-
-            case "cet":
-                role: nextcord.Role = interaction.guild.get_role(
-                    self.config.permission_roles.cet
-                )
-
-                announcement_embed.colour = role.colour
-                if role.icon:
-                    announcement_embed.set_author(
-                        name="Community Announcement", icon_url=role.icon.url
-                    )
-                else:
-                    announcement_embed.set_author(name="Community Announcement")
-
-            case "staff":
-                announcement_embed.set_author(name="Staff Announcement")
 
         await interaction.send(
             embeds=[
@@ -159,6 +167,188 @@ class Embeds(commands.Cog):
             ],
             view=YesNoView(interaction.user, channel),
         )
+
+    @embed.subcommand(
+        description="Creates an autopost and sends it somewhere nice repeatedly"
+    )
+    async def autopost(
+        self,
+        interaction: nextcord.Interaction,
+        embed_type: str = nextcord.SlashOption(
+            choices={
+                "Moderator": "moderator",
+                "Administator": "admin",
+                "Community Emgagement": "cet",
+                "Staff": "staff",
+            }
+        ),
+        channel: nextcord.TextChannel = nextcord.SlashOption(
+            description="The Channel to send the Embed to"
+        ),
+        title: str = nextcord.SlashOption(
+            description="The Title of the Embed", max_length=256
+        ),
+        body: str = nextcord.SlashOption(
+            description="The Body of the Embed", max_length=2048
+        ),
+        duration: int = nextcord.SlashOption(
+            name="duration",
+            description="The length of time the embed should be posted for",
+            min_value=1,
+            max_value=40320,
+        ),
+        timespan: str = nextcord.SlashOption(
+            name="timespan",
+            description="The unit of time being used",
+            choices={
+                "Minutes": "m",
+                "Hours": "h",
+            },
+        ),
+    ):
+
+        if timespan == "m" and duration < 1 or duration > 1440:
+            await interaction.send(
+                "Duration must be between 5 and 1440 minutes", ephemeral=True
+            )
+            return
+
+        if timespan == "h" and duration < 1 or duration > 24:
+            await interaction.send(
+                "Duration must be between 1 and 24 hours", ephemeral=True
+            )
+            return
+
+        # permcheck
+        match embed_type:
+            case "moderator":
+                if not await permcheck(interaction, is_mod):
+                    return
+            case "admin":
+                if not await permcheck(interaction, is_dark_mod):
+                    return
+            case "cet":
+                if not await permcheck(interaction, is_cet):
+                    return
+            case "staff":
+                if not await permcheck(interaction, is_staff):
+                    return
+
+        await interaction.response.defer()
+
+        announcement_embed: nextcord.Embed = await determine_embed_type(
+            title, body, embed_type, interaction, self.config
+        )
+
+        await interaction.send(
+            embeds=[
+                announcement_embed,
+                nextcord.Embed(
+                    title=f"Send to {channel.mention}?",
+                    colour=nextcord.Color.from_rgb(237, 91, 6),
+                ),
+            ],
+            view=YesNoView(
+                interaction.user,
+                channel,
+                AutopostData(
+                    author=interaction.user.id,
+                    title=title,
+                    description=body,
+                    embed_type=embed_type,
+                    channel=channel.id,
+                    timedelta=serialise_timedelta(duration, timespan),
+                    active=True,
+                ),
+            ),
+        )
+
+    @tasks.loop(minutes=1)
+    async def autopost_loop(self, bot: commands.Bot):
+        print("Autopost Loop - Running")
+        print("Autopost Loop - Bot:", bot)
+        with db_session() as session:
+            autoposts = session.query(AutopostDB).filter_by(active=True).all()
+            print("Autopost Loop - Autoposts:", autoposts)
+            for autopost in autoposts:
+                print("Autopost Loop - Autopost:", autopost)
+                modified_time: datetime.datetime = autopost.modified
+                modified_time = modified_time.replace(tzinfo=datetime.timezone.utc)
+                print("Autopost Loop - Modified Time:", modified_time)
+                current_time = datetime.datetime.now(datetime.timezone.utc)
+                print("Autopost Loop - Current Time:", current_time)
+                timedelta = deserialise_timedelta(autopost.timedelta_str)
+                print("Autopost Loop - Time Delta:", timedelta)
+
+                print("Autopost Loop - Autopost ID:", autopost.autopost_id)
+                print("Autopost Loop - Modified Time:", modified_time)
+                print("Autopost Loop - Current Time:", current_time)
+                print("Autopost Loop - Modified Time Type:", type(modified_time))
+                print("Autopost Loop - Current Time Type:", type(current_time))
+                print("Autopost Loop - Time Delta:", timedelta)
+                print("Autopost Loop - Previous Message ID:", autopost.last_post_id)
+
+                print(
+                    "Autopost Loop - Time Since Last Post:",
+                    current_time - modified_time,
+                )
+                print(
+                    "Autopost Loop - If Time Since Last Post > Time Delta:",
+                    (current_time - modified_time) > timedelta,
+                )
+                if (current_time - modified_time) > timedelta:
+                    channel: nextcord.TextChannel = bot.get_channel(autopost.channel)
+
+                    total_characters = 0
+                    post_autopost = False
+                    messages_counted = 0
+
+                    async for message in channel.history(limit=101):
+                        print("Autopost Loop - Message:", message.content)
+                        if message.id == autopost.last_post_id:
+                            post_autopost = False
+                            break
+
+                        total_characters += len(message.content)
+                        if message.attachments:
+                            total_characters += len(message.attachments) * 100
+
+                        if total_characters > 20:
+                            post_autopost = True
+                            break
+
+                        messages_counted += 1
+                        if messages_counted > 100:
+                            post_autopost = True
+                            break
+
+                    print("Autopost Loop - Total Characters:", total_characters)
+                    print("Autopost Loop - Post Autopost:", post_autopost)
+                    print("Autopost Loop - Messages Counted:", messages_counted)
+
+                    old_embed = None
+
+                    if post_autopost:
+                        partial_message = await channel.fetch_message(
+                            autopost.last_post_id
+                        )
+                        print(
+                            "Autopost Loop - Partial Message Type:",
+                            type(partial_message),
+                        )
+
+                        old_embed = partial_message.embeds[0]
+
+                        await partial_message.delete()
+
+                        message_new = await channel.send(embed=old_embed)
+                        autopost.last_post_id = message_new.id
+                        session.commit()
+
+                        print("Autopost Loop - Posted Autopost")
+
+                    else:
+                        print("Autopost Loop - Did Not Post Autopost")
 
 
 def setup(bot: commands.Bot, **kwargs):
