@@ -265,90 +265,56 @@ class Embeds(commands.Cog):
 
     @tasks.loop(minutes=1)
     async def autopost_loop(self, bot: commands.Bot):
-        print("Autopost Loop - Running")
-        print("Autopost Loop - Bot:", bot)
         with db_session() as session:
             autoposts = session.query(AutopostDB).filter_by(active=True).all()
-            print("Autopost Loop - Autoposts:", autoposts)
+
             for autopost in autoposts:
-                print("Autopost Loop - Autopost:", autopost)
                 modified_time: datetime.datetime = autopost.modified
                 modified_time = modified_time.replace(tzinfo=datetime.timezone.utc)
-                print("Autopost Loop - Modified Time:", modified_time)
                 current_time = datetime.datetime.now(datetime.timezone.utc)
-                print("Autopost Loop - Current Time:", current_time)
                 timedelta = deserialise_timedelta(autopost.timedelta_str)
-                print("Autopost Loop - Time Delta:", timedelta)
 
-                print("Autopost Loop - Autopost ID:", autopost.autopost_id)
-                print("Autopost Loop - Modified Time:", modified_time)
-                print("Autopost Loop - Current Time:", current_time)
-                print("Autopost Loop - Modified Time Type:", type(modified_time))
-                print("Autopost Loop - Current Time Type:", type(current_time))
-                print("Autopost Loop - Time Delta:", timedelta)
-                print("Autopost Loop - Previous Message ID:", autopost.last_post_id)
+                if (current_time - modified_time) < timedelta:
+                    continue
 
-                print(
-                    "Autopost Loop - Time Since Last Post:",
-                    current_time - modified_time,
-                )
-                print(
-                    "Autopost Loop - If Time Since Last Post > Time Delta:",
-                    (current_time - modified_time) > timedelta,
-                )
-                if (current_time - modified_time) > timedelta:
-                    channel: nextcord.TextChannel = bot.get_channel(autopost.channel)
+                channel: nextcord.TextChannel = bot.get_channel(autopost.channel)
 
-                    total_characters = 0
-                    post_autopost = False
-                    messages_counted = 0
+                total_characters = 0
+                post_autopost = False
+                messages_counted = 0
 
-                    async for message in channel.history(limit=101):
-                        print("Autopost Loop - Message:", message.content)
-                        if message.id == autopost.last_post_id:
-                            post_autopost = False
-                            break
+                async for message in channel.history(limit=101):
+                    if message.id == autopost.last_post_id:
+                        post_autopost = False
+                        break
 
-                        total_characters += len(message.content)
-                        if message.attachments:
-                            total_characters += len(message.attachments) * 100
+                    total_characters += len(message.content)
+                    if message.attachments:
+                        total_characters += len(message.attachments) * 100
 
-                        if total_characters > 20:
-                            post_autopost = True
-                            break
+                    if total_characters > 20:
+                        post_autopost = True
+                        break
 
-                        messages_counted += 1
-                        if messages_counted > 100:
-                            post_autopost = True
-                            break
+                    messages_counted += 1
+                    if messages_counted > 100:
+                        post_autopost = True
+                        break
 
-                    print("Autopost Loop - Total Characters:", total_characters)
-                    print("Autopost Loop - Post Autopost:", post_autopost)
-                    print("Autopost Loop - Messages Counted:", messages_counted)
+                old_embed = None
 
-                    old_embed = None
+                if not post_autopost:
+                    continue
 
-                    if post_autopost:
-                        partial_message = await channel.fetch_message(
-                            autopost.last_post_id
-                        )
-                        print(
-                            "Autopost Loop - Partial Message Type:",
-                            type(partial_message),
-                        )
+                partial_message = await channel.fetch_message(autopost.last_post_id)
 
-                        old_embed = partial_message.embeds[0]
+                old_embed = partial_message.embeds[0]
 
-                        await partial_message.delete()
+                await partial_message.delete()
 
-                        message_new = await channel.send(embed=old_embed)
-                        autopost.last_post_id = message_new.id
-                        session.commit()
-
-                        print("Autopost Loop - Posted Autopost")
-
-                    else:
-                        print("Autopost Loop - Did Not Post Autopost")
+                message_new = await channel.send(embed=old_embed)
+                autopost.last_post_id = message_new.id
+                session.commit()
 
 
 def setup(bot: commands.Bot, **kwargs):
