@@ -292,6 +292,7 @@ class Embeds(commands.Cog):
                     if message.attachments:
                         total_characters += len(message.attachments) * 100
 
+                    # TODO: Change 20 to 8000 once testing is done
                     if total_characters > 20:
                         post_autopost = True
                         break
