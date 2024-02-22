@@ -35,6 +35,10 @@ async def determine_embed_type(
     interaction: nextcord.Interaction,
     config: Configuration,
 ) -> nextcord.Embed:
+    if "\\n" in body:
+        body_list = body.split("\\n")
+        body = "\n".join(body_list)
+
     if "/n" in body:
         body_list = body.split("/n")
         body = "\n".join(body_list)
