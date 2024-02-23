@@ -12,6 +12,7 @@ class ConfigurationBot(YAMLWizard):
     git_url: str
     authors: list[str]
     dev_mode: bool = False
+    wiki_header: str
 
 
 @dataclass
