@@ -508,9 +508,11 @@ class BanSystem(commands.Cog):
                                 "Offence:": f"`{sersi_case['Offence']}`",
                                 "Detail:": f"`{sersi_case['Details']}`",
                                 "Member:": f"{offender.mention} ({offender.id})",
-                                "DM Sent:": self.config.emotes.fail
-                                if not_sent
-                                else self.config.emotes.success,
+                                "DM Sent:": (
+                                    self.config.emotes.fail
+                                    if not_sent
+                                    else self.config.emotes.success
+                                ),
                             },
                             footer="Sersi Ban",
                         ),
@@ -615,9 +617,11 @@ class BanSystem(commands.Cog):
                             "Offence:": f"`{sersi_case.offence}`",
                             "Detail:": f"`{sersi_case.details}`",
                             "Member:": f"{offender.mention} ({offender.id})",
-                            "DM Sent:": self.config.emotes.fail
-                            if not_sent
-                            else self.config.emotes.success,
+                            "DM Sent:": (
+                                self.config.emotes.fail
+                                if not_sent
+                                else self.config.emotes.success
+                            ),
                             "Sent for Review:": self.config.emotes.success,
                         },
                         footer="Sersi Ban",
@@ -699,6 +703,8 @@ class BanSystem(commands.Cog):
                 .all()
             ]
 
+            yes_voters_mentions = [f"<@{voter}>" for voter in yes_voters]
+
             try:
                 await user.send(
                     embed=SersiEmbed(
@@ -728,7 +734,7 @@ class BanSystem(commands.Cog):
             case: BanCase = session.query(BanCase).get(detail.case_id)
 
         # logging
-        yes_list = "\n• ".join(yes_voters)
+        yes_list = "\n• ".join(yes_voters_mentions)
 
         embed = nextcord.Embed(
             title="Vote Ban Complete",
