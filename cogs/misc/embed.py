@@ -280,10 +280,9 @@ class Embeds(commands.Cog):
                 channel: nextcord.TextChannel = bot.get_channel(autopost.channel)
 
                 total_characters = 0
-                post_autopost = False
-                messages_counted = 0
+                post_autopost = True
 
-                async for message in channel.history(limit=101):
+                async for message in channel.history(limit=100):
                     if message.id == autopost.last_post_id:
                         post_autopost = False
                         break
@@ -294,12 +293,6 @@ class Embeds(commands.Cog):
 
                     # TODO: Change 20 to 8000 once testing is done
                     if total_characters > 20:
-                        post_autopost = True
-                        break
-
-                    messages_counted += 1
-                    if messages_counted > 100:
-                        post_autopost = True
                         break
 
                 old_embed = None
