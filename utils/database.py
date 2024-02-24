@@ -656,5 +656,69 @@ class ExperienceJournal(_Base):
     xp = Column(Integer, nullable=False)
 
 
+# Autopost Models
+
+
+class Autopost(_Base):
+    """
+    Represents an autopost entry in the database.
+
+    Attributes:
+        autopost_id (int): The unique identifier for the autopost entry.
+        author (int): The ID of the author associated with the autopost entry.
+        title (str): The title of the autopost entry.
+        description (str): The description of the autopost entry.
+        type (str): The type of the autopost entry.
+        channel (int): The ID of the channel associated with the autopost entry.
+        timedelta_str (str): The time interval for autoposting in string format.
+        active (bool): Indicates whether the autopost entry is active or not.
+        created (datetime): The datetime when the autopost entry was created.
+        modified (datetime): The datetime when the autopost entry was last modified.
+    """
+
+    __tablename__ = "autopost"
+
+    autopost_id = Column(Integer, primary_key=True, autoincrement=True)
+    author = Column(Integer, nullable=False)
+    title = Column(String, nullable=False)
+    description = Column(String, nullable=False)
+    type = Column(String, nullable=False)
+    channel = Column(Integer, nullable=False)
+    timedelta_str = Column(String, nullable=False)
+    media_url = Column(String, nullable=True)
+    last_post_id = Column(Integer, default=None)
+    active = Column(Boolean, default=True)
+
+    created = Column(DateTime, default=datetime.utcnow)
+    modified = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def __getattr__(self, __name: str) -> Any:
+        if __name == "list_entry_header":
+            return f"__{self.autopost_id}__ <t:{int(self.created.timestamp())}:R>"
+        raise AttributeError(
+            f"'{self.__class__.__name__}' object has no attribute '{__name}'"
+        )
+
+    def __repr__(self):
+        return f"**{self.title}** <#{self.channel}>"
+
+
+class AutopostFields(_Base):
+    """
+    Represents the fields for an autopost entry in the database.
+
+    Attributes:
+        autopost_id (int): The unique identifier for the autopost entry.
+        field_name (str): The name of the field.
+        field_value (str): The value of the field.
+    """
+
+    __tablename__ = "autopost_fields"
+
+    autopost_id = Column(Integer, ForeignKey("autopost.autopost_id"), primary_key=True)
+    field_name = Column(String, primary_key=True)
+    field_value = Column(String, nullable=False)
+
+
 def create_db_tables():
     _Base.metadata.create_all(_engine)
