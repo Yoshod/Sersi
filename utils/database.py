@@ -692,6 +692,16 @@ class Autopost(_Base):
     created = Column(DateTime, default=datetime.utcnow)
     modified = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
+    def __getattr__(self, __name: str) -> Any:
+        if __name == "list_entry_header":
+            return f"__{self.autopost_id}__ <t:{int(self.created.timestamp())}:R>"
+        raise AttributeError(
+            f"'{self.__class__.__name__}' object has no attribute '{__name}'"
+        )
+
+    def __repr__(self):
+        return f"**{self.title}** <#{self.channel}>"
+
 
 class AutopostFields(_Base):
     """

@@ -6,11 +6,17 @@ from nextcord.ext import commands, tasks
 import datetime
 
 # sersi imports
-from utils.base import get_discord_timestamp, serialise_timedelta, deserialise_timedelta
+from utils.base import (
+    get_discord_timestamp,
+    serialise_timedelta,
+    deserialise_timedelta,
+)
 from utils.config import Configuration
 from utils.perms import permcheck, is_mod, is_dark_mod, is_staff, is_cet
 from utils.database import Autopost as AutopostDB, db_session, AutopostFields
-from utils.embeds import AutopostData, determine_embed_type
+from utils.embeds import AutopostData, determine_embed_type, fetch_all_autoposts
+from utils.views import PageView
+from utils.sersi_embed import SersiEmbed
 
 
 class SendButton(nextcord.ui.Button):
@@ -332,6 +338,57 @@ class Embeds(commands.Cog):
                 ),
             ),
         )
+
+    @embed.subcommand(description="Lists all of your embeds")
+    async def list(
+        self,
+        interaction: nextcord.Interaction,
+        embed_type: str = nextcord.SlashOption(
+            choices={
+                "Moderator": "moderator",
+                "Administator": "admin",
+                "Community Emgagement": "cet",
+                "Staff": "staff",
+            },
+            required=False,
+        ),
+        active: str = nextcord.SlashOption(
+            description="Whether to show active or inactive embeds",
+            choices={"Active": "active", "Inactive": "inactive"},
+            required=False,
+        ),
+        page: int = nextcord.SlashOption(
+            description="The page number to view",
+            required=False,
+            default=1,
+        ),
+    ):
+        if not permcheck(interaction, is_staff):
+            return
+
+        await interaction.response.defer()
+
+        autoposts_embed = SersiEmbed(
+            title=f"{interaction.guild.name} Autoposts",
+            description=f"Autopoasts for {interaction.guild.name}",
+        )
+
+        view = PageView(
+            config=self.config,
+            base_embed=autoposts_embed,
+            fetch_function=fetch_all_autoposts,
+            author=interaction.user,
+            entry_form="{entry}",
+            field_title="{entries[0].list_entry_header}",
+            inline_fields=False,
+            cols=10,
+            per_col=1,
+            init_page=int(page),
+            autopost_type=embed_type if embed_type else None,
+            active=active if active else None,
+        )
+
+        await view.send_followup(interaction)
 
     @tasks.loop(minutes=1)
     async def autopost_loop(self, bot: commands.Bot):

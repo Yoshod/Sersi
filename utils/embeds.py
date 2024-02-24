@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 import nextcord
+from utils.base import get_page
+from utils.database import db_session, Autopost
 from utils.sersi_embed import SersiEmbed
 from utils.config import Configuration
 
@@ -106,3 +108,31 @@ async def determine_embed_type(
             announcement_embed.set_author(name="Staff Announcement")
 
     return announcement_embed
+
+
+def fetch_all_autoposts(
+    config: Configuration,
+    page: int,
+    per_page: int,
+    autopost_type: str | None,
+    active: bool | None,
+):
+    with db_session() as session:
+        _query = session.query(Autopost)
+
+        if autopost_type:
+            _query = _query.filter_by(embed_type=autopost_type)
+
+        if active is not None:
+            _query = _query.filter_by(active=active)
+
+        autoposts = _query.order_by(Autopost.autopost_id).all()
+
+        if not autoposts:
+            return None, 0, 0
+
+        page_autoposts, page, pages = get_page(autoposts, page, per_page)
+        for autopost in page_autoposts:
+            repr(autopost)
+
+        return page_autoposts, page, pages
