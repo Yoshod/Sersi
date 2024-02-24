@@ -434,6 +434,61 @@ class Embeds(commands.Cog):
 
             await interaction.followup.send(embed=autopost_embed)
 
+    @embed.subcommand(description="Force an autopost to send")
+    async def force_autopost(
+        self,
+        interaction: nextcord.Interaction,
+        autopost_id: int = nextcord.SlashOption(
+            description="The ID of the autopost to force",
+            min_value=1,
+        ),
+    ):
+        if not permcheck(interaction, is_staff):
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        with db_session() as session:
+            autopost = (
+                session.query(AutopostDB).filter_by(autopost_id=autopost_id).first()
+            )
+
+            if not autopost:
+                await interaction.send("No autopost found with that ID", ephemeral=True)
+                return
+
+            channel: nextcord.TextChannel = interaction.guild.get_channel(
+                autopost.channel
+            )
+
+            fields = (
+                session.query(AutopostFields).filter_by(autopost_id=autopost_id).all()
+            )
+
+            fields_dict = {}
+
+            for field in fields:
+                fields_dict[field.field_name] = field.field_value
+
+            autopost_embed = await determine_embed_type(
+                title=autopost.title,
+                body=autopost.description,
+                embed_type=autopost.type,
+                interaction=interaction,
+                config=self.config,
+                media_url=autopost.media_url,
+                fields=fields_dict,
+            )
+
+            message = await channel.send(embed=autopost_embed)
+
+            autopost.last_post_id = message.id
+            session.commit()
+
+            await interaction.followup.send(
+                f"Autopost sent to {channel.mention}", ephemeral=True
+            )
+
     @tasks.loop(minutes=1)
     async def autopost_loop(self, bot: commands.Bot):
         with db_session() as session:
