@@ -17,6 +17,8 @@ class AutopostData:
         channel (int): The ID of the text channel.
         timedelta (str): The time interval for autoposting.
         active (bool): Indicates if autoposting is active.
+        fields (dict | None): The fields of the embed.
+        media_url (str | None): The URL of the media.
     """
 
     author: int
@@ -26,6 +28,8 @@ class AutopostData:
     channel: nextcord.TextChannel.id
     timedelta: str
     active: bool
+    fields: dict | None
+    media_url: str | None
 
 
 async def determine_embed_type(
@@ -34,6 +38,8 @@ async def determine_embed_type(
     embed_type: str,
     interaction: nextcord.Interaction,
     config: Configuration,
+    media_url: str | None,
+    fields: dict[str, str] | None,
 ) -> nextcord.Embed:
     if "\\n" in body:
         body_list = body.split("\\n")
@@ -42,9 +48,19 @@ async def determine_embed_type(
     if "/n" in body:
         body_list = body.split("/n")
         body = "\n".join(body_list)
+
     announcement_embed: nextcord.Embed = SersiEmbed(
         title=title, description=body, footer="Sersi Announcement"
     )
+
+    if media_url:
+        announcement_embed.set_image(url=media_url)
+
+    if fields:
+        for name, value in fields.items():
+            announcement_embed.add_field(name=name, value=value)
+
+    announcement_embed.set_thumbnail(url=interaction.guild.icon.url)
 
     match embed_type:
         case "moderator":

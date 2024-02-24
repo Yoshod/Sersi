@@ -9,7 +9,7 @@ import datetime
 from utils.base import get_discord_timestamp, serialise_timedelta, deserialise_timedelta
 from utils.config import Configuration
 from utils.perms import permcheck, is_mod, is_dark_mod, is_staff, is_cet
-from utils.database import Autopost as AutopostDB, db_session
+from utils.database import Autopost as AutopostDB, db_session, AutopostFields
 from utils.embeds import AutopostData, determine_embed_type
 
 
@@ -32,6 +32,7 @@ class SendButton(nextcord.ui.Button):
                         type=self.autopost_data.embed_type,
                         channel=self.autopost_data.channel,
                         timedelta_str=self.autopost_data.timedelta,
+                        media_url=self.autopost_data.media_url,
                     )
                 )
                 session.commit()
@@ -44,8 +45,18 @@ class SendButton(nextcord.ui.Button):
 
                 autopost_id = autopost.autopost_id
 
+                if self.autopost_data.fields:
+                    for name, value in self.autopost_data.fields.items():
+                        session.add(
+                            AutopostFields(
+                                autopost_id=autopost_id,
+                                field_name=name,
+                                field_value=value,
+                            )
+                        )
+                    session.commit()
+
         message = await self.channel.send(embed=interaction.message.embeds[0])
-        print("MESSAGE ID:", message.id)
 
         await interaction.message.edit(
             embed=interaction.message.embeds[0].add_field(
@@ -205,6 +216,51 @@ class Embeds(commands.Cog):
                 "Hours": "h",
             },
         ),
+        media_url: str = nextcord.SlashOption(
+            name="media_url",
+            description="The URL of the media to attach to the embed",
+            required=False,
+        ),
+        field_1_title: str = nextcord.SlashOption(
+            name="field_1_title",
+            description="The title of the first field",
+            required=False,
+        ),
+        field_1_body: str = nextcord.SlashOption(
+            name="field_1_body",
+            description="The body of the first field",
+            required=False,
+        ),
+        field_2_title: str = nextcord.SlashOption(
+            name="field_2_title",
+            description="The title of the second field",
+            required=False,
+        ),
+        field_2_body: str = nextcord.SlashOption(
+            name="field_2_body",
+            description="The body of the second field",
+            required=False,
+        ),
+        field_3_title: str = nextcord.SlashOption(
+            name="field_3_title",
+            description="The title of the third field",
+            required=False,
+        ),
+        field_3_body: str = nextcord.SlashOption(
+            name="field_3_body",
+            description="The body of the third field",
+            required=False,
+        ),
+        field_4_title: str = nextcord.SlashOption(
+            name="field_4_title",
+            description="The title of the fourth field",
+            required=False,
+        ),
+        field_4_body: str = nextcord.SlashOption(
+            name="field_4_body",
+            description="The body of the fourth field",
+            required=False,
+        ),
     ):
 
         if timespan == "m" and duration < 1 or duration > 1440:
@@ -236,8 +292,20 @@ class Embeds(commands.Cog):
 
         await interaction.response.defer()
 
+        fields = {}
+
+        for i in range(1, 5):
+            field_title = locals().get(f"field_{i}_title")
+            field_body = locals().get(f"field_{i}_body")
+
+            if field_title and field_body:
+                fields[field_title] = field_body
+
+        if not fields:
+            fields = None
+
         announcement_embed: nextcord.Embed = await determine_embed_type(
-            title, body, embed_type, interaction, self.config
+            title, body, embed_type, interaction, self.config, media_url, fields
         )
 
         await interaction.send(
@@ -259,6 +327,8 @@ class Embeds(commands.Cog):
                     channel=channel.id,
                     timedelta=serialise_timedelta(duration, timespan),
                     active=True,
+                    fields=fields,
+                    media_url=media_url,
                 ),
             ),
         )

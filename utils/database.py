@@ -685,11 +685,29 @@ class Autopost(_Base):
     type = Column(String, nullable=False)
     channel = Column(Integer, nullable=False)
     timedelta_str = Column(String, nullable=False)
+    media_url = Column(String, nullable=True)
     last_post_id = Column(Integer, default=None)
     active = Column(Boolean, default=True)
 
     created = Column(DateTime, default=datetime.utcnow)
     modified = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class AutopostFields(_Base):
+    """
+    Represents the fields for an autopost entry in the database.
+
+    Attributes:
+        autopost_id (int): The unique identifier for the autopost entry.
+        field_name (str): The name of the field.
+        field_value (str): The value of the field.
+    """
+
+    __tablename__ = "autopost_fields"
+
+    autopost_id = Column(Integer, ForeignKey("autopost.autopost_id"), primary_key=True)
+    field_name = Column(String, primary_key=True)
+    field_value = Column(String, nullable=False)
 
 
 def create_db_tables():
