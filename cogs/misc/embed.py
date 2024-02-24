@@ -482,12 +482,289 @@ class Embeds(commands.Cog):
 
             message = await channel.send(embed=autopost_embed)
 
+            partial_message = await channel.fetch_message(autopost.last_post_id)
+
+            await partial_message.delete()
+
             autopost.last_post_id = message.id
             session.commit()
 
             await interaction.followup.send(
                 f"Autopost sent to {channel.mention}", ephemeral=True
             )
+
+    @embed.subcommand(description="Edit an autopost")
+    async def edit_autopost(
+        self,
+        interaction: nextcord.Interaction,
+        autopost_id: int = nextcord.SlashOption(
+            description="The ID of the autopost to edit",
+            min_value=1,
+        ),
+        embed_type: str = nextcord.SlashOption(
+            choices={
+                "Moderator": "moderator",
+                "Administator": "admin",
+                "Community Emgagement": "cet",
+                "Staff": "staff",
+            },
+            required=False,
+        ),
+        channel: nextcord.TextChannel = nextcord.SlashOption(
+            description="The Channel to send the Embed to",
+            required=False,
+        ),
+        title: str = nextcord.SlashOption(
+            description="The Title of the Embed",
+            max_length=256,
+            required=False,
+        ),
+        body: str = nextcord.SlashOption(
+            description="The Body of the Embed",
+            max_length=2048,
+            required=False,
+        ),
+        duration: int = nextcord.SlashOption(
+            name="duration",
+            description="The length of time the embed should be posted for",
+            min_value=1,
+            max_value=40320,
+            required=False,
+        ),
+        timespan: str = nextcord.SlashOption(
+            name="timespan",
+            description="The unit of time being used",
+            choices={
+                "Minutes": "m",
+                "Hours": "h",
+            },
+            required=False,
+        ),
+        media_url: str = nextcord.SlashOption(
+            name="media_url",
+            description="The URL of the media to attach to the embed",
+            required=False,
+        ),
+        active: bool = nextcord.SlashOption(
+            description="Whether the autopost is active",
+            required=False,
+        ),
+        field_1_title: str = nextcord.SlashOption(
+            name="field_1_title",
+            description="The title of the first field",
+            required=False,
+        ),
+        field_1_body: str = nextcord.SlashOption(
+            name="field_1_body",
+            description="The body of the first field",
+            required=False,
+        ),
+        field_2_title: str = nextcord.SlashOption(
+            name="field_2_title",
+            description="The title of the second field",
+            required=False,
+        ),
+        field_2_body: str = nextcord.SlashOption(
+            name="field_2_body",
+            description="The body of the second field",
+            required=False,
+        ),
+        field_3_title: str = nextcord.SlashOption(
+            name="field_3_title",
+            description="The title of the third field",
+            required=False,
+        ),
+        field_3_body: str = nextcord.SlashOption(
+            name="field_3_body",
+            description="The body of the third field",
+            required=False,
+        ),
+        field_4_title: str = nextcord.SlashOption(
+            name="field_4_title",
+            description="The title of the fourth field",
+            required=False,
+        ),
+        field_4_body: str = nextcord.SlashOption(
+            name="field_4_body",
+            description="The body of the fourth field",
+            required=False,
+        ),
+    ):
+        if not await permcheck(interaction, is_staff):
+            return
+
+        if active is None and not any(
+            [
+                embed_type,
+                channel,
+                title,
+                body,
+                duration,
+                timespan,
+                media_url,
+                field_1_title,
+                field_1_body,
+                field_2_title,
+                field_2_body,
+                field_3_title,
+                field_3_body,
+                field_4_title,
+                field_4_body,
+            ]
+        ):
+            await interaction.response.send_message(
+                "You must provide at least one field to edit", ephemeral=True
+            )
+            return
+
+        if active is False and any(
+            [
+                embed_type,
+                channel,
+                title,
+                body,
+                duration,
+                timespan,
+                media_url,
+                field_1_title,
+                field_1_body,
+                field_2_title,
+                field_2_body,
+                field_3_title,
+                field_3_body,
+                field_4_title,
+                field_4_body,
+            ]
+        ):
+            await interaction.response.send_message(
+                "You cannot edit an inactive autopost", ephemeral=True
+            )
+
+        await interaction.response.defer()
+
+        with db_session() as session:
+            autopost = (
+                session.query(AutopostDB).filter_by(autopost_id=autopost_id).first()
+            )
+
+            if not autopost:
+                await interaction.send("No autopost found with that ID", ephemeral=True)
+                return
+
+            # permcheck
+            match autopost.type:
+                case "moderator":
+                    if not await permcheck(interaction, is_mod):
+                        return
+                case "admin":
+                    if not await permcheck(interaction, is_dark_mod):
+                        return
+                case "cet":
+                    if not await permcheck(interaction, is_cet):
+                        return
+                case "staff":
+                    if not await permcheck(interaction, is_staff):
+                        return
+
+            if embed_type:
+                match embed_type:
+                    case "moderator":
+                        if not await permcheck(interaction, is_mod):
+                            return
+                    case "admin":
+                        if not await permcheck(interaction, is_dark_mod):
+                            return
+                    case "cet":
+                        if not await permcheck(interaction, is_cet):
+                            return
+                    case "staff":
+                        if not await permcheck(interaction, is_staff):
+                            return
+                autopost.type = embed_type
+            if channel:
+                autopost.channel = channel.id
+            if title:
+                autopost.title = title
+            if body:
+                autopost.description = body
+            if duration and timespan:
+                autopost.timedelta_str = serialise_timedelta(duration, timespan)
+            if media_url:
+                autopost.media_url = media_url
+            if active is not None:
+                autopost.active = active
+
+            fields = (
+                session.query(AutopostFields).filter_by(autopost_id=autopost_id).all()
+            )
+
+            session.commit()
+
+        with db_session() as session:
+            for i in range(1, 5):
+                field_title = locals().get(f"field_{i}_title")
+                field_body = locals().get(f"field_{i}_body")
+
+                if field_title and field_body:
+                    try:
+                        fields[i - 1].field_name = field_title
+                        fields[i - 1].field_value = field_body
+
+                    except IndexError:
+                        session.add(
+                            AutopostFields(
+                                autopost_id=autopost_id,
+                                field_name=field_title,
+                                field_value=field_body,
+                            )
+                        )
+
+                session.commit()
+
+        with db_session() as session:
+            autopost = (
+                session.query(AutopostDB).filter_by(autopost_id=autopost_id).first()
+            )
+
+            if not autopost:
+                await interaction.send("No autopost found with that ID", ephemeral=True)
+                return
+
+            fields = (
+                session.query(AutopostFields).filter_by(autopost_id=autopost_id).all()
+            )
+
+            fields_dict = {}
+
+            for field in fields:
+                fields_dict[field.field_name] = field.field_value
+
+            autopost_embed = await determine_embed_type(
+                title=autopost.title,
+                body=autopost.description,
+                embed_type=autopost.type,
+                interaction=interaction,
+                config=self.config,
+                media_url=autopost.media_url,
+                fields=fields_dict,
+            )
+
+            channel: nextcord.TextChannel = interaction.guild.get_channel(
+                autopost.channel
+            )
+
+            message = await channel.send(embed=autopost_embed)
+
+            partial_message = await channel.fetch_message(autopost.last_post_id)
+
+            await partial_message.delete()
+
+            autopost.last_post_id = message.id
+            session.commit()
+
+        await interaction.followup.send(
+            f"Autopost {autopost_id} updated!", ephemeral=True
+        )
 
     @tasks.loop(minutes=1)
     async def autopost_loop(self, bot: commands.Bot):
