@@ -391,7 +391,7 @@ class Embeds(commands.Cog):
         await view.send_followup(interaction)
 
     @embed.subcommand(description="View an autopost embed")
-    async def view(
+    async def view_autopost(
         self,
         interaction: nextcord.Interaction,
         autopost_id: int = nextcord.SlashOption(
