@@ -2,10 +2,16 @@ import datetime
 import os
 import nextcord
 from nextcord import SlashOption
-from nextcord.ext import commands
+from nextcord.ext import commands, tasks
 import sqlalchemy
 
-from utils.base import decode_button_id, encode_snowflake, decode_snowflake
+from utils.base import (
+    decode_button_id,
+    encode_snowflake,
+    decode_snowflake,
+    serialise_timedelta,
+    deserialise_timedelta,
+)
 from utils.sersi_embed import SersiEmbed
 from utils.views import ConfirmView, DualCustodyView
 from utils.config import Configuration
@@ -28,6 +34,7 @@ from utils.database import (
     TrialModReviews,
     ModerationRecords,
     StaffMembers,
+    ModeratorAvailability,
 )
 from utils.voting import VoteView, vote_planned_end
 from utils.staff import (
@@ -47,7 +54,11 @@ from utils.staff import (
     add_staff_legacy,
     add_mod_record_legacy,
     promotion_validity_check,
+    set_availability_status,
+    determine_availability_status,
+    has_availability_role,
 )
+from utils.review import determine_reviewer
 
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -1303,6 +1314,267 @@ class Staff(commands.Cog):
             f"{self.config.emotes.success} Record has been modified."
         )
 
+    @staff.subcommand(description="Set availability for moderators")
+    async def set_availability(
+        self,
+        interaction: nextcord.Interaction,
+        monday_start: int = SlashOption(
+            description="Monday start time in 24-hour format (HHMM in UTC)",
+        ),
+        monday_end: int = SlashOption(
+            description="Monday end time in 24-hour format (HHMM in UTC)",
+        ),
+        tuesday_start: int = SlashOption(
+            description="Tuesday start time in 24-hour format (HHMM in UTC)",
+        ),
+        tuesday_end: int = SlashOption(
+            description="Tuesday end time in 24-hour format (HHMM in UTC)",
+        ),
+        wednesday_start: int = SlashOption(
+            description="Wednesday start time in 24-hour format (HHMM in UTC)",
+        ),
+        wednesday_end: int = SlashOption(
+            description="Wednesday end time in 24-hour format (HHMM in UTC)",
+        ),
+        thursday_start: int = SlashOption(
+            description="Thursday start time in 24-hour format (HHMM in UTC)",
+        ),
+        thursday_end: int = SlashOption(
+            description="Thursday end time in 24-hour format (HHMM in UTC)",
+        ),
+        friday_start: int = SlashOption(
+            description="Friday start time in 24-hour format (HHMM in UTC)",
+        ),
+        friday_end: int = SlashOption(
+            description="Friday end time in 24-hour format (HHMM in UTC)",
+        ),
+        saturday_start: int = SlashOption(
+            description="Saturday start time in 24-hour format (HHMM in UTC)",
+        ),
+        saturday_end: int = SlashOption(
+            description="Saturday end time in 24-hour format (HHMM in UTC)",
+        ),
+        sunday_start: int = SlashOption(
+            description="Sunday start time in 24-hour format (HHMM in UTC)",
+        ),
+        sunday_end: int = SlashOption(
+            description="Sunday end time in 24-hour format (HHMM in UTC)",
+        ),
+        last_message_update: bool = SlashOption(
+            description="Whether to become available out of hours if you have recently messaged",
+            required=False,
+        ),
+        update_interval: int = SlashOption(
+            description="How long to wait after last message to become unavailable out of hours (in minutes)",
+            required=False,
+        ),
+    ):
+        if not await permcheck(interaction, is_mod):
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        availability = {
+            "monday": (monday_start, monday_end),
+            "tuesday": (tuesday_start, tuesday_end),
+            "wednesday": (wednesday_start, wednesday_end),
+            "thursday": (thursday_start, thursday_end),
+            "friday": (friday_start, friday_end),
+            "saturday": (saturday_start, saturday_end),
+            "sunday": (sunday_start, sunday_end),
+        }
+
+        # Check the end time is after the start time
+        for day, times in availability.items():
+            if times[0] >= times[1]:
+                await interaction.followup.send(
+                    f"{self.config.emotes.fail} The end time for {day} must be after the start time."
+                )
+                return
+
+        with db_session(interaction.user) as session:
+            availability_record = ModeratorAvailability(
+                member=interaction.user.id,
+                monday_start=monday_start,
+                monday_end=monday_end,
+                tuesday_start=tuesday_start,
+                tuesday_end=tuesday_end,
+                wednesday_start=wednesday_start,
+                wednesday_end=wednesday_end,
+                thursday_start=thursday_start,
+                thursday_end=thursday_end,
+                friday_start=friday_start,
+                friday_end=friday_end,
+                saturday_start=saturday_start,
+                saturday_end=saturday_end,
+                sunday_start=sunday_start,
+                sunday_end=sunday_end,
+                update_availability_on_message=last_message_update,
+                on_message_update_interval=update_interval,
+                guild_id=interaction.guild.id,
+            )
+            session.add(availability_record)
+            session.commit()
+
+        await interaction.followup.send(
+            f"{self.config.emotes.success} Availability has been set."
+        )
+
+    @staff.subcommand(description="Force available status")
+    async def force_available(
+        self,
+        interaction: nextcord.Interaction,
+        available_duration: int = SlashOption(
+            description="Duration to be available for",
+        ),
+        available_timespan: str = SlashOption(
+            description="Timespan to be available for",
+            choices={
+                "Minutes": "m",
+                "Hours": "h",
+            },
+        ),
+    ):
+        if not await permcheck(interaction, is_mod):
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        available_timedelta = serialise_timedelta(
+            available_duration, available_timespan
+        )
+
+        with db_session(interaction.user) as session:
+            availability_record = (
+                session.query(ModeratorAvailability)
+                .filter_by(member=interaction.user.id)
+                .first()
+            )
+            if not availability_record:
+                await interaction.followup.send(
+                    f"{self.config.emotes.fail} You do not have an availability record."
+                )
+                return
+
+            availability_record.forced_available_timedelta = available_timedelta
+            availability_record.forced_available_start = datetime.datetime.now()
+            session.commit()
+
+        await set_availability_status(self.bot, availability_record, True)
+
+        if deserialise_timedelta(available_timedelta) >= datetime.timedelta(hours=24):
+            await interaction.followup.send(
+                f"{self.config.emotes.success} You have been forced to be available for {deserialise_timedelta(available_timedelta)}. Please remember to take breaks."
+            )
+
+        else:
+            await interaction.followup.send(
+                f"{self.config.emotes.success} You have been forced to be available for {deserialise_timedelta(available_timedelta)}."
+            )
+
+    @staff.subcommand(description="Force unavailable status")
+    async def force_unavailable(
+        self,
+        interaction: nextcord.Interaction,
+        unavailable_duration: int = SlashOption(
+            description="Duration to be unavailable for",
+        ),
+        unavailable_timespan: str = SlashOption(
+            description="Timespan to be unavailable for",
+            choices={
+                "Minutes": "m",
+                "Hours": "h",
+                "Days": "d",
+                "Weeks": "w",
+            },
+        ),
+    ):
+        if not await permcheck(interaction, is_mod):
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        unavailable_timedelta = serialise_timedelta(
+            unavailable_duration, unavailable_timespan
+        )
+
+        with db_session(interaction.user) as session:
+            availability_record = (
+                session.query(ModeratorAvailability)
+                .filter_by(member=interaction.user.id)
+                .first()
+            )
+            if not availability_record:
+                await interaction.followup.send(
+                    f"{self.config.emotes.fail} You do not have an availability record."
+                )
+                return
+
+            availability_record.forced_unavailable_timedelta = unavailable_timedelta
+            availability_record.forced_unavailable_start = datetime.datetime.now()
+            session.commit()
+
+        await set_availability_status(self.bot, availability_record, False)
+
+        await interaction.followup.send(
+            f"{self.config.emotes.success} You have been forced to be unavailable for {deserialise_timedelta(unavailable_timedelta)}."
+        )
+
+        if deserialise_timedelta(unavailable_timedelta) >= datetime.timedelta(days=3):
+            unavailability_log_embed = SersiEmbed(
+                title="Long Forced Unavailability Set",
+                description=f"{interaction.user.mention} has been forced to be unavailable for {deserialise_timedelta(unavailable_timedelta)}.",
+            )
+
+            reviewer = determine_reviewer(interaction.user.id, self.config)
+
+            match reviewer:
+                case self.config.permission_roles.compliance:
+                    review_channel = interaction.guild.get_channel(
+                        self.config.channels.dark_mod_review
+                    )
+                    await review_channel.send(
+                        embed=unavailability_log_embed,
+                    )
+
+                case self.config.permission_roles.dark_moderator:
+                    review_channel = interaction.guild.get_channel(
+                        self.config.channels.dark_mod_review
+                    )
+                    await review_channel.send(
+                        embed=unavailability_log_embed,
+                    )
+
+                case self.config.permission_roles.senior_moderator:
+                    review_channel = interaction.guild.get_channel(
+                        self.config.channels.senior_mod_review
+                    )
+                    await review_channel.send(
+                        embed=unavailability_log_embed,
+                    )
+
+                case self.config.permission_roles.moderator:
+                    review_channel = interaction.guild.get_channel(
+                        self.config.channels.senior_mod_review
+                    )
+                    await review_channel.send(
+                        embed=unavailability_log_embed,
+                    )
+
+                    with db_session as session:
+                        mod_record: ModerationRecords = (
+                            session.query(ModerationRecords)
+                            .filter_by(member=interaction.user.id)
+                            .first()
+                        )
+
+                        mentor = interaction.guild.get_member(mod_record.mentor)
+
+                        if mentor:
+                            await mentor.send(
+                                f"{interaction.user.mention} has been forced to be unavailable for {deserialise_timedelta(unavailable_timedelta)}."
+                            )
+
     @commands.Cog.listener()
     async def on_honoured_member_revoke(self, details: VoteDetails):
         if details.outcome != "Accepted":
@@ -1378,6 +1650,83 @@ class Staff(commands.Cog):
                 pass
 
         await interaction.followup.send(embed=embed, ephemeral=True)
+
+    @commands.Cog.listener()
+    async def on_message(self, interaction: nextcord.Message):
+        if not permcheck(interaction, is_mod):
+            return
+
+        with db_session(interaction.author) as session:
+            availability_record = (
+                session.query(ModeratorAvailability)
+                .filter_by(member=interaction.author.id)
+                .first()
+            )
+
+            if has_availability_role(
+                self.bot, availability_record, interaction.author.id
+            ):
+                availability_record.time_of_last_message = datetime.datetime.now()
+                session.commit()
+                return
+
+            if (
+                availability_record.update_availability_on_message
+                and not determine_availability_status(
+                    interaction.author.id
+                )  # This means the user is currently unavailable, and is not forced to be unavailable
+            ):
+                await set_availability_status(self.bot, availability_record, True)
+                availability_record.time_of_last_message = datetime.datetime.now()
+                session.commit()
+                return
+
+    @tasks.loop(minutes=1)
+    async def check_availability(self):
+        """
+        A task that checks the availability of moderators.
+
+        This task runs every minute and performs the following checks:
+        1. Checks if any moderators have exceeded their forced available time limit and resets their availability.
+        2. Checks if any moderators have exceeded their forced unavailable time limit and resets their availability.
+        3. Checks if any moderators have the availability role but have not messaged in a specified time interval,
+            and sets their availability to unavailable.
+
+        Note: This task requires a database session to access the moderator availability records.
+        """
+        with db_session(self.bot.user) as session:
+            availability_records = session.query(ModeratorAvailability).all()
+
+            for record in availability_records:
+                if record.forced_available_timedelta:
+                    if (
+                        datetime.datetime.now() - record.forced_available_start
+                    ) >= deserialise_timedelta(record.forced_available_timedelta):
+                        record.forced_available_timedelta = None
+                        record.forced_available_start = None
+                        session.commit()
+
+                if record.forced_unavailable_timedelta:
+                    if (
+                        datetime.datetime.now() - record.forced_unavailable_start
+                    ) >= deserialise_timedelta(record.forced_unavailable_timedelta):
+                        record.forced_unavailable_timedelta = None
+                        record.forced_unavailable_start = None
+                        session.commit()
+
+                if has_availability_role(
+                    record.member
+                ) and not determine_availability_status(
+                    record.member
+                ):  # This means the user has the available role out of hours
+                    if (
+                        datetime.datetime.now() - record.time_of_last_message
+                    ) >= deserialise_timedelta(
+                        record.on_message_update_interval_minutes
+                    ):  # This means the user has not messaged in the last x minutes
+                        await set_availability_status(
+                            self.bot, record, False
+                        )  # Set the user to unavailable
 
 
 def setup(bot: commands.Bot, **kwargs):

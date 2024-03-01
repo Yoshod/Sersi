@@ -9,6 +9,7 @@ from utils.database import (
     Case,
     PeerReview,
     TrialModReviews,
+    ModeratorAvailability,
 )
 from utils.config import Configuration
 import datetime
@@ -535,3 +536,104 @@ def get_moderation_leaderboard_embed(
         )
 
     return embed
+
+
+async def set_availability_status(
+    bot: nextcord.Client,
+    availability_record: ModeratorAvailability,
+    set_as_available: bool,
+):
+    """Sets the availability status of a staff member."""
+    guild = bot.get_guild(availability_record.guild_id)
+    member = guild.get_member(availability_record.member)
+
+    if set_as_available:
+        await member.add_roles(guild.get_role(CONFIG.roles.available_mod))
+
+    else:
+        await member.remove_roles(guild.get_role(CONFIG.roles.available_mod))
+
+
+def determine_availability_status(staff_id: int):
+    """Determines the availability status of a staff member."""
+    with db_session() as session:
+        moderator_availability = (
+            session.query(ModeratorAvailability).filter_by(member=staff_id).first()
+        )
+
+        if moderator_availability.forced_unavailable_start:
+            return False
+
+        if moderator_availability.forced_available_start:
+            return True
+
+        current_time = datetime.datetime.now()
+        current_day = current_time.weekday()
+
+        match current_day:
+            case 0:
+                if (
+                    current_time.time() >= moderator_availability.monday_start
+                    and current_time.time() <= moderator_availability.monday_end
+                ):
+                    return True
+
+            case 1:
+                if (
+                    current_time.time() >= moderator_availability.tuesday_start
+                    and current_time.time() <= moderator_availability.tuesday_end
+                ):
+                    return True
+
+            case 2:
+                if (
+                    current_time.time() >= moderator_availability.wednesday_start
+                    and current_time.time() <= moderator_availability.wednesday_end
+                ):
+                    return True
+
+            case 3:
+                if (
+                    current_time.time() >= moderator_availability.thursday_start
+                    and current_time.time() <= moderator_availability.thursday_end
+                ):
+                    return True
+
+            case 4:
+                if (
+                    current_time.time() >= moderator_availability.friday_start
+                    and current_time.time() <= moderator_availability.friday_end
+                ):
+                    return True
+
+            case 5:
+                if (
+                    current_time.time() >= moderator_availability.saturday_start
+                    and current_time.time() <= moderator_availability.saturday_end
+                ):
+                    return True
+
+            case 6:
+                if (
+                    current_time.time() >= moderator_availability.sunday_start
+                    and current_time.time() <= moderator_availability.sunday_end
+                ):
+                    return True
+
+        return False
+
+
+async def has_availability_role(
+    bot: nextcord.Client,
+    availability_record: ModeratorAvailability,
+    staff_id: int,
+):
+    """Checks if a staff member has the availability role."""
+    guild = bot.get_guild(availability_record.guild_id)
+    member = guild.get_member(staff_id)
+    if not member:
+        return False
+
+    role = guild.get_role(CONFIG.roles.available_mod)
+
+    return role in member.roles

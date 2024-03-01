@@ -80,6 +80,7 @@ roles:
     honourable_member:          1166770861169197149
     adult_access:               1166770860787515426
     adult_verified:             1166770860787515425
+    available_mod:              1212898557737173043
 
 opt_in_roles:
     gaming:         1166770860980437040

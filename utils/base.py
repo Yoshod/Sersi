@@ -265,7 +265,7 @@ def serialise_timedelta(duration: int, timespan: str) -> str:
     return f"PT{int(hours)}H{int(minutes)}M{int(seconds)}S"
 
 
-def deserialise_timedelta(td_str: str):
+def deserialise_timedelta(td_str: str) -> datetime.timedelta:
     parts = td_str.strip("PT").strip("S").split("H")
     hours = int(parts[0])
     minutes, seconds = parts[1].split("M")

@@ -96,6 +96,8 @@ class ConfigurationRoles(YAMLWizard):
     adult_access: int
     adult_verified: int
 
+    available_mod: int
+
 
 @dataclass
 class ConfigurationPermissionRoles(YAMLWizard):

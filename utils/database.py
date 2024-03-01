@@ -592,6 +592,66 @@ class StaffStrikes(_Base):
     active = Column(Boolean, default=True)
 
 
+class ModeratorAvailability(_Base):
+    """
+    Represents the availability of a moderator.
+
+    This class maps to the 'moderator_availability' table in the database.
+    It stores the availability schedule of a moderator for each day of the week,
+    as well as other related information such as forced availability and
+    forced unavailability time intervals.
+
+    Attributes:
+        member (int): The ID of the staff member associated with the availability.
+        monday_start (datetime): The start time of availability on Mondays.
+        monday_end (datetime): The end time of availability on Mondays.
+        tuesday_start (datetime): The start time of availability on Tuesdays.
+        tuesday_end (datetime): The end time of availability on Tuesdays.
+        wednesday_start (datetime): The start time of availability on Wednesdays.
+        wednesday_end (datetime): The end time of availability on Wednesdays.
+        thursday_start (datetime): The start time of availability on Thursdays.
+        thursday_end (datetime): The end time of availability on Thursdays.
+        friday_start (datetime): The start time of availability on Fridays.
+        friday_end (datetime): The end time of availability on Fridays.
+        saturday_start (datetime): The start time of availability on Saturdays.
+        saturday_end (datetime): The end time of availability on Saturdays.
+        sunday_start (datetime): The start time of availability on Sundays.
+        sunday_end (datetime): The end time of availability on Sundays.
+        forced_available_timedelta (int): The forced availability time interval in minutes.
+        forced_unavailable_timedelta (int): The forced unavailability time interval in minutes.
+        time_of_last_message (datetime): The timestamp of the last message sent by the moderator.
+        update_availability_on_message (bool): Flag indicating whether availability should be updated on each message.
+        on_message_update_interval_minutes (int): Interval in minutes for updating availability on each message.
+        guild_id (int): The ID of the guild associated with the availability.
+    """
+
+    __tablename__ = "moderator_availability"
+
+    member = Column(Integer, ForeignKey("staff_members.member"), primary_key=True)
+    monday_start = Column(DateTime)
+    monday_end = Column(DateTime)
+    tuesday_start = Column(DateTime)
+    tuesday_end = Column(DateTime)
+    wednesday_start = Column(DateTime)
+    wednesday_end = Column(DateTime)
+    thursday_start = Column(DateTime)
+    thursday_end = Column(DateTime)
+    friday_start = Column(DateTime)
+    friday_end = Column(DateTime)
+    saturday_start = Column(DateTime)
+    saturday_end = Column(DateTime)
+    sunday_start = Column(DateTime)
+    sunday_end = Column(DateTime)
+    forced_available_timedelta = Column(Integer, default=None)
+    forced_available_start = Column(DateTime)
+    forced_unavailable_timedelta = Column(Integer, default=None)
+    forced_unavailable_start = Column(DateTime)
+    time_of_last_message = Column(DateTime, default=datetime.utcnow)
+    update_availability_on_message = Column(Boolean, default=True)
+    on_message_update_interval_minutes = Column(Integer, default=5)
+    guild_id = Column(Integer, nullable=False)
+
+
 ### Vote Models ###
 
 
