@@ -1408,32 +1408,62 @@ class Staff(commands.Cog):
                 return
 
         with db_session(interaction.user) as session:
-            availability_record = ModeratorAvailability(
-                member=interaction.user.id,
-                monday_start=monday_start,
-                monday_end=monday_end,
-                tuesday_start=tuesday_start,
-                tuesday_end=tuesday_end,
-                wednesday_start=wednesday_start,
-                wednesday_end=wednesday_end,
-                thursday_start=thursday_start,
-                thursday_end=thursday_end,
-                friday_start=friday_start,
-                friday_end=friday_end,
-                saturday_start=saturday_start,
-                saturday_end=saturday_end,
-                sunday_start=sunday_start,
-                sunday_end=sunday_end,
-                update_availability_on_message=(
-                    last_message_update if last_message_update else True
-                ),
-                on_message_update_interval_minutes=(
-                    update_interval if last_message_update else 5
-                ),
-                guild_id=interaction.guild.id,
+            existing_record = (
+                session.query(ModeratorAvailability)
+                .filter_by(member=interaction.user.id)
+                .first()
             )
-            session.add(availability_record)
-            session.commit()
+
+            if existing_record:
+                existing_record.monday_start = monday_start
+                existing_record.monday_end = monday_end
+                existing_record.tuesday_start = tuesday_start
+                existing_record.tuesday_end = tuesday_end
+                existing_record.wednesday_start = wednesday_start
+                existing_record.wednesday_end = wednesday_end
+                existing_record.thursday_start = thursday_start
+                existing_record.thursday_end = thursday_end
+                existing_record.friday_start = friday_start
+                existing_record.friday_end = friday_end
+                existing_record.saturday_start = saturday_start
+                existing_record.saturday_end = saturday_end
+                existing_record.sunday_start = sunday_start
+                existing_record.sunday_end = sunday_end
+                existing_record.update_availability_on_message = (
+                    last_message_update if last_message_update else True
+                )
+                existing_record.on_message_update_interval_minutes = (
+                    update_interval if last_message_update else 5
+                )
+                session.commit()
+
+            else:
+                availability_record = ModeratorAvailability(
+                    member=interaction.user.id,
+                    monday_start=monday_start,
+                    monday_end=monday_end,
+                    tuesday_start=tuesday_start,
+                    tuesday_end=tuesday_end,
+                    wednesday_start=wednesday_start,
+                    wednesday_end=wednesday_end,
+                    thursday_start=thursday_start,
+                    thursday_end=thursday_end,
+                    friday_start=friday_start,
+                    friday_end=friday_end,
+                    saturday_start=saturday_start,
+                    saturday_end=saturday_end,
+                    sunday_start=sunday_start,
+                    sunday_end=sunday_end,
+                    update_availability_on_message=(
+                        last_message_update if last_message_update else True
+                    ),
+                    on_message_update_interval_minutes=(
+                        update_interval if last_message_update else 5
+                    ),
+                    guild_id=interaction.guild.id,
+                )
+                session.add(availability_record)
+                session.commit()
 
         await interaction.followup.send(
             f"{self.config.emotes.success} Availability has been set."
