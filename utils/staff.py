@@ -324,7 +324,7 @@ def get_moderation_embed(staff_id: int, interaction: nextcord.Interaction):
             f"{CONFIG.emotes.blank}**Review Results:**\n"
             f"{review_string}\n"
             f"**Moderation Stats**\n"
-            f"{CONFIG.emotes.blank}**Most Recent Case:** `{most_recent_case}`\n"
+            f"{CONFIG.emotes.blank}**Most Recent Case:** `{str(most_recent_case)[2:-2]}`\n"
             f"{CONFIG.emotes.blank}**Warns:** {mod_stats['Warns']}\n"
             f"{CONFIG.emotes.blank}**Timeouts:** {mod_stats['Timeouts']}\n"
             f"{CONFIG.emotes.blank}**Bans:** {mod_stats['Bans']}\n"
