@@ -4,7 +4,7 @@ from nextcord.ext import commands
 from utils.sersi_embed import SersiEmbed
 from utils.base import get_discord_timestamp
 from utils.config import Configuration
-from utils.database import db_session, TimeoutCase
+from utils.database import db_session, TimeoutCase, VoteDetails, BanCase
 from nextcord.utils import format_dt
 import datetime
 
@@ -120,6 +120,37 @@ class JoinLeave(commands.Cog):
                                 colour=nextcord.Colour.brand_red(),
                             )
                         )
+
+        with db_session() as session:
+            ban_cases = (
+                session.query(BanCase)
+                .filter_by(
+                    offender=member.id,
+                    ban_type="urgent",
+                )
+                .all()
+            )
+
+            for ban_case in ban_cases:
+                vote_details = (
+                    session.query(VoteDetails)
+                    .filter_by(
+                        case_id=ban_case.id, vote_type="urgent-ban", outcome=None
+                    )
+                    .first()
+                )
+
+                if not vote_details:
+                    continue
+
+                await member.guild.get_channel(self.config.channels.alert).send(
+                    embed=SersiEmbed(
+                        title="Urgent Ban User Left",
+                        description=f"{member.mention} ({member.id}) has left the server while a ban vote was ongoing. The ban vote can be found here: {vote_details.vote_url}). The ban vote will still be processed and if accepted the user will still be banned.",
+                    )
+                )
+
+                break
 
 
 def setup(bot: commands.Bot, **kwargs):
