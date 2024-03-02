@@ -1,7 +1,12 @@
 import enum
 import os
 import nextcord
-from utils.base import encode_button_id, encode_snowflake, get_discord_timestamp
+from utils.base import (
+    encode_button_id,
+    encode_snowflake,
+    get_discord_timestamp,
+    deserialise_timedelta,
+)
 from utils.database import (
     db_session,
     StaffMembers,
@@ -554,76 +559,169 @@ async def set_availability_status(
         await member.remove_roles(guild.get_role(CONFIG.roles.available_mod))
 
 
-def determine_availability_status(staff_id: int):
-    """Determines the availability status of a staff member."""
+def check_if_forced_available(staff_id: int):
+    """Checks if a staff member is forced available."""
     with db_session() as session:
         moderator_availability = (
             session.query(ModeratorAvailability).filter_by(member=staff_id).first()
         )
 
-        if moderator_availability.forced_unavailable_start:
-            return False
+        return moderator_availability.forced_available_start
 
-        if moderator_availability.forced_available_start:
-            return True
+
+def check_if_forced_unavailable(staff_id: int):
+    """Checks if a staff member is forced unavailable."""
+    with db_session() as session:
+        moderator_availability = (
+            session.query(ModeratorAvailability).filter_by(member=staff_id).first()
+        )
+
+        return moderator_availability.forced_unavailable_start
+
+
+def check_if_forced_available_expired(staff_id: int):
+    """Checks if a staff member's forced available status has expired."""
+    with db_session() as session:
+        moderator_availability = (
+            session.query(ModeratorAvailability).filter_by(member=staff_id).first()
+        )
+
+        end_time_td = deserialise_timedelta(
+            moderator_availability.forced_available_timedelta
+        )
+
+        return (
+            moderator_availability.forced_available_start + end_time_td
+            < datetime.datetime.now()
+        )
+
+
+def check_if_forced_unavailable_expired(staff_id: int):
+    """Checks if a staff member's forced unavailable status has expired."""
+    with db_session() as session:
+        moderator_availability = (
+            session.query(ModeratorAvailability).filter_by(member=staff_id).first()
+        )
+
+        end_time_td = deserialise_timedelta(
+            moderator_availability.forced_unavailable_timedelta
+        )
+
+        return (
+            moderator_availability.forced_unavailable_start + end_time_td
+            < datetime.datetime.now()
+        )
+
+
+def update_last_message_time(staff_id: int):
+    """Updates the last message time of a staff member."""
+    with db_session() as session:
+        moderator_availability = (
+            session.query(ModeratorAvailability).filter_by(member=staff_id).first()
+        )
+
+        moderator_availability.time_of_last_message = datetime.datetime.now()
+        session.commit()
+
+
+def check_if_update_message_time_opted_in(staff_id: int):
+    """Checks if a staff member has opted in to updating their last message time."""
+    with db_session() as session:
+        moderator_availability = (
+            session.query(ModeratorAvailability).filter_by(member=staff_id).first()
+        )
+
+        return moderator_availability.update_availability_on_message
+
+
+def check_if_inside_availability_window(staff_id: int):
+    """Checks if a staff member is inside their availability window."""
+    with db_session() as session:
+        moderator_availability = (
+            session.query(ModeratorAvailability).filter_by(member=staff_id).first()
+        )
 
         current_time = datetime.datetime.now()
         current_day = current_time.weekday()
 
         match current_day:
             case 0:
-                if (
-                    current_time.time() >= moderator_availability.monday_start
-                    and current_time.time() <= moderator_availability.monday_end
+                if current_time.strftime("%H%M") >= str(
+                    moderator_availability.monday_start
+                ).zfill(4) and current_time.strftime("%H%M") <= str(
+                    moderator_availability.monday_end
+                ).zfill(
+                    4
                 ):
                     return True
 
             case 1:
-                if (
-                    current_time.time() >= moderator_availability.tuesday_start
-                    and current_time.time() <= moderator_availability.tuesday_end
+                if current_time.strftime("%H%M") >= str(
+                    moderator_availability.tuesday_start
+                ).zfill(4) and current_time.strftime("%H%M") <= str(
+                    moderator_availability.tuesday_end
+                ).zfill(
+                    4
                 ):
                     return True
 
             case 2:
-                if (
-                    current_time.time() >= moderator_availability.wednesday_start
-                    and current_time.time() <= moderator_availability.wednesday_end
+                if current_time.strftime("%H%M") >= str(
+                    moderator_availability.wednesday_start
+                ).zfill(4) and current_time.strftime("%H%M") <= str(
+                    moderator_availability.wednesday_end
+                ).zfill(
+                    4
                 ):
                     return True
 
             case 3:
-                if (
-                    current_time.time() >= moderator_availability.thursday_start
-                    and current_time.time() <= moderator_availability.thursday_end
+                if current_time.strftime("%H%M") >= str(
+                    moderator_availability.thursday_start
+                ).zfill(4) and current_time.strftime("%H%M") <= str(
+                    moderator_availability.thursday_end
+                ).zfill(
+                    4
                 ):
                     return True
 
             case 4:
-                if (
-                    current_time.time() >= moderator_availability.friday_start
-                    and current_time.time() <= moderator_availability.friday_end
+                if current_time.strftime("%H%M") >= str(
+                    moderator_availability.friday_start
+                ).zfill(4) and current_time.strftime("%H%M") <= str(
+                    moderator_availability.friday_end
+                ).zfill(
+                    4
                 ):
                     return True
 
             case 5:
-                if (
-                    current_time.time() >= moderator_availability.saturday_start
-                    and current_time.time() <= moderator_availability.saturday_end
+                if current_time.strftime("%H%M") >= str(
+                    moderator_availability.saturday_start
+                ).zfill(4) and current_time.strftime("%H%M") <= str(
+                    moderator_availability.saturday_end
+                ).zfill(
+                    4
                 ):
                     return True
 
             case 6:
-                if (
-                    current_time.time() >= moderator_availability.sunday_start
-                    and current_time.time() <= moderator_availability.sunday_end
+                if current_time.strftime("%H%M") >= str(
+                    moderator_availability.sunday_start
+                ).zfill(4) and current_time.strftime("%H%M") <= str(
+                    moderator_availability.sunday_end
+                ).zfill(
+                    4
                 ):
                     return True
+
+            case _:
+                raise ValueError("Invalid day of the week.")
 
         return False
 
 
-async def has_availability_role(
+async def check_if_has_availability_role(
     bot: nextcord.Client,
     availability_record: ModeratorAvailability,
     staff_id: int,
@@ -637,3 +735,65 @@ async def has_availability_role(
     role = guild.get_role(CONFIG.roles.available_mod)
 
     return role in member.roles
+
+
+def check_if_should_mark_unavailable(staff_id: int):
+    """Checks if a staff member should update their availability status."""
+    with db_session() as session:
+        moderator_availability = (
+            session.query(ModeratorAvailability).filter_by(member=staff_id).first()
+        )
+
+        if moderator_availability.forced_unavailable_start:
+            return True
+
+        if moderator_availability.forced_available_start:
+            return False
+
+        if check_if_inside_availability_window(staff_id):
+            return False
+
+        if moderator_availability.update_availability_on_message:
+            last_message_time = moderator_availability.time_of_last_message
+            current_time = datetime.datetime.now()
+            difference_td = current_time - last_message_time
+
+            interval_td = datetime.timedelta(
+                minutes=moderator_availability.on_message_update_interval_minutes
+            )
+
+            if difference_td > interval_td:
+                return False
+
+    return False
+
+
+def check_if_should_mark_available(staff_id: int):
+    """Checks if a staff member should update their availability status."""
+    with db_session() as session:
+        moderator_availability = (
+            session.query(ModeratorAvailability).filter_by(member=staff_id).first()
+        )
+
+        if moderator_availability.forced_available_start:
+            return True
+
+        if moderator_availability.forced_unavailable_start:
+            return False
+
+        if check_if_inside_availability_window(staff_id):
+            return True
+
+        if moderator_availability.update_availability_on_message:
+            last_message_time = moderator_availability.time_of_last_message
+            current_time = datetime.datetime.now()
+            difference_td = current_time - last_message_time
+
+            interval_td = datetime.timedelta(
+                minutes=moderator_availability.on_message_update_interval_minutes
+            )
+
+            if difference_td > interval_td:
+                return True
+
+    return False

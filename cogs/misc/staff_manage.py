@@ -55,8 +55,14 @@ from utils.staff import (
     add_mod_record_legacy,
     promotion_validity_check,
     set_availability_status,
-    determine_availability_status,
-    has_availability_role,
+    check_if_forced_available,
+    check_if_forced_available_expired,
+    check_if_forced_unavailable,
+    check_if_forced_unavailable_expired,
+    check_if_has_availability_role,
+    check_if_inside_availability_window,
+    check_if_update_message_time_opted_in,
+    check_if_should_mark_unavailable,
 )
 from utils.review import determine_reviewer
 
@@ -73,6 +79,16 @@ class Staff(commands.Cog):
     def __init__(self, bot: commands.Bot, config: Configuration):
         self.bot = bot
         self.config = config
+
+        if self.bot.is_ready():
+            self.check_availability.start()
+
+    def cog_unload(self):
+        self.check_availability.cancel()
+
+    @commands.Cog.listener()
+    async def on_ready(self):
+        self.check_availability.start()
 
     async def remove_all_permission_roles(self, member: nextcord.Member):
         for role in vars(self.config.permission_roles):
@@ -956,7 +972,6 @@ class Staff(commands.Cog):
         add_staff_legacy(member.id, branch, int(role), added_by.id)
 
         if mentor:
-            print(mentor.id)
             add_mod_record_legacy(member.id, mentor.id)
 
         await interaction.followup.send(
@@ -1409,8 +1424,12 @@ class Staff(commands.Cog):
                 saturday_end=saturday_end,
                 sunday_start=sunday_start,
                 sunday_end=sunday_end,
-                update_availability_on_message=last_message_update,
-                on_message_update_interval=update_interval,
+                update_availability_on_message=(
+                    last_message_update if last_message_update else True
+                ),
+                on_message_update_interval_minutes=(
+                    update_interval if last_message_update else 5
+                ),
                 guild_id=interaction.guild.id,
             )
             session.add(availability_record)
@@ -1458,9 +1477,11 @@ class Staff(commands.Cog):
 
             availability_record.forced_available_timedelta = available_timedelta
             availability_record.forced_available_start = datetime.datetime.now()
+            availability_record.forced_unavailable_timedelta = None
+            availability_record.forced_unavailable_start = None
             session.commit()
 
-        await set_availability_status(self.bot, availability_record, True)
+            await set_availability_status(self.bot, availability_record, True)
 
         if deserialise_timedelta(available_timedelta) >= datetime.timedelta(hours=24):
             await interaction.followup.send(
@@ -1512,9 +1533,11 @@ class Staff(commands.Cog):
 
             availability_record.forced_unavailable_timedelta = unavailable_timedelta
             availability_record.forced_unavailable_start = datetime.datetime.now()
+            availability_record.forced_available_timedelta = None
+            availability_record.forced_available_start = None
             session.commit()
 
-        await set_availability_status(self.bot, availability_record, False)
+            await set_availability_status(self.bot, availability_record, False)
 
         await interaction.followup.send(
             f"{self.config.emotes.success} You have been forced to be unavailable for {deserialise_timedelta(unavailable_timedelta)}."
@@ -1526,7 +1549,7 @@ class Staff(commands.Cog):
                 description=f"{interaction.user.mention} has been forced to be unavailable for {deserialise_timedelta(unavailable_timedelta)}.",
             )
 
-            reviewer = determine_reviewer(interaction.user.id, self.config)
+            reviewer = determine_reviewer(interaction.user, self.config)
 
             match reviewer:
                 case self.config.permission_roles.compliance:
@@ -1621,7 +1644,6 @@ class Staff(commands.Cog):
 
     @commands.Cog.listener()
     async def on_interaction(self, interaction: nextcord.Interaction):
-        print("Listener fired")
         if interaction.data is None or interaction.data.get("custom_id") is None:
             return
         if not interaction.data["custom_id"].startswith(
@@ -1653,80 +1675,70 @@ class Staff(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, interaction: nextcord.Message):
-        if not permcheck(interaction, is_mod):
+        if CONFIG.permission_roles.moderator not in [
+            role.id for role in interaction.author.roles
+        ]:
             return
 
-        with db_session(interaction.author) as session:
-            availability_record = (
+        with db_session(self.bot.user) as session:
+            record: ModeratorAvailability = (
                 session.query(ModeratorAvailability)
                 .filter_by(member=interaction.author.id)
                 .first()
             )
 
-            if has_availability_role(
-                self.bot, availability_record, interaction.author.id
-            ):
-                availability_record.time_of_last_message = datetime.datetime.now()
-                session.commit()
+            if not check_if_update_message_time_opted_in(interaction.author.id):
                 return
 
-            if (
-                availability_record.update_availability_on_message
-                and not determine_availability_status(
-                    interaction.author.id
-                )  # This means the user is currently unavailable, and is not forced to be unavailable
+            record.time_of_last_message = datetime.datetime.now()
+            session.commit()
+
+            if await check_if_has_availability_role(
+                self.bot, record, interaction.author.id
             ):
-                await set_availability_status(self.bot, availability_record, True)
-                availability_record.time_of_last_message = datetime.datetime.now()
-                session.commit()
                 return
+
+            if check_if_forced_unavailable(record.member):
+                return
+
+            await set_availability_status(self.bot, record, True)
 
     @tasks.loop(minutes=1)
     async def check_availability(self):
-        """
-        A task that checks the availability of moderators.
-
-        This task runs every minute and performs the following checks:
-        1. Checks if any moderators have exceeded their forced available time limit and resets their availability.
-        2. Checks if any moderators have exceeded their forced unavailable time limit and resets their availability.
-        3. Checks if any moderators have the availability role but have not messaged in a specified time interval,
-            and sets their availability to unavailable.
-
-        Note: This task requires a database session to access the moderator availability records.
-        """
         with db_session(self.bot.user) as session:
             availability_records = session.query(ModeratorAvailability).all()
 
             for record in availability_records:
-                if record.forced_available_timedelta:
-                    if (
-                        datetime.datetime.now() - record.forced_available_start
-                    ) >= deserialise_timedelta(record.forced_available_timedelta):
-                        record.forced_available_timedelta = None
-                        record.forced_available_start = None
-                        session.commit()
-
-                if record.forced_unavailable_timedelta:
-                    if (
-                        datetime.datetime.now() - record.forced_unavailable_start
-                    ) >= deserialise_timedelta(record.forced_unavailable_timedelta):
-                        record.forced_unavailable_timedelta = None
-                        record.forced_unavailable_start = None
-                        session.commit()
-
-                if has_availability_role(
+                if check_if_forced_unavailable(
                     record.member
-                ) and not determine_availability_status(
+                ) and check_if_forced_unavailable_expired(record.member):
+                    record.forced_unavailable_timedelta = None
+                    record.forced_unavailable_start = None
+                    session.commit()
+
+                    if check_if_inside_availability_window(record.member):
+                        await set_availability_status(self.bot, record, True)
+
+                    else:
+                        await set_availability_status(self.bot, record, False)
+
+                if check_if_forced_available(
                     record.member
-                ):  # This means the user has the available role out of hours
-                    if (
-                        datetime.datetime.now() - record.time_of_last_message
-                    ) >= deserialise_timedelta(
-                        record.on_message_update_interval_minutes
-                    ):  # This means the user has not messaged in the last x minutes
-                        await set_availability_status(
-                            self.bot, record, False
-                        )  # Set the user to unavailable
+                ) and check_if_forced_available_expired(record.member):
+                    record.forced_available_timedelta = None
+                    record.forced_available_start = None
+                    session.commit()
+
+                    if not check_if_inside_availability_window(record.member):
+                        await set_availability_status(self.bot, record, False)
+
+                    else:
+                        await set_availability_status(self.bot, record, True)
+
+                if check_if_update_message_time_opted_in(
+                    record.member
+                ) and check_if_should_mark_unavailable(record.member):
+                    await set_availability_status(self.bot, record, False)
 
 
 def setup(bot: commands.Bot, **kwargs):
