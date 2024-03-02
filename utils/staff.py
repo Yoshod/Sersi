@@ -354,6 +354,8 @@ def get_moderation_embed(staff_id: int, interaction: nextcord.Interaction):
             else:
                 embed.description += f"{CONFIG.emotes.blank}**Currently Available:** {CONFIG.emotes.fail}\n"
 
+            # Change the time integers to datetime objects keeping in mind that the time is in UTC and the time is recorded as 3 or 4 digit integers in 24 hour format
+
             availability_string = (
                 f"{CONFIG.emotes.blank}**Update Availability on Message:** {CONFIG.emotes.success if availability_record.update_availability_on_message else CONFIG.emotes.fail}\n"
                 f"{CONFIG.emotes.blank}**On Message Update Interval:** {str(availability_record.on_message_update_interval_minutes)} minutes\n"
