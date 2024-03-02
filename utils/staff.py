@@ -830,3 +830,22 @@ def check_if_should_mark_available(staff_id: int):
                 return True
 
     return False
+
+
+def count_available_mods(guild: nextcord.Guild):
+    """Counts the number of available moderators in a guild."""
+    available_mods = 0
+
+    with db_session() as session:
+        staff_members = session.query(StaffMembers).all()
+        mod_ids = [staff.member for staff in staff_members]
+
+        for staff_id in mod_ids:
+            member = guild.get_member(staff_id)
+            if not member:
+                continue
+
+            if guild.get_role(CONFIG.roles.available_mod) in member.roles:
+                available_mods += 1
+
+    return available_mods
