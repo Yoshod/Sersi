@@ -1777,14 +1777,14 @@ class Staff(commands.Cog):
 
             await set_availability_status(self.bot, record, True)
 
-            interaction.guild.get_channel(self.config.channels.logging).send(
+            await interaction.guild.get_channel(self.config.channels.logging).send(
                 embed=SersiEmbed(
                     title="Forced Availability Set",
                     description=f"{interaction.author.mention} has been set to be available due to recent message.",
                 )
             )
 
-            interaction.guild.get_channel(self.config.channels.mod_logs).send(
+            await interaction.guild.get_channel(self.config.channels.mod_logs).send(
                 embed=SersiEmbed(
                     title="Forced Availability Set",
                     description=f"{interaction.author.mention} has been set to be available due to recent message.",
