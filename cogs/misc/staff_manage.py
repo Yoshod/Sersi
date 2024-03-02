@@ -1493,6 +1493,20 @@ class Staff(commands.Cog):
                 f"{self.config.emotes.success} You have been forced to be available for {deserialise_timedelta(available_timedelta)}."
             )
 
+        await interaction.guild.get_channel(self.config.channels.logging).send(
+            embed=SersiEmbed(
+                title="Forced Availability Set",
+                description=f"{interaction.user.mention} has been forced to be available for {deserialise_timedelta(available_timedelta)}.",
+            )
+        )
+
+        await interaction.guild.get_channel(self.config.channels.mod_logs).send(
+            embed=SersiEmbed(
+                title="Forced Availability Set",
+                description=f"{interaction.user.mention} has been forced to be available for {deserialise_timedelta(available_timedelta)}.",
+            )
+        )
+
     @staff.subcommand(description="Force unavailable status")
     async def force_unavailable(
         self,
@@ -1598,6 +1612,20 @@ class Staff(commands.Cog):
                                 f"{interaction.user.mention} has been forced to be unavailable for {deserialise_timedelta(unavailable_timedelta)}."
                             )
 
+        await interaction.guild.get_channel(self.config.channels.logging).send(
+            embed=SersiEmbed(
+                title="Forced Unavailability Set",
+                description=f"{interaction.user.mention} has been forced to be unavailable for {deserialise_timedelta(unavailable_timedelta)}.",
+            )
+        )
+
+        await interaction.guild.get_channel(self.config.channels.mod_logs).send(
+            embed=SersiEmbed(
+                title="Forced Unavailability Set",
+                description=f"{interaction.user.mention} has been forced to be unavailable for {deserialise_timedelta(unavailable_timedelta)}.",
+            )
+        )
+
     @staff.subcommand(description="Set expire forced availability or unavailability")
     async def expire_forced(
         self,
@@ -1630,18 +1658,19 @@ class Staff(commands.Cog):
             f"{self.config.emotes.success} Forced availability or unavailability has been expired."
         )
 
-        interaction.guild.get_channel(self.config.channels.logging).send(
+        await interaction.guild.get_channel(self.config.channels.logging).send(
             embed=SersiEmbed(
                 title="Forced Availability/Unavailability Expired",
                 description=f"{interaction.user.mention} has expired their forced availability or unavailability.",
             )
         )
 
-        interaction.guild.get_channel(self.config.channels.mod_logs).send(
+        await interaction.guild.get_channel(self.config.channels.mod_logs).send(
             embed=SersiEmbed(
                 title="Forced Availability/Unavailability Expired",
                 description=f"{interaction.user.mention} has expired their forced availability or unavailability.",
             )
+        )
 
     @commands.Cog.listener()
     async def on_honoured_member_revoke(self, details: VoteDetails):
@@ -1748,6 +1777,20 @@ class Staff(commands.Cog):
 
             await set_availability_status(self.bot, record, True)
 
+            interaction.guild.get_channel(self.config.channels.logging).send(
+                embed=SersiEmbed(
+                    title="Forced Availability Set",
+                    description=f"{interaction.author.mention} has been set to be available due to recent message.",
+                )
+            )
+
+            interaction.guild.get_channel(self.config.channels.mod_logs).send(
+                embed=SersiEmbed(
+                    title="Forced Availability Set",
+                    description=f"{interaction.author.mention} has been set to be available due to recent message.",
+                )
+            )
+
     @tasks.loop(minutes=1)
     async def check_availability(self):
         with db_session(self.bot.user) as session:
@@ -1761,11 +1804,37 @@ class Staff(commands.Cog):
                     record.forced_unavailable_start = None
                     session.commit()
 
+                    guild = self.bot.get_guild(record.guild_id)
+
                     if check_if_inside_availability_window(record.member):
                         await set_availability_status(self.bot, record, True)
+                        await guild.get_channel(self.config.channels.logging).send(
+                            embed=SersiEmbed(
+                                title="Forced Unavailability Expired",
+                                description=f"{guild.get_member(record.member).mention} has expired their forced unavailability.",
+                            )
+                        )
+                        await guild.get_channel(self.config.channels.mod_logs).send(
+                            embed=SersiEmbed(
+                                title="Forced Unavailability Expired",
+                                description=f"{guild.get_member(record.member).mention} has expired their forced unavailability.",
+                            )
+                        )
 
                     else:
                         await set_availability_status(self.bot, record, False)
+                        await guild.get_channel(self.config.channels.logging).send(
+                            embed=SersiEmbed(
+                                title="Forced Unavailability Expired",
+                                description=f"{guild.get_member(record.member).mention} has expired their forced unavailability.",
+                            )
+                        )
+                        await guild.get_channel(self.config.channels.mod_logs).send(
+                            embed=SersiEmbed(
+                                title="Forced Unavailability Expired",
+                                description=f"{guild.get_member(record.member).mention} has expired their forced unavailability.",
+                            )
+                        )
 
                 if check_if_forced_available(
                     record.member
@@ -1774,16 +1843,49 @@ class Staff(commands.Cog):
                     record.forced_available_start = None
                     session.commit()
 
+                    guild = self.bot.get_guild(record.guild_id)
+
                     if not check_if_inside_availability_window(record.member):
                         await set_availability_status(self.bot, record, False)
+                        await guild.get_channel(self.config.channels.logging).send(
+                            embed=SersiEmbed(
+                                title="Forced Availability Expired",
+                                description=f"{guild.get_member(record.member).mention} has expired their forced availability.",
+                            )
+                        )
+                        await guild.get_channel(self.config.channels.mod_logs).send(
+                            embed=SersiEmbed(
+                                title="Forced Availability Expired",
+                                description=f"{guild.get_member(record.member).mention} has expired their forced availability.",
+                            )
+                        )
 
                     else:
                         await set_availability_status(self.bot, record, True)
+                        await guild.get_channel(self.config.channels.logging).send(
+                            embed=SersiEmbed(
+                                title="Forced Availability Expired",
+                                description=f"{guild.get_member(record.member).mention} has expired their forced availability.",
+                            )
+                        )
+                        await guild.get_channel(self.config.channels.mod_logs).send(
+                            embed=SersiEmbed(
+                                title="Forced Availability Expired",
+                                description=f"{guild.get_member(record.member).mention} has expired their forced availability.",
+                            )
+                        )
 
                 if check_if_update_message_time_opted_in(
                     record.member
                 ) and check_if_should_mark_unavailable(record.member):
                     await set_availability_status(self.bot, record, False)
+                    guild = self.bot.get_guild(record.guild_id)
+                    await guild.get_channel(self.config.channels.logging).send(
+                        embed=SersiEmbed(
+                            title="Unavailability Set",
+                            description=f"{guild.get_member(record.member).mention} has been set to be unavailable due to inactivity.",
+                        )
+                    )
 
 
 def setup(bot: commands.Bot, **kwargs):
