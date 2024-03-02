@@ -71,6 +71,28 @@ class BanUnban(commands.Cog):
                     colour=nextcord.Colour.brand_green(),
                 ).set_author(name=entry.user, icon_url=entry.user.display_avatar.url)
             )
+
+            with db_session() as session:
+                existing_case = (
+                    session.query(BanCase)
+                    .filter_by(offender=target.id, active=True)
+                    .first()
+                )
+                if existing_case:
+                    existing_case.active = False
+                    existing_case.unbanned_by = entry.user.id
+                    existing_case.unban_reason = entry.reason
+                    session.commit()
+
+            await entry.guild.get_channel(self.config.channels.alert).send(
+                embed=SersiEmbed(
+                    title="Non Sersi Unban Detected",
+                    description=f"{target} was unbanned by {entry.user} with reason {entry.reason}. This unban was not processed by Sersi. The case has been marked as inactive. Please edit the case to add the reason or edit the moderator if necessary.",
+                    footer="Sersi Ban/Unban Logging",
+                    thumbnail_url=target.display_avatar.url,
+                    colour=nextcord.Colour.brand_green(),
+                )
+            )
         elif entry.action == nextcord.AuditLogAction.kick:
             target: nextcord.User = await self.bot.fetch_user(entry._target_id)
             await entry.guild.get_channel(self.config.channels.ban_unban).send(
