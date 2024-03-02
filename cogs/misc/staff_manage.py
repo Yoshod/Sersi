@@ -1335,42 +1335,49 @@ class Staff(commands.Cog):
         ),
         monday_end: int = SlashOption(
             description="Monday end time in 24-hour format (HHMM in UTC)",
+            max_value=2359,
         ),
         tuesday_start: int = SlashOption(
             description="Tuesday start time in 24-hour format (HHMM in UTC)",
         ),
         tuesday_end: int = SlashOption(
             description="Tuesday end time in 24-hour format (HHMM in UTC)",
+            max_value=2359,
         ),
         wednesday_start: int = SlashOption(
             description="Wednesday start time in 24-hour format (HHMM in UTC)",
         ),
         wednesday_end: int = SlashOption(
             description="Wednesday end time in 24-hour format (HHMM in UTC)",
+            max_value=2359,
         ),
         thursday_start: int = SlashOption(
             description="Thursday start time in 24-hour format (HHMM in UTC)",
         ),
         thursday_end: int = SlashOption(
             description="Thursday end time in 24-hour format (HHMM in UTC)",
+            max_value=2359,
         ),
         friday_start: int = SlashOption(
             description="Friday start time in 24-hour format (HHMM in UTC)",
         ),
         friday_end: int = SlashOption(
             description="Friday end time in 24-hour format (HHMM in UTC)",
+            max_value=2359,
         ),
         saturday_start: int = SlashOption(
             description="Saturday start time in 24-hour format (HHMM in UTC)",
         ),
         saturday_end: int = SlashOption(
             description="Saturday end time in 24-hour format (HHMM in UTC)",
+            max_value=2359,
         ),
         sunday_start: int = SlashOption(
             description="Sunday start time in 24-hour format (HHMM in UTC)",
         ),
         sunday_end: int = SlashOption(
             description="Sunday end time in 24-hour format (HHMM in UTC)",
+            max_value=2359,
         ),
         last_message_update: bool = SlashOption(
             description="Whether to become available out of hours if you have recently messaged",
