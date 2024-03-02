@@ -334,6 +334,38 @@ def get_moderation_embed(staff_id: int, interaction: nextcord.Interaction):
             f"{CONFIG.emotes.blank}**Approved Peer Reviews:** {mod_stats['Approved Peer Reviews']}\n",
         )
 
+        availability_record = (
+            session.query(ModeratorAvailability).filter_by(member=staff_id).first()
+        )
+
+        if availability_record:
+            embed.description += f"**Availability**\n"
+            if availability_record.forced_available_start:
+                embed.description += f"{CONFIG.emotes.blank}**Forced Available Until:** {get_discord_timestamp(availability_record.forced_available_start + deserialise_timedelta(availability_record.forced_available_timedelta), relative=True)}\n"
+
+            if availability_record.forced_unavailable_start:
+                embed.description += f"{CONFIG.emotes.blank}**Forced Unavailable Until:** {get_discord_timestamp(availability_record.forced_unavailable_start + deserialise_timedelta(availability_record.forced_unavailable_timedelta), relative=True)}\n"
+
+            if CONFIG.roles.available_mod in [
+                role.id for role in interaction.guild.get_member(staff_id).roles
+            ]:
+                embed.description += f"{CONFIG.emotes.blank}**Currently Available:** {CONFIG.emotes.success}\n"
+
+            else:
+                embed.description += f"{CONFIG.emotes.blank}**Currently Available:** {CONFIG.emotes.fail}\n"
+
+            embed.description += (
+                f"{CONFIG.emotes.blank}**Update Availability on Message:** {CONFIG.emotes.success if availability_record.update_availability_on_message else CONFIG.emotes.fail}\n"
+                f"{CONFIG.emotes.blank}**On Message Update Interval:** {availability_record.on_message_update_interval_minutes} minutes\n"
+                f"{CONFIG.emotes.blank}**Monday Availability:** {availability_record.monday_start} - {availability_record.monday_end}\n"
+                f"{CONFIG.emotes.blank}**Tuesday Availability:** {availability_record.tuesday_start} - {availability_record.tuesday_end}\n"
+                f"{CONFIG.emotes.blank}**Wednesday Availability:** {availability_record.wednesday_start} - {availability_record.wednesday_end}\n"
+                f"{CONFIG.emotes.blank}**Thursday Availability:** {availability_record.thursday_start} - {availability_record.thursday_end}\n"
+                f"{CONFIG.emotes.blank}**Friday Availability:** {availability_record.friday_start} - {availability_record.friday_end}\n"
+                f"{CONFIG.emotes.blank}**Saturday Availability:** {availability_record.saturday_start} - {availability_record.saturday_end}\n"
+                f"{CONFIG.emotes.blank}**Sunday Availability:** {availability_record.sunday_start} - {availability_record.sunday_end}\n"
+            )
+
         return embed
 
 
