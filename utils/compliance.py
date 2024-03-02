@@ -13,6 +13,7 @@ from utils.database import (
     PeerReview,
     Alert,
     Ticket,
+    SlurUsageCase,
 )
 
 
@@ -198,5 +199,81 @@ def get_moderation_report_embed(
             "Total Ping Alerts": report.total_ping_alerts,
             "Tickets Created": report.tickets_created,
             "Tickets Closed": report.tickets_closed,
+        },
+    )
+
+
+def get_slur_report(start_date: datetime.datetime, end_date: datetime.datetime):
+    with db_session() as session:
+        total_slur_alerts = (
+            session.query(Alert)
+            .filter(Alert.creation_time >= start_date)
+            .filter(Alert.creation_time <= end_date)
+            .filter(Alert.alert_type == "Slur Detected")
+            .count()
+        )
+        total_slur_cases = (
+            session.query(Case)
+            .filter(Case.created >= start_date)
+            .filter(Case.created <= end_date)
+            .filter(Case.type == "Slur Usage")
+            .count()
+        )
+
+        # Next we should create a list of the 10 most used slurs and their counts
+
+        slurs = [slur.slur_used for slur in session.query(SlurUsageCase).all()]
+
+        slur_counts = {}
+        for slur in slurs:
+            if slur in slur_counts:
+                slur_counts[slur] += 1
+            else:
+                slur_counts[slur] = 1
+
+        # Now we should sort the slur counts and get the top 10
+        sorted_slurs = sorted(slur_counts.items(), key=lambda x: x[1], reverse=True)
+
+        slur_offenders = [
+            case.offender
+            for case in session.query(Case).filter(Case.type == "Slur Usage").all()
+        ]
+
+        # Now we should create a list of the 10 users with the most slur cases
+        user_counts = {}
+        for user in slur_offenders:
+            if user in user_counts:
+                user_counts[user] += 1
+            else:
+                user_counts[user] = 1
+
+        sorted_users = sorted(user_counts.items(), key=lambda x: x[1], reverse=True)
+
+        # Now we format the user IDs into mentions surrounding the ID with <@ and >
+        formatted_users = []
+        for user in sorted_users:
+            formatted_users.append(f"<@{user[0]}> - {user[1]} cases")
+
+    return total_slur_alerts, total_slur_cases, sorted_slurs[:10], formatted_users
+
+
+def get_slur_report_embed(
+    total_slur_alerts: int,
+    total_slur_cases: int,
+    top_slurs: list,
+    top_users: list,
+    start_date: datetime.datetime,
+    end_date: datetime.datetime,
+):
+    return SersiEmbed(
+        title="Slur Report",
+        description=f"**Start Date:** {start_date.strftime('%d/%m/%Y')}\n**End Date:** {end_date.strftime('%d/%m/%Y')}",
+        fields={
+            "Total Slur Alerts": total_slur_alerts,
+            "Total Slur Cases": total_slur_cases,
+            "Top 10 Slurs": "\n".join(
+                [f"{slur[0]} - {slur[1]} uses" for slur in top_slurs]
+            ),
+            "Top 10 Offenders": "\n".join(top_users),
         },
     )

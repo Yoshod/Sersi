@@ -8,6 +8,8 @@ from utils.compliance import (
     get_moderation_report,
     get_moderation_report_embed,
     ModerationReport,
+    get_slur_report,
+    get_slur_report_embed,
 )
 
 from utils.perms import is_mod, permcheck, is_admin, is_compliance
@@ -151,6 +153,63 @@ class Compliance(commands.Cog):
 
         embed = get_moderation_report_embed(
             report, start_date, end_date, f"{preset} Moderation Report"
+        )
+
+        await interaction.followup.send(embed=embed)
+
+    @create.subcommand(
+        description="Create a compliance report of slur data using a predefined set of durations."
+    )
+    async def slur(
+        self,
+        interaction: nextcord.Interaction,
+        preset: str = nextcord.SlashOption(
+            description="The preset to use.",
+            choices=[
+                "Month to Date",
+                "Quarter to Date",
+                "Year to Date",
+                "All Time",
+            ],
+        ),
+    ):
+        if not await permcheck(interaction, is_admin) or not await permcheck(
+            interaction, is_compliance
+        ):
+            return
+
+        await interaction.response.defer()
+
+        match preset:
+            case "Month to Date":
+                start_date = datetime.datetime.today().replace(day=1)
+                end_date = datetime.datetime.today()
+
+            case "Quarter to Date":
+                start_date = datetime.datetime.today().replace(
+                    month=(datetime.datetime.today().month - 1) // 3 * 3 + 1, day=1
+                )
+                end_date = datetime.datetime.today()
+
+            case "Year to Date":
+                start_date = datetime.datetime.today().replace(month=1, day=1)
+                end_date = datetime.datetime.today()
+
+            case "All Time":
+                start_date = datetime.datetime(2022, 1, 1)
+                end_date = datetime.datetime.today()
+
+        total_slur_alerts, total_slur_cases, top_ten_slurs, top_ten_users = (
+            get_slur_report(start_date, end_date)
+        )
+
+        embed = get_slur_report_embed(
+            total_slur_alerts,
+            total_slur_cases,
+            top_ten_slurs,
+            top_ten_users,
+            start_date,
+            end_date,
         )
 
         await interaction.followup.send(embed=embed)
