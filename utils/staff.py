@@ -357,13 +357,13 @@ def get_moderation_embed(staff_id: int, interaction: nextcord.Interaction):
             availability_string = (
                 f"{CONFIG.emotes.blank}**Update Availability on Message:** {CONFIG.emotes.success if availability_record.update_availability_on_message else CONFIG.emotes.fail}\n"
                 f"{CONFIG.emotes.blank}**On Message Update Interval:** {str(availability_record.on_message_update_interval_minutes)} minutes\n"
-                f"{CONFIG.emotes.blank}**Monday Availability:** {str(availability_record.monday_start).zfill(4)} - {str(availability_record.monday_end).zfill(4)}\n"
-                f"{CONFIG.emotes.blank}**Tuesday Availability:** {str(availability_record.tuesday_start).zfill(4)} - {str(availability_record.tuesday_end).zfill(4)}\n"
-                f"{CONFIG.emotes.blank}**Wednesday Availability:** {str(availability_record.wednesday_start).zfill(4)} - {str(availability_record.wednesday_end).zfill(4)}\n"
-                f"{CONFIG.emotes.blank}**Thursday Availability:** {str(availability_record.thursday_start).zfill(4)} - {str(availability_record.thursday_end).zfill(4)}\n"
-                f"{CONFIG.emotes.blank}**Friday Availability:** {str(availability_record.friday_start).zfill(4)} - {str(availability_record.friday_end).zfill(4)}\n"
-                f"{CONFIG.emotes.blank}**Saturday Availability:** {str(availability_record.saturday_start).zfill(4)} - {str(availability_record.saturday_end).zfill(4)}\n"
-                f"{CONFIG.emotes.blank}**Sunday Availability:** {str(availability_record.sunday_start).zfill(4)} - {str(availability_record.sunday_end).zfill(4)}\n"
+                f"{CONFIG.emotes.blank}**Monday Availability:** {str(availability_record.monday_start).zfill(4)} - {str(availability_record.monday_end).zfill(4)} UTC\n"
+                f"{CONFIG.emotes.blank}**Tuesday Availability:** {str(availability_record.tuesday_start).zfill(4)} - {str(availability_record.tuesday_end).zfill(4)} UTC\n"
+                f"{CONFIG.emotes.blank}**Wednesday Availability:** {str(availability_record.wednesday_start).zfill(4)} - {str(availability_record.wednesday_end).zfill(4)} UTC\n"
+                f"{CONFIG.emotes.blank}**Thursday Availability:** {str(availability_record.thursday_start).zfill(4)} - {str(availability_record.thursday_end).zfill(4)} UTC\n"
+                f"{CONFIG.emotes.blank}**Friday Availability:** {str(availability_record.friday_start).zfill(4)} - {str(availability_record.friday_end).zfill(4)} UTC\n"
+                f"{CONFIG.emotes.blank}**Saturday Availability:** {str(availability_record.saturday_start).zfill(4)} - {str(availability_record.saturday_end).zfill(4)} UTC\n"
+                f"{CONFIG.emotes.blank}**Sunday Availability:** {str(availability_record.sunday_start).zfill(4)} - {str(availability_record.sunday_end).zfill(4)} UTC\n"
             )
             embed.description += availability_string
 
