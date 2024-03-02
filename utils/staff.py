@@ -19,6 +19,7 @@ from utils.database import (
 from utils.config import Configuration
 import datetime
 from utils.sersi_embed import SersiEmbed
+from nextcord.utils import format_dt
 
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -354,18 +355,115 @@ def get_moderation_embed(staff_id: int, interaction: nextcord.Interaction):
             else:
                 embed.description += f"{CONFIG.emotes.blank}**Currently Available:** {CONFIG.emotes.fail}\n"
 
-            # Change the time integers to datetime objects keeping in mind that the time is in UTC and the time is recorded as 3 or 4 digit integers in 24 hour format
+            monday_start = datetime.datetime(
+                3000,
+                1,
+                1,
+                availability_record.monday_start // 100,
+                availability_record.monday_start % 100,
+            )
+            monday_end = datetime.datetime(
+                3000,
+                1,
+                1,
+                availability_record.monday_end // 100,
+                availability_record.monday_end % 100,
+            )
+            tuesday_start = datetime.datetime(
+                3000,
+                1,
+                1,
+                availability_record.tuesday_start // 100,
+                availability_record.tuesday_start % 100,
+            )
+            tuesday_end = datetime.datetime(
+                3000,
+                1,
+                1,
+                availability_record.tuesday_end // 100,
+                availability_record.tuesday_end % 100,
+            )
+            wednesday_start = datetime.datetime(
+                3000,
+                1,
+                1,
+                availability_record.wednesday_start // 100,
+                availability_record.wednesday_start % 100,
+            )
+            wednesday_end = datetime.datetime(
+                3000,
+                1,
+                1,
+                availability_record.wednesday_end // 100,
+                availability_record.wednesday_end % 100,
+            )
+            thursday_start = datetime.datetime(
+                3000,
+                1,
+                1,
+                availability_record.thursday_start // 100,
+                availability_record.thursday_start % 100,
+            )
+            thursday_end = datetime.datetime(
+                3000,
+                1,
+                1,
+                availability_record.thursday_end // 100,
+                availability_record.thursday_end % 100,
+            )
+            friday_start = datetime.datetime(
+                3000,
+                1,
+                1,
+                availability_record.friday_start // 100,
+                availability_record.friday_start % 100,
+            )
+            friday_end = datetime.datetime(
+                3000,
+                1,
+                1,
+                availability_record.friday_end // 100,
+                availability_record.friday_end % 100,
+            )
+            saturday_start = datetime.datetime(
+                3000,
+                1,
+                1,
+                availability_record.saturday_start // 100,
+                availability_record.saturday_start % 100,
+            )
+            saturday_end = datetime.datetime(
+                3000,
+                1,
+                1,
+                availability_record.saturday_end // 100,
+                availability_record.saturday_end % 100,
+            )
+            sunday_start = datetime.datetime(
+                3000,
+                1,
+                1,
+                availability_record.sunday_start // 100,
+                availability_record.sunday_start % 100,
+            )
+            sunday_end = datetime.datetime(
+                3000,
+                1,
+                1,
+                availability_record.sunday_end // 100,
+                availability_record.sunday_end % 100,
+            )
 
             availability_string = (
                 f"{CONFIG.emotes.blank}**Update Availability on Message:** {CONFIG.emotes.success if availability_record.update_availability_on_message else CONFIG.emotes.fail}\n"
                 f"{CONFIG.emotes.blank}**On Message Update Interval:** {str(availability_record.on_message_update_interval_minutes)} minutes\n"
-                f"{CONFIG.emotes.blank}**Monday Availability:** {str(availability_record.monday_start).zfill(4)} - {str(availability_record.monday_end).zfill(4)} UTC\n"
-                f"{CONFIG.emotes.blank}**Tuesday Availability:** {str(availability_record.tuesday_start).zfill(4)} - {str(availability_record.tuesday_end).zfill(4)} UTC\n"
-                f"{CONFIG.emotes.blank}**Wednesday Availability:** {str(availability_record.wednesday_start).zfill(4)} - {str(availability_record.wednesday_end).zfill(4)} UTC\n"
-                f"{CONFIG.emotes.blank}**Thursday Availability:** {str(availability_record.thursday_start).zfill(4)} - {str(availability_record.thursday_end).zfill(4)} UTC\n"
-                f"{CONFIG.emotes.blank}**Friday Availability:** {str(availability_record.friday_start).zfill(4)} - {str(availability_record.friday_end).zfill(4)} UTC\n"
-                f"{CONFIG.emotes.blank}**Saturday Availability:** {str(availability_record.saturday_start).zfill(4)} - {str(availability_record.saturday_end).zfill(4)} UTC\n"
-                f"{CONFIG.emotes.blank}**Sunday Availability:** {str(availability_record.sunday_start).zfill(4)} - {str(availability_record.sunday_end).zfill(4)} UTC\n"
+                f"{CONFIG.emotes.blank}**Monday Availability:** {format_dt(monday_start, 't')} - {format_dt(monday_end, 't')}\n"
+                f"{CONFIG.emotes.blank}**Tuesday Availability:** {format_dt(tuesday_start, 't')} - {format_dt(tuesday_end, 't')}\n"
+                f"{CONFIG.emotes.blank}**Wednesday Availability:** {format_dt(wednesday_start, 't')} - {format_dt(wednesday_end, 't')}\n"
+                f"{CONFIG.emotes.blank}**Thursday Availability:** {format_dt(thursday_start, 't')} - {format_dt(thursday_end, 't')}\n"
+                f"{CONFIG.emotes.blank}**Friday Availability:** {format_dt(friday_start, 't')} - {format_dt(friday_end, 't')}\n"
+                f"{CONFIG.emotes.blank}**Saturday Availability:** {format_dt(saturday_start, 't')} - {format_dt(saturday_end, 't')}\n"
+                f"{CONFIG.emotes.blank}**Sunday Availability:** {format_dt(sunday_start, 't')} - {format_dt(sunday_end, 't')}\n"
             )
             embed.description += availability_string
 
