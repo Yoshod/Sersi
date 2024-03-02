@@ -795,7 +795,7 @@ def check_if_should_mark_unavailable(staff_id: int):
             )
 
             if difference_td > interval_td:
-                return False
+                return True
 
     return False
 

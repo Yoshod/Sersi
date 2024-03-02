@@ -1916,6 +1916,12 @@ class Staff(commands.Cog):
                             description=f"{guild.get_member(record.member).mention} has been set to be unavailable due to inactivity.",
                         )
                     )
+                    await guild.get_channel(self.config.channels.mod_logs).send(
+                        embed=SersiEmbed(
+                            title="Unavailability Set",
+                            description=f"{guild.get_member(record.member).mention} has been set to be unavailable due to inactivity.",
+                        )
+                    )
 
 
 def setup(bot: commands.Bot, **kwargs):
