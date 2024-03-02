@@ -1598,6 +1598,51 @@ class Staff(commands.Cog):
                                 f"{interaction.user.mention} has been forced to be unavailable for {deserialise_timedelta(unavailable_timedelta)}."
                             )
 
+    @staff.subcommand(description="Set expire forced availability or unavailability")
+    async def expire_forced(
+        self,
+        interaction: nextcord.Interaction,
+    ):
+        if not await permcheck(interaction, is_mod):
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        with db_session(interaction.user) as session:
+            availability_record = (
+                session.query(ModeratorAvailability)
+                .filter_by(member=interaction.user.id)
+                .first()
+            )
+            if not availability_record:
+                await interaction.followup.send(
+                    f"{self.config.emotes.fail} You do not have an availability record."
+                )
+                return
+
+            availability_record.forced_available_timedelta = None
+            availability_record.forced_available_start = None
+            availability_record.forced_unavailable_timedelta = None
+            availability_record.forced_unavailable_start = None
+            session.commit()
+
+        await interaction.followup.send(
+            f"{self.config.emotes.success} Forced availability or unavailability has been expired."
+        )
+
+        interaction.guild.get_channel(self.config.channels.logging).send(
+            embed=SersiEmbed(
+                title="Forced Availability/Unavailability Expired",
+                description=f"{interaction.user.mention} has expired their forced availability or unavailability.",
+            )
+        )
+
+        interaction.guild.get_channel(self.config.channels.mod_logs).send(
+            embed=SersiEmbed(
+                title="Forced Availability/Unavailability Expired",
+                description=f"{interaction.user.mention} has expired their forced availability or unavailability.",
+            )
+
     @commands.Cog.listener()
     async def on_honoured_member_revoke(self, details: VoteDetails):
         if details.outcome != "Accepted":
