@@ -152,6 +152,10 @@ def is_cet(member: nextcord.Member) -> bool:
     )
 
 
+def is_owner(member: nextcord.Member) -> bool:
+    return member == member.guild.owner
+
+
 # legacy function aliases
 is_dark_mod: callable = is_admin
 is_senior_mod: callable = is_mod_lead
