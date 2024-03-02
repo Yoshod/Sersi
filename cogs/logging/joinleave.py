@@ -4,6 +4,9 @@ from nextcord.ext import commands
 from utils.sersi_embed import SersiEmbed
 from utils.base import get_discord_timestamp
 from utils.config import Configuration
+from utils.database import db_session, TimeoutCase
+from nextcord.utils import format_dt
+import datetime
 
 
 class JoinLeave(commands.Cog):
@@ -62,9 +65,11 @@ class JoinLeave(commands.Cog):
                     "Joined At": f"{get_discord_timestamp(member.joined_at)} ({get_discord_timestamp(member.joined_at, relative=True)})",
                     "Account Created": f"{get_discord_timestamp(member.created_at)} ({get_discord_timestamp(member.created_at, relative=True)})",
                     "Guild Member Count": member.guild.member_count,
-                    "Inviter": f"{invite.inviter.mention} ({invite.inviter.id})"
-                    if invite.inviter
-                    else "None",
+                    "Inviter": (
+                        f"{invite.inviter.mention} ({invite.inviter.id})"
+                        if invite.inviter
+                        else "None"
+                    ),
                     "Invite Used": f"{invite.code} with {invite.uses} uses",
                 },
                 footer="Sersi Join/Leave Logging",
@@ -93,6 +98,28 @@ class JoinLeave(commands.Cog):
                 colour=nextcord.Colour.brand_red(),
             ).set_author(name=member, icon_url=member.display_avatar.url)
         )
+
+        if member.timeout:
+            with db_session() as session:
+                timeout_cases = (
+                    session.query(TimeoutCase).filter_by(offender=member.id).all()
+                )
+                for case in timeout_cases:
+                    if (
+                        not case.actual_end
+                        and not case.planned_end > datetime.datetime.utcnow()
+                    ):
+                        continue
+
+                    else:
+                        await member.guild.get_channel(self.config.channels.alert).send(
+                            embed=SersiEmbed(
+                                title="Timed Out User Left",
+                                description=f"{member.mention} ({member.id}) has left the server while still being timed out. The timeout was set to end at {format_dt(case.planned_end, 'F')}. The time remaining was {format_dt(case.planned_end, 'R')}",
+                                footer="Sersi Join/Leave Logging",
+                                colour=nextcord.Colour.brand_red(),
+                            )
+                        )
 
 
 def setup(bot: commands.Bot, **kwargs):
