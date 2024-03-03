@@ -1,6 +1,8 @@
 import datetime
-from nextcord.ext import commands
+
 import nextcord
+from nextcord.ext import commands
+from sqlalchemy import or_
 
 from utils.base import (
     convert_to_timedelta,
@@ -24,6 +26,7 @@ from utils.database import (
     db_session,
     Case,
     ScrubbedCase,
+    RelatedCase,
     Offence,
 )
 from utils.offences import fetch_offences_by_partial_name
@@ -681,6 +684,139 @@ class Cases(commands.Cog):
         offences: list[str] = fetch_offences_by_partial_name(offence)
         await interaction.response.send_autocomplete(sorted(offences))
 
+    @cases.subcommand(description="Used to relate a case to another case")
+    async def relate(self, interaction: nextcord.Interaction):
+        pass
+
+    @relate.subcommand(
+        description="Add a case as related to another case",
+        name="add",
+    )
+    async def relate_add(
+        self,
+        interaction: nextcord.Interaction,
+        case_id: str = nextcord.SlashOption(
+            description="Case ID",
+            min_length=10,
+            max_length=11,
+        ),
+        related_case_id: str = nextcord.SlashOption(
+            description="Related Case ID",
+            min_length=10,
+            max_length=11,
+        ),
+    ):
+        if not await permcheck(interaction, is_mod):
+            return
+        
+        if case_id == related_case_id:
+            await interaction.response.send_message(
+                "A case cannot be related to itself."
+            )
+            return
+
+        await interaction.response.defer(ephemeral=False)
+
+        with db_session(interaction.user) as session:
+            case = session.query(Case).filter(Case.id == case_id).first()
+            if case is None:
+                await interaction.followup.send(
+                    f"{self.config.emotes.fail} Case {case_id} does not exist."
+                )
+                return
+
+            related_case = session.query(Case).filter(Case.id == related_case_id).first()
+            if related_case is None:
+                await interaction.followup.send(
+                    f"{self.config.emotes.fail} Case {related_case_id} does not exist."
+                )
+                return
+
+            relation = session.query(RelatedCase).filter(or_(
+                RelatedCase.case_id == case_id,
+                RelatedCase.case_id == related_case_id,
+                RelatedCase.related_id == case_id,
+                RelatedCase.related_id == related_case_id,
+            )).first()
+
+            if relation is not None:
+                await interaction.followup.send(
+                    f"{self.config.emotes.fail} Case {case_id} is already related to case {related_case_id}."
+                )
+                return
+            
+            session.add(RelatedCase(case_id=case_id, related_id=related_case_id))
+            session.commit()
+
+        await interaction.followup.send(
+            f"{self.config.emotes.success} Case {case_id} is now related to case {related_case_id}."
+        )
+
+    @relate.subcommand(
+        description="Remove a case as related to another case",
+        name="remove",
+    )
+    async def relate_remove(
+        self,
+        interaction: nextcord.Interaction,
+        case_id: str = nextcord.SlashOption(
+            description="Case ID",
+            min_length=10,
+            max_length=11,
+        ),
+        related_case_id: str = nextcord.SlashOption(
+            description="Related Case ID",
+            min_length=10,
+            max_length=11,
+        ),
+    ):
+        if not await permcheck(interaction, is_mod):
+            return
+        
+        if case_id == related_case_id:
+            await interaction.response.send_message(
+                "A case cannot be related to itself."
+            )
+            return
+
+        await interaction.response.defer(ephemeral=False)
+
+        with db_session(interaction.user) as session:
+            case = session.query(Case).filter(Case.id == case_id).first()
+            if case is None:
+                await interaction.followup.send(
+                    f"{self.config.emotes.fail} Case {case_id} does not exist."
+                )
+                return
+
+            related_case = session.query(Case).filter(Case.id == related_case_id).first()
+            if related_case is None:
+                await interaction.followup.send(
+                    f"{self.config.emotes.fail} Case {related_case_id} does not exist."
+                )
+                return
+
+            relation = session.query(RelatedCase).filter(or_(
+                RelatedCase.case_id == case_id,
+                RelatedCase.case_id == related_case_id,
+                RelatedCase.related_id == case_id,
+                RelatedCase.related_id == related_case_id,
+            )).first()
+
+            if relation is None:
+                await interaction.followup.send(
+                    f"{self.config.emotes.fail} Case {case_id} is not related to case {related_case_id}."
+                )
+                return
+            
+            session.delete(relation)
+            session.commit()
+
+        await interaction.followup.send(
+            f"{self.config.emotes.success} Case {case_id} is no longer related to case {related_case_id}."
+        )
+        
+
     # TODO: its own cog perhaps?
     @nextcord.slash_command(
         dm_permission=False,
@@ -806,6 +942,10 @@ class Cases(commands.Cog):
     @scrub.on_autocomplete("case_id")
     @delete.on_autocomplete("case_id")
     @edit.on_autocomplete("case_id")
+    @relate_add.on_autocomplete("case_id")
+    @relate_add.on_autocomplete("related_case_id")
+    @relate_remove.on_autocomplete("case_id")
+    @relate_remove.on_autocomplete("related_case_id")
     async def cases_by_id(self, interaction: nextcord.Interaction, case: str):
         if not is_mod(interaction.user):
             await interaction.response.send_autocomplete([])
