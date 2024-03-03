@@ -151,11 +151,6 @@ class Cases(commands.Cog):
             min_length=10,
             max_length=22,
         ),
-        scrubbed: bool = nextcord.SlashOption(
-            name="scrubbed",
-            description="Specify if you're looking for a scrubbed case",
-            required=False,
-        ),
     ):
         if not await permcheck(interaction, is_mod):
             return
@@ -967,7 +962,7 @@ class Cases(commands.Cog):
     async def on_interaction(self, interaction: nextcord.Interaction):
         if interaction.data is None or interaction.data.get("custom_id") is None:
             return
-        if not interaction.data["custom_id"].startswith("cases"):
+        if not interaction.data["custom_id"].startswith("case"):
             return
 
         if not await permcheck(interaction, is_mod):
@@ -997,6 +992,27 @@ class Cases(commands.Cog):
                     init_page=1,
                     ephemeral=True,
                     **decode_case_kwargs(kwargs),
+                )
+
+                await view.send_followup(interaction)
+
+            case "case_audit":
+                case_id = args[0]
+                audit_embed = SersiEmbed(title=f"Case `{case_id}` Audit Logs")
+                audit_embed.set_thumbnail(interaction.guild.icon.url)
+
+                view = PageView(
+                    config=self.config,
+                    base_embed=audit_embed,
+                    fetch_function=get_case_audit_logs,
+                    author=interaction.user,
+                    entry_form="<@{entry.author}>\n{entry.old_value} => {entry.new_value}",
+                    field_title="{entries[0]}",
+                    inline_fields=False,
+                    cols=10,
+                    per_col=1,
+                    init_page=1,
+                    case_id=case_id,
                 )
 
                 await view.send_followup(interaction)

@@ -458,3 +458,10 @@ class CaseDetailView(View):
                 custom_id=encode_button_id("cases", rel=case.id),
             )
         )
+        self.add_item(
+            Button(
+                style=nextcord.ButtonStyle.gray,
+                label="Audit Logs",
+                custom_id=encode_button_id("case_audit", case.id),
+            )
+        )
