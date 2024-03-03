@@ -713,24 +713,25 @@ class Cases(commands.Cog):
         
         if case_id == related_case_id:
             await interaction.response.send_message(
-                "A case cannot be related to itself."
+                "A case cannot be related to itself.",
+                ephemeral=True,
             )
             return
 
-        await interaction.response.defer(ephemeral=False)
+        await interaction.response.defer(ephemeral=True)
 
         with db_session(interaction.user) as session:
             case = session.query(Case).filter(Case.id == case_id).first()
             if case is None:
                 await interaction.followup.send(
-                    f"{self.config.emotes.fail} Case {case_id} does not exist."
+                    f"{self.config.emotes.fail} Case `{case_id}` does not exist."
                 )
                 return
 
             related_case = session.query(Case).filter(Case.id == related_case_id).first()
             if related_case is None:
                 await interaction.followup.send(
-                    f"{self.config.emotes.fail} Case {related_case_id} does not exist."
+                    f"{self.config.emotes.fail} Case `{related_case_id}` does not exist."
                 )
                 return
 
@@ -744,7 +745,7 @@ class Cases(commands.Cog):
 
             if relation is not None:
                 await interaction.followup.send(
-                    f"{self.config.emotes.fail} Case {case_id} is already related to case {related_case_id}."
+                    f"{self.config.emotes.fail} Case `{case_id}` is already related to case `{related_case_id}`."
                 )
                 return
             
@@ -752,7 +753,7 @@ class Cases(commands.Cog):
             session.commit()
 
         await interaction.followup.send(
-            f"{self.config.emotes.success} Case {case_id} is now related to case {related_case_id}."
+            f"{self.config.emotes.success} Case `{case_id}` is now related to case `{related_case_id}`."
         )
 
     @relate.subcommand(
@@ -778,24 +779,25 @@ class Cases(commands.Cog):
         
         if case_id == related_case_id:
             await interaction.response.send_message(
-                "A case cannot be related to itself."
+                "A case cannot be related to itself.",
+                ephemeral=True,
             )
             return
 
-        await interaction.response.defer(ephemeral=False)
+        await interaction.response.defer(ephemeral=True)
 
         with db_session(interaction.user) as session:
             case = session.query(Case).filter(Case.id == case_id).first()
             if case is None:
                 await interaction.followup.send(
-                    f"{self.config.emotes.fail} Case {case_id} does not exist."
+                    f"{self.config.emotes.fail} Case `{case_id}` does not exist."
                 )
                 return
 
             related_case = session.query(Case).filter(Case.id == related_case_id).first()
             if related_case is None:
                 await interaction.followup.send(
-                    f"{self.config.emotes.fail} Case {related_case_id} does not exist."
+                    f"{self.config.emotes.fail} Case `{related_case_id}` does not exist."
                 )
                 return
 
@@ -809,7 +811,7 @@ class Cases(commands.Cog):
 
             if relation is None:
                 await interaction.followup.send(
-                    f"{self.config.emotes.fail} Case {case_id} is not related to case {related_case_id}."
+                    f"{self.config.emotes.fail} Case `{case_id}` is not related to case `{related_case_id}`."
                 )
                 return
             
@@ -817,7 +819,7 @@ class Cases(commands.Cog):
             session.commit()
 
         await interaction.followup.send(
-            f"{self.config.emotes.success} Case {case_id} is no longer related to case {related_case_id}."
+            f"{self.config.emotes.success} Case `{case_id}` is no longer related to case `{related_case_id}`."
         )
         
 
@@ -1013,6 +1015,7 @@ class Cases(commands.Cog):
                     per_col=1,
                     init_page=1,
                     case_id=case_id,
+                    ephemeral=True,
                 )
 
                 await view.send_followup(interaction)
