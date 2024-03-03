@@ -2,7 +2,6 @@ import datetime
 
 import nextcord
 from nextcord.ext import commands
-from sqlalchemy import or_
 
 from utils.base import (
     convert_to_timedelta,
@@ -16,6 +15,7 @@ from utils.cases import (
     get_case_audit_logs,
     validate_case_edit,
     decode_case_kwargs,
+    CaseDetailView,
 )
 from utils.config import Configuration
 from utils.database import (
@@ -101,6 +101,11 @@ class Cases(commands.Cog):
             description="The offence you are looking for",
             required=False,
         ),
+        related_case: str = nextcord.SlashOption(
+            name="related_case",
+            description="The related case you are looking for",
+            required=False,
+        ),
     ):
         if not await permcheck(interaction, is_mod):
             return
@@ -131,6 +136,7 @@ class Cases(commands.Cog):
             moderator_id=moderator.id if moderator else None,
             offender_id=offender.id if offender else None,
             offence=offence,
+            related_id=related_case,
         )
 
         await view.send_followup(interaction)
@@ -165,7 +171,8 @@ class Cases(commands.Cog):
 
         else:
             await interaction.followup.send(
-                embed=create_case_embed(sersi_case, interaction, self.config)
+                embed=create_case_embed(sersi_case, interaction, self.config),
+                view=CaseDetailView(sersi_case),
             )
 
     @cases.subcommand(description="Get audit logs for a case")
@@ -732,12 +739,13 @@ class Cases(commands.Cog):
                 )
                 return
 
-            relation = session.query(RelatedCase).filter(or_(
-                RelatedCase.case_id == case_id,
-                RelatedCase.case_id == related_case_id,
-                RelatedCase.related_id == case_id,
-                RelatedCase.related_id == related_case_id,
-            )).first()
+            relation = session.query(RelatedCase).filter_by(
+                case_id=case_id, related_id=related_case_id
+            ).union(
+                session.query(RelatedCase).filter_by(
+                    case_id=related_case_id, related_id=case_id
+                )
+            ).first()
 
             if relation is not None:
                 await interaction.followup.send(
@@ -796,12 +804,13 @@ class Cases(commands.Cog):
                 )
                 return
 
-            relation = session.query(RelatedCase).filter(or_(
-                RelatedCase.case_id == case_id,
-                RelatedCase.case_id == related_case_id,
-                RelatedCase.related_id == case_id,
-                RelatedCase.related_id == related_case_id,
-            )).first()
+            relation = session.query(RelatedCase).filter_by(
+                case_id=case_id, related_id=related_case_id
+            ).union(
+                session.query(RelatedCase).filter_by(
+                    case_id=related_case_id, related_id=case_id
+                )
+            ).first()
 
             if relation is None:
                 await interaction.followup.send(
@@ -937,6 +946,7 @@ class Cases(commands.Cog):
 
         await interaction.followup.send(embed=offence_added_log)
 
+    @list.on_autocomplete("related_case")
     @detail.on_autocomplete("case_id")
     @audit.on_autocomplete("case_id")
     @scrub.on_autocomplete("case_id")

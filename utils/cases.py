@@ -1,9 +1,11 @@
 import typing
 
 import nextcord
+from nextcord.ui import Button, View
 import datetime
+from sqlalchemy import or_
 
-from utils.base import get_page, decode_snowflake
+from utils.base import get_page, decode_snowflake, encode_button_id, encode_snowflake
 from utils.sersi_embed import SersiEmbed
 from utils.config import Configuration
 from utils.database import (
@@ -20,13 +22,14 @@ from utils.database import (
     TimeoutCase,
     WarningCase,
     ScrubbedCase,
+    RelatedCase,
     PeerReview,
 )
 
 
 def fetch_cases_by_partial_id(case_id: str) -> list[str]:
     with db_session() as session:
-        cases: list[typing.Tuple(str)] = (
+        cases: list[typing.Tuple[str]] = (
             session.query(Case.id)
             .filter(Case.id.ilike(f"%{case_id}%"))
             .order_by(Case.created.desc())
@@ -256,6 +259,7 @@ def fetch_all_cases(
     offender_id: typing.Optional[int] = None,
     offence: typing.Optional[str] = None,
     scrubbed: bool = False,
+    related_id: typing.Optional[str] = None,
 ) -> typing.Tuple[typing.Optional[list[Case | None]], int, int]:
     with db_session() as session:
         _query = session.query(Case)
@@ -270,6 +274,22 @@ def fetch_all_cases(
 
         if not scrubbed:
             _query = _query.filter_by(scrubbed=False)
+
+        if related_id:
+            _query = _query.filter(
+                or_(
+                    Case.id.in_(
+                        session.query(RelatedCase.case_id).filter_by(
+                            related_id=related_id
+                        )
+                    ),
+                    Case.id.in_(
+                        session.query(RelatedCase.related_id).filter_by(
+                            case_id=related_id
+                        )
+                    ),
+                )
+            )
 
         cases = _query.order_by(Case.created.desc()).all()
 
@@ -373,7 +393,7 @@ def validate_case_edit(
         return False, f"{config.emotes.fail} {case_id} is not a valid case."
 
     if case_type == "Timeout" and (duration and timespan):
-        sersi_case: TimeoutCase() = get_case_by_id(case_id)
+        sersi_case: TimeoutCase = get_case_by_id(case_id)
 
         if sersi_case.actual_end:
             return False, f"{config.emotes.fail} {case_id} has already ended."
@@ -414,6 +434,7 @@ def decode_case_kwargs(kwargs: dict):
     case_type = decoded.pop("type", None)
     offender_id = decoded.pop("user", None)
     moderator_id = decoded.pop("mod", None)
+    related_id = decoded.pop("rel", None)
 
     if case_type:
         decoded["case_type"] = case_type
@@ -421,5 +442,19 @@ def decode_case_kwargs(kwargs: dict):
         decoded["offender_id"] = decode_snowflake(offender_id)
     if moderator_id:
         decoded["moderator_id"] = decode_snowflake(moderator_id)
+    if related_id:
+        decoded["related_id"] = related_id
 
     return decoded
+
+
+class CaseDetailView(View):
+    def __init__(self, case: Case):
+        super().__init__(timeout=None, auto_defer=False)
+        self.add_item(
+            Button(
+                style=nextcord.ButtonStyle.blurple,
+                label="Related Cases",
+                custom_id=encode_button_id("cases", rel=case.id),
+            )
+        )
