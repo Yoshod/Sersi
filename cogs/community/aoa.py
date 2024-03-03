@@ -19,6 +19,54 @@ from utils.perms import (
     blacklist_check,
 )
 
+from utils.whois import create_whois_embed, WhoisView
+
+
+class AdultAccessApproveButton(Button):
+    def __init__(self, user_id: int):
+        super().__init__(
+            custom_id=f"adult-application-approve:{user_id}",
+            label="Approve",
+            style=nextcord.ButtonStyle.green,
+        )
+
+
+class AdultAccessRejectButton(Button):
+    def __init__(self, user_id: int):
+        super().__init__(
+            custom_id=f"adult-application-reject:{user_id}",
+            label="Reject",
+            style=nextcord.ButtonStyle.red,
+        )
+
+
+class AdultAccessVerifyButton(Button):
+    def __init__(self, user_id: int):
+        super().__init__(
+            custom_id=f"adult-application-verify:{user_id}",
+            label="Require Proof",
+            style=nextcord.ButtonStyle.grey,
+        )
+
+
+class AdultAccessWhoisButton(Button):
+    def __init__(self, user_id: int):
+        super().__init__(
+            custom_id=f"adult-application-whois:{user_id}",
+            label="Whois",
+            style=nextcord.ButtonStyle.blurple,
+            row=1,
+        )
+
+
+class AdultAccessView(View):
+    def __init__(self, user_id: int):
+        super().__init__(timeout=None, auto_defer=False)
+        self.add_item(AdultAccessApproveButton(user_id))
+        self.add_item(AdultAccessRejectButton(user_id))
+        self.add_item(AdultAccessVerifyButton(user_id))
+        self.add_item(AdultAccessWhoisButton(user_id))
+
 
 class AdultAccessModal(Modal):
     def __init__(self, config: Configuration):
@@ -117,26 +165,7 @@ class AdultAccessModal(Modal):
             },
         )
 
-        accept_button = Button(
-            custom_id=f"adult-application-approve:{applicant_id}",
-            label="Approve",
-            style=nextcord.ButtonStyle.green,
-        )
-        reject_button = Button(
-            custom_id=f"adult-application-reject:{applicant_id}",
-            label="Reject",
-            style=nextcord.ButtonStyle.red,
-        )
-        review_button = Button(
-            custom_id=f"adult-application-verify:{applicant_id}",
-            label="Require Proof",
-            style=nextcord.ButtonStyle.grey,
-        )
-
-        button_view = View(auto_defer=False)
-        button_view.add_item(accept_button)
-        button_view.add_item(reject_button)
-        button_view.add_item(review_button)
+        button_view = AdultAccessView(user_id=applicant_id)
 
         channel = interaction.client.get_channel(self.config.channels.ageverification)
         await channel.send(embed=application_embed, view=button_view)
@@ -261,7 +290,7 @@ class AdultAccess(commands.Cog):
                         offender=member.id,
                         moderator=interaction.user.id,
                         blacklist="Adult Only Access",
-                        reason=reason
+                        reason=reason,
                     )
                 )
                 session.commit()
@@ -611,6 +640,16 @@ class AdultAccess(commands.Cog):
                         colour=nextcord.Color.from_rgb(237, 91, 6),
                     )
                     await user.send(embed=referred_embed)
+
+            case ["adult-application-whois", user_id]:
+                if await permcheck(interaction, is_mod):
+                    user = interaction.guild.get_member(int(user_id))
+                    await interaction.response.defer(ephemeral=True)
+                    await interaction.followup.send(
+                        embed=await create_whois_embed(self.config, interaction, user),
+                        view=WhoisView(user.id),
+                        ephemeral=True,
+                    )
 
 
 def setup(bot: commands.Bot, **kwargs):
