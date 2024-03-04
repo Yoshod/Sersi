@@ -941,17 +941,19 @@ def count_available_mods(guild: nextcord.Guild):
     with db_session() as session:
         staff_members = (
             session.query(StaffMembers)
-            .filter_by(
-                or_(branch="Moderation", branch="Administration"),
-                left=None,
+            .filter(
+                or_(
+                    StaffMembers.branch == "Moderation",
+                    StaffMembers.branch == "Administration",
+                ),
             )
             .all()
         )
 
-        mod_ids = [staff.member for staff in staff_members]
+        mod_ids = [str(staff.member) for staff in staff_members if staff.left is None]
 
         for staff_id in mod_ids:
-            member = guild.get_member(staff_id)
+            member = guild.get_member(int(staff_id))
             if not member:
                 continue
 

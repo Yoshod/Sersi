@@ -10,9 +10,11 @@ from utils.compliance import (
     ModerationReport,
     get_slur_report,
     get_slur_report_embed,
+    get_availability_report,
+    get_availability_report_embed,
 )
 
-from utils.perms import is_mod, permcheck, is_admin, is_compliance
+from utils.perms import is_mod, permcheck, is_admin, is_compliance, is_mod_lead
 from utils.staff import get_moderation_leaderboard_embed
 
 
@@ -65,7 +67,7 @@ class Compliance(commands.Cog):
             description="The year the report ends on."
         ),
     ):
-        if not await permcheck(interaction, is_admin) or not await permcheck(
+        if not await permcheck(interaction, is_mod_lead) or not await permcheck(
             interaction, is_compliance
         ):
             return
@@ -123,7 +125,7 @@ class Compliance(commands.Cog):
             ],
         ),
     ):
-        if not await permcheck(interaction, is_admin) or not await permcheck(
+        if not await permcheck(interaction, is_mod_lead) or not await permcheck(
             interaction, is_compliance
         ):
             return
@@ -173,9 +175,7 @@ class Compliance(commands.Cog):
             ],
         ),
     ):
-        if not await permcheck(interaction, is_admin) or not await permcheck(
-            interaction, is_compliance
-        ):
+        if not await permcheck(interaction, is_admin):
             return
 
         await interaction.response.defer()
@@ -211,6 +211,26 @@ class Compliance(commands.Cog):
             start_date,
             end_date,
         )
+
+        await interaction.followup.send(embed=embed)
+
+    @create.subcommand(
+        description="Create a moderation report on moderator availability."
+    )
+    async def availability(
+        self,
+        interaction: nextcord.Interaction,
+    ):
+        if not await permcheck(interaction, is_mod_lead) or not await permcheck(
+            interaction, is_compliance
+        ):
+            return
+
+        await interaction.response.defer()
+
+        report = get_availability_report(interaction.guild)
+
+        embed = get_availability_report_embed(self.config, report)
 
         await interaction.followup.send(embed=embed)
 
