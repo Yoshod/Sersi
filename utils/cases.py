@@ -27,10 +27,11 @@ from utils.database import (
 )
 
 
-def fetch_cases_by_partial_id(case_id: str) -> list[str]:
+def fetch_cases_by_partial_id(case_id: str, **kwargs) -> list[str]:
     with db_session() as session:
         cases: list[typing.Tuple[str]] = (
             session.query(Case.id)
+            .filter_by(**kwargs)
             .filter(Case.id.ilike(f"%{case_id}%"))
             .order_by(Case.created.desc())
             .limit(25)

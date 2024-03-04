@@ -4,9 +4,9 @@ import nextcord
 from nextcord.ext import commands
 
 from utils.alerts import add_response_time
-from utils.cases import create_case_embed
+from utils.cases import create_case_embed, fetch_cases_by_partial_id
 from utils.config import Configuration
-from utils.database import db_session, TimeoutCase
+from utils.database import db_session, TimeoutCase, WarningCase, RelatedCase
 from utils.objection import AlertView
 from utils.offences import fetch_offences_by_partial_name, offence_validity_check
 from utils.perms import (
@@ -124,6 +124,20 @@ class TimeoutSystem(commands.Cog):
                 "Weeks": "w",
             },
         ),
+        issue_warning: bool = nextcord.SlashOption(
+            name="issue_warning",
+            description="Whether to also issue a warning to the user",
+            choices={
+                "Yes": True,
+                "No": False,
+            },
+            default=True,
+        ),
+        related_warning: str = nextcord.SlashOption(
+            name="related_warning",
+            description="The ID of the warning case related to this timeout",
+            required=False,
+        ),
     ):
         if not await permcheck(interaction, is_mod):
             return
@@ -191,7 +205,30 @@ class TimeoutSystem(commands.Cog):
         )
 
         with db_session(interaction.user) as session:
+            if related_warning is not None:
+                if not session.query(WarningCase).filter_by(id=related_warning).first():
+                    await interaction.followup.send(
+                        f"{self.config.emotes.fail} {related_warning} is not a valid warning case."
+                    )
+                    return
+            elif issue_warning:
+                warn_case = WarningCase(
+                    offender=offender.id,
+                    moderator=interaction.user.id,
+                    offence=offence,
+                    details=detail,
+                )
+                related_warning = warn_case.id
+                session.add(warn_case)
+
             session.add(case)
+            if related_warning is not None:
+                session.add(
+                    RelatedCase(
+                        case_id=case.id,
+                        related_id=related_warning,
+                    )
+                )
             session.commit()
 
             case = session.query(TimeoutCase).filter_by(id=case.id).first()
@@ -350,6 +387,14 @@ class TimeoutSystem(commands.Cog):
 
         offences: list[str] = fetch_offences_by_partial_name(offence)
         await interaction.response.send_autocomplete(sorted(offences))
+    
+    @add.on_autocomplete("related_warning")
+    async def search_warnings(self, interaction: nextcord.Interaction, related_warning: str, offender: nextcord.Member):
+        if not is_mod(interaction.user):
+            await interaction.response.send_autocomplete([])
+
+        warnings: list[str] = fetch_cases_by_partial_id(related_warning, type="Warning", offender=offender.id)
+        await interaction.response.send_autocomplete(warnings)
 
 
 def setup(bot: commands.Bot, **kwargs):
