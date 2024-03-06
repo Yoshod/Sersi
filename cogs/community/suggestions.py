@@ -249,84 +249,16 @@ class SuggestionMarkModal(Modal):
                 update_suggestion.outcome_reviewer = interaction.user.id
                 session.commit()
 
-            original_message: nextcord.WebhookMessage = (
-                await interaction.guild.get_channel(
-                    self.config.channels.suggestion_voting
-                ).fetch_message(suggestion_instance.vote_message_id)
-            )
-
+        else:
             with db_session(interaction.user) as session:
-                updated_embed = await update_embed_outcome(
-                    interaction, original_message.embeds[0], self.suggestion_id, session
+                suggestion_outcome = SuggestionOutcome(
+                    id=suggestion_instance.id,
+                    outcome=self.outcome,
+                    outcome_comment=self.suggestion_reason.value,
+                    outcome_reviewer=interaction.user.id,
                 )
-
-            await original_message.edit(embed=updated_embed)
-
-            await interaction.followup.send(
-                f"{self.config.emotes.success} Suggestion marked as {self.outcome}!",
-                ephemeral=True,
-            )
-
-            cet_embed = interaction.message.embeds[0]
-
-            i = 0
-
-            for field in cet_embed.fields:
-                if field.name == "Current Status":
-                    updated_cet_embed = cet_embed.set_field_at(
-                        index=i, name="Current Status", value=self.outcome, inline=False
-                    )
-                    await interaction.message.edit(
-                        embed=updated_cet_embed,
-                        view=SuggestionMarkView(self.suggestion_id, self.outcome),
-                    )
-                    break
-
-                i += 1
-
-            if self.outcome == "Not Happening":
-                await interaction.guild.get_member(suggestion_instance.suggester).send(
-                    f"Your suggestion has been marked as `Not Happening` by {interaction.user.mention}. If you have any questions or concerns, please open a Community Engagement Team Ticket."
-                )
-
-                await interaction.message.edit(view=None)
-                await original_message.edit(view=None)
-
-                await original_message.thread.send(
-                    embed=SersiEmbed(
-                        title="Suggestion Closed",
-                        description="This suggestion has been marked as `Not Happening` and is now closed for further discussion.",
-                    )
-                )
-                await original_message.thread.edit(locked=True, archived=True)
-
-            elif self.outcome == "Completed":
-                await interaction.guild.get_member(suggestion_instance.suggester).send(
-                    f"Your suggestion has been marked as `Completed` by {interaction.user.mention}. Thank you for your contribution to the community!"
-                )
-
-                await interaction.message.edit(view=None)
-                await original_message.edit(view=None)
-
-                await original_message.thread.send(
-                    embed=SersiEmbed(
-                        title="Suggestion Closed",
-                        description="This suggestion has been marked as `Completed` and is now closed for further discussion.",
-                    )
-                )
-                await original_message.thread.edit(locked=True, archived=True)
-
-            return
-
-        with db_session(interaction.user) as session:
-            suggestion_outcome_instance = SuggestionOutcome(
-                id=suggestion_instance.id,
-                outcome=self.outcome,
-                outcome_comment=self.suggestion_reason.value,
-                outcome_reviewer=interaction.user.id,
-            )
-            session.add(suggestion_outcome_instance)
-            session.commit()
+                session.add(suggestion_outcome)
+                session.commit()
 
         original_message: nextcord.WebhookMessage = await interaction.guild.get_channel(
             self.config.channels.suggestion_voting
