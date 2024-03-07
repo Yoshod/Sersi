@@ -180,11 +180,8 @@ class Reformation(commands.Cog):
             color=nextcord.Color.from_rgb(237, 91, 6),
         )
 
-        message = await interaction.followup.send(
-            embed=embed,
-            ephemeral=False,
-            wait=True,
-        )
+        message = await interaction.channel.send(embed=embed)
+
         embed.add_field(name="Context:", value=message.jump_url, inline=False)
        
         channel = interaction.guild.get_channel(self.config.channels.logging)
@@ -396,7 +393,7 @@ class Reformation(commands.Cog):
             await interaction.send("Member is not in reformation.")
             return
 
-        await interaction.response.defer()
+        await interaction.response.defer(ephemeral=True)
 
         if not await confirm(
             interaction,
@@ -469,7 +466,7 @@ class Reformation(commands.Cog):
 
         await cell_channel.delete()
 
-        interaction.followup.send(embed=embed, ephemeral=False)
+        await interaction.followup.send(embed=embed, ephemeral=True)
 
     @reformation.subcommand(
         name="delete_cell",

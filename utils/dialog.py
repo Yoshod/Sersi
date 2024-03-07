@@ -20,6 +20,8 @@ class _DialogView(View):
     timeout (int, optional): The timeout for the view. Defaults to 180.
     """
 
+    message: Optional[nextcord.Message] = None
+
     def __init__(
         self,
         future: Future,
@@ -39,13 +41,25 @@ class _DialogView(View):
 
             async def callback(interaction: nextcord.Interaction, *, value=value):
                 self.future.set_result(value)
-                await interaction.message.delete()
+                if interaction.message.flags.ephemeral():
+                    await interaction.response.edit_message(view=None)
+                else:
+                    await interaction.message.delete()
+                self.stop()
 
             button.callback = callback
             self.add_item(button)
 
     def on_timeout(self):
         self.future.set_result(None)
+
+        if self.message is None:
+            return
+
+        if self.message.flags.ephemeral():
+            self.message.edit(view=None)
+        else:
+            self.message.delete()
 
     async def interaction_check(self, interaction: nextcord.Interaction):
         return interaction.user == self.author
@@ -57,24 +71,24 @@ async def message_dialog(
     content: str = None,
     embed: nextcord.Embed = None,
     timeout: int = 180,
+    ephemeral: bool = False,
 ) -> bool:
     """Creates a confirmation dialog for the user to confirm or deny an action."""
     confirm_future: Future[bool] = asyncio.get_running_loop().create_future()
 
     if content is None and embed is None:
         raise ValueError("You must provide either content or an embed.")
+    
+    view = _DialogView(confirm_future, interaction.user, buttons, timeout)
 
-    await interaction.send(
+    message = await interaction.send(
         content=content,
         embed=embed,
-        view=_DialogView(
-            confirm_future,
-            interaction.user,
-            buttons,
-            timeout,
-        ),
-        ephemeral=False
+        view=view,
+        ephemeral=ephemeral,
+        delete_after=timeout if not ephemeral else None,
     )
+    view.message = message
 
     return await confirm_future
 
@@ -87,6 +101,7 @@ async def confirm(
     description: str = None,
     embed_fields: list[tuple[str, str]] = None,
     timeout: int = 180,
+    ephemeral: bool = False,
 ) -> bool:
     """Creates a confirmation dialog for the user to confirm or deny an action."""
 
@@ -107,6 +122,7 @@ async def confirm(
         content=content,
         embed=embed,
         timeout=timeout,
+        ephemeral=ephemeral,
     )
 
     if response is False:
