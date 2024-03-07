@@ -12,7 +12,7 @@ from utils.database import (
     VoteRecord,
     BlacklistCase,
 )
-from utils.dialog import confirm
+from utils.dialog import confirm, ButtonPreset
 from utils.offences import fetch_offences_by_partial_name
 from utils.perms import permcheck, is_mod, is_mod_lead, blacklist_check
 from utils.sersi_embed import SersiEmbed
@@ -81,6 +81,7 @@ class Reformation(commands.Cog):
                 "Offence": offence,
                 "Details": details,
             },
+            true_button=ButtonPreset.PROCEED,
         ):
             return
 
@@ -403,6 +404,7 @@ class Reformation(commands.Cog):
                 "User": member.mention,
                 "Reason": reason,
             },
+            true_button=ButtonPreset.PROCEED,
         ):
             return
 

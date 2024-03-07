@@ -1,5 +1,6 @@
 import asyncio
 from asyncio import Future
+from enum import Enum
 from typing import Any, Optional
 
 import nextcord
@@ -7,6 +8,25 @@ from nextcord import ButtonStyle
 from nextcord.ui import View, Button
 
 from utils.sersi_embed import SersiEmbed
+
+
+class ButtonPreset(Enum):
+    CONFIRM = ("Confirm", ButtonStyle.success)
+    CONFIRM_DANGER = ("Confirm", ButtonStyle.danger)
+    CONFIRM_PRIMARY = ("Confirm", ButtonStyle.primary)
+    PROCEED = ("Proceed", ButtonStyle.success)
+    PROCEED_DANGER = ("Proceed", ButtonStyle.danger)
+    PROCEED_PRIMARY = ("Proceed", ButtonStyle.primary)
+    YES = ("Yes", ButtonStyle.success)
+    YES_DANGER = ("Yes", ButtonStyle.danger)
+    YES_PRIMARY = ("Yes", ButtonStyle.primary)
+
+    CANCEL = ("Cancel", ButtonStyle.danger)
+    CANCEL_PRIMARY = ("Cancel", ButtonStyle.primary)
+    CANCEL_NEUTRAL = ("Cancel", ButtonStyle.secondary)
+    NO = ("No", ButtonStyle.danger)
+    NO_PRIMARY = ("No", ButtonStyle.primary)
+    NO_NEUTRAL = ("No", ButtonStyle.secondary)
 
 
 class _DialogView(View):
@@ -102,6 +122,8 @@ async def confirm(
     embed_fields: list[tuple[str, str]] = None,
     timeout: int = 180,
     ephemeral: bool = False,
+    true_button: ButtonPreset = ButtonPreset.CONFIRM,
+    false_button: ButtonPreset = ButtonPreset.CANCEL,
 ) -> bool:
     """Creates a confirmation dialog for the user to confirm or deny an action."""
 
@@ -115,10 +137,7 @@ async def confirm(
 
     response = await message_dialog(
         interaction,
-        {
-            ("Proceed", nextcord.ButtonStyle.success): True,
-            ("Cancel", nextcord.ButtonStyle.danger): False,
-        },
+        { true_button.value: True, false_button.value: False },
         content=content,
         embed=embed,
         timeout=timeout,
