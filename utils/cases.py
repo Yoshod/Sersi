@@ -466,3 +466,15 @@ class CaseDetailView(View):
                 custom_id=encode_button_id("case_audit", case.id),
             )
         )
+
+
+def get_last_warning(user_id: int) -> WarningCase | None:
+    with db_session() as session:
+        warning: WarningCase = (
+            session.query(WarningCase)
+            .filter_by(offender=user_id, active=True)
+            .order_by(WarningCase.created.desc())
+            .first()
+        )
+
+    return warning
