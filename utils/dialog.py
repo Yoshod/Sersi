@@ -1,9 +1,7 @@
-from abc import ABC, abstractmethod
 import asyncio
 from asyncio import Future
 from enum import Enum
 from typing import Any, Optional
-from discord import TextInputStyle
 
 import nextcord
 from nextcord import ButtonStyle
