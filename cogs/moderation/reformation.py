@@ -11,6 +11,7 @@ from utils.database import (
     VoteDetails,
     VoteRecord,
     BlacklistCase,
+    RelatedCase,
 )
 from utils.dialog import confirm, ButtonPreset
 from utils.offences import fetch_offences_by_partial_name
@@ -574,7 +575,7 @@ class Reformation(commands.Cog):
             ephemeral=True,
         )
 
-        #logging
+        # logging
         embed = SersiEmbed(
             title="User Removed from Reformist Role",
             description=f"User {member.mention} ({member.id}) has been removed from the reformist role by "
@@ -605,6 +606,21 @@ class Reformation(commands.Cog):
                         if case is None:
                             return
                         case.state = "failed"
+
+                        ban_case = (
+                            session.query(BanCase)
+                            .filter_by(offender=member.id)
+                            .order_by(BanCase.created.desc())
+                            .first()
+                        )
+                        if ban_case is not None:
+                            session.add(
+                                RelatedCase(
+                                    case_id=case.id,
+                                    related_case=ban_case.id,
+                                )
+                            )
+
                         session.commit()
 
                         cell_channel = member.guild.get_channel(case.cell_channel)
@@ -660,13 +676,19 @@ class Reformation(commands.Cog):
                 case.state = "failed"
 
                 session.add(
-                    BanCase(
+                    ban_case := BanCase(
                         offender=member.id,
                         moderator=member.guild.me.id,
                         offence=case.offence,
                         details=case.details,
                         active=True,
                         ban_type="reformation leave",
+                    )
+                )
+                session.add(
+                    RelatedCase(
+                        case_id=case.id,
+                        related_case=ban_case.id,
                     )
                 )
                 session.commit()
@@ -718,13 +740,19 @@ class Reformation(commands.Cog):
             )
 
             session.add(
-                BanCase(
+                ban_case := BanCase(
                     offender=member.id,
                     moderator=details.started_by,
                     offence=case.offence,
                     details=case.details,
                     active=True,
                     ban_type="reformation failed",
+                )
+            )
+            session.add(
+                RelatedCase(
+                    case_id=case.id,
+                    related_case=ban_case.id,
                 )
             )
             session.commit()
