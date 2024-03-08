@@ -20,6 +20,7 @@ from utils.config import Configuration
 import datetime
 from utils.sersi_embed import SersiEmbed
 from nextcord.utils import format_dt
+from sqlalchemy import or_
 
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -934,18 +935,30 @@ def check_if_should_mark_available(staff_id: int):
 
 def count_available_mods(guild: nextcord.Guild):
     """Counts the number of available moderators in a guild."""
-    available_mods = 0
+    available_mod_count = 0
+    available_mod_ids = []
 
     with db_session() as session:
-        staff_members = session.query(StaffMembers).all()
-        mod_ids = [staff.member for staff in staff_members]
+        staff_members = (
+            session.query(StaffMembers)
+            .filter(
+                or_(
+                    StaffMembers.branch == "Moderation",
+                    StaffMembers.branch == "Administration",
+                ),
+            )
+            .all()
+        )
+
+        mod_ids = [str(staff.member) for staff in staff_members if staff.left is None]
 
         for staff_id in mod_ids:
-            member = guild.get_member(staff_id)
+            member = guild.get_member(int(staff_id))
             if not member:
                 continue
 
             if guild.get_role(CONFIG.roles.available_mod) in member.roles:
-                available_mods += 1
+                available_mod_count += 1
+                available_mod_ids.append(staff_id)
 
-    return available_mods
+    return available_mod_count, available_mod_ids

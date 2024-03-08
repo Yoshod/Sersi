@@ -11,6 +11,7 @@ class ConfigurationBot(YAMLWizard):
     version: str
     git_url: str
     authors: list[str]
+    privacy_policy: str
     wiki_header: str
     dev_mode: bool = False
 
