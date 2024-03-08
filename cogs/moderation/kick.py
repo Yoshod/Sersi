@@ -3,7 +3,12 @@ from datetime import datetime, timedelta
 import nextcord
 from nextcord.ext import commands
 
-from utils.cases import create_case_embed, get_case_by_id, get_last_warning
+from utils.cases import (
+    create_case_embed,
+    get_case_by_id,
+    get_last_warning,
+    fetch_cases_by_partial_id,
+)
 from utils.config import Configuration
 from utils.database import db_session, KickCase, WarningCase, RelatedCase
 from utils.perms import permcheck, is_mod, is_admin, is_immune, target_eligibility
@@ -167,7 +172,22 @@ class KickSystem(commands.Cog):
                 author=interaction.user,
             )
 
-        await interaction.followup.send(embed=confirm_embed)
+        await interaction.channel.send(embed=confirm_embed)
+
+    @kick.on_autocomplete("related_warning")
+    async def search_warnings(
+        self,
+        interaction: nextcord.Interaction,
+        related_warning: str,
+        offender: nextcord.Member,
+    ):
+        if not is_mod(interaction.user):
+            await interaction.response.send_autocomplete([])
+
+        warnings: list[str] = fetch_cases_by_partial_id(
+            related_warning, type="Warning", offender=offender.id
+        )
+        await interaction.response.send_autocomplete(warnings)
 
 
 def setup(bot: commands.Bot, **kwargs):

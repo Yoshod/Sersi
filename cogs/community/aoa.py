@@ -5,7 +5,7 @@ import nextcord
 import pytz
 from nextcord.ext import commands
 from nextcord.ui import Button, View, Modal
-from utils.cases import get_last_warning, create_case_embed
+from utils.cases import get_last_warning, create_case_embed, fetch_cases_by_partial_id
 from utils.database import db_session, BlacklistCase, WarningCase, RelatedCase
 from utils.dialog import confirm, ButtonPreset
 from utils.sersi_embed import SersiEmbed
@@ -540,6 +540,21 @@ class AdultAccess(commands.Cog):
             await interaction.followup.send(
                 f"{self.config.emotes.fail} User {user.mention} ({user.id}) is {age} and is not allowed access."
             )
+
+    @adult_revoke.on_autocomplete("related_warning")
+    async def search_warnings(
+        self,
+        interaction: nextcord.Interaction,
+        related_warning: str,
+        offender: nextcord.Member,
+    ):
+        if not is_mod(interaction.user):
+            await interaction.response.send_autocomplete([])
+
+        warnings: list[str] = fetch_cases_by_partial_id(
+            related_warning, type="Warning", offender=offender.id
+        )
+        await interaction.response.send_autocomplete(warnings)
 
     @commands.Cog.listener()
     async def on_interaction(self, interaction: nextcord.Interaction):
