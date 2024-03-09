@@ -200,13 +200,13 @@ class SuggestionMarkView(nextcord.ui.View):
 
 class SuggestionMarkModal(Modal):
     def __init__(self, config: Configuration, suggestion_id: str, outcome: str):
-        super().__init__("Mark Suggestion")
+        super().__init__(f"Suggestion {outcome}")
         self.config = config
         self.suggestion_id = suggestion_id
         self.outcome = outcome
 
         self.suggestion_reason = nextcord.ui.TextInput(
-            label="Reason for your decision",
+            label=f"Reason for marking {self.outcome}",
             min_length=8,
             max_length=1024,
             required=True,
