@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 import datetime
+import pytz
 import nextcord
 from sqlalchemy import or_
 from utils.sersi_embed import SersiEmbed
@@ -726,12 +727,18 @@ def get_availability_day_of_week(day: str):
         }
 
         for mod in total_mods_availability_setup:
+
             start_time = datetime.datetime.strptime(
                 str(getattr(mod, f"{day.lower()}_start")), "%H%M"
             ).time()
             end_time = datetime.datetime.strptime(
                 str(getattr(mod, f"{day.lower()}_end")), "%H%M"
             ).time()
+
+            timezone = pytz.FixedOffset(mod.timezone * 60)
+
+            start_time = start_time.replace(tzinfo=timezone)
+            end_time = end_time.replace(tzinfo=timezone)
 
             for time in availability_times:
                 if start_time <= time <= end_time:

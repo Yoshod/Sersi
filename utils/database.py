@@ -603,6 +603,7 @@ class ModeratorAvailability(_Base):
 
     Attributes:
         member (int): The ID of the staff member associated with the availability.
+        timezone (int): The timezone of the staff member specified as an offset from UTC.
         monday_start (datetime): The start time of availability on Mondays.
         monday_end (datetime): The end time of availability on Mondays.
         tuesday_start (datetime): The start time of availability on Tuesdays.
@@ -628,6 +629,7 @@ class ModeratorAvailability(_Base):
     __tablename__ = "moderator_availability"
 
     member = Column(Integer, ForeignKey("staff_members.member"), primary_key=True)
+    timezone = Column(Integer, nullable=False)
     monday_start = Column(Integer)
     monday_end = Column(Integer)
     tuesday_start = Column(Integer)

@@ -18,6 +18,7 @@ from utils.database import (
 )
 from utils.config import Configuration
 import datetime
+import pytz
 from utils.sersi_embed import SersiEmbed
 from nextcord.utils import format_dt
 from sqlalchemy import or_
@@ -775,7 +776,9 @@ def check_if_inside_availability_window(staff_id: int):
             session.query(ModeratorAvailability).filter_by(member=staff_id).first()
         )
 
-        current_time = datetime.datetime.now()
+        current_time = datetime.datetime.now().astimezone(
+            pytz.FixedOffset(moderator_availability.timezone * 60)
+        )
         current_day = current_time.weekday()
 
         match current_day:
