@@ -1,5 +1,6 @@
 import asyncio
 
+import logging
 import nextcord
 import os
 import sys
@@ -22,6 +23,38 @@ bot = commands.Bot(
     intents=nextcord.Intents.all(),
 )
 root_folder = os.path.dirname(os.path.realpath(__file__))
+
+if not os.path.exists("logs"):
+    os.makedirs("logs")
+
+file_handler = logging.FileHandler("logs/sersi.log")
+file_handler.setLevel(logging.INFO)
+
+# Create a stream handler for the root logger
+stream_handler = logging.StreamHandler()
+stream_handler.setLevel(logging.INFO)
+
+# Create a formatter and add it to the handlers
+formatter = logging.Formatter(
+    "%(asctime)s - %(name)s - %(levelname)s: %(message)s", datefmt="%d/%m/%y %H:%M:%S"
+)
+file_handler.setFormatter(formatter)
+stream_handler.setFormatter(formatter)
+
+# Get the root logger and add the file and stream handlers to it
+root_logger = logging.getLogger()
+root_logger.setLevel(logging.INFO)
+root_logger.addHandler(file_handler)
+root_logger.addHandler(stream_handler)
+
+# Create a file handler for the error logger
+error_file_handler = logging.FileHandler("logs/error.log")
+error_file_handler.setLevel(logging.ERROR)
+error_file_handler.setFormatter(formatter)
+
+# Create the error logger and add the file handler to it
+error_logger = logging.getLogger("error_logger")
+error_logger.addHandler(error_file_handler)
 
 
 ### COGS ###
@@ -296,7 +329,7 @@ async def on_message_edit(before: nextcord.Message, after: nextcord.Message):
 async def on_ready():
     await bot.sync_all_application_commands()
 
-    print(f"We have logged in as {bot.user}")
+    logging.info(f"We have logged in as {bot.user.global_name} with ID {bot.user.id}")
 
 
 @bot.event
@@ -313,13 +346,15 @@ async def on_message(message: nextcord.Message):
     await bot.process_commands(message)
 
 
-print(f"System Version:\n{sys.version}")
-print(f"Nextcord Version:\n{nextcord.__version__}")
+logging.info("\n\n=======================================")
+logging.info("Starting bot...")
+logging.info(f"System Version:\n{sys.version}")
+logging.info(f"Nextcord Version:\n{nextcord.__version__}")
 
 bot.command_prefix = config.bot.prefix
-print("Attempting to load cogs...")
+logging.info("Attempting to load cogs...")
 asyncio.run(
     load_all_cogs(bot, config=config, data_folder=f"{root_folder}/persistent_data")
 )
-print("Loaded cogs; starting to run")
+logging.info("Loaded cogs; starting to run")
 bot.run(discordTokens.getToken())
