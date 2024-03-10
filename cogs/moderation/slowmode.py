@@ -20,6 +20,16 @@ class SlowmodeCog(commands.Cog):
         self.bot = bot
         self.config = config
 
+        if self.bot.is_ready():
+            self.slowmode_loop.start()
+
+    def cog_unload(self):
+        self.slowmode_loop.cancel()
+
+    @commands.Cog.listener()
+    async def on_ready(self):
+        self.slowmode_loop.start()
+
     @nextcord.slash_command(
         dm_permission=False,
         guild_ids=[1166770860787515422, 977377117895536640, 856262303795380224],
@@ -410,7 +420,7 @@ class SlowmodeCog(commands.Cog):
 
         await view.send_followup(interaction)
 
-    @tasks.loop(minutes=1)
+    @tasks.loop(seconds=30)
     async def slowmode_loop(self):
         with db_session() as session:
             slowmodes = session.query(Slowmode).all()
