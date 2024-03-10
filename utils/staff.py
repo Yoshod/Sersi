@@ -962,3 +962,10 @@ def count_available_mods(guild: nextcord.Guild):
                 available_mod_ids.append(staff_id)
 
     return available_mod_count, available_mod_ids
+
+
+def get_staff_record(staff_id: int):
+    """Gets a staff member's record."""
+    with db_session() as session:
+        staff_member = session.query(StaffMembers).filter_by(member=staff_id).first()
+        return staff_member
