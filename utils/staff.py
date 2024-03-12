@@ -1,11 +1,15 @@
 import enum
 import os
+from datetime import datetime, timedelta
+
 import nextcord
+from nextcord.utils import format_dt
+from sqlalchemy import or_, and_
+
 from utils.base import (
     encode_button_id,
     encode_snowflake,
     get_discord_timestamp,
-    deserialise_timedelta,
 )
 from utils.database import (
     db_session,
@@ -17,11 +21,8 @@ from utils.database import (
     ModeratorAvailability,
 )
 from utils.config import Configuration
-import datetime
-import pytz
+from utils.perms import is_allowed
 from utils.sersi_embed import SersiEmbed
-from nextcord.utils import format_dt
-from sqlalchemy import or_
 
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -135,7 +136,7 @@ def add_staff_legacy(
             branch=branch,
             role=role,
             added_by=approver,
-            joined=datetime.datetime.now() - datetime.timedelta(days=180),
+            joined=datetime.now() - timedelta(days=180),
         )
         session.add(staff_member)
         session.commit()
@@ -147,8 +148,8 @@ def add_mod_record_legacy(staff_id: int, mentor_id: int):
         mod_record = ModerationRecords(
             member=staff_id,
             mentor=mentor_id,
-            trial_start=datetime.datetime.now() - datetime.timedelta(days=180),
-            trial_end=datetime.datetime.now() - datetime.timedelta(days=150),
+            trial_start=datetime.now() - timedelta(days=180),
+            trial_end=datetime.now() - timedelta(days=150),
             trial_passed=True,
         )
         session.add(mod_record)
@@ -337,137 +338,55 @@ def get_moderation_embed(staff_id: int, interaction: nextcord.Interaction):
             f"{CONFIG.emotes.blank}**Approved Peer Reviews:** {mod_stats['Approved Peer Reviews']}\n",
         )
 
-        availability_record = (
-            session.query(ModeratorAvailability).filter_by(member=staff_id).first()
+        availability_records: list[ModeratorAvailability] = (
+            session.query(ModeratorAvailability)
+            .filter_by(member=staff_id)
+            .filter(
+                or_(
+                    ModeratorAvailability.valid_until >= datetime.now(),
+                    ModeratorAvailability.valid_until.is_(None),
+                )
+            )
+            .order_by(
+                ModeratorAvailability.priority.desc(), ModeratorAvailability.start.asc()
+            )
+            .all()
         )
 
-        if availability_record:
-            embed.description += f"**Availability**\n"
-            if availability_record.forced_available_start:
-                embed.description += f"{CONFIG.emotes.blank}**Forced Available Until:** {get_discord_timestamp(availability_record.forced_available_start + deserialise_timedelta(availability_record.forced_available_timedelta), relative=True)}\n"
+        embed.description += "**Availability**\n"
+        if is_available(interaction.guild.get_member(staff_id)):
+            embed.description += f"{CONFIG.emotes.blank}**Currently *Available*** {CONFIG.emotes.success}\n"
+        else:
+            embed.description += f"{CONFIG.emotes.blank}**Currently *Unavailable*** {CONFIG.emotes.fail}\n"
 
-            if availability_record.forced_unavailable_start:
-                embed.description += f"{CONFIG.emotes.blank}**Forced Unavailable Until:** {get_discord_timestamp(availability_record.forced_unavailable_start + deserialise_timedelta(availability_record.forced_unavailable_timedelta), relative=True)}\n"
+        availability_record: ModeratorAvailability = (
+            session.query(ModeratorAvailability)
+            .filter_by(member=staff_id, window_type="Duration")
+            .filter(ModeratorAvailability.valid_until > datetime.now())
+            .order_by(ModeratorAvailability.priority.desc())
+            .first()
+        )
 
-            if CONFIG.roles.available_mod in [
-                role.id for role in interaction.guild.get_member(staff_id).roles
-            ]:
-                embed.description += f"{CONFIG.emotes.blank}**Currently Available:** {CONFIG.emotes.success}\n"
-
-            else:
-                embed.description += f"{CONFIG.emotes.blank}**Currently Available:** {CONFIG.emotes.fail}\n"
-
-            monday_start = datetime.datetime(
-                3000,
-                1,
-                1,
-                availability_record.monday_start // 100,
-                availability_record.monday_start % 100,
+        if availability_record is not None:
+            word = "Available" if availability_record.available else "Unavailable"
+            timestamp = get_discord_timestamp(
+                availability_record.valid_until, relative=True
             )
-            monday_end = datetime.datetime(
-                3000,
-                1,
-                1,
-                availability_record.monday_end // 100,
-                availability_record.monday_end % 100,
-            )
-            tuesday_start = datetime.datetime(
-                3000,
-                1,
-                1,
-                availability_record.tuesday_start // 100,
-                availability_record.tuesday_start % 100,
-            )
-            tuesday_end = datetime.datetime(
-                3000,
-                1,
-                1,
-                availability_record.tuesday_end // 100,
-                availability_record.tuesday_end % 100,
-            )
-            wednesday_start = datetime.datetime(
-                3000,
-                1,
-                1,
-                availability_record.wednesday_start // 100,
-                availability_record.wednesday_start % 100,
-            )
-            wednesday_end = datetime.datetime(
-                3000,
-                1,
-                1,
-                availability_record.wednesday_end // 100,
-                availability_record.wednesday_end % 100,
-            )
-            thursday_start = datetime.datetime(
-                3000,
-                1,
-                1,
-                availability_record.thursday_start // 100,
-                availability_record.thursday_start % 100,
-            )
-            thursday_end = datetime.datetime(
-                3000,
-                1,
-                1,
-                availability_record.thursday_end // 100,
-                availability_record.thursday_end % 100,
-            )
-            friday_start = datetime.datetime(
-                3000,
-                1,
-                1,
-                availability_record.friday_start // 100,
-                availability_record.friday_start % 100,
-            )
-            friday_end = datetime.datetime(
-                3000,
-                1,
-                1,
-                availability_record.friday_end // 100,
-                availability_record.friday_end % 100,
-            )
-            saturday_start = datetime.datetime(
-                3000,
-                1,
-                1,
-                availability_record.saturday_start // 100,
-                availability_record.saturday_start % 100,
-            )
-            saturday_end = datetime.datetime(
-                3000,
-                1,
-                1,
-                availability_record.saturday_end // 100,
-                availability_record.saturday_end % 100,
-            )
-            sunday_start = datetime.datetime(
-                3000,
-                1,
-                1,
-                availability_record.sunday_start // 100,
-                availability_record.sunday_start % 100,
-            )
-            sunday_end = datetime.datetime(
-                3000,
-                1,
-                1,
-                availability_record.sunday_end // 100,
-                availability_record.sunday_end % 100,
+            embed.description += (
+                f"{CONFIG.emotes.blank}**Forced {word} Until:** {timestamp}\n"
             )
 
-            availability_string = (
-                f"{CONFIG.emotes.blank}**Update Availability on Message:** {CONFIG.emotes.success if availability_record.update_availability_on_message else CONFIG.emotes.fail}\n"
-                f"{CONFIG.emotes.blank}**On Message Update Interval:** {str(availability_record.on_message_update_interval_minutes)} minutes\n"
-                f"{CONFIG.emotes.blank}**Monday Availability:** {format_dt(monday_start, 't')} - {format_dt(monday_end, 't')}\n"
-                f"{CONFIG.emotes.blank}**Tuesday Availability:** {format_dt(tuesday_start, 't')} - {format_dt(tuesday_end, 't')}\n"
-                f"{CONFIG.emotes.blank}**Wednesday Availability:** {format_dt(wednesday_start, 't')} - {format_dt(wednesday_end, 't')}\n"
-                f"{CONFIG.emotes.blank}**Thursday Availability:** {format_dt(thursday_start, 't')} - {format_dt(thursday_end, 't')}\n"
-                f"{CONFIG.emotes.blank}**Friday Availability:** {format_dt(friday_start, 't')} - {format_dt(friday_end, 't')}\n"
-                f"{CONFIG.emotes.blank}**Saturday Availability:** {format_dt(saturday_start, 't')} - {format_dt(saturday_end, 't')}\n"
-                f"{CONFIG.emotes.blank}**Sunday Availability:** {format_dt(sunday_start, 't')} - {format_dt(sunday_end, 't')}\n"
-            )
-            embed.description += availability_string
+        availability_records: list[ModeratorAvailability] = (
+            session.query(ModeratorAvailability)
+            .filter_by(member=staff_id, window_type="Timeslot")
+            .order_by(ModeratorAvailability.start.asc())
+            .all()
+        )
+
+        for record in availability_records:
+            start = datetime(3000, 1, 1, (record.start // 60) % 24, record.start % 1440)
+            end = datetime(3000, 1, 1, (record.end // 60) % 24, record.end % 1440)
+            embed.description += f"{CONFIG.emotes.blank}**{record.window_identifier} Availability:** {format_dt(start, 't')} - {format_dt(end, 't')}\n"
 
         return embed
 
@@ -679,13 +598,11 @@ def get_moderation_leaderboard_embed(
 
 
 async def set_availability_status(
-    bot: nextcord.Client,
-    availability_record: ModeratorAvailability,
+    member: nextcord.Member,
     set_as_available: bool,
 ):
     """Sets the availability status of a staff member."""
-    guild = bot.get_guild(availability_record.guild_id)
-    member = guild.get_member(availability_record.member)
+    guild = member.guild
 
     if set_as_available:
         await member.add_roles(guild.get_role(CONFIG.roles.available_mod))
@@ -694,252 +611,61 @@ async def set_availability_status(
         await member.remove_roles(guild.get_role(CONFIG.roles.available_mod))
 
 
-def check_if_forced_available(staff_id: int):
-    """Checks if a staff member is forced available."""
-    with db_session() as session:
-        moderator_availability = (
-            session.query(ModeratorAvailability).filter_by(member=staff_id).first()
-        )
-
-        return moderator_availability.forced_available_start
-
-
-def check_if_forced_unavailable(staff_id: int):
-    """Checks if a staff member is forced unavailable."""
-    with db_session() as session:
-        moderator_availability = (
-            session.query(ModeratorAvailability).filter_by(member=staff_id).first()
-        )
-
-        return moderator_availability.forced_unavailable_start
-
-
-def check_if_forced_available_expired(staff_id: int):
-    """Checks if a staff member's forced available status has expired."""
-    with db_session() as session:
-        moderator_availability = (
-            session.query(ModeratorAvailability).filter_by(member=staff_id).first()
-        )
-
-        end_time_td = deserialise_timedelta(
-            moderator_availability.forced_available_timedelta
-        )
-
-        return (
-            moderator_availability.forced_available_start + end_time_td
-            < datetime.datetime.now()
-        )
-
-
-def check_if_forced_unavailable_expired(staff_id: int):
-    """Checks if a staff member's forced unavailable status has expired."""
-    with db_session() as session:
-        moderator_availability = (
-            session.query(ModeratorAvailability).filter_by(member=staff_id).first()
-        )
-
-        end_time_td = deserialise_timedelta(
-            moderator_availability.forced_unavailable_timedelta
-        )
-
-        return (
-            moderator_availability.forced_unavailable_start + end_time_td
-            < datetime.datetime.now()
-        )
-
-
-def update_last_message_time(staff_id: int):
-    """Updates the last message time of a staff member."""
-    with db_session() as session:
-        moderator_availability = (
-            session.query(ModeratorAvailability).filter_by(member=staff_id).first()
-        )
-
-        moderator_availability.time_of_last_message = datetime.datetime.now()
-        session.commit()
-
-
-def check_if_update_message_time_opted_in(staff_id: int):
-    """Checks if a staff member has opted in to updating their last message time."""
-    with db_session() as session:
-        moderator_availability = (
-            session.query(ModeratorAvailability).filter_by(member=staff_id).first()
-        )
-
-        return moderator_availability.update_availability_on_message
-
-
-def check_if_inside_availability_window(staff_id: int):
+def check_staff_availability(staff_member: int | nextcord.Member):
     """Checks if a staff member is inside their availability window."""
+    if isinstance(staff_member, nextcord.Member):
+        staff_id = staff_member.id
+    else:
+        staff_id = staff_member
+
     with db_session() as session:
-        moderator_availability = (
-            session.query(ModeratorAvailability).filter_by(member=staff_id).first()
+        current_time = datetime.now()
+        weekday = current_time.isoweekday()
+        hour = current_time.hour
+        minute = current_time.minute
+
+        offset = (weekday * 24 + hour) * 60 + minute
+
+        moderator_availability: ModeratorAvailability = (
+            (
+                session.query(ModeratorAvailability)
+                .filter_by(member=staff_id, window_type="Duration")
+                .filter(ModeratorAvailability.valid_until > current_time)
+            )
+            .union(
+                session.query(ModeratorAvailability)
+                .filter_by(member=staff_id, window_type="Timeslot")
+                .filter(
+                    or_(
+                        and_(
+                            ModeratorAvailability.start <= offset,
+                            ModeratorAvailability.end >= offset,
+                        ),
+                        and_(  # If the window spans sunday to monday
+                            ModeratorAvailability.start > ModeratorAvailability.end,
+                            or_(
+                                ModeratorAvailability.start <= offset,
+                                ModeratorAvailability.end >= offset,
+                            ),
+                        ),
+                    ),
+                )
+            )
+            .order_by(ModeratorAvailability.priority.desc())
+            .first()
         )
 
-        current_time = datetime.datetime.now().astimezone(
-            pytz.FixedOffset(moderator_availability.timezone * 60)
-        )
-        current_day = current_time.weekday()
-
-        match current_day:
-            case 0:
-                if current_time.strftime("%H%M") >= str(
-                    moderator_availability.monday_start
-                ).zfill(4) and current_time.strftime("%H%M") <= str(
-                    moderator_availability.monday_end
-                ).zfill(
-                    4
-                ):
-                    return True
-
-            case 1:
-                if current_time.strftime("%H%M") >= str(
-                    moderator_availability.tuesday_start
-                ).zfill(4) and current_time.strftime("%H%M") <= str(
-                    moderator_availability.tuesday_end
-                ).zfill(
-                    4
-                ):
-                    return True
-
-            case 2:
-                if current_time.strftime("%H%M") >= str(
-                    moderator_availability.wednesday_start
-                ).zfill(4) and current_time.strftime("%H%M") <= str(
-                    moderator_availability.wednesday_end
-                ).zfill(
-                    4
-                ):
-                    return True
-
-            case 3:
-                if current_time.strftime("%H%M") >= str(
-                    moderator_availability.thursday_start
-                ).zfill(4) and current_time.strftime("%H%M") <= str(
-                    moderator_availability.thursday_end
-                ).zfill(
-                    4
-                ):
-                    return True
-
-            case 4:
-                if current_time.strftime("%H%M") >= str(
-                    moderator_availability.friday_start
-                ).zfill(4) and current_time.strftime("%H%M") <= str(
-                    moderator_availability.friday_end
-                ).zfill(
-                    4
-                ):
-                    return True
-
-            case 5:
-                if current_time.strftime("%H%M") >= str(
-                    moderator_availability.saturday_start
-                ).zfill(4) and current_time.strftime("%H%M") <= str(
-                    moderator_availability.saturday_end
-                ).zfill(
-                    4
-                ):
-                    return True
-
-            case 6:
-                if current_time.strftime("%H%M") >= str(
-                    moderator_availability.sunday_start
-                ).zfill(4) and current_time.strftime("%H%M") <= str(
-                    moderator_availability.sunday_end
-                ).zfill(
-                    4
-                ):
-                    return True
-
-            case _:
-                raise ValueError("Invalid day of the week.")
-
-        return False
+        return moderator_availability.available
 
 
-async def check_if_has_availability_role(
-    bot: nextcord.Client,
-    availability_record: ModeratorAvailability,
-    staff_id: int,
-):
+async def is_available(member: nextcord.Member):
     """Checks if a staff member has the availability role."""
-    guild = bot.get_guild(availability_record.guild_id)
-    member = guild.get_member(staff_id)
-    if not member:
-        return False
-
-    role = guild.get_role(CONFIG.roles.available_mod)
-
-    return role in member.roles
+    return is_allowed(member, [CONFIG.roles.available_mod])
 
 
-def check_if_should_mark_unavailable(staff_id: int):
-    """Checks if a staff member should update their availability status."""
-    with db_session() as session:
-        moderator_availability = (
-            session.query(ModeratorAvailability).filter_by(member=staff_id).first()
-        )
-
-        if moderator_availability.forced_unavailable_start:
-            return True
-
-        if moderator_availability.forced_available_start:
-            return False
-
-        if check_if_inside_availability_window(staff_id):
-            return False
-
-        if moderator_availability.update_availability_on_message:
-            last_message_time = moderator_availability.time_of_last_message
-            current_time = datetime.datetime.now()
-            difference_td = current_time - last_message_time
-
-            interval_td = datetime.timedelta(
-                minutes=moderator_availability.on_message_update_interval_minutes
-            )
-
-            if difference_td > interval_td:
-                return True
-
-    return False
-
-
-def check_if_should_mark_available(staff_id: int):
-    """Checks if a staff member should update their availability status."""
-    with db_session() as session:
-        moderator_availability = (
-            session.query(ModeratorAvailability).filter_by(member=staff_id).first()
-        )
-
-        if moderator_availability.forced_available_start:
-            return True
-
-        if moderator_availability.forced_unavailable_start:
-            return False
-
-        if check_if_inside_availability_window(staff_id):
-            return True
-
-        if moderator_availability.update_availability_on_message:
-            last_message_time = moderator_availability.time_of_last_message
-            current_time = datetime.datetime.now()
-            difference_td = current_time - last_message_time
-
-            interval_td = datetime.timedelta(
-                minutes=moderator_availability.on_message_update_interval_minutes
-            )
-
-            if difference_td > interval_td:
-                return True
-
-    return False
-
-
-def count_available_mods(guild: nextcord.Guild):
+def available_mods(guild: nextcord.Guild):
     """Counts the number of available moderators in a guild."""
-    available_mod_count = 0
-    available_mod_ids = []
+    available_mods: list[nextcord.Member] = []
 
     with db_session() as session:
         staff_members = (
@@ -961,7 +687,6 @@ def count_available_mods(guild: nextcord.Guild):
                 continue
 
             if guild.get_role(CONFIG.roles.available_mod) in member.roles:
-                available_mod_count += 1
-                available_mod_ids.append(staff_id)
+                available_mods.append(member)
 
-    return available_mod_count, available_mod_ids
+    return available_mods

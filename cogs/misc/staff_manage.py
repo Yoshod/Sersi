@@ -1,4 +1,5 @@
-import datetime
+import calendar
+from datetime import datetime, timedelta, date
 import os
 import nextcord
 from nextcord import SlashOption
@@ -9,8 +10,7 @@ from utils.base import (
     decode_button_id,
     encode_snowflake,
     decode_snowflake,
-    serialise_timedelta,
-    deserialise_timedelta,
+    convert_to_timedelta,
 )
 from utils.sersi_embed import SersiEmbed
 from utils.views import ConfirmView, DualCustodyView
@@ -24,6 +24,7 @@ from utils.perms import (
     is_admin,
     is_cet_lead,
     blacklist_check,
+    is_trial_mod,
 )
 from utils.database import (
     db_session,
@@ -55,11 +56,8 @@ from utils.staff import (
     add_mod_record_legacy,
     promotion_validity_check,
     set_availability_status,
-    check_if_forced_available,
-    check_if_forced_unavailable,
-    check_if_has_availability_role,
-    check_if_inside_availability_window,
-    check_if_update_message_time_opted_in,
+    check_staff_availability,
+    is_available,
 )
 from utils.review import determine_reviewer
 
@@ -381,7 +379,6 @@ class Staff(commands.Cog):
             },
         ),
     ):
-
         if not await permcheck(interaction, is_admin):
             return
 
@@ -1118,11 +1115,9 @@ class Staff(commands.Cog):
                 return
 
         try:
-            trial_start = datetime.date(
-                trial_start_year, trial_start_month, trial_start_day
-            )
+            trial_start = date(trial_start_year, trial_start_month, trial_start_day)
 
-            if trial_start > datetime.date.today():
+            if trial_start > date.today():
                 await interaction.followup.send(
                     f"{self.config.emotes.fail} The trial start date cannot be in the future."
                 )
@@ -1137,9 +1132,9 @@ class Staff(commands.Cog):
             trial_start = None
 
         try:
-            trial_end = datetime.date(trial_end_year, trial_end_month, trial_end_day)
+            trial_end = date(trial_end_year, trial_end_month, trial_end_day)
 
-            if trial_end > datetime.date.today():
+            if trial_end > date.today():
                 await interaction.followup.send(
                     f"{self.config.emotes.fail} The trial end date cannot be in the future."
                 )
@@ -1275,9 +1270,9 @@ class Staff(commands.Cog):
             return
 
         try:
-            left_date = datetime.date(left_year, left_month, left_day)
+            left_date = date(left_year, left_month, left_day)
 
-            if left_date > datetime.date.today():
+            if left_date > date.today():
                 await interaction.followup.send(
                     f"{self.config.emotes.fail} The discharge date cannot be in the future."
                 )
@@ -1326,96 +1321,76 @@ class Staff(commands.Cog):
             f"{self.config.emotes.success} Record has been modified."
         )
 
-    @staff.subcommand(description="Set availability for moderators")
-    async def set_availability(
+    @staff.subcommand(description="Change personal settings")
+    async def personal_settings(
         self,
         interaction: nextcord.Interaction,
         timezone: int = SlashOption(
+            required=False,
             description="Your timezone offset in hours (e.g. UTC+1, UTC-5, etc.)",
-            choices={
-                "UTC-12": -12,
-                "UTC-11": -11,
-                "UTC-10": -10,
-                "UTC-9": -9,
-                "UTC-8": -8,
-                "UTC-7": -7,
-                "UTC-6": -6,
-                "UTC-5": -5,
-                "UTC-4": -4,
-                "UTC-3": -3,
-                "UTC-2": -2,
-                "UTC-1": -1,
-                "UTC": 0,
-                "UTC+1": 1,
-                "UTC+2": 2,
-                "UTC+3": 3,
-                "UTC+4": 4,
-                "UTC+5": 5,
-                "UTC+6": 6,
-                "UTC+7": 7,
-                "UTC+8": 8,
-                "UTC+9": 9,
-                "UTC+10": 10,
-                "UTC+11": 11,
-                "UTC+12": 12,
-            },
+            choices={f"UTC{offset}": offset for offset in range(-12, 13)},
         ),
-        monday_start: int = SlashOption(
-            description="Monday start time in 24-hour format",
-        ),
-        monday_end: int = SlashOption(
-            description="Monday end time in 24-hour format",
-            max_value=2359,
-        ),
-        tuesday_start: int = SlashOption(
-            description="Tuesday start time in 24-hour format",
-        ),
-        tuesday_end: int = SlashOption(
-            description="Tuesday end time in 24-hour format",
-            max_value=2359,
-        ),
-        wednesday_start: int = SlashOption(
-            description="Wednesday start time in 24-hour format",
-        ),
-        wednesday_end: int = SlashOption(
-            description="Wednesday end time in 24-hour format",
-            max_value=2359,
-        ),
-        thursday_start: int = SlashOption(
-            description="Thursday start time in 24-hour format",
-        ),
-        thursday_end: int = SlashOption(
-            description="Thursday end time in 24-hour format",
-            max_value=2359,
-        ),
-        friday_start: int = SlashOption(
-            description="Friday start time in 24-hour format",
-        ),
-        friday_end: int = SlashOption(
-            description="Friday end time in 24-hour format",
-            max_value=2359,
-        ),
-        saturday_start: int = SlashOption(
-            description="Saturday start time in 24-hour format",
-        ),
-        saturday_end: int = SlashOption(
-            description="Saturday end time in 24-hour format",
-            max_value=2359,
-        ),
-        sunday_start: int = SlashOption(
-            description="Sunday start time in 24-hour format",
-        ),
-        sunday_end: int = SlashOption(
-            description="Sunday end time in 24-hour format",
-            max_value=2359,
-        ),
-        last_message_update: bool = SlashOption(
-            description="Whether to become available out of hours if you have recently messaged",
+        availability_on_message: int = SlashOption(
             required=False,
+            description="How long to wait after last message to become unavailable (in minutes), 0 to disable",
         ),
-        update_interval: int = SlashOption(
-            description="How long to wait after last message to become unavailable out of hours (in minutes)",
-            required=False,
+    ):
+        if not await permcheck(interaction, is_staff):
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        with db_session(interaction.user) as session:
+            settings = (
+                session.query(StaffMembers)
+                .filter_by(member=interaction.user.id)
+                .first()
+            ).settings
+
+            if timezone:
+                settings.timezone = timezone
+
+            if availability_on_message:
+                settings.available_on_message = availability_on_message
+
+            session.commit()
+
+        await interaction.followup.send(
+            f"{self.config.emotes.success} Your settings have been updated."
+        )
+
+    @staff.subcommand(description="Moderator Availability")
+    async def availability(self, interaction: nextcord.Interaction):
+        pass
+
+    @availability.subcommand(description="Set availability timeslot(s)")
+    async def set_timeslot(
+        self,
+        interaction: nextcord.Interaction,
+        timeslot: str = SlashOption(
+            description="Timeslot to set availability for",
+            choices=[
+                "Monday",
+                "Tuesday",
+                "Wednesday",
+                "Thursday",
+                "Friday",
+                "Saturday",
+                "Sunday",
+                "Weekdays",
+                "Weekend",
+                "All",
+            ],
+        ),
+        start_time: int = SlashOption(
+            description="Start time in 24-hour format",
+            min_value=0,
+            max_value=2359,
+        ),
+        end_time: int = SlashOption(
+            description="End time in 24-hour format, value lower than start time will be considered as next day",
+            min_value=0,
+            max_value=2359,
         ),
     ):
         if not await permcheck(interaction, is_mod):
@@ -1423,89 +1398,54 @@ class Staff(commands.Cog):
 
         await interaction.response.defer(ephemeral=True)
 
-        availability = {
-            "monday": (monday_start, monday_end),
-            "tuesday": (tuesday_start, tuesday_end),
-            "wednesday": (wednesday_start, wednesday_end),
-            "thursday": (thursday_start, thursday_end),
-            "friday": (friday_start, friday_end),
-            "saturday": (saturday_start, saturday_end),
-            "sunday": (sunday_start, sunday_end),
-        }
+        if start_time == end_time:
+            await interaction.followup.send(
+                f"{self.config.emotes.fail} Start and end times cannot be the same."
+            )
+            return
 
-        # Check the end time is after the start time
-        for day, times in availability.items():
-            if times[0] >= times[1]:
-                await interaction.followup.send(
-                    f"{self.config.emotes.fail} The end time for {day} must be after the start time."
-                )
-                return
+        if start_time > end_time:
+            end_time += 2400
+
+        match timeslot:
+            case "All":
+                days = calendar.day_name
+            case "Weekend":
+                days = calendar.day_name[5:7]
+            case "Weekdays":
+                days = calendar.day_name[0:5]
+            case _:
+                days = [timeslot]
+
+        DAYS_ORDINAL = dict(zip(calendar.day_name, range(1, 8)))
 
         with db_session(interaction.user) as session:
-            existing_record = (
-                session.query(ModeratorAvailability)
+            timezone = (
+                session.query(StaffMembers)
                 .filter_by(member=interaction.user.id)
                 .first()
-            )
+            ).settings.timezone
 
-            if existing_record:
-                existing_record.timezone = timezone
-                existing_record.monday_start = monday_start
-                existing_record.monday_end = monday_end
-                existing_record.tuesday_start = tuesday_start
-                existing_record.tuesday_end = tuesday_end
-                existing_record.wednesday_start = wednesday_start
-                existing_record.wednesday_end = wednesday_end
-                existing_record.thursday_start = thursday_start
-                existing_record.thursday_end = thursday_end
-                existing_record.friday_start = friday_start
-                existing_record.friday_end = friday_end
-                existing_record.saturday_start = saturday_start
-                existing_record.saturday_end = saturday_end
-                existing_record.sunday_start = sunday_start
-                existing_record.sunday_end = sunday_end
-                existing_record.update_availability_on_message = (
-                    last_message_update if last_message_update else True
+            for day in days:
+                base_offset = DAYS_ORDINAL[day] * 1440 - timezone * 60
+                session.merge(
+                    ModeratorAvailability(
+                        member=interaction.user.id,
+                        window_identifier=day,
+                        window_type="Timeslot",
+                        priority=0,
+                        start_time=base_offset + (start_time // 100) * 60 + start_time % 100,
+                        end_time=base_offset + (end_time // 100) * 60 + end_time % 100,
+                    )
                 )
-                existing_record.on_message_update_interval_minutes = (
-                    update_interval if last_message_update else 5
-                )
-                session.commit()
-
-            else:
-                availability_record = ModeratorAvailability(
-                    member=interaction.user.id,
-                    timezone=timezone,
-                    monday_start=monday_start,
-                    monday_end=monday_end,
-                    tuesday_start=tuesday_start,
-                    tuesday_end=tuesday_end,
-                    wednesday_start=wednesday_start,
-                    wednesday_end=wednesday_end,
-                    thursday_start=thursday_start,
-                    thursday_end=thursday_end,
-                    friday_start=friday_start,
-                    friday_end=friday_end,
-                    saturday_start=saturday_start,
-                    saturday_end=saturday_end,
-                    sunday_start=sunday_start,
-                    sunday_end=sunday_end,
-                    update_availability_on_message=(
-                        last_message_update if last_message_update else True
-                    ),
-                    on_message_update_interval_minutes=(
-                        update_interval if last_message_update else 5
-                    ),
-                    guild_id=interaction.guild.id,
-                )
-                session.add(availability_record)
-                session.commit()
 
         await interaction.followup.send(
             f"{self.config.emotes.success} Availability has been set."
         )
 
-    @staff.subcommand(description="Force available status")
+    @availability.subcommand(
+        description="Force available status for certain time duration"
+    )
     async def force_available(
         self,
         interaction: nextcord.Interaction,
@@ -1525,56 +1465,52 @@ class Staff(commands.Cog):
 
         await interaction.response.defer(ephemeral=True)
 
-        available_timedelta = serialise_timedelta(
+        available_timedelta = convert_to_timedelta(
             available_duration, available_timespan
         )
 
         with db_session(interaction.user) as session:
-            availability_record = (
-                session.query(ModeratorAvailability)
-                .filter_by(member=interaction.user.id)
-                .first()
-            )
-            if not availability_record:
-                await interaction.followup.send(
-                    f"{self.config.emotes.fail} You do not have an availability record."
+            session.merge(
+                ModeratorAvailability(
+                    member=interaction.user.id,
+                    window_identifier="Forced Available",
+                    window_type="Duration",
+                    priority=9999,  # IT'S OVER 9000 !!!
+                    valid_until=datetime.now() + available_timedelta,
                 )
-                return
-
-            availability_record.forced_available_timedelta = available_timedelta
-            availability_record.forced_available_start = datetime.datetime.now()
-            availability_record.forced_unavailable_timedelta = None
-            availability_record.forced_unavailable_start = None
+            )
             session.commit()
 
-            await set_availability_status(self.bot, availability_record, True)
+            await set_availability_status(interaction.user, True)
 
-        if deserialise_timedelta(available_timedelta) >= datetime.timedelta(hours=24):
+        if available_timedelta >= timedelta(hours=16):
             await interaction.followup.send(
-                f"{self.config.emotes.success} You have been forced to be available for {deserialise_timedelta(available_timedelta)}. Please remember to take breaks."
+                f"{self.config.emotes.success} You have been forced to be available for {available_timedelta}. Please remember to take breaks."
             )
 
         else:
             await interaction.followup.send(
-                f"{self.config.emotes.success} You have been forced to be available for {deserialise_timedelta(available_timedelta)}."
+                f"{self.config.emotes.success} You have been forced to be available for {available_timedelta}."
             )
 
         await interaction.guild.get_channel(self.config.channels.logging).send(
             embed=SersiEmbed(
                 title="Forced Availability Set",
-                description=f"{interaction.user.mention} has been forced to be available for {deserialise_timedelta(available_timedelta)}.",
+                description=f"{interaction.user.mention} has been forced to be available for {available_timedelta}.",
             )
         )
 
         await interaction.guild.get_channel(self.config.channels.mod_logs).send(
             embed=SersiEmbed(
                 title="Forced Availability Set",
-                description=f"{interaction.user.mention} has been forced to be available for {deserialise_timedelta(available_timedelta)}.",
+                description=f"{interaction.user.mention} has been forced to be available for {available_timedelta}.",
             )
         )
 
-    @staff.subcommand(description="Force unavailable status")
-    async def force_unavailable(
+    @availability.subcommand(
+        description="Set unavailable status for certain time duration"
+    )
+    async def set_unavailable(
         self,
         interaction: nextcord.Interaction,
         unavailable_duration: int = SlashOption(
@@ -1589,113 +1525,99 @@ class Staff(commands.Cog):
                 "Weeks": "w",
             },
         ),
+        available_on_message: bool = SlashOption(
+            description="Whether to become available during leave if you have recently messaged",
+            required=False,
+            choices={"Yes": True, "No": False},
+        ),
+        reason: str = SlashOption(
+            description="Reason (short) for being unavailable, allows for multiple concurrent unavailable statuses",
+            required=False,
+            min_length=8,
+            max_length=32,
+        ),
     ):
         if not await permcheck(interaction, is_mod):
             return
 
         await interaction.response.defer(ephemeral=True)
 
-        unavailable_timedelta = serialise_timedelta(
+        unavailable_timedelta = convert_to_timedelta(
             unavailable_duration, unavailable_timespan
         )
 
         with db_session(interaction.user) as session:
-            availability_record = (
-                session.query(ModeratorAvailability)
-                .filter_by(member=interaction.user.id)
-                .first()
-            )
-            if not availability_record:
-                await interaction.followup.send(
-                    f"{self.config.emotes.fail} You do not have an availability record."
-                )
-                return
+            # TODO: confirmation dialog for overwriting existing unavailability
 
-            availability_record.forced_unavailable_timedelta = unavailable_timedelta
-            availability_record.forced_unavailable_start = datetime.datetime.now()
-            availability_record.forced_available_timedelta = None
-            availability_record.forced_available_start = None
+            session.merge(
+                ModeratorAvailability(
+                    member=interaction.user.id,
+                    window_identifier=reason or "Forced Unavailale",
+                    window_type="Duration",
+                    priority=200 if available_on_message else 50,
+                    availability=False,
+                    valid_until=datetime.now() + unavailable_timedelta,
+                )
+            )
             session.commit()
 
-            await set_availability_status(self.bot, availability_record, False)
+        # TODO: set availability status logic for specific cases
+        # await set_availability_status(interaction.user, False)
 
         await interaction.followup.send(
-            f"{self.config.emotes.success} You have been forced to be unavailable for {deserialise_timedelta(unavailable_timedelta)}."
+            f"{self.config.emotes.success} You have been forced to be unavailable for {unavailable_timedelta}."
         )
 
-        if deserialise_timedelta(unavailable_timedelta) >= datetime.timedelta(days=3):
+        if unavailable_timedelta >= timedelta(days=3):
             unavailability_log_embed = SersiEmbed(
                 title="Long Forced Unavailability Set",
-                description=f"{interaction.user.mention} has been forced to be unavailable for {deserialise_timedelta(unavailable_timedelta)}.",
+                description=f"{interaction.user.mention} has been forced to be unavailable for {unavailable_timedelta}.",
             )
 
-            reviewer = determine_reviewer(interaction.user, self.config)
+            interaction.guild.get_channel(self.config.channels.moderator_review).send(
+                embed=unavailability_log_embed,
+            )
 
-            match reviewer:
-                case self.config.permission_roles.compliance:
-                    review_channel = interaction.guild.get_channel(
-                        self.config.channels.dark_mod_review
-                    )
-                    await review_channel.send(
-                        embed=unavailability_log_embed,
-                    )
-
-                case self.config.permission_roles.dark_moderator:
-                    review_channel = interaction.guild.get_channel(
-                        self.config.channels.dark_mod_review
-                    )
-                    await review_channel.send(
-                        embed=unavailability_log_embed,
+            if is_trial_mod(interaction.user):
+                with db_session() as session:
+                    mod_record: ModerationRecords = (
+                        session.query(ModerationRecords)
+                        .filter_by(member=interaction.user.id)
+                        .first()
                     )
 
-                case self.config.permission_roles.senior_moderator:
-                    review_channel = interaction.guild.get_channel(
-                        self.config.channels.senior_mod_review
-                    )
-                    await review_channel.send(
-                        embed=unavailability_log_embed,
-                    )
+                    mentor = interaction.guild.get_member(mod_record.mentor)
 
-                case self.config.permission_roles.moderator:
-                    review_channel = interaction.guild.get_channel(
-                        self.config.channels.senior_mod_review
-                    )
-                    await review_channel.send(
-                        embed=unavailability_log_embed,
-                    )
-
-                    with db_session as session:
-                        mod_record: ModerationRecords = (
-                            session.query(ModerationRecords)
-                            .filter_by(member=interaction.user.id)
-                            .first()
+                    if mentor:
+                        await mentor.send(
+                            f"{interaction.user.mention} has been forced to be unavailable for {unavailable_timedelta}."
                         )
-
-                        mentor = interaction.guild.get_member(mod_record.mentor)
-
-                        if mentor:
-                            await mentor.send(
-                                f"{interaction.user.mention} has been forced to be unavailable for {deserialise_timedelta(unavailable_timedelta)}."
-                            )
 
         await interaction.guild.get_channel(self.config.channels.logging).send(
             embed=SersiEmbed(
                 title="Forced Unavailability Set",
-                description=f"{interaction.user.mention} has been forced to be unavailable for {deserialise_timedelta(unavailable_timedelta)}.",
+                description=f"{interaction.user.mention} has been forced to be unavailable for {unavailable_timedelta}.",
             )
         )
 
         await interaction.guild.get_channel(self.config.channels.mod_logs).send(
             embed=SersiEmbed(
                 title="Forced Unavailability Set",
-                description=f"{interaction.user.mention} has been forced to be unavailable for {deserialise_timedelta(unavailable_timedelta)}.",
+                description=f"{interaction.user.mention} has been forced to be unavailable for {unavailable_timedelta}.",
             )
         )
 
-    @staff.subcommand(description="Set expire forced availability or unavailability")
-    async def expire_forced(
+    @availability.subcommand(
+        description="Set expire forced availability or unavailability"
+    )
+    async def expire_window(
         self,
         interaction: nextcord.Interaction,
+        window: str = SlashOption(
+            description="Window identifier (reason) for the forced availability or unavailability",
+            min_length=8,
+            max_length=32,
+        ),
     ):
         if not await permcheck(interaction, is_mod):
             return
@@ -1705,19 +1627,20 @@ class Staff(commands.Cog):
         with db_session(interaction.user) as session:
             availability_record = (
                 session.query(ModeratorAvailability)
-                .filter_by(member=interaction.user.id)
+                .filter_by(
+                    member=interaction.user.id,
+                    window_identifier=window,
+                    window_type="Duration",
+                )
                 .first()
             )
             if not availability_record:
                 await interaction.followup.send(
-                    f"{self.config.emotes.fail} You do not have an availability record."
+                    f"{self.config.emotes.fail} No forced availability or unavailability found for this window name."
                 )
                 return
 
-            availability_record.forced_available_timedelta = None
-            availability_record.forced_available_start = None
-            availability_record.forced_unavailable_timedelta = None
-            availability_record.forced_unavailable_start = None
+            session.delete(availability_record)
             session.commit()
 
         await interaction.followup.send(
@@ -1737,6 +1660,26 @@ class Staff(commands.Cog):
                 description=f"{interaction.user.mention} has expired their forced availability or unavailability.",
             )
         )
+
+    @expire_window.on_autocomplete("window")
+    async def expire_forced_autocomplete(
+        self, interaction: nextcord.Interaction, window: str
+    ):
+        if not await permcheck(interaction, is_mod):
+            return
+
+        with db_session(interaction.user) as session:
+            windows: ModeratorAvailability = (
+                session.query(ModeratorAvailability.window_identifier)
+                .filter_by(member=interaction.user.id, window_type="Duration")
+                .filter(
+                    ModeratorAvailability.valid_until > datetime.now(),
+                    ModeratorAvailability.window_identifier.ilike(f"%{window or ''}%"),
+                )
+                .all()
+            )
+
+        await interaction.response.send_message([window[0] for window in windows])
 
     @commands.Cog.listener()
     async def on_honoured_member_revoke(self, details: VoteDetails):
@@ -1814,162 +1757,89 @@ class Staff(commands.Cog):
         await interaction.followup.send(embed=embed, ephemeral=True)
 
     @commands.Cog.listener()
-    async def on_message(self, interaction: nextcord.Message):
-        if CONFIG.permission_roles.moderator not in [
-            role.id for role in interaction.author.roles
-        ]:
+    async def on_message(self, message: nextcord.Message):
+        if message.guild is None:
+            return  # no errors on dm UwU
+        if not is_mod(message.author):
             return
 
         with db_session(self.bot.user) as session:
-            record: ModeratorAvailability = (
-                session.query(ModeratorAvailability)
-                .filter_by(member=interaction.author.id)
-                .first()
+            staff: StaffMembers = (
+                session.query(StaffMembers).filter_by(member=message.author.id).first()
             )
 
-            if check_if_forced_unavailable(record.member):
+            availability = staff.settings.available_on_message
+            if not availability:
                 return
 
-            if check_if_forced_available(
-                record.member
-            ) and not check_if_has_availability_role(
-                self.bot, record, interaction.author.id
-            ):
-                await set_availability_status(self.bot, record, True)
-                return
-
-            if not check_if_update_message_time_opted_in(interaction.author.id):
-                return
-
-            record.time_of_last_message = datetime.datetime.now()
+            session.merge(
+                ModeratorAvailability(
+                    member=message.author.id,
+                    window_identifier="Last Message",
+                    window_type="Duration",
+                    valid_until=datetime.now() + timedelta(minutes=availability),
+                    priority=100,
+                    available=True,
+                )
+            )
             session.commit()
 
-            if await check_if_has_availability_role(
-                self.bot, record, interaction.author.id
-            ):
-                return
-
-            await set_availability_status(self.bot, record, True)
-
-            await interaction.guild.get_channel(self.config.channels.logging).send(
-                embed=SersiEmbed(
-                    title=f"{interaction.author.display_name} Now Available.",
-                    description=f"{interaction.author.mention} has been set to be available due to recent message.",
-                )
-            )
-
-            await interaction.guild.get_channel(self.config.channels.mod_logs).send(
-                embed=SersiEmbed(
-                    title=f"{interaction.author.display_name} Now Available.",
-                    description=f"{interaction.author.mention} has been set to be available due to recent message.",
-                )
-            )
+        if not is_available(staff):
+            await set_availability_status(message.author, True)
 
     @tasks.loop(minutes=1)
     async def check_availability(self):
         with db_session(self.bot.user) as session:
-            availability_records = session.query(ModeratorAvailability).all()
+            moderation: list[StaffMembers] = (
+                session.query(StaffMembers)
+                .filter_by(active=True)
+                .filter(StaffMembers.branch.in_([Branch.MOD.value, Branch.ADMIN.value]))
+                .all()
+            )
 
-            for record in availability_records:
-                guild = self.bot.get_guild(record.guild_id)
+            for mod in moderation:
+                member = self.bot.get_guild(self.config.guilds.main).get_member(
+                    mod.member
+                )
 
-                if check_if_forced_unavailable(record.member):
-                    continue
-
-                if check_if_forced_available(record.member):
-                    continue
-
-                if check_if_inside_availability_window(record.member):
-                    if not await check_if_has_availability_role(
-                        self.bot, record, record.member
-                    ):
-                        await set_availability_status(self.bot, record, True)
-
-                        logging_embed = SersiEmbed(
-                            title=f"{guild.get_member(record.member).display_name} Now Available.",
-                            description=f"{guild.get_member(record.member).mention} has been set to be available due to availability window.",
-                        )
-
-                        await guild.get_channel(self.config.channels.logging).send(
-                            embed=logging_embed
-                        )
-
-                        await guild.get_channel(self.config.channels.mod_logs).send(
-                            embed=logging_embed
-                        )
-
-                    continue
-
-                if (
-                    record.update_availability_on_message
-                    and record.time_of_last_message
-                    >= datetime.datetime.now()
-                    - datetime.timedelta(
-                        minutes=record.on_message_update_interval_minutes
-                    )
-                ):
-                    if not await check_if_has_availability_role(
-                        self.bot, record, record.member
-                    ):
-                        await set_availability_status(self.bot, record, True)
-
-                        logging_embed = SersiEmbed(
-                            title=f"{guild.get_member(record.member).display_name} Now Available.",
-                            description=f"{guild.get_member(record.member).mention} has been set to be available due to recent message.",
-                        )
-
-                        await guild.get_channel(self.config.channels.logging).send(
-                            embed=logging_embed
-                        )
-
-                        await guild.get_channel(self.config.channels.mod_logs).send(
-                            embed=logging_embed
-                        )
-
-                elif (
-                    record.update_availability_on_message
-                    and not record.time_of_last_message
-                    >= datetime.datetime.now()
-                    - datetime.timedelta(
-                        minutes=record.on_message_update_interval_minutes
-                    )
-                ):
-                    if await check_if_has_availability_role(
-                        self.bot, record, record.member
-                    ):
-                        await set_availability_status(self.bot, record, False)
-
-                        logging_embed = SersiEmbed(
-                            title=f"{guild.get_member(record.member).display_name} Now Unavailable.",
-                            description=f"{guild.get_member(record.member).mention} has been set to be unavailable due to inactivity.",
-                        )
-
-                        await guild.get_channel(self.config.channels.logging).send(
-                            embed=logging_embed
-                        )
-
-                        await guild.get_channel(self.config.channels.mod_logs).send(
-                            embed=logging_embed
-                        )
-
+                if check_staff_availability(self.bot, mod.member):
+                    if not is_available(mod):
+                        await set_availability_status(member, True)
                 else:
-                    if await check_if_has_availability_role(
-                        self.bot, record, record.member
-                    ):
-                        await set_availability_status(self.bot, record, False)
+                    if is_available(mod):
+                        await set_availability_status(member, False)
 
-                        logging_embed = SersiEmbed(
-                            title=f"{guild.get_member(record.member).display_name} Now Unavailable.",
-                            description=f"{guild.get_member(record.member).mention} has been set to be unavailable due to availability window.",
-                        )
+    @commands.Cog.listener()
+    async def on_role_add(self, member: nextcord.Member, role: nextcord.Role):
+        if role.id != self.config.roles.available_mod:
+            return
 
-                        await guild.get_channel(self.config.channels.logging).send(
-                            embed=logging_embed
-                        )
+        logging_embed = SersiEmbed(
+            title=f"{member.display_name} Now Available.",
+            description=f"{member.mention} has been set to be available.",
+        )
 
-                        await guild.get_channel(self.config.channels.mod_logs).send(
-                            embed=logging_embed
-                        )
+        guild = self.bot.get_guild(self.config.guilds.main)
+
+        await guild.get_channel(self.config.channels.logging).send(embed=logging_embed)
+
+        await guild.get_channel(self.config.channels.mod_logs).send(embed=logging_embed)
+
+    @commands.Cog.listener()
+    async def on_role_remove(self, member: nextcord.Member, role: nextcord.Role):
+        if role.id != self.config.roles.available_mod:
+            return
+
+        logging_embed = SersiEmbed(
+            title=f"{member.display_name} Now Unavailable.",
+            description=f"{member.mention} has been set to be unavailable.",
+        )
+
+        guild = self.bot.get_guild(self.config.guilds.main)
+
+        await guild.get_channel(self.config.channels.logging).send(embed=logging_embed)
+
+        await guild.get_channel(self.config.channels.mod_logs).send(embed=logging_embed)
 
 
 def setup(bot: commands.Bot, **kwargs):
