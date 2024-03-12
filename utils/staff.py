@@ -690,3 +690,10 @@ def available_mods(guild: nextcord.Guild):
                 available_mods.append(member)
 
     return available_mods
+
+
+def get_staff_record(staff_id: int):
+    """Gets a staff member's record."""
+    with db_session() as session:
+        staff_member = session.query(StaffMembers).filter_by(member=staff_id).first()
+        return staff_member

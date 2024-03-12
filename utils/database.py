@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any
 import random
 import re
@@ -245,8 +245,12 @@ class ScrubbedCase(_Base):
 class RelatedCase(_Base):
     __tablename__ = "related_cases"
 
-    case_id = Column(String, ForeignKey("cases.id", ondelete="CASCADE"), primary_key=True)
-    related_id = Column(String, ForeignKey("cases.id", ondelete="CASCADE"), primary_key=True)
+    case_id = Column(
+        String, ForeignKey("cases.id", ondelete="CASCADE"), primary_key=True
+    )
+    related_id = Column(
+        String, ForeignKey("cases.id", ondelete="CASCADE"), primary_key=True
+    )
 
 
 class PeerReview(_Base):
@@ -510,6 +514,43 @@ class Goodword(_Base):
     slur = Column(String, ForeignKey("slurs.slur", ondelete="CASCADE"))
     added = Column(DateTime, default=datetime.utcnow)
     added_by = Column(Integer, nullable=False)
+
+
+class Slowmode(_Base):
+    """
+    Represents a slowmode configuration for a channel.
+
+    Attributes:
+        channel (int): The ID of the channel.
+        slowmode (int): The slowmode duration in seconds
+        added (datetime): The datetime when the slowmode was added.
+        added_by (int): The ID of the user who added the slowmode.
+        added_reason (str): The reason for adding the slowmode.
+        origin (str): Whether the slowmode was added by a Moderator or Community Engagement Member.
+        scheduled_removal (datetime): The datetime when the slowmode is scheduled to be removed.
+        modified (datetime): The datetime when the slowmode was last modified.
+    """
+
+    __tablename__ = "slowmode"
+    channel = Column(Integer, nullable=False, primary_key=True)
+    slowmode = Column(Integer, nullable=False)  # in seconds, max discord limit 21600
+    added = Column(DateTime, default=datetime.utcnow)
+    added_by = Column(Integer, nullable=False)
+    added_reason = Column(String, nullable=False)
+    origin = Column(String, ForeignKey("staff_branches.branch"), nullable=False)
+    scheduled_removal = Column(DateTime)
+
+    modified = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def __getattr__(self, __name: str) -> Any:
+        if __name == "list_entry_header":
+            return f"<#{self.channel}>"
+        raise AttributeError(
+            f"'{self.__class__.__name__}' object has no attribute '{__name}'"
+        )
+
+    def __repr__(self):
+        return f"{timedelta(seconds=self.slowmode)}"
 
 
 ### Staff Records ###
