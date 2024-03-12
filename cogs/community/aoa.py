@@ -1,11 +1,13 @@
 import random
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 
 import nextcord
 import pytz
 from nextcord.ext import commands
 from nextcord.ui import Button, View, Modal
-from utils.database import db_session, BlacklistCase
+from utils.cases import get_last_warning, create_case_embed, fetch_cases_by_partial_id
+from utils.database import db_session, BlacklistCase, WarningCase, RelatedCase
+from utils.dialog import confirm, ButtonPreset
 from utils.sersi_embed import SersiEmbed
 from utils.config import Configuration
 from utils.perms import (
@@ -270,6 +272,11 @@ class AdultAccess(commands.Cog):
             min_length=10,
             max_length=1024,
         ),
+        related_warning: str = nextcord.SlashOption(
+            name="related_warning",
+            description="The ID of the warning case related to revocation of access",
+            required=False,
+        ),
     ):
         if not await permcheck(interaction, is_mod):
             return
@@ -285,14 +292,49 @@ class AdultAccess(commands.Cog):
 
         if not blacklist_check(member, "Adult Only Access"):
             with db_session() as session:
-                session.add(
-                    BlacklistCase(
-                        offender=member.id,
-                        moderator=interaction.user.id,
-                        blacklist="Adult Only Access",
-                        reason=reason,
-                    )
+                case = BlacklistCase(
+                    offender=member.id,
+                    moderator=interaction.user.id,
+                    blacklist="Adult Only Access",
+                    reason=reason,
                 )
+                session.add(case)
+
+                if related_warning is not None:
+                    if (
+                        not session.query(WarningCase)
+                        .filter_by(id=related_warning)
+                        .first()
+                    ):
+                        await interaction.followup.send(
+                            f"{self.config.emotes.fail} {related_warning} is not a valid warning case."
+                        )
+                        return
+                elif last_warning := get_last_warning(member.id):
+                    # If the last warning was issued within the last 15 minutes, ask user if the warning is related
+                    if last_warning.created > datetime.utcnow() - timedelta(minutes=15):
+                        if await confirm(
+                            interaction,
+                            content=f"Recent warning found for {member.mention}. Is it related?",
+                            embed=create_case_embed(
+                                last_warning,
+                                interaction=interaction,
+                                config=self.config,
+                            ),
+                            true_button=ButtonPreset.YES_PRIMARY,
+                            false_button=ButtonPreset.NO_NEUTRAL,
+                            ephemeral=True,
+                        ):
+                            related_warning = last_warning.id
+
+                if related_warning is not None:
+                    session.add(
+                        RelatedCase(
+                            case_id=related_warning,
+                            related_id=case.id,
+                        )
+                    )
+
                 session.commit()
 
             await interaction.followup.send(
@@ -498,6 +540,21 @@ class AdultAccess(commands.Cog):
             await interaction.followup.send(
                 f"{self.config.emotes.fail} User {user.mention} ({user.id}) is {age} and is not allowed access."
             )
+
+    @adult_revoke.on_autocomplete("related_warning")
+    async def search_warnings(
+        self,
+        interaction: nextcord.Interaction,
+        related_warning: str,
+        offender: nextcord.Member,
+    ):
+        if not is_mod(interaction.user):
+            await interaction.response.send_autocomplete([])
+
+        warnings: list[str] = fetch_cases_by_partial_id(
+            related_warning, type="Warning", offender=offender.id
+        )
+        await interaction.response.send_autocomplete(warnings)
 
     @commands.Cog.listener()
     async def on_interaction(self, interaction: nextcord.Interaction):

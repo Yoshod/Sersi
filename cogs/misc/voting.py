@@ -7,6 +7,7 @@ from sqlalchemy import func
 from utils.base import get_message_from_url
 from utils.config import Configuration, VoteType
 from utils.database import db_session, VoteDetails, VoteRecord
+from utils.dialog import modal_dialog, TextField
 from utils.perms import (
     permcheck,
     is_mod,
@@ -74,34 +75,6 @@ class Voting(commands.Cog):
 
     def cog_unload(self):
         self.process_votes.cancel()
-
-    async def record_vote(self, vote: VoteRecord, interaction: nextcord.Interaction):
-        with db_session() as session:
-            session.merge(vote)
-            session.commit()
-
-        new_embed = interaction.message.embeds[0]
-        # if the user has voted before, edit previous vote
-        for index, field in enumerate(new_embed.fields):
-            if (
-                field.name.startswith("Voted")
-                and str(interaction.user.id) in field.value
-            ):
-                new_embed.set_field_at(
-                    index,
-                    name=f"Voted {vote.vote.capitalize()}",
-                    value=f"<@{interaction.user.id}>\n*{vote.comment or '`No comment provided`'}*",
-                    inline=False,
-                )
-                break
-        else:  # oh no, found usage for this cursed feature
-            new_embed.add_field(
-                name=f"Voted {vote.vote.capitalize()}",
-                value=f"<@{interaction.user.id}>\n*{vote.comment or '`No comment provided`'}*",
-                inline=False,
-            )
-
-        await interaction.message.edit(embed=new_embed)
 
     @tasks.loop(minutes=1)
     async def process_votes(self):
@@ -228,49 +201,53 @@ class Voting(commands.Cog):
                 )
                 return
 
-            await interaction.response.send_modal(
-                BallotModal(
-                    vote_type=self.config.voting[vote_details.vote_type],
-                    details=vote_details,
-                    vote=vote,
-                    on_vote=self.record_vote,
-                )
+            response = await modal_dialog(
+                interaction,
+                f"{vote_type.name}: {vote}",
+                comment=TextField(
+                    "Comment",
+                    required=vote_type.comment_required,
+                    placeholder="please provide a comment for your vote",
+                ),
             )
 
+            if response is None:
+                return
 
-class BallotModal(nextcord.ui.Modal):
-    def __init__(
-        self, vote_type: VoteType, details: VoteDetails, vote: str, on_vote: callable
-    ):
-        super().__init__(f"{vote_type.name}: {vote}")
-        self.vote_type = vote_type
-        self.details = details
-        self.vote = vote
-        self.on_vote = on_vote
-
-        self.comment = nextcord.ui.TextInput(
-            label="Comment",
-            min_length=8 if vote_type.comment_required else 0,
-            max_length=1024,
-            required=vote_type.comment_required,
-            placeholder="please provide a comment for your vote",
-        )
-        self.add_item(self.comment)
-
-    async def callback(self, interaction):
-        await self.on_vote(
-            VoteRecord(
+            vote_record = VoteRecord(
                 voter=interaction.user.id,
-                vote_id=self.details.vote_id,
-                vote=self.vote,
-                comment=self.comment.value,
-            ),
-            interaction,
-        )
+                vote_id=vote_id,
+                vote=vote,
+                comment=response["comment"],
+            )
 
-        await interaction.response.send_message(
-            "Your vote has been recorded", ephemeral=True
-        )
+            session.merge(vote_record)
+            session.commit()
+        
+        await interaction.followup.send("Your vote has been recorded", ephemeral=True)
+
+        new_embed = interaction.message.embeds[0]
+        # if the user has voted before, edit previous vote
+        for index, field in enumerate(new_embed.fields):
+            if (
+                field.name.startswith("Voted")
+                and str(interaction.user.id) in field.value
+            ):
+                new_embed.set_field_at(
+                    index,
+                    name=f"Voted {vote}",
+                    value=f"<@{interaction.user.id}>\n*{response['comment'] or '`No comment provided`'}*",
+                    inline=False,
+                )
+                break
+        else:  # oh no, found usage for this cursed feature
+            new_embed.add_field(
+                name=f"Voted {vote}",
+                value=f"<@{interaction.user.id}>\n*{response['comment'] or '`No comment provided`'}*",
+                inline=False,
+            )
+
+        await interaction.message.edit(embed=new_embed)
 
 
 def setup(bot: commands.Bot, **kwargs):

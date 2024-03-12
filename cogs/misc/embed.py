@@ -73,15 +73,21 @@ class SendButton(nextcord.ui.Button):
             view=None,
         )
 
-        await interaction.send("Embed sent!", ephemeral=True)
-
         if self.autopost_data:
+            await interaction.send(
+                f"Embed sent!\nThe autopost ID for this autopost is: {autopost_id}",
+                ephemeral=True,
+            )
             with db_session() as session:
                 autopost = (
                     session.query(AutopostDB).filter_by(autopost_id=autopost_id).first()
                 )
                 autopost.last_post_id = message.id
                 session.commit()
+
+            return
+
+        await interaction.send("Embed sent!", ephemeral=True)
 
 
 class CancelButton(nextcord.ui.Button):

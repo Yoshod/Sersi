@@ -68,7 +68,7 @@ def get_suggestion_by_id(interaction: nextcord.Interaction, suggestion_id: str):
         return session.query(SubmittedSuggestion).filter_by(id=suggestion_id).first()
 
 
-async def update_embed_votes(original_embed, suggestion_id, session):
+async def update_embed_votes(original_embed: nextcord.Embed, suggestion_id, session):
     """
     Updates the fields of an embed with the number of yes votes, no votes, and net approval for a given suggestion ID.
 
@@ -88,22 +88,26 @@ async def update_embed_votes(original_embed, suggestion_id, session):
     )
     net_approval = yes_votes - no_votes
 
+    has_media_url = False
+    if original_embed.fields[0].name == "Media URL":
+        has_media_url = True
+
     original_embed.set_field_at(
-        index=0,
+        index=0 if not has_media_url else 1,
         name="Yes Votes",
         value=f"`{yes_votes}`",
         inline=False,
     )
 
     original_embed.set_field_at(
-        index=1,
+        index=1 if not has_media_url else 2,
         name="No Votes",
         value=f"`{no_votes}`",
         inline=False,
     )
 
     original_embed.set_field_at(
-        index=2,
+        index=2 if not has_media_url else 3,
         name="Net Approval",
         value=f"`{'+' if net_approval > 0 else ''}{net_approval}`",
         inline=False,

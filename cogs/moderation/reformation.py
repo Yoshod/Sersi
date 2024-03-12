@@ -11,11 +11,12 @@ from utils.database import (
     VoteDetails,
     VoteRecord,
     BlacklistCase,
+    RelatedCase,
 )
+from utils.dialog import confirm, ButtonPreset
 from utils.offences import fetch_offences_by_partial_name
 from utils.perms import permcheck, is_mod, is_mod_lead, blacklist_check
 from utils.sersi_embed import SersiEmbed
-from utils.views import ConfirmView
 from utils.voting import VoteView, vote_planned_end
 
 
@@ -72,145 +73,134 @@ class Reformation(commands.Cog):
 
         await interaction.response.defer()
 
-        @ConfirmView.query(
+        if not await confirm(
+            interaction,
             title="Reformation Needed",
-            prompt="Following member will be sent to reformation:",
-            embed_args={
+            description="Following member will be sent to reformation:",
+            embed_fields={
                 "User": member.mention,
                 "Offence": offence,
                 "Details": details,
             },
+            true_button=ButtonPreset.PROCEED,
+        ):
+            return
+
+        # ------------------------------- ROLES
+        # give reformation role
+        reason = f"{offence} - {details}"
+
+        await member.add_roles(reformation_role, reason=reason)
+
+        # remove civil engineering initiate
+        await member.remove_roles(
+            *parse_roles(
+                interaction.guild,
+                self.config.roles.civil_engineering_initiate,
+            ),
+            reason=reason,
         )
-        async def execute(*args, **kwargs):
-            # ------------------------------- ROLES
-            # give reformation role
-            reason = f"{offence} - {details}"
 
-            await member.add_roles(reformation_role, reason=reason)
+        # remove opt-ins
+        await member.remove_roles(
+            *parse_roles(interaction.guild, *self.config.opt_in_roles.values()),
+            reason=reason,
+        )
 
-            # remove civil engineering initiate
-            await member.remove_roles(
-                *parse_roles(
-                    interaction.guild,
-                    self.config.roles.civil_engineering_initiate,
-                ),
-                reason=reason,
-            )
+        # ------------------------------- CREATING THE CASE CHANNEL
+        # get case number
 
-            # remove opt-ins
-            await member.remove_roles(
-                *parse_roles(interaction.guild, *self.config.opt_in_roles.values()),
-                reason=reason,
-            )
+        case_num = get_reformation_next_case_number()
 
-            # ------------------------------- CREATING THE CASE CHANNEL
-            # get case number
+        case_name = f"reformation-case-{str(case_num).zfill(4)}"
+        overwrites = {
+            interaction.guild.default_role: nextcord.PermissionOverwrite(
+                read_messages=False
+            ),
+            interaction.guild.me: nextcord.PermissionOverwrite(read_messages=True),
+            interaction.guild.get_role(
+                self.config.permission_roles.reformist
+            ): nextcord.PermissionOverwrite(read_messages=True),
+            interaction.guild.get_role(
+                self.config.permission_roles.moderator
+            ): nextcord.PermissionOverwrite(read_messages=True),
+            member: nextcord.PermissionOverwrite(
+                read_messages=True,
+                create_public_threads=False,
+                create_private_threads=False,
+                external_stickers=False,
+                embed_links=False,
+                attach_files=False,
+                use_external_emojis=False,
+            ),
+        }
+        category = nextcord.utils.get(
+            interaction.guild.categories, name="REFORMATION ROOMS"
+        )
 
-            case_num = get_reformation_next_case_number()
+        case_channel = await interaction.guild.create_text_channel(
+            case_name, overwrites=overwrites, category=category
+        )
 
-            case_name = f"reformation-case-{str(case_num).zfill(4)}"
-            overwrites = {
-                interaction.guild.default_role: nextcord.PermissionOverwrite(
-                    read_messages=False
-                ),
-                interaction.guild.me: nextcord.PermissionOverwrite(read_messages=True),
-                interaction.guild.get_role(
-                    self.config.permission_roles.reformist
-                ): nextcord.PermissionOverwrite(read_messages=True),
-                interaction.guild.get_role(
-                    self.config.permission_roles.moderator
-                ): nextcord.PermissionOverwrite(read_messages=True),
-                member: nextcord.PermissionOverwrite(
-                    read_messages=True,
-                    create_public_threads=False,
-                    create_private_threads=False,
-                    external_stickers=False,
-                    embed_links=False,
-                    attach_files=False,
-                    use_external_emojis=False,
-                ),
-            }
-            category = nextcord.utils.get(
-                interaction.guild.categories, name="REFORMATION ROOMS"
-            )
+        # ------------------------------- INSERT CASE INTO DATABASE
 
-            case_channel = await interaction.guild.create_text_channel(
-                case_name, overwrites=overwrites, category=category
-            )
-
-            # ------------------------------- INSERT CASE INTO DATABASE
-
-            with db_session() as session:
-                session.add(
-                    ReformationCase(
-                        case_number=case_num,
-                        offender=member.id,
-                        moderator=interaction.user.id,
-                        offence=offence,
-                        details=details,
-                        cell_channel=case_channel.id,
-                        state="open",
-                    )
+        with db_session() as session:
+            session.add(
+                ReformationCase(
+                    case_number=case_num,
+                    offender=member.id,
+                    moderator=interaction.user.id,
+                    offence=offence,
+                    details=details,
+                    cell_channel=case_channel.id,
+                    state="open",
                 )
-                session.commit()
-
-            # ------------------------------- LOGGING
-
-            # Giving a welcome to the person sent to reformation
-            welcome_embed = SersiEmbed(
-                title="Welcome to Reformation",
-                description=f"Hello {member.mention}, you have been sent to reformation by {interaction.user.mention}. "
-                f"The reason given for this is `{reason}`. \n\nFor more information on reformation "
-                f"check out <#{self.config.channels.reformation_info}> or talk to a <@&"
-                f"{self.config.permission_roles.reformist}>.",
-                color=nextcord.Color.from_rgb(237, 91, 6),
             )
+            session.commit()
 
-            await case_channel.send(embed=welcome_embed)
+        # Giving a welcome to the person sent to reformation
+        welcome_embed = SersiEmbed(
+            title="Welcome to Reformation",
+            description=f"Hello {member.mention}, you have been sent to reformation by {interaction.user.mention}. "
+            f"The reason given for this is `{reason}`. \n\nFor more information on reformation "
+            f"check out <#{self.config.channels.reformation_info}> or talk to a <@&"
+            f"{self.config.permission_roles.reformist}>.",
+            color=nextcord.Color.from_rgb(237, 91, 6),
+        )
+        await case_channel.send(embed=welcome_embed)
 
-            embed_fields = {
-                "Offence:": offence,
-                "Details:": details,
-            }
+        # ------------------------------- LOGGING
 
-            try:
-                message = await interaction.original_message()
-            except nextcord.HTTPException | nextcord.ClientException:
-                message = None
+        embed = SersiEmbed(
+            title="User Has Been Sent to Reformation",
+            description=f"Moderator {interaction.user.mention} ({interaction.user.id}) has sent user {member.mention}"
+            f" ({member.id}) to reformation.",
+            fields={
+            "Offence:": offence,
+            "Details:": details,
+            },
+            color=nextcord.Color.from_rgb(237, 91, 6),
+        )
 
-            if message is not None:
-                embed_fields["Context:"] = message.jump_url
+        message = await interaction.channel.send(embed=embed)
 
-            embed = SersiEmbed(
-                title="User Has Been Sent to Reformation",
-                description=f"Moderator {interaction.user.mention} ({interaction.user.id}) has sent user {member.mention}"
-                f" ({member.id}) to reformation.",
-                fields=embed_fields,
-                color=nextcord.Color.from_rgb(237, 91, 6),
-            )
+        embed.add_field(name="Context:", value=message.jump_url, inline=False)
+       
+        channel = interaction.guild.get_channel(self.config.channels.logging)
+        await channel.send(embed=embed)
 
-            channel = interaction.guild.get_channel(self.config.channels.logging)
-            await channel.send(embed=embed)
+        channel = interaction.guild.get_channel(self.config.channels.mod_logs)
+        await channel.send(embed=embed)
 
-            channel = interaction.guild.get_channel(self.config.channels.mod_logs)
-            await channel.send(embed=embed)
+        channel = interaction.guild.get_channel(
+            self.config.channels.teachers_lounge
+        )
+        await channel.send(embed=embed)
 
-            channel = interaction.guild.get_channel(
-                self.config.channels.teachers_lounge
-            )
-            await channel.send(embed=embed)
-
-            channel = interaction.guild.get_channel(
-                self.config.channels.reform_public_log
-            )
-            await channel.send(embed=embed)
-
-            if embed_fields.get("Context:") is not None:
-                embed.remove_field(-1)
-
-            return embed
-
-        await execute(self.bot, self.config, interaction)
+        channel = interaction.guild.get_channel(
+            self.config.channels.reform_public_log
+        )
+        await channel.send(embed=embed)
 
     @reformation_needed.on_autocomplete("offence")
     async def offence_by_name(self, interaction: nextcord.Interaction, string: str):
@@ -405,80 +395,81 @@ class Reformation(commands.Cog):
             await interaction.send("Member is not in reformation.")
             return
 
-        await interaction.response.defer()
+        await interaction.response.defer(ephemeral=True)
 
-        @ConfirmView.query(
+        if not await confirm(
+            interaction,
             title="Release Member from reformation",
-            prompt="Following member will be released from reformation:",
-            embed_args={
+            description="Following member will be released from reformation:",
+            embed_fields={
                 "User": member.mention,
                 "Reason": reason,
             },
+            true_button=ButtonPreset.PROCEED,
+        ):
+            return
+
+        # remove reformation role
+        await member.remove_roles(
+            *parse_roles(interaction.guild, self.config.roles.reformation),
+            reason=reason,
         )
-        async def execute(*args, **kwargs):
-            # remove reformation role
-            await member.remove_roles(
-                *parse_roles(interaction.guild, self.config.roles.reformation),
-                reason=reason,
+
+        # add civil engineering initiate role
+        await member.add_roles(
+            *parse_roles(
+                interaction.guild, self.config.roles.civil_engineering_initiate
+            ),
+            reason=reason,
+        )
+
+        # close case
+        with db_session(interaction.user) as session:
+            case: ReformationCase = (
+                session.query(ReformationCase)
+                .filter_by(offender=member.id, state="open")
+                .first()
             )
+            case.state = "released"
+            session.commit()
 
-            # add civil engineering initiate role
-            await member.add_roles(
-                *parse_roles(
-                    interaction.guild, self.config.roles.civil_engineering_initiate
-                ),
-                reason=reason,
-            )
+            cell_channel = interaction.guild.get_channel(case.cell_channel)
 
-            # close case
-            with db_session(interaction.user) as session:
-                case: ReformationCase = (
-                    session.query(ReformationCase)
-                    .filter_by(offender=member.id, state="open")
-                    .first()
-                )
-                case.state = "released"
-                session.commit()
+        # logging
+        embed = SersiEmbed(
+            title="User Has Been Released from Reformation",
+            description=f"Lead Moderator {interaction.user.mention} ({interaction.user.id}) has released user {member.mention}"
+            f" ({member.id}) from reformation.",
+            fields={
+                "Reason": reason,
+            },
+            color=nextcord.Color.from_rgb(237, 91, 6),
+        )
 
-                cell_channel = interaction.guild.get_channel(case.cell_channel)
+        channel = interaction.guild.get_channel(self.config.channels.logging)
+        await channel.send(embed=embed)
 
-            # logging
-            embed = SersiEmbed(
-                title="User Has Been Released from Reformation",
-                description=f"Lead Moderator {interaction.user.mention} ({interaction.user.id}) has released user {member.mention}"
-                f" ({member.id}) from reformation.",
-                fields={
-                    "Reason": reason,
-                },
-                color=nextcord.Color.from_rgb(237, 91, 6),
-            )
+        channel = interaction.guild.get_channel(self.config.channels.mod_logs)
+        await channel.send(embed=embed)
 
-            channel = interaction.guild.get_channel(self.config.channels.logging)
+        channel = interaction.guild.get_channel(
+            self.config.channels.reform_public_log
+        )
+        await channel.send(embed=embed)
+
+        # transcript
+        channel = interaction.guild.get_channel(
+            self.config.channels.teachers_lounge
+        )
+
+        transcript = await make_transcript(cell_channel, channel, embed)
+        if transcript is None:
             await channel.send(embed=embed)
+            await channel.send(f"{self.sersifail} Failed to Generate Transcript!")
 
-            channel = interaction.guild.get_channel(self.config.channels.mod_logs)
-            await channel.send(embed=embed)
+        await cell_channel.delete()
 
-            channel = interaction.guild.get_channel(
-                self.config.channels.reform_public_log
-            )
-            await channel.send(embed=embed)
-
-            # transcript
-            channel = interaction.guild.get_channel(
-                self.config.channels.teachers_lounge
-            )
-
-            transcript = await make_transcript(cell_channel, channel, embed)
-            if transcript is None:
-                await channel.send(embed=embed)
-                await channel.send(f"{self.sersifail} Failed to Generate Transcript!")
-
-            await cell_channel.delete()
-
-            return embed
-
-        await execute(self.bot, self.config, interaction)
+        await interaction.followup.send(embed=embed, ephemeral=True)
 
     @reformation.subcommand(
         name="delete_cell",
@@ -584,7 +575,7 @@ class Reformation(commands.Cog):
             ephemeral=True,
         )
 
-        #logging
+        # logging
         embed = SersiEmbed(
             title="User Removed from Reformist Role",
             description=f"User {member.mention} ({member.id}) has been removed from the reformist role by "
@@ -615,6 +606,21 @@ class Reformation(commands.Cog):
                         if case is None:
                             return
                         case.state = "failed"
+
+                        ban_case = (
+                            session.query(BanCase)
+                            .filter_by(offender=member.id)
+                            .order_by(BanCase.created.desc())
+                            .first()
+                        )
+                        if ban_case is not None:
+                            session.add(
+                                RelatedCase(
+                                    case_id=case.id,
+                                    related_case=ban_case.id,
+                                )
+                            )
+
                         session.commit()
 
                         cell_channel = member.guild.get_channel(case.cell_channel)
@@ -670,13 +676,19 @@ class Reformation(commands.Cog):
                 case.state = "failed"
 
                 session.add(
-                    BanCase(
+                    ban_case := BanCase(
                         offender=member.id,
                         moderator=member.guild.me.id,
                         offence=case.offence,
                         details=case.details,
                         active=True,
                         ban_type="reformation leave",
+                    )
+                )
+                session.add(
+                    RelatedCase(
+                        case_id=case.id,
+                        related_case=ban_case.id,
                     )
                 )
                 session.commit()
@@ -728,13 +740,19 @@ class Reformation(commands.Cog):
             )
 
             session.add(
-                BanCase(
+                ban_case := BanCase(
                     offender=member.id,
                     moderator=details.started_by,
                     offence=case.offence,
                     details=case.details,
                     active=True,
                     ban_type="reformation failed",
+                )
+            )
+            session.add(
+                RelatedCase(
+                    case_id=case.id,
+                    related_case=ban_case.id,
                 )
             )
             session.commit()

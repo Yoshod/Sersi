@@ -242,6 +242,13 @@ class ScrubbedCase(_Base):
     timestamp = Column(DateTime, default=datetime.utcnow)
 
 
+class RelatedCase(_Base):
+    __tablename__ = "related_cases"
+
+    case_id = Column(String, ForeignKey("cases.id", ondelete="CASCADE"), primary_key=True)
+    related_id = Column(String, ForeignKey("cases.id", ondelete="CASCADE"), primary_key=True)
+
+
 class PeerReview(_Base):
     __tablename__ = "peer_reviews"
 

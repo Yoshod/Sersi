@@ -1,12 +1,13 @@
-import datetime
+from datetime import datetime, timedelta
 
 import nextcord
 from nextcord.ext import commands
 
 from utils.alerts import add_response_time
-from utils.cases import create_case_embed
+from utils.cases import create_case_embed, fetch_cases_by_partial_id, get_last_warning
 from utils.config import Configuration
-from utils.database import db_session, TimeoutCase
+from utils.database import db_session, TimeoutCase, WarningCase, RelatedCase
+from utils.dialog import confirm, ButtonPreset
 from utils.objection import AlertView
 from utils.offences import fetch_offences_by_partial_name, offence_validity_check
 from utils.perms import (
@@ -124,6 +125,20 @@ class TimeoutSystem(commands.Cog):
                 "Weeks": "w",
             },
         ),
+        issue_warning: bool = nextcord.SlashOption(
+            name="issue_warning",
+            description="Whether to also issue a warning to the user, ignored if a related warning is provided.",
+            choices={
+                "Yes": True,
+                "No": False,
+            },
+            default=True,
+        ),
+        related_warning: str = nextcord.SlashOption(
+            name="related_warning",
+            description="The ID of the warning case related to this timeout",
+            required=False,
+        ),
     ):
         if not await permcheck(interaction, is_mod):
             return
@@ -131,7 +146,7 @@ class TimeoutSystem(commands.Cog):
         if (
             offender.communication_disabled_until is not None
             and offender.communication_disabled_until
-            > datetime.datetime.now(offender.communication_disabled_until.tzinfo)
+            > datetime.now(offender.communication_disabled_until.tzinfo)
         ):
             await interaction.response.send_message(
                 f"{self.config.emotes.fail} {offender.mention} is already timed out.",
@@ -139,9 +154,9 @@ class TimeoutSystem(commands.Cog):
             )
             return
 
-        await interaction.response.defer(ephemeral=False)
+        await interaction.response.defer(ephemeral=True)
 
-        planned_end: datetime.timedelta = convert_to_timedelta(timespan, duration)
+        planned_end: timedelta = convert_to_timedelta(timespan, duration)
 
         if not planned_end:
             interaction.followup.send(
@@ -187,11 +202,51 @@ class TimeoutSystem(commands.Cog):
             offence=offence,
             details=detail,
             duration=duration,
-            planned_end=datetime.datetime.utcnow() + planned_end,
+            planned_end=datetime.utcnow() + planned_end,
         )
 
         with db_session(interaction.user) as session:
+            if related_warning is not None:
+                if not session.query(WarningCase).filter_by(id=related_warning).first():
+                    await interaction.followup.send(
+                        f"{self.config.emotes.fail} {related_warning} is not a valid warning case."
+                    )
+                    return
+                issue_warning = False
+            elif last_warning := get_last_warning(offender.id):
+                # If the last warning was issued within the last 15 minutes, ask user if the warning is related
+                if last_warning.created > datetime.utcnow() - timedelta(minutes=15):
+                    if await confirm(
+                        interaction,
+                        content=f"Recent warning found for {offender.mention}. Is it related?",
+                        embed=create_case_embed(
+                            last_warning, interaction=interaction, config=self.config
+                        ),
+                        true_button=ButtonPreset.YES_PRIMARY,
+                        false_button=ButtonPreset.NO_NEUTRAL,
+                        ephemeral=True,
+                    ):
+                        related_warning = last_warning.id
+                        issue_warning = False
+
+            if issue_warning:
+                warn_case = WarningCase(
+                    offender=offender.id,
+                    moderator=interaction.user.id,
+                    offence=offence,
+                    details=detail,
+                )
+                related_warning = warn_case.id
+                session.add(warn_case)
+
             session.add(case)
+            if related_warning is not None:
+                session.add(
+                    RelatedCase(
+                        case_id=case.id,
+                        related_id=related_warning,
+                    )
+                )
             session.commit()
 
             case = session.query(TimeoutCase).filter_by(id=case.id).first()
@@ -231,7 +286,7 @@ class TimeoutSystem(commands.Cog):
             planned_end, reason=f"[{offence}: {detail}] - {interaction.user}"
         )
 
-        result: nextcord.WebhookMessage = await interaction.followup.send(
+        result: nextcord.WebhookMessage = await interaction.channel.send(
             embed=SersiEmbed(
                 title="Timeout Result:",
                 fields={
@@ -244,8 +299,9 @@ class TimeoutSystem(commands.Cog):
                     else self.config.emotes.success,
                 },
                 footer="Sersi Timeout",
+                author=interaction.user,
+                thumbnail_url=offender.avatar.url,
             ),
-            wait=True,
         )
 
         reviewer_role, reviewed_role, review_embed, review_channel = create_alert(
@@ -290,7 +346,7 @@ class TimeoutSystem(commands.Cog):
                     f"{self.config.emotes.fail} {case_id} is not a valid timeout case."
                 )
 
-            active = case.planned_end > datetime.datetime.utcnow()
+            active = case.planned_end > datetime.utcnow()
             if case.actual_end is not None:
                 active = False
 
@@ -300,7 +356,7 @@ class TimeoutSystem(commands.Cog):
                 )
                 return
 
-            case.actual_end = datetime.datetime.utcnow()
+            case.actual_end = datetime.utcnow()
             case.removal_reason = reason
             case.removed_by = interaction.user.id
             session.commit()
@@ -350,6 +406,21 @@ class TimeoutSystem(commands.Cog):
 
         offences: list[str] = fetch_offences_by_partial_name(offence)
         await interaction.response.send_autocomplete(sorted(offences))
+
+    @add.on_autocomplete("related_warning")
+    async def search_warnings(
+        self,
+        interaction: nextcord.Interaction,
+        related_warning: str,
+        offender: nextcord.Member,
+    ):
+        if not is_mod(interaction.user):
+            await interaction.response.send_autocomplete([])
+
+        warnings: list[str] = fetch_cases_by_partial_id(
+            related_warning, type="Warning", offender=offender.id
+        )
+        await interaction.response.send_autocomplete(warnings)
 
 
 def setup(bot: commands.Bot, **kwargs):
