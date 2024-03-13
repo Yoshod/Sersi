@@ -384,8 +384,8 @@ def get_moderation_embed(staff_id: int, interaction: nextcord.Interaction):
         )
 
         for record in availability_records:
-            start = datetime(3000, 1, 1, (record.start // 60) % 24, record.start % 1440)
-            end = datetime(3000, 1, 1, (record.end // 60) % 24, record.end % 1440)
+            start = datetime(3000, 1, 1, (record.start // 60) % 24, record.start % 60)
+            end = datetime(3000, 1, 1, (record.end // 60) % 24, record.end % 60)
             embed.description += f"{CONFIG.emotes.blank}**{record.window_identifier} Availability:** {format_dt(start, 't')} - {format_dt(end, 't')}\n"
 
         return embed
@@ -655,10 +655,13 @@ def check_staff_availability(staff_member: int | nextcord.Member):
             .first()
         )
 
+        if moderator_availability is None:
+            return False
+
         return moderator_availability.available
 
 
-async def is_available(member: nextcord.Member):
+def is_available(member: nextcord.Member):
     """Checks if a staff member has the availability role."""
     return is_allowed(member, [CONFIG.roles.available_mod])
 

@@ -581,7 +581,11 @@ class PersonalSettings(JSONWizard):
 
     def __setattr__(self, __name: str, __value: Any) -> None:
         super().__setattr__(__name, __value)
-        if __name != "member_record" and self.member_record is not None:
+        if (
+            __name != "member_record"
+            and hasattr(self, "member_record")
+            and self.member_record is not None
+        ):
             self.member_record.personal_settings = self.to_json()
 
 
@@ -605,10 +609,11 @@ class StaffMembers(_Base):
         settings = PersonalSettings.from_json(self.personal_settings)
         settings.member_record = self
         return settings
-    
+
     @settings.setter
     def settings(self, value: PersonalSettings) -> None:
         self.personal_settings = value.to_json()
+
 
 class ModerationRecords(_Base):
     """

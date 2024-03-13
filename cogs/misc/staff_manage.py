@@ -59,7 +59,6 @@ from utils.staff import (
     check_staff_availability,
     is_available,
 )
-from utils.review import determine_reviewer
 
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -1328,7 +1327,7 @@ class Staff(commands.Cog):
         timezone: int = SlashOption(
             required=False,
             description="Your timezone offset in hours (e.g. UTC+1, UTC-5, etc.)",
-            choices={f"UTC{offset}": offset for offset in range(-12, 13)},
+            choices={f"UTC{offset:+d}": offset for offset in range(-12, 13)},
         ),
         availability_on_message: int = SlashOption(
             required=False,
@@ -1434,10 +1433,11 @@ class Staff(commands.Cog):
                         window_identifier=day,
                         window_type="Timeslot",
                         priority=0,
-                        start_time=base_offset + (start_time // 100) * 60 + start_time % 100,
-                        end_time=base_offset + (end_time // 100) * 60 + end_time % 100,
+                        start=base_offset + (start_time // 100) * 60 + start_time % 100,
+                        end=base_offset + (end_time // 100) * 60 + end_time % 100,
                     )
                 )
+            session.commit()
 
         await interaction.followup.send(
             f"{self.config.emotes.success} Availability has been set."
@@ -1784,7 +1784,7 @@ class Staff(commands.Cog):
             )
             session.commit()
 
-        if not is_available(staff):
+        if not is_available(message.author):
             await set_availability_status(message.author, True)
 
     @tasks.loop(minutes=1)
@@ -1797,16 +1797,18 @@ class Staff(commands.Cog):
                 .all()
             )
 
-            for mod in moderation:
-                member = self.bot.get_guild(self.config.guilds.main).get_member(
-                    mod.member
-                )
+            guild = self.bot.get_guild(self.config.guilds.main)
 
-                if check_staff_availability(self.bot, mod.member):
-                    if not is_available(mod):
+            for mod in moderation:
+                member = guild.get_member(mod.member)
+                if member is None:
+                    continue
+
+                if check_staff_availability(member):
+                    if not is_available(member):
                         await set_availability_status(member, True)
                 else:
-                    if is_available(mod):
+                    if is_available(member):
                         await set_availability_status(member, False)
 
     @commands.Cog.listener()
