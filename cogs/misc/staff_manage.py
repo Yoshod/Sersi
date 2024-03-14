@@ -1864,15 +1864,14 @@ class Staff(commands.Cog):
             return
 
         logging_embed = SersiEmbed(
-            title=f"{member.display_name} Now Available.",
+            title=f"{member.display_name} is now Available.",
             description=f"{member.mention} has been set to be available.",
+            thumbnail_url=member.display_avatar.url,
         )
 
         guild = self.bot.get_guild(self.config.guilds.main)
 
         await guild.get_channel(self.config.channels.logging).send(embed=logging_embed)
-
-        await guild.get_channel(self.config.channels.mod_logs).send(embed=logging_embed)
 
     @commands.Cog.listener()
     async def on_role_remove(self, member: nextcord.Member, role: nextcord.Role):
@@ -1880,15 +1879,14 @@ class Staff(commands.Cog):
             return
 
         logging_embed = SersiEmbed(
-            title=f"{member.display_name} Now Unavailable.",
+            title=f"{member.display_name} is now Unavailable.",
             description=f"{member.mention} has been set to be unavailable.",
+            thumbnail_url=member.display_avatar.url,
         )
 
         guild = self.bot.get_guild(self.config.guilds.main)
 
         await guild.get_channel(self.config.channels.logging).send(embed=logging_embed)
-
-        await guild.get_channel(self.config.channels.mod_logs).send(embed=logging_embed)
 
 
 def setup(bot: commands.Bot, **kwargs):
