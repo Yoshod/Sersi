@@ -1348,7 +1348,28 @@ class Staff(commands.Cog):
                 .first()
             ).settings
 
-            if timezone:
+            if timezone and timezone != settings.timezone:
+                if await confirm(
+                    interaction,
+                    title="Time zone change",
+                    description=(
+                        f"You are changing your time zone from UTC{settings.timezone:+d} to UTC{timezone:+d}. "
+                        "Do you want to adjust your availability timeslots to match the new time zone?"
+                    ),
+                    true_button=ButtonPreset.YES_PRIMARY,
+                    false_button=ButtonPreset.NO_NEUTRAL,
+                    ephemeral=True,
+                ):
+                    adjustment = (timezone - settings.timezone) * 60
+                    timeslots = (
+                        session.query(ModeratorAvailability)
+                        .filter_by(member=interaction.user.id, window_type="Timeslot")
+                        .all()
+                    )
+                    for slot in timeslots:
+                        slot.start += adjustment
+                        slot.end += adjustment
+
                 settings.timezone = timezone
 
             if availability_on_message:
@@ -1357,7 +1378,8 @@ class Staff(commands.Cog):
             session.commit()
 
         await interaction.followup.send(
-            f"{self.config.emotes.success} Your settings have been updated."
+            f"{self.config.emotes.success} Your settings have been updated.",
+            ephemeral=True,
         )
 
     @staff.subcommand(description="Moderator Availability")
@@ -1566,7 +1588,7 @@ class Staff(commands.Cog):
                     if not await confirm(
                         interaction,
                         title="Unavailability window collision",
-                        description=f"An unavailability window with the name `{window_name}` already exists and is valid until {format_dt(window.valid_until, style="R")}. Do you want to overwrite it?",
+                        description=f"An unavailability window with the name `{window_name}` already exists and is valid until {format_dt(window.valid_until, style='R')}. Do you want to overwrite it?",
                         true_button=ButtonPreset.YES_DANGER,
                         false_button=ButtonPreset.NO_NEUTRAL,
                         ephemeral=True,
