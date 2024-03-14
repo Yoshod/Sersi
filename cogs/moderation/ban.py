@@ -1,8 +1,9 @@
-import nextcord
+from datetime import timedelta
 
+import nextcord
 from nextcord.ext import commands
 from nextcord.ui import Button, View
-import datetime
+
 
 from utils.alerts import add_response_time
 from utils.cases import (
@@ -26,7 +27,6 @@ from utils.perms import (
 from utils.sersi_embed import SersiEmbed
 from utils.review import create_alert
 from utils.voting import VoteView, vote_planned_end
-from utils.base import convert_to_timedelta
 
 
 class BanSystem(commands.Cog):
@@ -221,6 +221,8 @@ class BanSystem(commands.Cog):
 
         match ban_type:
             case "urgent":
+                vote_type = self.config.voting["urgent-ban"]
+
                 if timeout:
                     vote_embed = SersiEmbed(
                         title=f"Ban Vote: **{offender.name}** ({offender.id})",
@@ -248,10 +250,8 @@ class BanSystem(commands.Cog):
                     except (nextcord.Forbidden, nextcord.HTTPException):
                         pass
 
-                    planned_end: datetime.timedelta = convert_to_timedelta("h", 72)
-
                     await offender.timeout(
-                        planned_end,
+                        timedelta(hours=vote_type.duration),
                         reason=f"[{offence}: {detail}] - {interaction.user}",
                     )
 
@@ -267,7 +267,6 @@ class BanSystem(commands.Cog):
                         },
                     )
 
-                vote_type = self.config.voting["urgent-ban"]
                 with db_session(interaction.user) as session:
                     vote_case = VoteDetails(
                         case_id=sersi_case.id,

@@ -8,8 +8,7 @@ import datetime
 # sersi imports
 from utils.base import (
     get_discord_timestamp,
-    serialise_timedelta,
-    deserialise_timedelta,
+    parse_timedelta,
 )
 from utils.config import Configuration
 from utils.perms import permcheck, is_mod, is_dark_mod, is_staff, is_cet
@@ -337,7 +336,7 @@ class Embeds(commands.Cog):
                     description=body,
                     embed_type=embed_type,
                     channel=channel.id,
-                    timedelta=serialise_timedelta(duration, timespan),
+                    timedelta=f"{duration}{timespan}",
                     active=True,
                     fields=fields,
                     media_url=media_url,
@@ -694,7 +693,7 @@ class Embeds(commands.Cog):
             if body:
                 autopost.description = body
             if duration and timespan:
-                autopost.timedelta_str = serialise_timedelta(duration, timespan)
+                autopost.timedelta_str = f"{duration}{timespan}"
             if media_url:
                 autopost.media_url = media_url
             if active is not None:
@@ -781,7 +780,7 @@ class Embeds(commands.Cog):
                 modified_time: datetime.datetime = autopost.modified
                 modified_time = modified_time.replace(tzinfo=datetime.timezone.utc)
                 current_time = datetime.datetime.now(datetime.timezone.utc)
-                timedelta = deserialise_timedelta(autopost.timedelta_str)
+                timedelta = parse_timedelta(autopost.timedelta_str)
 
                 if (current_time - modified_time) < timedelta:
                     continue
