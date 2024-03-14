@@ -84,6 +84,18 @@ class UserLogging(commands.Cog):
                     )
                 )
         if before.roles != after.roles:
+            # It's setting time
+            before_roles = set(before.roles)
+            after_roles = set(after.roles)
+
+            added_roles = after_roles - before_roles
+            for role in added_roles:
+                self.bot.dispatch("role_add", after, role)
+
+            removed_roles = before_roles - after_roles
+            for role in removed_roles:
+                self.bot.dispatch("role_remove", after, role)
+
             log: nextcord.AuditLogEntry = (
                 await after.guild.audit_logs(
                     action=nextcord.AuditLogAction.member_role_update, limit=1

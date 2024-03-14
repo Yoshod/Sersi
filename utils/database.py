@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any
 import random
@@ -8,7 +9,7 @@ import sqlalchemy
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, event
 from sqlalchemy.orm import Session, relationship
 from sqlalchemy.ext.declarative import declarative_base
-
+from dataclass_wizard import JSONWizard
 
 from utils.base import limit_string, encode_snowflake
 
@@ -570,6 +571,24 @@ class StaffRoles(_Base):
     rank = Column(Integer, nullable=False)
 
 
+@dataclass
+class PersonalSettings(JSONWizard):
+    timezone: int = 0
+    available_on_message: int = 15
+
+    def __post_init__(self):
+        self.member_record: StaffMembers = None
+
+    def __setattr__(self, __name: str, __value: Any) -> None:
+        super().__setattr__(__name, __value)
+        if (
+            __name != "member_record"
+            and hasattr(self, "member_record")
+            and self.member_record is not None
+        ):
+            self.member_record.personal_settings = self.to_json()
+
+
 class StaffMembers(_Base):
     __tablename__ = "staff_members"
 
@@ -583,6 +602,17 @@ class StaffMembers(_Base):
     removed_by = Column(Integer, default=None)
     discharge_type = Column(String, default=None)
     discharge_reason = Column(String, default=None)
+    personal_settings = Column(String, default="{}")
+
+    @property
+    def settings(self) -> PersonalSettings:
+        settings = PersonalSettings.from_json(self.personal_settings)
+        settings.member_record = self
+        return settings
+
+    @settings.setter
+    def settings(self, value: PersonalSettings) -> None:
+        self.personal_settings = value.to_json()
 
 
 class ModerationRecords(_Base):
@@ -641,63 +671,17 @@ class StaffStrikes(_Base):
 
 
 class ModeratorAvailability(_Base):
-    """
-    Represents the availability of a moderator.
-
-    This class maps to the 'moderator_availability' table in the database.
-    It stores the availability schedule of a moderator for each day of the week,
-    as well as other related information such as forced availability and
-    forced unavailability time intervals.
-
-    Attributes:
-        member (int): The ID of the staff member associated with the availability.
-        monday_start (datetime): The start time of availability on Mondays.
-        monday_end (datetime): The end time of availability on Mondays.
-        tuesday_start (datetime): The start time of availability on Tuesdays.
-        tuesday_end (datetime): The end time of availability on Tuesdays.
-        wednesday_start (datetime): The start time of availability on Wednesdays.
-        wednesday_end (datetime): The end time of availability on Wednesdays.
-        thursday_start (datetime): The start time of availability on Thursdays.
-        thursday_end (datetime): The end time of availability on Thursdays.
-        friday_start (datetime): The start time of availability on Fridays.
-        friday_end (datetime): The end time of availability on Fridays.
-        saturday_start (datetime): The start time of availability on Saturdays.
-        saturday_end (datetime): The end time of availability on Saturdays.
-        sunday_start (datetime): The start time of availability on Sundays.
-        sunday_end (datetime): The end time of availability on Sundays.
-        forced_available_timedelta (int): The forced availability time interval in minutes.
-        forced_unavailable_timedelta (int): The forced unavailability time interval in minutes.
-        time_of_last_message (datetime): The timestamp of the last message sent by the moderator.
-        update_availability_on_message (bool): Flag indicating whether availability should be updated on each message.
-        on_message_update_interval_minutes (int): Interval in minutes for updating availability on each message.
-        guild_id (int): The ID of the guild associated with the availability.
-    """
-
     __tablename__ = "moderator_availability"
 
     member = Column(Integer, ForeignKey("staff_members.member"), primary_key=True)
-    monday_start = Column(Integer)
-    monday_end = Column(Integer)
-    tuesday_start = Column(Integer)
-    tuesday_end = Column(Integer)
-    wednesday_start = Column(Integer)
-    wednesday_end = Column(Integer)
-    thursday_start = Column(Integer)
-    thursday_end = Column(Integer)
-    friday_start = Column(Integer)
-    friday_end = Column(Integer)
-    saturday_start = Column(Integer)
-    saturday_end = Column(Integer)
-    sunday_start = Column(Integer)
-    sunday_end = Column(Integer)
-    forced_available_timedelta = Column(Integer, default=None)
-    forced_available_start = Column(DateTime)
-    forced_unavailable_timedelta = Column(Integer, default=None)
-    forced_unavailable_start = Column(DateTime)
-    time_of_last_message = Column(DateTime, default=datetime.utcnow)
-    update_availability_on_message = Column(Boolean, default=True)
-    on_message_update_interval_minutes = Column(Integer, default=5)
-    guild_id = Column(Integer, nullable=False)
+    window_identifier = Column(String, primary_key=True)
+    window_type = Column(String, nullable=False)
+    priority = Column(Integer, nullable=False)
+    available = Column(Boolean, default=True)
+    start = Column(Integer)
+    end = Column(Integer)
+    valid_until = Column(DateTime)
+    modified = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
 ### Vote Models ###

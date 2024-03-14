@@ -1,6 +1,6 @@
 import io
 import re
-import datetime
+from datetime import datetime, timedelta
 
 import nextcord
 import nextcord.ext.commands as commands
@@ -10,7 +10,7 @@ from chat_exporter import export
 from utils.config import Configuration
 
 
-def get_discord_timestamp(time: datetime.datetime, *, relative: bool = False) -> str:
+def get_discord_timestamp(time: datetime, *, relative: bool = False) -> str:
     if relative:
         return f"<t:{int(time.timestamp())}:R>"
     else:
@@ -129,24 +129,8 @@ def ignored_message(
     return False
 
 
-def convert_to_timedelta(timespan: str, duration: int) -> datetime.timedelta | None:
-    match timespan:
-        case "m":
-            return datetime.timedelta(minutes=duration)
-
-        case "h":
-            if not duration > 672:
-                return datetime.timedelta(hours=duration)
-
-        case "d":
-            if not duration > 28:
-                return datetime.timedelta(days=duration)
-
-        case "w":
-            if not duration > 4:
-                return datetime.timedelta(weeks=duration)
-
-    return None
+def convert_to_timedelta(timespan: str, duration: int|float) -> timedelta | None:
+    return parse_timedelta(f"{duration}{timespan}")
 
 
 def limit_string(string: str, length: int = 1024) -> str:
@@ -252,23 +236,29 @@ def get_member_level(config: Configuration, member: nextcord.Member) -> int:
             return level
     return 0
 
+def parse_timedelta(timedelta_str: str) -> timedelta | None:
+    # python timedelta string parsing
+    if match := re.match(r"(?:(\d+) days?, )?(\d+):(\d+):(\d+(?:\.\d+)?)", timedelta_str):
+        days, hours, minutes, seconds = match.groups()
+        return timedelta(
+            days=int(days or 0),
+            hours=int(hours),
+            minutes=int(minutes),
+            seconds=float(seconds),
+        )
 
-def serialise_timedelta(duration: int, timespan: str) -> str:
-    td = convert_to_timedelta(timespan, duration)
+    # non-python timedelta string parsing
+    parts = re.findall(r"(\d+\.?\d*)([shdw]|ms?|us)", timedelta_str.lower())
+    if not parts:
+        return None
 
-    if td is None:
-        raise ValueError("Invalid duration/timespan combination")
-
-    total_seconds = td.total_seconds()
-    hours, remainder = divmod(total_seconds, 3600)
-    minutes, seconds = divmod(remainder, 60)
-    return f"PT{int(hours)}H{int(minutes)}M{int(seconds)}S"
-
-
-def deserialise_timedelta(td_str: str) -> datetime.timedelta:
-    parts = td_str.strip("PT").strip("S").split("H")
-    hours = int(parts[0])
-    minutes, seconds = parts[1].split("M")
-    minutes = int(minutes)
-    seconds = int(seconds)
-    return datetime.timedelta(hours=hours, minutes=minutes, seconds=seconds)
+    deltas = {p[1]: p[0] for p in parts}
+    return timedelta(
+        weeks=float(deltas.get("w", 0)),
+        days=float(deltas.get("d", 0)),
+        hours=float(deltas.get("h", 0)),
+        minutes=float(deltas.get("m", 0)),
+        seconds=float(deltas.get("s", 0)),
+        milliseconds=float(deltas.get("ms", 0)),
+        microseconds=float(deltas.get("us", 0)),
+    )
