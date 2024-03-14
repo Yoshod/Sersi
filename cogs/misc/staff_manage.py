@@ -1466,7 +1466,7 @@ class Staff(commands.Cog):
         await interaction.response.defer(ephemeral=True)
 
         available_timedelta = convert_to_timedelta(
-            available_duration, available_timespan
+            available_timespan, available_duration
         )
 
         with db_session(interaction.user) as session:
@@ -1543,7 +1543,7 @@ class Staff(commands.Cog):
         await interaction.response.defer(ephemeral=True)
 
         unavailable_timedelta = convert_to_timedelta(
-            unavailable_duration, unavailable_timespan
+            unavailable_timespan, unavailable_duration
         )
 
         with db_session(interaction.user) as session:
@@ -1555,7 +1555,7 @@ class Staff(commands.Cog):
                     window_identifier=reason or "Forced Unavailale",
                     window_type="Duration",
                     priority=200 if available_on_message else 50,
-                    availability=False,
+                    available=False,
                     valid_until=datetime.now() + unavailable_timedelta,
                 )
             )
