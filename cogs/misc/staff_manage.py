@@ -4,6 +4,7 @@ import os
 import nextcord
 from nextcord import SlashOption
 from nextcord.ext import commands, tasks
+from nextcord.utils import format_dt
 import sqlalchemy
 
 from utils.base import (
@@ -15,6 +16,7 @@ from utils.base import (
 from utils.sersi_embed import SersiEmbed
 from utils.views import ConfirmView, DualCustodyView
 from utils.config import Configuration
+from utils.dialog import confirm, ButtonPreset
 from utils.perms import (
     is_mod,
     permcheck,
@@ -1530,8 +1532,8 @@ class Staff(commands.Cog):
             required=False,
             choices={"Yes": True, "No": False},
         ),
-        reason: str = SlashOption(
-            description="Reason (short) for being unavailable, allows for multiple concurrent unavailable statuses",
+        window_name: str = SlashOption(
+            description="Window name (short), allows for multiple concurrent unavailable statuses",
             required=False,
             min_length=8,
             max_length=32,
@@ -1546,13 +1548,35 @@ class Staff(commands.Cog):
             unavailable_timespan, unavailable_duration
         )
 
+        window_name = window_name or "Forced Unavailable"
+
         with db_session(interaction.user) as session:
-            # TODO: confirmation dialog for overwriting existing unavailability
+            if window := (session.query(ModeratorAvailability)
+                .filter_by(
+                    member=interaction.user.id,
+                    window_identifier=window_name,
+                )
+                .first()
+            ):
+                if window.window_type != "Duration" or window.available:
+                    interaction.followup.send(
+                        f"{self.config.emotes.fail} Window `{window_name}` is not available for use as an unavailability window."
+                    )
+                elif window.valid_until > datetime.now():
+                    if not await confirm(
+                        interaction,
+                        title="Unavailability window collision",
+                        description=f"An unavailability window with the name `{window_name}` already exists and is valid until {format_dt(window.valid_until, style="R")}. Do you want to overwrite it?",
+                        true_button=ButtonPreset.YES_DANGER,
+                        false_button=ButtonPreset.NO_NEUTRAL,
+                        ephemeral=True,
+                    ):
+                        return
 
             session.merge(
                 ModeratorAvailability(
                     member=interaction.user.id,
-                    window_identifier=reason or "Forced Unavailale",
+                    window_identifier=window_name,
                     window_type="Duration",
                     priority=200 if available_on_message else 50,
                     available=False,
@@ -1561,11 +1585,12 @@ class Staff(commands.Cog):
             )
             session.commit()
 
-        # TODO: set availability status logic for specific cases
-        # await set_availability_status(interaction.user, False)
+        if not check_staff_availability(interaction.user):
+            await set_availability_status(interaction.user, False)
 
         await interaction.followup.send(
-            f"{self.config.emotes.success} You have been forced to be unavailable for {unavailable_timedelta}."
+            f"{self.config.emotes.success} You have been forced to be unavailable for {unavailable_timedelta}.",
+            ephemeral=True
         )
 
         if unavailable_timedelta >= timedelta(days=3):
