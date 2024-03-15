@@ -666,7 +666,7 @@ def is_available(member: nextcord.Member):
     return is_allowed(member, [CONFIG.roles.available_mod])
 
 
-def available_mods(guild: nextcord.Guild):
+def get_available_mods(guild: nextcord.Guild):
     """Counts the number of available moderators in a guild."""
     available_mods: list[nextcord.Member] = []
 

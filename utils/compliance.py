@@ -1,9 +1,11 @@
 from dataclasses import dataclass
 import datetime
-import pytz
+import math
+import calendar
+
 import nextcord
-from sqlalchemy import or_
-from utils.sersi_embed import SersiEmbed
+from nextcord.utils import format_dt
+from sqlalchemy import and_, or_
 
 from utils.database import (
     BanCase,
@@ -19,12 +21,10 @@ from utils.database import (
     StaffMembers,
     ModeratorAvailability,
 )
-
-from utils.staff import count_available_mods
+from utils.staff import get_available_mods
 from utils.config import Configuration
-
 from utils.base import encode_button_id, encode_snowflake
-from nextcord.utils import format_dt
+from utils.sersi_embed import SersiEmbed
 
 
 class DayAvailabilityButton(nextcord.ui.Button):
@@ -494,10 +494,12 @@ def get_slur_report_embed(
     )
 
 
-def get_availabillity_report_unused():  # This function is currently unused as I cannot be arsed to implement it fully
+def get_availabillity_report_unused(
+    guild: nextcord.Guild,
+):  # This function is currently unused as I cannot be arsed to implement it fully
     raise NotImplementedError()
 
-    available_mod_count, available_mod_ids = count_available_mods()
+    available_mods = get_available_mods(guild)
 
     with db_session() as session:
         total_mods = (
@@ -624,8 +626,7 @@ def get_availabillity_report_unused():  # This function is currently unused as I
                     availability_times_overall[time] += 1
 
     return (
-        available_mod_count,
-        available_mod_ids,
+        available_mods,
         total_mods,
         total_mods_availability_setup,
         availability_times_monday,
@@ -640,7 +641,7 @@ def get_availabillity_report_unused():  # This function is currently unused as I
 
 
 def get_availability_report(guild: nextcord.Guild):
-    available_mod_count, available_mod_ids = count_available_mods(guild)
+    available_mods = get_available_mods(guild)
 
     with db_session() as session:
         total_mods = (
@@ -666,8 +667,8 @@ def get_availability_report(guild: nextcord.Guild):
         )
 
     availability_report = {
-        "available_mod_count": available_mod_count,
-        "available_mod_ids": available_mod_ids,
+        "available_mod_count": len(available_mods),
+        "available_mod_ids": [mod.id for mod in available_mods],
         "all_mod_ids": all_mod_ids,
         "mods_without_availability_setup": mods_without_availability_setup,
     }
@@ -678,7 +679,6 @@ def get_availability_report_embed(
     config: Configuration,
     availability_report: dict,
 ):
-
     available_mods_string = ""
     for mod in availability_report["available_mod_ids"]:
         available_mods_string += f"{config.emotes.blank}{config.emotes.blank}<@{mod}>\n"
@@ -696,70 +696,59 @@ def get_availability_report_embed(
 
 
 def get_availability_day_of_week(day: str):
+    day_no = list(calendar.day_name).index(day.capitalize()) + 1
     with db_session() as session:
-        total_mods_availability_setup = session.query(ModeratorAvailability).all()
+        timeslots: list[ModeratorAvailability] = (
+            session.query(ModeratorAvailability)
+                .filter_by(window_type="Timeslot")
+                .filter(or_(
+                    and_(
+                        ModeratorAvailability.start >= day_no * 1440,
+                        ModeratorAvailability.start <= (day_no + 1) * 1440,
+                    ),
+                    and_(
+                        ModeratorAvailability.end >= day_no * 1440,
+                        ModeratorAvailability.end <= (day_no + 1) * 1440,
+                    ),
+                    and_(
+                        day_no == 1,
+                        ModeratorAvailability.end >= 11520,
+                        ModeratorAvailability.end <= 12960,
+                    ),
+                    and_(
+                        day_no == 7,
+                        ModeratorAvailability.start >= 0,
+                        ModeratorAvailability.start <= 1440,
+                    )
+                ))
+                .all()
+        )
 
-        availability_times = {
-            datetime.time(0, 0): 0,
-            datetime.time(1, 0): 0,
-            datetime.time(2, 0): 0,
-            datetime.time(3, 0): 0,
-            datetime.time(4, 0): 0,
-            datetime.time(5, 0): 0,
-            datetime.time(6, 0): 0,
-            datetime.time(7, 0): 0,
-            datetime.time(8, 0): 0,
-            datetime.time(9, 0): 0,
-            datetime.time(10, 0): 0,
-            datetime.time(11, 0): 0,
-            datetime.time(12, 0): 0,
-            datetime.time(13, 0): 0,
-            datetime.time(14, 0): 0,
-            datetime.time(15, 0): 0,
-            datetime.time(16, 0): 0,
-            datetime.time(17, 0): 0,
-            datetime.time(18, 0): 0,
-            datetime.time(19, 0): 0,
-            datetime.time(20, 0): 0,
-            datetime.time(21, 0): 0,
-            datetime.time(22, 0): 0,
-            datetime.time(23, 0): 0,
-        }
+        availability_times = [0 for _ in range(24)]
 
-        for mod in total_mods_availability_setup:
+        for timeslot in timeslots:
+            start_time = math.ceil((timeslot.start / 60) - 24 * day_no)
+            end_time = math.floor((timeslot.end / 60) - 24 * day_no + 1)
+            if day_no == 1 and timeslot.end > 10080:
+                start_time = start_time - 168
+                end_time = end_time - 168
+            if day_no == 7 and timeslot.start < 1440:
+                start_time = start_time + 168
+                end_time = end_time + 168
 
-            start_time = datetime.datetime.strptime(
-                str(getattr(mod, f"{day.lower()}_start")), "%H%M"
-            ).time()
-            end_time = datetime.datetime.strptime(
-                str(getattr(mod, f"{day.lower()}_end")), "%H%M"
-            ).time()
-
-            timezone = pytz.FixedOffset(mod.timezone * 60)
-
-            start_time = start_time.replace(tzinfo=timezone)
-            end_time = end_time.replace(tzinfo=timezone)
-
-            for time in availability_times:
-                if start_time <= time <= end_time:
-                    availability_times[time] += 1
+            for time in range(max(start_time, 0), min(end_time, 24)):
+                availability_times[time] += 1
 
         return availability_times
 
 
 def get_availability_day_of_week_embed(
-    day: str, availability_times: dict, config: Configuration
+    day: str, availability_times: list[int], config: Configuration
 ):
     availability_string = ""
     counter = 0
-    for time, count in availability_times.items():
-        time_dt = datetime.datetime(
-            3000,
-            1,
-            1,
-            time.hour,
-            0,
-        )
+    for time, count in enumerate(availability_times):
+        time_dt = datetime.datetime(3000, 1, 1, time, 0)
         if counter == 0:
             availability_string += "**1st Quarter**:\n"
 
