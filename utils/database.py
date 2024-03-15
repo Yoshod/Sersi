@@ -720,17 +720,6 @@ class VoteRecord(_Base):
     timestamp = Column(DateTime, default=datetime.utcnow)
 
 
-class StaffBlacklist(_Base):
-    # TODO: remove in 5.2.0
-    __tablename__ = "staff_blacklist"
-
-    blacklisted_user = Column(Integer, primary_key=True)
-    staff_member = Column(Integer, nullable=False)
-    reason = Column(String, nullable=False)
-
-    timestamp = Column(DateTime, default=datetime.utcnow)
-
-
 class MemberLevel(_Base):
     __tablename__ = "member_levels"
 
