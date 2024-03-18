@@ -642,13 +642,11 @@ def check_staff_availability(staff_member: int | nextcord.Member):
                             ModeratorAvailability.end >= offset,
                         ),
                         and_(  # If the window spans sunday to monday
+                            ModeratorAvailability.start % 10080 <= offset % 10080,
+                            ModeratorAvailability.end % 10080 >= offset % 10080,
                             or_(
                                 ModeratorAvailability.start < 1440,
                                 ModeratorAvailability.end > 11520,
-                            ),
-                            or_(
-                                ModeratorAvailability.start % 10080 <= offset % 10080,
-                                ModeratorAvailability.end % 10080 >= offset % 10080,
                             ),
                         ),
                     ),
