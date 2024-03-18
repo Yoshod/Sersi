@@ -12,6 +12,7 @@ from utils.base import (
     encode_snowflake,
     decode_snowflake,
     convert_to_timedelta,
+    ignored_message,
 )
 from utils.sersi_embed import SersiEmbed
 from utils.views import ConfirmView, DualCustodyView
@@ -1327,13 +1328,15 @@ class Staff(commands.Cog):
         self,
         interaction: nextcord.Interaction,
         timezone: int = SlashOption(
-            required=False,
             description="Your timezone offset in hours (e.g. UTC+1, UTC-5, etc.)",
             choices={f"UTC{offset:+d}": offset for offset in range(-12, 13)},
-        ),
-        availability_on_message: int = SlashOption(
             required=False,
-            description="How long to wait after last message to become unavailable (in minutes), 0 to disable",
+        ),
+        dynamic_availability: int = SlashOption(
+            description="How long to wait after last interaction on the server to become unavailable (minutes), 0 to disable",
+            min_value=0,
+            max_value=60,
+            required=False,
         ),
     ):
         if not await permcheck(interaction, is_staff):
@@ -1348,7 +1351,7 @@ class Staff(commands.Cog):
                 .first()
             ).settings
 
-            if timezone and timezone != settings.timezone:
+            if timezone is not None and timezone != settings.timezone:
                 if await confirm(
                     interaction,
                     title="Time zone change",
@@ -1372,8 +1375,12 @@ class Staff(commands.Cog):
 
                 settings.timezone = timezone
 
-            if availability_on_message:
-                settings.available_on_message = availability_on_message
+            if dynamic_availability is not None:
+                settings.dynamic_availability = dynamic_availability
+                if dynamic_availability == 0:
+                    session.query(ModeratorAvailability).filter_by(
+                        member=interaction.user.id, window_identifier="Last Seen"
+                    ).delete()
 
             session.commit()
 
@@ -1573,7 +1580,8 @@ class Staff(commands.Cog):
         window_name = window_name or "Forced Unavailable"
 
         with db_session(interaction.user) as session:
-            if window := (session.query(ModeratorAvailability)
+            if window := (
+                session.query(ModeratorAvailability)
                 .filter_by(
                     member=interaction.user.id,
                     window_identifier=window_name,
@@ -1612,7 +1620,7 @@ class Staff(commands.Cog):
 
         await interaction.followup.send(
             f"{self.config.emotes.success} You have been forced to be unavailable for {unavailable_timedelta}.",
-            ephemeral=True
+            ephemeral=True,
         )
 
         if unavailable_timedelta >= timedelta(days=3):
@@ -1774,6 +1782,7 @@ class Staff(commands.Cog):
 
     @commands.Cog.listener()
     async def on_interaction(self, interaction: nextcord.Interaction):
+        self.bot.loop.create_task(self.update_mod_last_seen(interaction.user))
         if interaction.data is None or interaction.data.get("custom_id") is None:
             return
         if not interaction.data["custom_id"].startswith(
@@ -1803,36 +1812,71 @@ class Staff(commands.Cog):
 
         await interaction.followup.send(embed=embed, ephemeral=True)
 
-    @commands.Cog.listener()
-    async def on_message(self, message: nextcord.Message):
-        if message.guild is None:
-            return  # no errors on dm UwU
-        if not is_mod(message.author):
+    async def update_mod_last_seen(self, member: nextcord.Member):
+        if not is_mod(member):
             return
 
         with db_session(self.bot.user) as session:
             staff: StaffMembers = (
-                session.query(StaffMembers).filter_by(member=message.author.id).first()
+                session.query(StaffMembers).filter_by(member=member.id).first()
             )
 
-            availability = staff.settings.available_on_message
-            if not availability:
+            if staff is None:
+                return
+
+            timeout = staff.settings.dynamic_availability
+            if not timeout:
                 return
 
             session.merge(
                 ModeratorAvailability(
-                    member=message.author.id,
-                    window_identifier="Last Message",
+                    member=member.id,
+                    window_identifier="Last Seen",
                     window_type="Duration",
-                    valid_until=datetime.now() + timedelta(minutes=availability),
+                    valid_until=datetime.now() + timedelta(minutes=timeout),
                     priority=100,
                     available=True,
                 )
             )
             session.commit()
 
-        if not is_available(message.author):
-            await set_availability_status(message.author, True)
+            if not is_available(member):
+                await set_availability_status(member, True)
+
+    @commands.Cog.listener()
+    async def on_message(self, message: nextcord.Message):
+        if ignored_message(
+            self.config, message, ignore_channels=False, ignore_categories=False
+        ):
+            return
+        await self.update_mod_last_seen(message.author)
+
+    @commands.Cog.listener()
+    async def on_reaction_add(self, reaction: nextcord.Reaction, user: nextcord.Member):
+        if ignored_message(
+            self.config, reaction.message, ignore_channels=False, ignore_categories=False
+        ):
+            return
+        await self.update_mod_last_seen(user)
+
+    @commands.Cog.listener()
+    async def on_reaction_remove(
+        self, reaction: nextcord.Reaction, user: nextcord.Member
+    ):
+        if ignored_message(
+            self.config, reaction.message, ignore_channels=False, ignore_categories=False
+        ):
+            return
+        await self.update_mod_last_seen(user)
+    
+    @commands.Cog.listener()
+    async def on_guild_audit_log_entry_creation(self, entry: nextcord.AuditLogEntry):
+        if not isinstance(entry.target, nextcord.Member):
+            return
+        if not is_mod(entry.user) or entry.target == entry.user:
+            return
+        
+        await self.update_mod_last_seen(entry.user)
 
     @tasks.loop(minutes=1)
     async def check_availability(self):

@@ -574,7 +574,7 @@ class StaffRoles(_Base):
 @dataclass
 class PersonalSettings(JSONWizard):
     timezone: int = 0
-    available_on_message: int = 15
+    dynamic_availability: int = 15
 
     def __post_init__(self):
         self.member_record: StaffMembers = None
