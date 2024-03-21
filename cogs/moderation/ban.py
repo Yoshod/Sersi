@@ -5,10 +5,7 @@ from nextcord.ext import commands
 
 from utils.alerts import add_response_time
 from utils.base import get_message_from_url
-from utils.cases import (
-    create_case_embed,
-    get_case_by_id,
-)
+from utils.cases import create_case_embed
 from utils.config import Configuration
 from utils.database import VoteRecord, db_session, BanCase, VoteDetails
 from utils.dialog import confirm, ButtonPreset
@@ -319,7 +316,6 @@ class BanSystem(commands.Cog):
                         "Offence": offence,
                         "Offence Details": detail,
                     },
-                    ephemeral=True,
                     true_button=ButtonPreset.YES_DANGER,
                     false_button=ButtonPreset.NO_PRIMARY,
                 ):
