@@ -144,7 +144,9 @@ class BanSystem(commands.Cog):
             )
             return
 
-        await interaction.response.defer(ephemeral=True if ban_type != "emergency" else False)
+        await interaction.response.defer(
+            ephemeral=True if ban_type != "emergency" else False
+        )
 
         try:
             if not target_eligibility(interaction.user, offender):
@@ -261,7 +263,6 @@ class BanSystem(commands.Cog):
                         .join(BanCase, BanCase.id == VoteDetails.case_id)
                         .filter(
                             BanCase.offender == offender.id,
-                            
                             VoteDetails.vote_type == "urgent-ban",
                             VoteDetails.outcome.is_(None),
                         )

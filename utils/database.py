@@ -717,7 +717,7 @@ class VoteRecord(_Base):
     vote = Column(String, nullable=False)
     comment = Column(String)
 
-    timestamp = Column(DateTime, default=datetime.utcnow)
+    timestamp = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
 class MemberLevel(_Base):

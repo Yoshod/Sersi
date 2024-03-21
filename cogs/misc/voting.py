@@ -5,9 +5,9 @@ from nextcord.ext import tasks, commands
 from sqlalchemy import func
 
 from utils.base import get_message_from_url
-from utils.config import Configuration, VoteType
+from utils.config import Configuration
 from utils.database import db_session, VoteDetails, VoteRecord
-from utils.dialog import modal_dialog, TextField
+from utils.dialog import modal_dialog, TextArea
 from utils.perms import (
     permcheck,
     is_mod,
@@ -76,7 +76,7 @@ class Voting(commands.Cog):
     def cog_unload(self):
         self.process_votes.cancel()
 
-    @tasks.loop(minutes=1)
+    @tasks.loop(minutes=5)
     async def process_votes(self):
         with db_session() as session:
             details_list: list[VoteDetails] = (
@@ -86,10 +86,9 @@ class Voting(commands.Cog):
                 end_vote = details.planned_end < datetime.utcnow()
                 vote_type = self.config.voting[details.vote_type]
 
-                if self.config.bot.dev_mode:
-                    end_vote = details.created + timedelta(hours=1) < datetime.utcnow()
-
-                if not vote_type.end_on_threshold and not end_vote:
+                if not (
+                    vote_type.end_on_threshold or end_vote or self.config.bot.dev_mode
+                ):
                     continue
 
                 votes: dict[str, int] = {
@@ -104,37 +103,41 @@ class Voting(commands.Cog):
 
                 diff = votes.get("yes", 0) - votes.get("no", 0)
 
-                def accepted():
-                    threshold = vote_type.threshold
-                    if vote_type.supermajority:
-                        match vote_type.group:
-                            case "staff":
-                                role_id = self.config.permission_roles.staff
-                            case "mod":
-                                role_id = self.config.permission_roles.moderator
-                            case "cet":
-                                role_id = self.config.permission_roles.cet
-                            case _:
-                                role_id = self.config.permission_roles.dark_moderator
+                threshold = vote_type.threshold
+                if vote_type.supermajority:
+                    match vote_type.group:
+                        case "staff":
+                            role_id = self.config.permission_roles.staff
+                        case "mod":
+                            role_id = self.config.permission_roles.moderator
+                        case "cet":
+                            role_id = self.config.permission_roles.cet
+                        case _:
+                            role_id = self.config.permission_roles.dark_moderator
 
-                        threshold = (
-                            len(
-                                self.bot.get_guild(self.config.guilds.main)
-                                .get_role(role_id)
-                                .members
-                            )
-                            * 2
-                            // 3
-                            + 1
+                    threshold = (
+                        len(
+                            self.bot.get_guild(self.config.guilds.main)
+                            .get_role(role_id)
+                            .members
                         )
-                    elif diff < vote_type.difference:
-                        return False
-                    if votes.get("yes", 0) < threshold:
-                        return False
-                    return True
+                        * 2
+                        // 3
+                        + 1
+                    )
+
+                if (  # minimum vote duration, affected by threshold and difference
+                    not end_vote
+                    and details.created
+                    + timedelta(
+                        hours=vote_type.duration / 24 - min(0, abs(diff) - threshold)
+                    )
+                    > datetime.utcnow()
+                ):
+                    continue
 
                 colour = None
-                if accepted():
+                if diff > vote_type.difference and votes.get("yes", 0) > threshold:
                     details.outcome = "Accepted"
                     colour = nextcord.Colour.brand_green()
                 elif diff <= -1:
@@ -204,7 +207,7 @@ class Voting(commands.Cog):
             response = await modal_dialog(
                 interaction,
                 f"{vote_type.name}: {vote}",
-                comment=TextField(
+                comment=TextArea(
                     "Comment",
                     required=vote_type.comment_required,
                     placeholder="please provide a comment for your vote",
@@ -223,7 +226,7 @@ class Voting(commands.Cog):
 
             session.merge(vote_record)
             session.commit()
-        
+
         await interaction.followup.send("Your vote has been recorded", ephemeral=True)
 
         new_embed = interaction.message.embeds[0]

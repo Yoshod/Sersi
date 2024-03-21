@@ -215,6 +215,33 @@ async def modal_dialog(
     return await modal.get_response()
 
 
+class TextArea(TextInput):
+    """
+    TextInput class for text area based dialog.
+
+    Attributes:
+    label (str): The label for the text input.
+    placeholder (str, optional): The placeholder for the text input. Defaults to None.
+    required (bool, optional): If ``True``, the user cannot send the form without filling this field. Defaults to True.
+    """
+
+    def __init__(
+        self,
+        label: str,
+        placeholder: str = None,
+        required: bool = True,
+        max_length: int = 1024,
+    ):
+        super().__init__(
+            label,
+            placeholder=placeholder,
+            required=required,
+            max_length=max_length,
+            min_length=8 if required else 0,
+            style=nextcord.TextInputStyle.paragraph,
+        )
+
+
 class TextField(TextInput):
     """
     TextInput class for text field based dialog.
@@ -225,11 +252,17 @@ class TextField(TextInput):
     required (bool, optional): If ``True``, the user cannot send the form without filling this field. Defaults to True.
     """
 
-    def __init__(self, label: str, placeholder: str = None, required: bool = True):
+    def __init__(
+        self,
+        label: str,
+        placeholder: str = None,
+        required: bool = True,
+        max_length: int = 1024,
+    ):
         super().__init__(
             label,
             placeholder=placeholder,
             required=required,
-            max_length=1024,
+            max_length=max_length,
             min_length=8 if required else 0,
         )
