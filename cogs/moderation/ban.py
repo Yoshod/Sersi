@@ -4,8 +4,8 @@ import nextcord
 from nextcord.ext import commands
 from nextcord.ui import Button, View
 
-
 from utils.alerts import add_response_time
+from utils.base import get_message_from_url
 from utils.cases import (
     create_case_embed,
     get_case_by_id,
@@ -268,6 +268,25 @@ class BanSystem(commands.Cog):
                     )
 
                 with db_session(interaction.user) as session:
+                    for ongoing_vote in (
+                        session.query(VoteDetails)
+                        .join(BanCase, BanCase.id == VoteDetails.case_id)
+                        .filter(
+                            BanCase.offender == offender.id,
+                            VoteDetails.vote_type == "urgent-ban",
+                            VoteDetails.outcome.is_(None),
+                        )
+                        .all()
+                    ):
+                        if vote_message := await get_message_from_url(
+                            self.bot, ongoing_vote.vote_url
+                        ):
+                            await interaction.followup.send(
+                                f"{self.config.emotes.fail} There is already an ongoing vote for {offender.mention}! {vote_message.jump_url}",
+                                ephemeral=True,
+                            )
+                            return
+
                     vote_case = VoteDetails(
                         case_id=sersi_case.id,
                         vote_type="urgent-ban",
@@ -292,7 +311,8 @@ class BanSystem(commands.Cog):
                     session.commit()
 
                 await interaction.followup.send(
-                    f"{self.config.emotes.success} Vote Created!"
+                    f"{self.config.emotes.success} Vote Created! {vote_message.jump_url}",
+                    ephemeral=True,
                 )
 
             case "emergency":
