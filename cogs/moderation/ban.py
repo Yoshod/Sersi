@@ -2,7 +2,6 @@ from datetime import timedelta
 
 import nextcord
 from nextcord.ext import commands
-from nextcord.ui import Button, View
 
 from utils.alerts import add_response_time
 from utils.base import get_message_from_url
@@ -12,6 +11,7 @@ from utils.cases import (
 )
 from utils.config import Configuration
 from utils.database import VoteRecord, db_session, BanCase, VoteDetails
+from utils.dialog import confirm, ButtonPreset
 from utils.objection import AlertView
 from utils.offences import fetch_offences_by_partial_name, offence_validity_check
 from utils.perms import (
@@ -145,12 +145,9 @@ class BanSystem(commands.Cog):
                 f"{self.config.emotes.fail} You cannot do an Immediate Ban with a Timeout",
                 ephemeral=True,
             )
+            return
 
-        elif ban_type == "emergency":
-            await interaction.response.defer()
-
-        else:
-            await interaction.response.defer(ephemeral=True)
+        await interaction.response.defer(ephemeral=True if ban_type != "emergency" else False)
 
         try:
             if not target_eligibility(interaction.user, offender):
@@ -213,12 +210,6 @@ class BanSystem(commands.Cog):
             ban_type=ban_type,
         )
 
-        with db_session(interaction.user) as session:
-            session.add(sersi_case)
-            session.commit()
-
-            sersi_case = session.query(BanCase).filter_by(id=sersi_case.id).first()
-
         match ban_type:
             case "urgent":
                 vote_type = self.config.voting["urgent-ban"]
@@ -273,6 +264,7 @@ class BanSystem(commands.Cog):
                         .join(BanCase, BanCase.id == VoteDetails.case_id)
                         .filter(
                             BanCase.offender == offender.id,
+                            
                             VoteDetails.vote_type == "urgent-ban",
                             VoteDetails.outcome.is_(None),
                         )
@@ -295,6 +287,7 @@ class BanSystem(commands.Cog):
                         started_by=interaction.user.id,
                     )
 
+                    session.add(sersi_case)
                     session.add(vote_case)
                     session.commit()
 
@@ -316,35 +309,98 @@ class BanSystem(commands.Cog):
                 )
 
             case "emergency":
-                ban_confirmation = SersiEmbed(
+                if not await confirm(
+                    interaction,
                     title=f"Confirm Ban of **{offender.name}** ({offender.id})",
                     description="Are you sure that you wish to proceed?",
-                    fields={
+                    embed_fields={
                         "Moderator": interaction.user.mention,
                         "Offender": offender.mention,
                         "Offence": offence,
                         "Offence Details": detail,
                     },
+                    ephemeral=True,
+                    true_button=ButtonPreset.YES_DANGER,
+                    false_button=ButtonPreset.NO_PRIMARY,
+                ):
+                    return
+
+                try:
+                    await offender.send(
+                        embed=SersiEmbed(
+                            title=f"You have been banned in {interaction.guild.name}!",
+                            description=f"You have been banned in {interaction.guild.name}. The details about the ban are "
+                            "below. If you would like to appeal your ban you can do so:\n"
+                            "https://appeals.wickbot.com",
+                            fields={
+                                "Offence:": f"`{sersi_case.offence}`",
+                                "Detail:": f"`{sersi_case.details}`",
+                            },
+                            footer="Sersi Ban",
+                        ).set_thumbnail(interaction.guild.icon.url)
+                    )
+                    not_sent = False
+
+                except (nextcord.Forbidden, nextcord.HTTPException, AttributeError):
+                    not_sent = True
+
+                await interaction.guild.ban(
+                    offender,
+                    reason=f"{[sersi_case.details]} -{interaction.user.name}",
+                    delete_message_days=0,
                 )
 
-                approve = Button(
-                    label="Yes",
-                    style=nextcord.ButtonStyle.red,
-                    custom_id=f"ban-confirm:{sersi_case.id}",
+                logging_embed: SersiEmbed = create_case_embed(
+                    sersi_case, interaction=interaction, config=self.config
                 )
 
-                object = Button(
-                    label="No",
-                    style=nextcord.ButtonStyle.blurple,
-                    custom_id=f"ban-no:{sersi_case.id}",
+                await interaction.guild.get_channel(self.config.channels.mod_logs).send(
+                    embed=logging_embed
+                )
+                await interaction.guild.get_channel(self.config.channels.logging).send(
+                    embed=logging_embed
                 )
 
-                button_view = View(timeout=10800)
-                button_view.add_item(approve)
-                button_view.add_item(object)
+                with db_session(interaction.user) as session:
+                    sersi_case.active = True
+                    session.add(sersi_case)
+                    session.commit()
 
-                await interaction.followup.send(
-                    embed=ban_confirmation, view=button_view
+                result: nextcord.WebhookMessage = await interaction.message.edit(
+                    embed=SersiEmbed(
+                        title="Ban Result:",
+                        fields={
+                            "Offence:": f"`{sersi_case.offence}`",
+                            "Detail:": f"`{sersi_case.details}`",
+                            "Member:": f"{offender.mention} ({offender.id})",
+                            "DM Sent:": (
+                                self.config.emotes.fail
+                                if not_sent
+                                else self.config.emotes.success
+                            ),
+                            "Sent for Review:": self.config.emotes.success,
+                        },
+                        footer="Sersi Ban",
+                    ),
+                )
+
+                (
+                    reviewer_role,
+                    reviewed_role,
+                    review_embed,
+                    review_channel,
+                ) = create_alert(
+                    interaction.user,
+                    self.config,
+                    logging_embed,
+                    sersi_case,
+                    result.jump_url,
+                )
+
+                await review_channel.send(
+                    f"{reviewer_role.mention} a ban by a {reviewed_role.mention} has been taken and should now be reviewed.",
+                    embed=review_embed,
+                    view=AlertView(self.config, reviewer_role, sersi_case),
                 )
 
     @ban.subcommand(description="Used to ban a user")
@@ -441,134 +497,6 @@ class BanSystem(commands.Cog):
             f"{self.config.emotes.success} User has been unbanned successfully!",
             embed=unbanned_embed,
         )
-
-    @commands.Cog.listener()
-    async def on_interaction(self, interaction: nextcord.Interaction):
-        try:
-            btn_id = interaction.data["custom_id"]
-        except KeyError:
-            return
-
-        match btn_id.split(":", 1):
-            case ["ban-confirm", uuid]:
-                if not await permcheck(interaction, is_full_mod):
-                    return
-
-                await interaction.message.edit(view=None)
-
-                sersi_case: BanCase = get_case_by_id(uuid)
-                offender: nextcord.Member = interaction.guild.get_member(
-                    sersi_case.offender
-                )
-
-                try:
-                    await offender.send(
-                        embed=SersiEmbed(
-                            title=f"You have been banned in {interaction.guild.name}!",
-                            description=f"You have been banned in {interaction.guild.name}. The details about the ban are "
-                            "below. If you would like to appeal your ban you can do so:\n"
-                            "https://appeals.wickbot.com",
-                            fields={
-                                "Offence:": f"`{sersi_case.offence}`",
-                                "Detail:": f"`{sersi_case.details}`",
-                            },
-                            footer="Sersi Ban",
-                        ).set_thumbnail(interaction.guild.icon.url)
-                    )
-                    not_sent = False
-
-                except (nextcord.Forbidden, nextcord.HTTPException, AttributeError):
-                    not_sent = True
-
-                logging_embed: SersiEmbed = create_case_embed(
-                    sersi_case, interaction=interaction, config=self.config
-                )
-
-                await interaction.guild.get_channel(self.config.channels.mod_logs).send(
-                    embed=logging_embed
-                )
-                await interaction.guild.get_channel(self.config.channels.logging).send(
-                    embed=logging_embed
-                )
-
-                offender: nextcord.User = await interaction.client.fetch_user(
-                    sersi_case.offender
-                )
-
-                await interaction.guild.ban(
-                    offender,
-                    reason=f"{[sersi_case.details]} -{interaction.user.name}",
-                    delete_message_days=0,
-                )
-
-                with db_session(interaction.user) as session:
-                    case: BanCase = session.query(BanCase).filter_by(id=uuid).first()
-                    case.active = True
-                    session.commit()
-
-                    case: BanCase = session.query(BanCase).filter_by(id=uuid).first()
-
-                result: nextcord.WebhookMessage = await interaction.message.edit(
-                    embed=SersiEmbed(
-                        title="Ban Result:",
-                        fields={
-                            "Offence:": f"`{sersi_case.offence}`",
-                            "Detail:": f"`{sersi_case.details}`",
-                            "Member:": f"{offender.mention} ({offender.id})",
-                            "DM Sent:": (
-                                self.config.emotes.fail
-                                if not_sent
-                                else self.config.emotes.success
-                            ),
-                            "Sent for Review:": self.config.emotes.success,
-                        },
-                        footer="Sersi Ban",
-                    ),
-                )
-
-                (
-                    reviewer_role,
-                    reviewed_role,
-                    review_embed,
-                    review_channel,
-                ) = create_alert(
-                    interaction.user,
-                    self.config,
-                    logging_embed,
-                    sersi_case,
-                    result.jump_url,
-                )
-
-                await review_channel.send(
-                    f"{reviewer_role.mention} a ban by a {reviewed_role.mention} has been taken and should now be reviewed.",
-                    embed=review_embed,
-                    view=AlertView(self.config, reviewer_role, sersi_case),
-                )
-
-            case ["ban-no", uuid]:
-                if not await permcheck(interaction, is_mod):
-                    return
-
-                sersi_case: BanCase = get_case_by_id(uuid)
-                offender: nextcord.Member = interaction.guild.get_member(
-                    sersi_case.offender
-                )
-
-                with db_session(interaction.user) as session:
-                    case: BanCase = session.query(BanCase).filter_by(id=uuid).first()
-                    session.delete(case)
-
-                    result: nextcord.WebhookMessage = await interaction.message.edit(
-                        embed=SersiEmbed(
-                            title="Ban Cancelled:",
-                            description=f"{self.config.emotes.success} Ban has been cancelled!",
-                            footer="Sersi Ban",
-                        ),
-                    )
-
-                    await interaction.message.edit(view=None)
-
-                    session.commit()
 
     @add.on_autocomplete("offence")
     async def search_offences(self, interaction: nextcord.Interaction, offence: str):
