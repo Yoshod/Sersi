@@ -230,14 +230,15 @@ class TextArea(TextInput):
         label: str,
         placeholder: str = None,
         required: bool = True,
+        min_length: int = None,
         max_length: int = 1024,
     ):
         super().__init__(
             label,
             placeholder=placeholder,
             required=required,
+            min_length=min_length,
             max_length=max_length,
-            min_length=8 if required else 0,
             style=nextcord.TextInputStyle.paragraph,
         )
 
@@ -257,12 +258,13 @@ class TextField(TextInput):
         label: str,
         placeholder: str = None,
         required: bool = True,
+        min_length: int = None,
         max_length: int = 1024,
     ):
         super().__init__(
             label,
             placeholder=placeholder,
             required=required,
+            min_length=min_length,
             max_length=max_length,
-            min_length=8 if required else 0,
         )

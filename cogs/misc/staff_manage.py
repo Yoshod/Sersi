@@ -1782,7 +1782,9 @@ class Staff(commands.Cog):
 
     @commands.Cog.listener()
     async def on_interaction(self, interaction: nextcord.Interaction):
-        self.bot.loop.create_task(self.update_mod_last_seen(interaction.user))
+        if interaction.guild is not None:
+            self.bot.loop.create_task(self.update_mod_last_seen(interaction.user))
+
         if interaction.data is None or interaction.data.get("custom_id") is None:
             return
         if not interaction.data["custom_id"].startswith(

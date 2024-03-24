@@ -17,6 +17,7 @@ from utils.tickets import (
 )
 
 from utils.database import db_session, Ticket, TicketCategory, TicketSurvey
+from utils.dialog import TextArea, modal_dialog
 from utils.config import Configuration
 from utils.sersi_embed import SersiEmbed
 from utils.views import PageView
@@ -326,7 +327,7 @@ class TicketingSystem(commands.Cog):
         )
 
     @ticket.subcommand(
-        description="Used to get ticket information from database record"
+        description="Used to get ticket information from database record",
     )
     async def info(
         self,
@@ -455,6 +456,79 @@ class TicketingSystem(commands.Cog):
 
         await view.send_followup(interaction)
 
+    @ticket.subcommand(
+        description="Send a message to ticket channel while timed out"
+    )
+    async def send_message(
+        self,
+        interaction: nextcord.Interaction,
+        ticket: str = nextcord.SlashOption(
+            name="ticket",
+            description="The ticket to send message to",
+        ),
+    ):
+        guild = self.bot.get_guild(self.config.guilds.main)
+        member = guild.get_member(
+            interaction.user.id
+        )
+        if member is None:
+            await interaction.response.send_message(
+                f"{self.config.emotes.fail} You are not a member of The Crossroads.",
+                ephemeral=True,
+            )
+            return
+        if member.communication_disabled_until is None and not self.config.bot.dev_mode:
+            await interaction.response.send_message(
+                f"{self.config.emotes.fail} You are currently not timed out, please use ticket channel instead.",
+                ephemeral=True,
+            )
+            return
+
+        with db_session(interaction.user) as session:
+            ticket: Ticket = (
+                session.query(Ticket)
+                .filter_by(id=ticket, creator=interaction.user.id, active=True)
+                .first()
+            )
+            if ticket is None:
+                await interaction.response.send_message(
+                    f"{self.config.emotes.fail} No such open ticket found.",
+                    ephemeral=True,
+                )
+                return
+
+            channel = guild.get_channel(ticket.channel)
+            if channel is None:
+                await interaction.response.send_message(
+                    f"{self.config.emotes.fail} could not find ticket channel, please contact administartor.",
+                    ephemeral=True,
+                )
+                return
+            
+            response = await modal_dialog(
+                interaction,
+                f"Send Message to {channel.name}",
+                message=TextArea(
+                    "Message",
+                    required=True,
+                    placeholder="please provide a message",
+                    max_length=4000,
+                ),
+            )
+
+            embed = SersiEmbed(
+                author=member,
+                description=response["message"],
+                footer=f"{interaction.user} ({interaction.user.id})",
+                footer_icon=interaction.user.avatar.url,
+                colour=member.top_role.colour,
+            )
+
+            message = await channel.send(embed=embed)
+            await interaction.followup.send(
+                f"{self.config.emotes.success} Your message has been sent! {message.jump_url}",
+            )
+
     @create.on_autocomplete("category")
     @close.on_autocomplete("category")
     @recategorize.on_autocomplete("category")
@@ -522,6 +596,21 @@ class TicketingSystem(commands.Cog):
                         allowed_escalation_levels(interaction.user)
                     ),
                 )
+                .group_by(Ticket.id)
+                .limit(25)
+                .all()
+            )
+            return [ticket.id for ticket in tickets]
+        
+    @send_message.on_autocomplete("ticket")
+    async def ticket_send_message_autocomplete(
+        self, interaction: nextcord.Interaction, ticket: str
+    ):
+        with db_session(interaction.user) as session:
+            tickets: list[Ticket] = (
+                session.query(Ticket)
+                .filter_by(creator=interaction.user.id, active=True)
+                .filter(Ticket.id.ilike(f"%{ticket}%"))
                 .group_by(Ticket.id)
                 .limit(25)
                 .all()
