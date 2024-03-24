@@ -137,7 +137,7 @@ class Voting(commands.Cog):
                     continue
 
                 colour = None
-                if diff > vote_type.difference and votes.get("yes", 0) > threshold:
+                if diff >= vote_type.difference and votes.get("yes", 0) >= threshold:
                     details.outcome = "Accepted"
                     colour = nextcord.Colour.brand_green()
                 elif diff <= -1:
