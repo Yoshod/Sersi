@@ -261,6 +261,8 @@ class WarningSystem(commands.Cog):
 
             if case:
                 session.delete(case)
+                session.commit()
+
                 await interaction.guild.get_channel(self.config.channels.logging).send(
                     embed=SersiEmbed(
                         title="Warning Deleted",
@@ -277,27 +279,6 @@ class WarningSystem(commands.Cog):
 
                 await interaction.followup.send(
                     f"{self.config.emotes.success} Warning {case_id} successfully deleted."
-                )
-
-                session.commit()
-
-            else:
-                await interaction.guild.get_channel(self.config.channels.logging).send(
-                    embed=SersiEmbed(
-                        title="Warning Deletion Attempted",
-                    )
-                    .add_field(name="Warn ID", value=f"`{case_id}`", inline=True)
-                    .add_field(
-                        name="Administrator",
-                        value=f"{interaction.user.mention}",
-                        inline=True,
-                    )
-                    .add_field(name="Reason", value=f"`{reason}`", inline=False)
-                    .set_thumbnail(interaction.user.display_avatar.url)
-                )
-
-                await interaction.followup.send(
-                    f"{self.config.emotes.fail} Warning {case_id} has not been deleted."
                 )
 
     @add.on_autocomplete("offence")

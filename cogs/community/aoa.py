@@ -298,7 +298,6 @@ class AdultAccess(commands.Cog):
                     blacklist="Adult Only Access",
                     reason=reason,
                 )
-                session.add(case)
 
                 if related_warning is not None:
                     if (
@@ -327,6 +326,7 @@ class AdultAccess(commands.Cog):
                         ):
                             related_warning = last_warning.id
 
+                session.add(case)
                 if related_warning is not None:
                     session.add(
                         RelatedCase(
@@ -334,7 +334,6 @@ class AdultAccess(commands.Cog):
                             related_id=case.id,
                         )
                     )
-
                 session.commit()
 
             await interaction.followup.send(

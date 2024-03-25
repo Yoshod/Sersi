@@ -602,6 +602,8 @@ class Cases(commands.Cog):
                         )
                         return
 
+                    session.commit()
+
                     offender = interaction.guild.get_member(sersi_case.offender)
 
                     try:
@@ -617,7 +619,6 @@ class Cases(commands.Cog):
                     except (nextcord.Forbidden, nextcord.HTTPException):
                         pass
 
-                    session.commit()
                     sersi_case = (
                         session.query(TimeoutCase).filter_by(id=sersi_case.id).first()
                     )

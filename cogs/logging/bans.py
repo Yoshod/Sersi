@@ -46,6 +46,7 @@ class BanUnban(commands.Cog):
                     ban_type="emergency",
                 )
                 session.add(sersi_case)
+                session.commit()
 
                 await entry.guild.get_channel(self.config.channels.alert).send(
                     embed=SersiEmbed(

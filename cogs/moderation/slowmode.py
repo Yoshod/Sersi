@@ -178,17 +178,14 @@ class SlowmodeCog(commands.Cog):
                 session.delete(existing_slowmode)
                 session.commit()
 
-            if user_record.branch == Branch.ADMIN.value:
-                user_record.branch = Branch.MOD.value
-
             new_slowmode = Slowmode(
                 channel=channel.id,
                 slowmode=duration_slowmode,
                 added_by=interaction.user.id,
                 origin=(
-                    Branch.MOD.value
-                    if user_record.branch == Branch.MOD.value
-                    else Branch.CET.value
+                    Branch.CET.value
+                    if user_record.branch == Branch.CET.value
+                    else Branch.MOD.value
                 ),
                 added_reason=reason,
                 scheduled_removal=slowmode_end,
@@ -304,13 +301,10 @@ class SlowmodeCog(commands.Cog):
             embed=slowmode_log
         )
 
-        if user_record.branch == Branch.ADMIN.value:
-            user_record.branch = Branch.MOD.value
-
         slowmode_alert: nextcord.Embed = await determine_embed_type(
             title="Slowmode Removed",
             body=f"The slowmode has been removed from {channel.mention}.",
-            embed_type=f"{'moderator' if user_record.branch == Branch.MOD.value else 'cet'}",
+            embed_type=f"{'cet' if user_record.branch == Branch.CET.value else 'moderator'}",
             interaction=interaction,
             config=self.config,
             media_url=None,
@@ -355,17 +349,16 @@ class SlowmodeCog(commands.Cog):
                         ephemeral=True,
                     )
 
-                    with db_session() as session:
-                        new_slowmode = Slowmode(
-                            channel=channel.id,
-                            slowmode=slowmode,
-                            added_by=self.bot.user.id,
-                            added_reason="Unknown (Slowmode not set via Sersi)",
-                            origin=Branch.MOD.value,
-                        )
+                    new_slowmode = Slowmode(
+                        channel=channel.id,
+                        slowmode=slowmode,
+                        added_by=self.bot.user.id,
+                        added_reason="Unknown (Slowmode not set via Sersi)",
+                        origin=Branch.MOD.value,
+                    )
 
-                        session.add(new_slowmode)
-                        session.commit()
+                    session.add(new_slowmode)
+                    session.commit()
 
                     return
 

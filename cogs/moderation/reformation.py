@@ -176,8 +176,8 @@ class Reformation(commands.Cog):
             description=f"Moderator {interaction.user.mention} ({interaction.user.id}) has sent user {member.mention}"
             f" ({member.id}) to reformation.",
             fields={
-            "Offence:": offence,
-            "Details:": details,
+                "Offence:": offence,
+                "Details:": details,
             },
             color=nextcord.Color.from_rgb(237, 91, 6),
         )
@@ -185,21 +185,17 @@ class Reformation(commands.Cog):
         message = await interaction.channel.send(embed=embed)
 
         embed.add_field(name="Context:", value=message.jump_url, inline=False)
-       
+
         channel = interaction.guild.get_channel(self.config.channels.logging)
         await channel.send(embed=embed)
 
         channel = interaction.guild.get_channel(self.config.channels.mod_logs)
         await channel.send(embed=embed)
 
-        channel = interaction.guild.get_channel(
-            self.config.channels.teachers_lounge
-        )
+        channel = interaction.guild.get_channel(self.config.channels.teachers_lounge)
         await channel.send(embed=embed)
 
-        channel = interaction.guild.get_channel(
-            self.config.channels.reform_public_log
-        )
+        channel = interaction.guild.get_channel(self.config.channels.reform_public_log)
         await channel.send(embed=embed)
 
     @reformation_needed.on_autocomplete("offence")
@@ -452,15 +448,11 @@ class Reformation(commands.Cog):
         channel = interaction.guild.get_channel(self.config.channels.mod_logs)
         await channel.send(embed=embed)
 
-        channel = interaction.guild.get_channel(
-            self.config.channels.reform_public_log
-        )
+        channel = interaction.guild.get_channel(self.config.channels.reform_public_log)
         await channel.send(embed=embed)
 
         # transcript
-        channel = interaction.guild.get_channel(
-            self.config.channels.teachers_lounge
-        )
+        channel = interaction.guild.get_channel(self.config.channels.teachers_lounge)
 
         transcript = await make_transcript(cell_channel, channel, embed)
         if transcript is None:
@@ -605,7 +597,9 @@ class Reformation(commands.Cog):
                         )
                         if case is None:
                             return
+
                         case.state = "failed"
+                        session.commit()
 
                         ban_case = (
                             session.query(BanCase)
@@ -674,6 +668,7 @@ class Reformation(commands.Cog):
                     .first()
                 )
                 case.state = "failed"
+                session.commit()
 
                 session.add(
                     ban_case := BanCase(
@@ -725,6 +720,7 @@ class Reformation(commands.Cog):
         with db_session() as session:
             case: ReformationCase = session.query(ReformationCase).get(details.case_id)
             case.state = "failed"
+            session.commit()
 
             member = guild.get_member(case.offender)
 

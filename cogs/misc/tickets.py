@@ -150,15 +150,13 @@ class TicketingSystem(commands.Cog):
             if not await ticket_permcheck(interaction, ticket.escalation_level):
                 return
 
-            await interaction.response.defer(ephemeral=True)
-
             if category:
                 ticket.category = category
             if subcategory:
                 ticket.subcategory = subcategory
-            ticket.active = False
-            ticket.closing_comment = close_reason
-            ticket.closed = datetime.utcnow()
+            session.commit()
+
+            await interaction.response.defer(ephemeral=True)
 
             channel = interaction.guild.get_channel(ticket.channel)
             if channel is None:
@@ -180,6 +178,10 @@ class TicketingSystem(commands.Cog):
                     ephemeral=True,
                 )
                 return
+
+            ticket.active = False
+            ticket.closing_comment = close_reason
+            ticket.closed = datetime.utcnow()
             session.commit()
 
             if do_survey:
@@ -266,7 +268,6 @@ class TicketingSystem(commands.Cog):
                 return
 
             ticket.escalation_level = escalation_level
-
             session.commit()
 
         await interaction.followup.send(
@@ -456,9 +457,7 @@ class TicketingSystem(commands.Cog):
 
         await view.send_followup(interaction)
 
-    @ticket.subcommand(
-        description="Send a message to ticket channel while timed out"
-    )
+    @ticket.subcommand(description="Send a message to ticket channel while timed out")
     async def send_message(
         self,
         interaction: nextcord.Interaction,
@@ -468,9 +467,7 @@ class TicketingSystem(commands.Cog):
         ),
     ):
         guild = self.bot.get_guild(self.config.guilds.main)
-        member = guild.get_member(
-            interaction.user.id
-        )
+        member = guild.get_member(interaction.user.id)
         if member is None:
             await interaction.response.send_message(
                 f"{self.config.emotes.fail} You are not a member of The Crossroads.",
@@ -504,7 +501,7 @@ class TicketingSystem(commands.Cog):
                     ephemeral=True,
                 )
                 return
-            
+
             response = await modal_dialog(
                 interaction,
                 f"Send Message to {channel.name}",
@@ -601,7 +598,7 @@ class TicketingSystem(commands.Cog):
                 .all()
             )
             return [ticket.id for ticket in tickets]
-        
+
     @send_message.on_autocomplete("ticket")
     async def ticket_send_message_autocomplete(
         self, interaction: nextcord.Interaction, ticket: str

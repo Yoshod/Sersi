@@ -514,6 +514,7 @@ class BanSystem(commands.Cog):
         with db_session() as session:
             case: BanCase = session.query(BanCase).get(detail.case_id)
             case.active = True
+            session.commit()
 
             user: nextcord.Member = guild.get_member(case.offender)
             if user is None:
@@ -553,7 +554,6 @@ class BanSystem(commands.Cog):
                 user, reason=f"Sersi Ban {case.details}", delete_message_days=0
             )
 
-            session.commit()
             case: BanCase = session.query(BanCase).get(detail.case_id)
 
         # logging

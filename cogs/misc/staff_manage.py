@@ -1374,6 +1374,7 @@ class Staff(commands.Cog):
                         slot.end += adjustment
 
                 settings.timezone = timezone
+                session.commit()
 
             if dynamic_availability is not None:
                 settings.dynamic_availability = dynamic_availability
