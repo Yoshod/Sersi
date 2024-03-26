@@ -76,6 +76,20 @@ class TicketingSystem(commands.Cog):
             )
             return
 
+        member = (
+            interaction.user
+            if interaction.guild is not None
+            else self.bot.get_guild(self.config.guilds.main).get_member(
+                interaction.user.id
+            )
+        )
+        if category != "Appeal" and member.communication_disabled_until is not None:
+            await interaction.response.send_message(
+                f"{self.config.emotes.fail} You can only open an Appeal ticket while timed out.",
+                ephemeral=True,
+            )
+            return
+
         await interaction.response.defer(ephemeral=True)
 
         channel = await ticket_create(
@@ -464,6 +478,7 @@ class TicketingSystem(commands.Cog):
         self,
         interaction: nextcord.Interaction,
         ticket: str = nextcord.SlashOption(
+            required=False,
             name="ticket",
             description="The ticket to send message to",
         ),
@@ -483,15 +498,23 @@ class TicketingSystem(commands.Cog):
             )
             return
 
+        query_filter = {
+            "creator": interaction.user.id,
+            "active": True,
+            "category": "Appeal",
+        }
+        if ticket:
+            query_filter["id"] = ticket
         with db_session(interaction.user) as session:
             ticket: Ticket = (
                 session.query(Ticket)
-                .filter_by(id=ticket, creator=interaction.user.id, active=True)
+                .filter_by(**query_filter)
+                .order_by(Ticket.created.desc())
                 .first()
             )
         if ticket is None:
             await interaction.response.send_message(
-                f"{self.config.emotes.fail} No such open ticket found.",
+                f"{self.config.emotes.fail} No such open Appeal ticket found.",
                 ephemeral=True,
             )
             return
@@ -503,9 +526,11 @@ class TicketingSystem(commands.Cog):
                 ephemeral=True,
             )
             return
-        
+
         if channel.slowmode_delay > 0 and channel.id in self.last_message:
-            slowed_until = self.last_message[channel.id] + timedelta(seconds=channel.slowmode_delay)
+            slowed_until = self.last_message[channel.id] + timedelta(
+                seconds=channel.slowmode_delay
+            )
             if datetime.utcnow() < slowed_until:
                 await interaction.response.send_message(
                     f"{self.config.emotes.fail} You have to wait until {format_dt(slowed_until, 'T')} ({format_dt(slowed_until, 'R')}) to send another message.",
@@ -618,7 +643,7 @@ class TicketingSystem(commands.Cog):
         with db_session(interaction.user) as session:
             tickets: list[Ticket] = (
                 session.query(Ticket)
-                .filter_by(creator=interaction.user.id, active=True)
+                .filter_by(creator=interaction.user.id, active=True, category="Appeal")
                 .filter(Ticket.id.ilike(f"%{ticket}%"))
                 .group_by(Ticket.id)
                 .limit(25)
