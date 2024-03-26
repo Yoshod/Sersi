@@ -1,7 +1,8 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import nextcord
 from nextcord.ext import commands
+from nextcord.utils import format_dt
 
 from utils.tickets import (
     ticket_check,
@@ -27,6 +28,7 @@ class TicketingSystem(commands.Cog):
     def __init__(self, bot: commands.Bot, config: Configuration):
         self.bot = bot
         self.config = config
+        self.last_message: dict[int, datetime] = {}
 
     @nextcord.slash_command(
         dm_permission=True,
@@ -487,44 +489,54 @@ class TicketingSystem(commands.Cog):
                 .filter_by(id=ticket, creator=interaction.user.id, active=True)
                 .first()
             )
-            if ticket is None:
+        if ticket is None:
+            await interaction.response.send_message(
+                f"{self.config.emotes.fail} No such open ticket found.",
+                ephemeral=True,
+            )
+            return
+
+        channel = guild.get_channel(ticket.channel)
+        if channel is None:
+            await interaction.response.send_message(
+                f"{self.config.emotes.fail} Could not find ticket channel, please contact administartor.",
+                ephemeral=True,
+            )
+            return
+        
+        if channel.slowmode_delay > 0 and channel.id in self.last_message:
+            slowed_until = self.last_message[channel.id] + timedelta(seconds=channel.slowmode_delay)
+            if datetime.utcnow() < slowed_until:
                 await interaction.response.send_message(
-                    f"{self.config.emotes.fail} No such open ticket found.",
+                    f"{self.config.emotes.fail} You have to wait until {format_dt(slowed_until, 'T')} ({format_dt(slowed_until, 'R')}) to send another message.",
                     ephemeral=True,
                 )
                 return
+        self.last_message[channel.id] = datetime.utcnow()
 
-            channel = guild.get_channel(ticket.channel)
-            if channel is None:
-                await interaction.response.send_message(
-                    f"{self.config.emotes.fail} could not find ticket channel, please contact administartor.",
-                    ephemeral=True,
-                )
-                return
+        response = await modal_dialog(
+            interaction,
+            f"Send Message to {channel.name}",
+            message=TextArea(
+                "Message",
+                required=True,
+                placeholder="please provide a message",
+                max_length=4000,
+            ),
+        )
 
-            response = await modal_dialog(
-                interaction,
-                f"Send Message to {channel.name}",
-                message=TextArea(
-                    "Message",
-                    required=True,
-                    placeholder="please provide a message",
-                    max_length=4000,
-                ),
-            )
+        embed = SersiEmbed(
+            author=member,
+            description=response["message"],
+            footer=f"{interaction.user} ({interaction.user.id})",
+            footer_icon=interaction.user.avatar.url,
+            colour=member.top_role.colour,
+        )
 
-            embed = SersiEmbed(
-                author=member,
-                description=response["message"],
-                footer=f"{interaction.user} ({interaction.user.id})",
-                footer_icon=interaction.user.avatar.url,
-                colour=member.top_role.colour,
-            )
-
-            message = await channel.send(embed=embed)
-            await interaction.followup.send(
-                f"{self.config.emotes.success} Your message has been sent! {message.jump_url}",
-            )
+        message = await channel.send(embed=embed)
+        await interaction.followup.send(
+            f"{self.config.emotes.success} Your message has been sent! {message.jump_url}",
+        )
 
     @create.on_autocomplete("category")
     @close.on_autocomplete("category")
