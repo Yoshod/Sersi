@@ -572,7 +572,7 @@ class StaffRoles(_Base):
 
 
 @dataclass
-class PersonalSettings(JSONWizard):
+class StaffPreferences(JSONWizard):
     timezone: int = 0
     dynamic_availability: int = 15
 
@@ -586,7 +586,7 @@ class PersonalSettings(JSONWizard):
             and hasattr(self, "member_record")
             and self.member_record is not None
         ):
-            self.member_record.personal_settings = self.to_json()
+            self.member_record.preferences = self.to_json()
 
 
 class StaffMembers(_Base):
@@ -602,17 +602,17 @@ class StaffMembers(_Base):
     removed_by = Column(Integer, default=None)
     discharge_type = Column(String, default=None)
     discharge_reason = Column(String, default=None)
-    personal_settings = Column(String, default="{}")
+    preferences = Column(String, default="{}")
 
     @property
-    def settings(self) -> PersonalSettings:
-        settings = PersonalSettings.from_json(self.personal_settings)
-        settings.member_record = self
-        return settings
+    def pref(self) -> StaffPreferences:
+        preferences = StaffPreferences.from_json(self.preferences)
+        preferences.member_record = self
+        return preferences
 
-    @settings.setter
-    def settings(self, value: PersonalSettings) -> None:
-        self.personal_settings = value.to_json()
+    @pref.setter
+    def pref(self, value: StaffPreferences) -> None:
+        self.preferences = value.to_json()
 
 
 class ModerationRecords(_Base):

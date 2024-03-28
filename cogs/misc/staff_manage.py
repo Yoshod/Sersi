@@ -1323,8 +1323,8 @@ class Staff(commands.Cog):
             f"{self.config.emotes.success} Record has been modified."
         )
 
-    @staff.subcommand(description="Change personal settings")
-    async def personal_settings(
+    @staff.subcommand(description="View or modify your Sersi preferences")
+    async def preferences(
         self,
         interaction: nextcord.Interaction,
         timezone: int = SlashOption(
@@ -1344,26 +1344,27 @@ class Staff(commands.Cog):
 
         await interaction.response.defer(ephemeral=True)
 
+        updated = []
         with db_session(interaction.user) as session:
-            settings = (
+            preferences = (
                 session.query(StaffMembers)
                 .filter_by(member=interaction.user.id)
                 .first()
-            ).settings
+            ).pref
 
-            if timezone is not None and timezone != settings.timezone:
+            if timezone is not None and timezone != preferences.timezone:
                 if await confirm(
                     interaction,
                     title="Time zone change",
                     description=(
-                        f"You are changing your time zone from UTC{settings.timezone:+d} to UTC{timezone:+d}. "
+                        f"You are changing your time zone from UTC{preferences.timezone:+d} to UTC{timezone:+d}. "
                         "Do you want to adjust your availability timeslots to match the new time zone?"
                     ),
                     true_button=ButtonPreset.YES_PRIMARY,
                     false_button=ButtonPreset.NO_NEUTRAL,
                     ephemeral=True,
                 ):
-                    adjustment = (timezone - settings.timezone) * 60
+                    adjustment = (timezone - preferences.timezone) * 60
                     timeslots = (
                         session.query(ModeratorAvailability)
                         .filter_by(member=interaction.user.id, window_type="Timeslot")
@@ -1373,22 +1374,67 @@ class Staff(commands.Cog):
                         slot.start += adjustment
                         slot.end += adjustment
 
-                settings.timezone = timezone
+                preferences.timezone = timezone
                 session.commit()
+                updated.append("Timezone")
 
-            if dynamic_availability is not None:
-                settings.dynamic_availability = dynamic_availability
+            if (
+                dynamic_availability is not None
+                and dynamic_availability != preferences.dynamic_availability
+            ):
+                preferences.dynamic_availability = dynamic_availability
                 if dynamic_availability == 0:
                     session.query(ModeratorAvailability).filter_by(
                         member=interaction.user.id, window_identifier="Last Seen"
                     ).delete()
+                session.commit()
+                updated.append("Dynamic Availability")
 
-            session.commit()
+            fields = {
+                "Timezone": f"UTC{preferences.timezone:+d}",
+                "Dynamic Availability": (
+                    f"{preferences.dynamic_availability} minutes"
+                    if preferences.dynamic_availability
+                    else self.config.emotes.fail
+                ),
+            }
+
+        embed = SersiEmbed(
+            title="Preferences",
+            thumbnail_url=interaction.user.display_avatar.url,
+        )
+
+        for field, value in fields.items():
+            embed.add_field(
+                name=field
+                if field not in updated
+                else f"{field} {self.config.emotes.success}",
+                value=value,
+                inline=False, # TODO: make inline when more settings are added
+            )
 
         await interaction.followup.send(
-            f"{self.config.emotes.success} Your settings have been updated.",
+            f"{self.config.emotes.success} Your preferences have been updated."
+            if updated
+            else None,
+            embed=embed,
             ephemeral=True,
         )
+
+        if not updated:
+            return
+        
+        log_embed = SersiEmbed(
+            title="Preferences Updated",
+            description=f"{interaction.user.mention} has updated their preferences.",
+            fields={field: fields[field] for field in updated},
+            thumbnail_url=interaction.user.display_avatar.url,
+        )
+
+        await interaction.guild.get_channel(self.config.channels.logging).send(
+            embed=log_embed
+        )
+
 
     @staff.subcommand(description="Moderator Availability")
     async def availability(self, interaction: nextcord.Interaction):
@@ -1455,7 +1501,7 @@ class Staff(commands.Cog):
                 session.query(StaffMembers)
                 .filter_by(member=interaction.user.id)
                 .first()
-            ).settings.timezone
+            ).pref.timezone
 
             for day in days:
                 base_offset = DAYS_ORDINAL[day] * 1440 - timezone * 60
@@ -1827,7 +1873,7 @@ class Staff(commands.Cog):
             if staff is None:
                 return
 
-            timeout = staff.settings.dynamic_availability
+            timeout = staff.pref.dynamic_availability
             if not timeout:
                 return
 
@@ -1857,7 +1903,10 @@ class Staff(commands.Cog):
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction: nextcord.Reaction, user: nextcord.Member):
         if ignored_message(
-            self.config, reaction.message, ignore_channels=False, ignore_categories=False
+            self.config,
+            reaction.message,
+            ignore_channels=False,
+            ignore_categories=False,
         ):
             return
         await self.update_mod_last_seen(user)
@@ -1867,18 +1916,21 @@ class Staff(commands.Cog):
         self, reaction: nextcord.Reaction, user: nextcord.Member
     ):
         if ignored_message(
-            self.config, reaction.message, ignore_channels=False, ignore_categories=False
+            self.config,
+            reaction.message,
+            ignore_channels=False,
+            ignore_categories=False,
         ):
             return
         await self.update_mod_last_seen(user)
-    
+
     @commands.Cog.listener()
     async def on_guild_audit_log_entry_creation(self, entry: nextcord.AuditLogEntry):
         if not isinstance(entry.target, nextcord.Member):
             return
         if not is_mod(entry.user) or entry.target == entry.user:
             return
-        
+
         await self.update_mod_last_seen(entry.user)
 
     @tasks.loop(minutes=1)

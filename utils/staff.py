@@ -235,7 +235,7 @@ def get_staff_embed(staff_id: int, interaction: nextcord.Interaction):
         if staff_member:
             embed = SersiEmbed(
                 title="Staff Member",
-                description=f"**Staff Information**\n"
+                description="**Staff Information**\n"
                 f"{CONFIG.emotes.blank}**Member:** {interaction.guild.get_member(staff_member.member).mention} ({staff_member.member})\n"
                 f"{CONFIG.emotes.blank}**Branch:** {staff_member.branch}\n"
                 f"{CONFIG.emotes.blank}**Role:** {interaction.guild.get_role(staff_member.role).mention}\n"
@@ -243,6 +243,19 @@ def get_staff_embed(staff_id: int, interaction: nextcord.Interaction):
                 f"{CONFIG.emotes.blank}**Date Added:** {get_discord_timestamp(staff_member.joined, relative=True)}\n"
                 f"{CONFIG.emotes.blank}**Active:** {CONFIG.emotes.success if staff_member.active else CONFIG.emotes.fail}\n",
             )
+            if staff_member.preferences:
+                preferences = staff_member.pref
+
+                embed.description += "**Preferences**\n"
+                embed.description += (
+                    f"{CONFIG.emotes.blank}**Timezone:** UTC{preferences.timezone:+d}\n"
+                )
+
+                if (
+                    staff_member.branch in [Branch.MOD.value, Branch.ADMIN.value]
+                    and preferences.dynamic_availability
+                ):
+                    embed.description += f"{CONFIG.emotes.blank}**Dynamic Availability:** {preferences.dynamic_availability} minutes\n"
 
             return embed
         else:
