@@ -728,15 +728,6 @@ class MemberLevel(_Base):
     xp = Column(Integer, default=0)
 
 
-class ExperienceJournal(_Base):
-    __tablename__ = "experience_journal"
-
-    member = Column(Integer, primary_key=True)
-    timestamp = Column(DateTime, primary_key=True, default=datetime.utcnow)
-    xp_type = Column(String, primary_key=True)
-    xp = Column(Integer, nullable=False)
-
-
 # Autopost Models
 
 

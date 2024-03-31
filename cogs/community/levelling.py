@@ -1,16 +1,14 @@
 import math
-import io
-from datetime import datetime, timedelta
 from enum import Enum
 from dataclasses import dataclass, field
 
 import nextcord
 from nextcord.ext import commands, tasks
-from sqlalchemy import func
+import requests
 
 from utils.base import ignored_message, get_member_level
 from utils.config import Configuration
-from utils.database import db_session, MemberLevel, ExperienceJournal
+from utils.database import db_session, MemberLevel
 from utils.perms import permcheck, is_sersi_contributor
 
 
@@ -75,15 +73,6 @@ class Levelling(commands.Cog):
         self.reports[member.id].xp += amount
         self.reports[member.id].updated = True
 
-        self.session.add(
-            ExperienceJournal(
-                member=member.id,
-                timestamp=datetime.utcnow(),
-                xp_type=type.value,
-                xp=amount,
-            )
-        )
-
     @tasks.loop(minutes=1)
     async def voice_xp(self):
         guild = self.bot.get_guild(self.config.guilds.main)
@@ -113,64 +102,32 @@ class Levelling(commands.Cog):
         self.session = db_session()
 
     @nextcord.slash_command(
-        description="daily user experience report",
+        description="get user experience report from Tatsu",
         guild_ids=[1166770860787515422, 977377117895536640, 856262303795380224],
         dm_permission=False,
     )
-    async def daily_report(self, interaction: nextcord.Interaction):
+    async def get_tatsu_member_xp(
+        self, interaction: nextcord.Interaction, member: nextcord.Member
+    ):
         if not await permcheck(interaction, is_sersi_contributor):
             return
 
         await interaction.response.defer()
 
-        with db_session() as session:
-            journals: list[tuple[int, str, int]] = (
-                session.query(
-                    ExperienceJournal.member,
-                    ExperienceJournal.xp_type,
-                    func.sum(ExperienceJournal.xp).label("xp"),
-                )
-                .filter(
-                    ExperienceJournal.timestamp
-                    < datetime.utcnow().replace(
-                        hour=0, minute=0, second=0, microsecond=0
-                    )
-                )
-                .group_by(ExperienceJournal.member, ExperienceJournal.xp_type)
-                .order_by(ExperienceJournal.member)
-                .all()
-            )
+        response = requests.get(
+            f"https://api.tatsu.gg/v1/guilds/856262303795380224/rankings/members/{member.id}/all",
+            headers={"Authorization": "rKP6QhDcYK-P3w5MLVqQskLu3NX8Tb3L1"},
+        )
 
-            session.query(ExperienceJournal).filter(
-                ExperienceJournal.timestamp
-                < datetime.utcnow().replace(
-                    hour=0, minute=0, second=0, microsecond=0
-                )
-            ).delete()
-            session.commit()
-        
-        if journals is None or len(journals) == 0:
-            await interaction.followup.send("No data to report!", ephemeral=True)
+        if response.status_code != 200:
+            await interaction.followup.send(
+                "An error occurred while fetching data from Tatsu API", ephemeral=True
+            )
             return
 
-        csv = "member,member_id,xp_type,xp\n"
-
-        for journal in journals:
-            user = self.bot.get_user(journal[0])
-            name = user.name if user is not None else "n/a"
-
-            csv += f"{name},{journal[0]},{journal[1]},{journal[2]}\n"
-
-        yesterday = datetime.utcnow().replace(
-            hour=0, minute=0, second=0, microsecond=0
-        ) - timedelta(days=1)
-
-        file = nextcord.File(
-            io.BytesIO(csv.encode("utf-8")), filename=f"crossroads_xp_report_{yesterday.date()}.csv"
-        )
-        
+        data = response.json()
         await interaction.followup.send(
-            "Here's the daily report!", file=file
+            f"{member.mention} has {data['score']} xp in Tatsu and is rank {data['rank']}",
         )
 
     @commands.Cog.listener()
@@ -194,9 +151,9 @@ class Levelling(commands.Cog):
 
         await self.earn_xp(message.author, xp, XPType.MESSAGE)
 
-        self.reports[message.author.id].last_message[
-            message.channel.id
-        ] = message.created_at.timestamp()
+        self.reports[message.author.id].last_message[message.channel.id] = (
+            message.created_at.timestamp()
+        )
 
 
 def setup(bot: commands.Bot, **kwargs):
