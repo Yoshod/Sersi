@@ -1,6 +1,7 @@
 import math
 from enum import Enum
 from dataclasses import dataclass, field
+from functools import cache
 
 import nextcord
 from nextcord.ext import commands, tasks
@@ -10,6 +11,8 @@ from utils.base import ignored_message, get_member_level
 from utils.config import Configuration
 from utils.database import db_session, MemberLevel
 from utils.perms import permcheck, is_sersi_contributor
+
+import discordTokens
 
 
 class XPType(Enum):
@@ -25,6 +28,25 @@ class MemberReport:
 
     last_message: dict[int, int] = field(default_factory=dict)
     updated: bool = False
+
+
+@cache
+def xp_needed_to_next_level(level: int) -> int:
+    return round(10 ** (level / 5) * 1000, -2 - level // 5)
+
+
+@cache
+def xp_needed_to_level(level: int) -> int:
+    return sum(xp_needed_to_next_level(i) for i in range(level))
+
+
+@cache
+def xp_to_level(xp: int) -> int:
+    level = 0
+    while xp >= xp_needed_to_next_level(level):
+        xp -= xp_needed_to_next_level(level)
+        level += 1
+    return level
 
 
 class Levelling(commands.Cog):
@@ -73,6 +95,36 @@ class Levelling(commands.Cog):
         self.reports[member.id].xp += amount
         self.reports[member.id].updated = True
 
+        if (
+            xp_needed_to_next_level(self.reports[member.id].level)
+            <= self.reports[member.id].xp
+        ):
+            self.reports[member.id].level += 1
+            self.reports[member.id].xp -= xp_needed_to_next_level(
+                self.reports[member.id].level - 1
+            )
+
+            await member.remove_roles(
+                *list(
+                    filter(
+                        lambda role: role.id in self.config.level_roles.values(),
+                        member.roles,
+                    )
+                )
+            )
+            await member.add_roles(
+                member.guild.get_role(
+                    self.config.level_roles[self.reports[member.id].level]
+                )
+            )
+
+            self.session.query(MemberLevel).filter_by(member=member.id).update(
+                {
+                    "level": self.reports[member.id].level,
+                    "xp": self.reports[member.id].xp,
+                }
+            )
+
     @tasks.loop(minutes=1)
     async def voice_xp(self):
         guild = self.bot.get_guild(self.config.guilds.main)
@@ -116,7 +168,7 @@ class Levelling(commands.Cog):
 
         response = requests.get(
             f"https://api.tatsu.gg/v1/guilds/856262303795380224/rankings/members/{member.id}/all",
-            headers={"Authorization": "rKP6QhDcYK-P3w5MLVqQskLu3NX8Tb3L1"},
+            headers={"Authorization": discordTokens.getTatsuApiKey()},
         )
 
         if response.status_code != 200:
