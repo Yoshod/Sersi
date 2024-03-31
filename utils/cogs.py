@@ -1,8 +1,11 @@
 import os
 import traceback
+import logging
 
 from nextcord.ext import commands
 from utils.config import Configuration
+
+logger = logging.getLogger()
 
 
 async def load_all_cogs(bot: commands.Bot, *, config: Configuration, data_folder: str):
@@ -11,7 +14,7 @@ async def load_all_cogs(bot: commands.Bot, *, config: Configuration, data_folder
             if filename.endswith(".py"):
                 cog_category = root[2:].replace(os.sep, ".")
 
-                print(f"Loading {cog_category}.{filename[:-3]}...")
+                logging.info(f"Loading {cog_category}.{filename[:-3]}...")
 
                 try:
                     bot.load_extension(
@@ -19,8 +22,7 @@ async def load_all_cogs(bot: commands.Bot, *, config: Configuration, data_folder
                         extras={"config": config, "data_folder": data_folder},
                     )
                 except commands.errors.ExtensionFailed:
-                    print(f"Could not load {cog_category}.{filename[:-3]}.")
-                    traceback.print_exc()
+                    logging.exception(f"Could not load {cog_category}.{filename[:-3]}.")
     if bot.is_ready():
         await bot.sync_all_application_commands()
 
@@ -33,7 +35,7 @@ async def reload_all_cogs(
             if filename.endswith(".py"):
                 nroot = root[2:].replace(os.sep, ".")
 
-                print(f"Reloading {nroot}.{filename[:-3]}...")
+                logging.info(f"Reloading {nroot}.{filename[:-3]}...")
 
                 bot.unload_extension(f"{nroot}.{filename[:-3]}")
                 try:
@@ -42,7 +44,6 @@ async def reload_all_cogs(
                         extras={"config": config, "data_folder": data_folder},
                     )
                 except commands.errors.ExtensionFailed:
-                    print(f"Could not load {nroot}.{filename[:-3]}.")
-                    traceback.print_exc()
+                    logging.exception(f"Could not load {nroot}.{filename[:-3]}.")
     if bot.is_ready():
         await bot.sync_all_application_commands()

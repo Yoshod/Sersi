@@ -2,15 +2,24 @@ import asyncio
 import datetime
 from nextcord.ext import commands, tasks
 import nextcord
+from utils.base import decode_button_id, decode_snowflake
 
 from utils.config import Configuration
 from utils.compliance import (
     get_moderation_report,
     get_moderation_report_embed,
     ModerationReport,
+    get_slur_report,
+    get_slur_report_embed,
+    get_availability_report,
+    get_availability_report_embed,
+    AvailabilityView,
+    get_availability_day_of_week,
+    get_availability_day_of_week_embed,
 )
+from utils.help import verify_author
 
-from utils.perms import is_mod, permcheck, is_admin, is_compliance
+from utils.perms import is_mod, permcheck, is_admin, is_compliance, is_mod_lead
 from utils.staff import get_moderation_leaderboard_embed
 
 
@@ -63,7 +72,7 @@ class Compliance(commands.Cog):
             description="The year the report ends on."
         ),
     ):
-        if not await permcheck(interaction, is_admin) or not await permcheck(
+        if not await permcheck(interaction, is_mod_lead) or not await permcheck(
             interaction, is_compliance
         ):
             return
@@ -121,7 +130,7 @@ class Compliance(commands.Cog):
             ],
         ),
     ):
-        if not await permcheck(interaction, is_admin) or not await permcheck(
+        if not await permcheck(interaction, is_mod_lead) or not await permcheck(
             interaction, is_compliance
         ):
             return
@@ -155,6 +164,89 @@ class Compliance(commands.Cog):
 
         await interaction.followup.send(embed=embed)
 
+    @create.subcommand(
+        description="Create a compliance report of slur data using a predefined set of durations."
+    )
+    async def slur(
+        self,
+        interaction: nextcord.Interaction,
+        preset: str = nextcord.SlashOption(
+            description="The preset to use.",
+            choices=[
+                "Month to Date",
+                "Quarter to Date",
+                "Year to Date",
+                "All Time",
+            ],
+        ),
+    ):
+        if not await permcheck(interaction, is_admin):
+            return
+
+        await interaction.response.defer()
+
+        match preset:
+            case "Month to Date":
+                start_date = datetime.datetime.today().replace(day=1)
+                end_date = datetime.datetime.today()
+
+            case "Quarter to Date":
+                start_date = datetime.datetime.today().replace(
+                    month=(datetime.datetime.today().month - 1) // 3 * 3 + 1, day=1
+                )
+                end_date = datetime.datetime.today()
+
+            case "Year to Date":
+                start_date = datetime.datetime.today().replace(month=1, day=1)
+                end_date = datetime.datetime.today()
+
+            case "All Time":
+                start_date = datetime.datetime(2022, 1, 1)
+                end_date = datetime.datetime.today()
+
+        total_slur_alerts, total_slur_cases, top_ten_slurs, top_ten_users = (
+            get_slur_report(start_date, end_date)
+        )
+
+        embed = get_slur_report_embed(
+            total_slur_alerts,
+            total_slur_cases,
+            top_ten_slurs,
+            top_ten_users,
+            start_date,
+            end_date,
+        )
+
+        await interaction.followup.send(embed=embed)
+
+    @create.subcommand(
+        description="Create a moderation report on moderator availability."
+    )
+    async def availability(
+        self,
+        interaction: nextcord.Interaction,
+    ):
+        if not await permcheck(interaction, is_mod_lead) or not await permcheck(
+            interaction, is_compliance
+        ):
+            return
+
+        await interaction.response.defer()
+
+        report = get_availability_report(interaction.guild)
+
+        embed = get_availability_report_embed(self.config, report)
+
+        message: nextcord.InteractionMessage = await interaction.followup.send(
+            embed=embed
+        )
+
+        await message.edit(
+            view=AvailabilityView(
+                embed_message_id=message.id, author_id=interaction.user.id
+            )
+        )
+
     @nextcord.slash_command(
         dm_permission=False,
         guild_ids=[1166770860787515422, 977377117895536640, 856262303795380224],
@@ -185,6 +277,50 @@ class Compliance(commands.Cog):
         await interaction.followup.send(
             embed=get_moderation_leaderboard_embed(interaction, case_type)
         )
+
+    @commands.Cog.listener()
+    async def on_interaction(self, interaction: nextcord.Interaction):
+        if interaction.data is None or interaction.data.get("custom_id") is None:
+            return
+
+        acceptable_starts = ["availability_day", "close_availability"]
+
+        if not interaction.data["custom_id"].startswith(tuple(acceptable_starts)):
+            return
+
+        action, args, kwargs = decode_button_id(interaction.data["custom_id"])
+
+        if not verify_author(kwargs["author_id"], interaction):
+            await interaction.response.send_message(
+                f"{self.config.emotes.fail} You are not the author of this Moderation Report.",
+                ephemeral=True,
+            )
+            return
+
+        if action == "availability_day":
+            availability = get_availability_day_of_week(kwargs["day"])
+
+            message = await interaction.channel.fetch_message(
+                decode_snowflake(kwargs["embed_message_id"])
+            )
+
+            await interaction.edit(
+                embed=get_availability_day_of_week_embed(
+                    kwargs["day"].capitalize(), availability, self.config
+                ),
+                view=AvailabilityView(
+                    selected_day=kwargs["day"].capitalize(),
+                    embed_message_id=message.id,
+                    author_id=decode_snowflake(kwargs["author_id"]),
+                ),
+            )
+
+        elif action == "close_availability":
+            message = await interaction.channel.fetch_message(
+                decode_snowflake(kwargs["embed_message_id"])
+            )
+
+            await message.delete()
 
     @tasks.loop(minutes=1)
     async def compliance_report_loop(self):

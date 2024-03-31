@@ -1,7 +1,16 @@
 import enum
 import os
+from datetime import datetime, timedelta
+
 import nextcord
-from utils.base import encode_button_id, encode_snowflake, get_discord_timestamp
+from nextcord.utils import format_dt
+from sqlalchemy import or_, and_
+
+from utils.base import (
+    encode_button_id,
+    encode_snowflake,
+    get_discord_timestamp,
+)
 from utils.database import (
     db_session,
     StaffMembers,
@@ -9,9 +18,10 @@ from utils.database import (
     Case,
     PeerReview,
     TrialModReviews,
+    ModeratorAvailability,
 )
 from utils.config import Configuration
-import datetime
+from utils.perms import is_allowed
 from utils.sersi_embed import SersiEmbed
 
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -126,7 +136,7 @@ def add_staff_legacy(
             branch=branch,
             role=role,
             added_by=approver,
-            joined=datetime.datetime.now() - datetime.timedelta(days=180),
+            joined=datetime.now() - timedelta(days=180),
         )
         session.add(staff_member)
         session.commit()
@@ -138,8 +148,8 @@ def add_mod_record_legacy(staff_id: int, mentor_id: int):
         mod_record = ModerationRecords(
             member=staff_id,
             mentor=mentor_id,
-            trial_start=datetime.datetime.now() - datetime.timedelta(days=180),
-            trial_end=datetime.datetime.now() - datetime.timedelta(days=150),
+            trial_start=datetime.now() - timedelta(days=180),
+            trial_end=datetime.now() - timedelta(days=150),
             trial_passed=True,
         )
         session.add(mod_record)
@@ -225,7 +235,7 @@ def get_staff_embed(staff_id: int, interaction: nextcord.Interaction):
         if staff_member:
             embed = SersiEmbed(
                 title="Staff Member",
-                description=f"**Staff Information**\n"
+                description="**Staff Information**\n"
                 f"{CONFIG.emotes.blank}**Member:** {interaction.guild.get_member(staff_member.member).mention} ({staff_member.member})\n"
                 f"{CONFIG.emotes.blank}**Branch:** {staff_member.branch}\n"
                 f"{CONFIG.emotes.blank}**Role:** {interaction.guild.get_role(staff_member.role).mention}\n"
@@ -233,6 +243,19 @@ def get_staff_embed(staff_id: int, interaction: nextcord.Interaction):
                 f"{CONFIG.emotes.blank}**Date Added:** {get_discord_timestamp(staff_member.joined, relative=True)}\n"
                 f"{CONFIG.emotes.blank}**Active:** {CONFIG.emotes.success if staff_member.active else CONFIG.emotes.fail}\n",
             )
+            if staff_member.preferences:
+                preferences = staff_member.pref
+
+                embed.description += "**Preferences**\n"
+                embed.description += (
+                    f"{CONFIG.emotes.blank}**Timezone:** UTC{preferences.timezone:+d}\n"
+                )
+
+                if (
+                    staff_member.branch in [Branch.MOD.value, Branch.ADMIN.value]
+                    and preferences.dynamic_availability
+                ):
+                    embed.description += f"{CONFIG.emotes.blank}**Dynamic Availability:** {preferences.dynamic_availability} minutes\n"
 
             return embed
         else:
@@ -318,7 +341,7 @@ def get_moderation_embed(staff_id: int, interaction: nextcord.Interaction):
             f"{CONFIG.emotes.blank}**Review Results:**\n"
             f"{review_string}\n"
             f"**Moderation Stats**\n"
-            f"{CONFIG.emotes.blank}**Most Recent Case:** `{most_recent_case}`\n"
+            f"{CONFIG.emotes.blank}**Most Recent Case:** `{str(most_recent_case)[2:-2]}`\n"
             f"{CONFIG.emotes.blank}**Warns:** {mod_stats['Warns']}\n"
             f"{CONFIG.emotes.blank}**Timeouts:** {mod_stats['Timeouts']}\n"
             f"{CONFIG.emotes.blank}**Bans:** {mod_stats['Bans']}\n"
@@ -327,6 +350,56 @@ def get_moderation_embed(staff_id: int, interaction: nextcord.Interaction):
             f"{CONFIG.emotes.blank}**Bad Faith Pings:** {mod_stats['Bad Faith Pings']}\n"
             f"{CONFIG.emotes.blank}**Approved Peer Reviews:** {mod_stats['Approved Peer Reviews']}\n",
         )
+
+        availability_records: list[ModeratorAvailability] = (
+            session.query(ModeratorAvailability)
+            .filter_by(member=staff_id)
+            .filter(
+                or_(
+                    ModeratorAvailability.valid_until >= datetime.now(),
+                    ModeratorAvailability.valid_until.is_(None),
+                )
+            )
+            .order_by(
+                ModeratorAvailability.priority.desc(), ModeratorAvailability.start.asc()
+            )
+            .all()
+        )
+
+        embed.description += "**Availability**\n"
+        if is_available(interaction.guild.get_member(staff_id)):
+            embed.description += f"{CONFIG.emotes.blank}**Currently *Available*** {CONFIG.emotes.success}\n"
+        else:
+            embed.description += f"{CONFIG.emotes.blank}**Currently *Unavailable*** {CONFIG.emotes.fail}\n"
+
+        availability_record: ModeratorAvailability = (
+            session.query(ModeratorAvailability)
+            .filter_by(member=staff_id, window_type="Duration")
+            .filter(ModeratorAvailability.valid_until > datetime.now())
+            .order_by(ModeratorAvailability.priority.desc())
+            .first()
+        )
+
+        if availability_record is not None:
+            word = "Available" if availability_record.available else "Unavailable"
+            timestamp = get_discord_timestamp(
+                availability_record.valid_until, relative=True
+            )
+            embed.description += (
+                f"{CONFIG.emotes.blank}**Forced {word} Until:** {timestamp}\n"
+            )
+
+        availability_records: list[ModeratorAvailability] = (
+            session.query(ModeratorAvailability)
+            .filter_by(member=staff_id, window_type="Timeslot")
+            .order_by(ModeratorAvailability.start.asc())
+            .all()
+        )
+
+        for record in availability_records:
+            start = datetime(3000, 1, 1, (record.start // 60) % 24, record.start % 60)
+            end = datetime(3000, 1, 1, (record.end // 60) % 24, record.end % 60)
+            embed.description += f"{CONFIG.emotes.blank}**{record.window_identifier} Availability:** {format_dt(start, 't')} - {format_dt(end, 't')}\n"
 
         return embed
 
@@ -535,3 +608,109 @@ def get_moderation_leaderboard_embed(
         )
 
     return embed
+
+
+async def set_availability_status(
+    member: nextcord.Member,
+    set_as_available: bool,
+):
+    """Sets the availability status of a staff member."""
+    guild = member.guild
+
+    if set_as_available:
+        await member.add_roles(guild.get_role(CONFIG.roles.available_mod))
+
+    else:
+        await member.remove_roles(guild.get_role(CONFIG.roles.available_mod))
+
+
+def check_staff_availability(staff_member: int | nextcord.Member):
+    """Checks if a staff member is inside their availability window."""
+    if isinstance(staff_member, nextcord.Member):
+        staff_id = staff_member.id
+    else:
+        staff_id = staff_member
+
+    with db_session() as session:
+        current_time = datetime.now()
+        weekday = current_time.isoweekday()
+        hour = current_time.hour
+        minute = current_time.minute
+
+        offset = (weekday * 24 + hour) * 60 + minute
+
+        moderator_availability: ModeratorAvailability = (
+            (
+                session.query(ModeratorAvailability)
+                .filter_by(member=staff_id, window_type="Duration")
+                .filter(ModeratorAvailability.valid_until > current_time)
+            )
+            .union(
+                session.query(ModeratorAvailability)
+                .filter_by(member=staff_id, window_type="Timeslot")
+                .filter(
+                    or_(
+                        and_(
+                            ModeratorAvailability.start <= offset,
+                            ModeratorAvailability.end >= offset,
+                        ),
+                        and_(  # If the window spans sunday to monday
+                            ModeratorAvailability.start % 10080 <= offset % 10080,
+                            ModeratorAvailability.end % 10080 >= offset % 10080,
+                            or_(
+                                ModeratorAvailability.start < 1440,
+                                ModeratorAvailability.end > 11520,
+                            ),
+                        ),
+                    ),
+                )
+            )
+            .order_by(ModeratorAvailability.priority.desc())
+            .first()
+        )
+
+        if moderator_availability is None:
+            return False
+
+        return moderator_availability.available
+
+
+def is_available(member: nextcord.Member):
+    """Checks if a staff member has the availability role."""
+    return is_allowed(member, [CONFIG.roles.available_mod])
+
+
+def get_available_mods(guild: nextcord.Guild):
+    """Counts the number of available moderators in a guild."""
+    available_mods: list[nextcord.Member] = []
+
+    with db_session() as session:
+        staff_members = (
+            session.query(StaffMembers)
+            .filter(
+                or_(
+                    StaffMembers.branch == "Moderation",
+                    StaffMembers.branch == "Administration",
+                ),
+            )
+            .all()
+        )
+
+        mod_ids = [str(staff.member) for staff in staff_members if staff.left is None]
+
+        for staff_id in mod_ids:
+            member = guild.get_member(int(staff_id))
+            if not member:
+                continue
+
+            if guild.get_role(CONFIG.roles.available_mod) in member.roles:
+                available_mods.append(member)
+
+    return available_mods
+
+
+def get_staff_record(staff_id: int):
+    """Gets a staff member's record."""
+    with db_session() as session:
+        staff_member = session.query(StaffMembers).filter_by(member=staff_id).first()
+        return staff_member

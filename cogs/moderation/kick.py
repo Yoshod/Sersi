@@ -1,11 +1,18 @@
-import nextcord
+from datetime import datetime, timedelta
 
+import nextcord
 from nextcord.ext import commands
 
-from utils.cases import create_case_embed, get_case_by_id
+from utils.cases import (
+    create_case_embed,
+    get_case_by_id,
+    get_last_warning,
+    fetch_cases_by_partial_id,
+)
 from utils.config import Configuration
-from utils.database import db_session, KickCase
-from utils.perms import permcheck, is_mod, is_dark_mod, is_immune, target_eligibility
+from utils.database import db_session, KickCase, WarningCase, RelatedCase
+from utils.perms import permcheck, is_mod, is_admin, is_immune, target_eligibility
+from utils.dialog import confirm, ButtonPreset
 from utils.sersi_embed import SersiEmbed
 from utils.sersi_exceptions import CommandDisabledException
 
@@ -30,6 +37,11 @@ class KickSystem(commands.Cog):
             min_length=8,
             max_length=1024,
         ),
+        related_warning: str = nextcord.SlashOption(
+            name="related_warning",
+            description="The ID of the warning case related to this timeout",
+            required=False,
+        ),
     ):
         if not await permcheck(interaction, is_mod):
             return
@@ -37,7 +49,7 @@ class KickSystem(commands.Cog):
         if not self.config.bot.dev_mode:
             raise CommandDisabledException
 
-        await interaction.response.defer(ephemeral=False)
+        await interaction.response.defer(ephemeral=True)
 
         if not target_eligibility(interaction.user, offender):
             warning_alert = SersiEmbed(
@@ -63,7 +75,7 @@ class KickSystem(commands.Cog):
             return
 
         if is_immune(offender):
-            if not await permcheck(interaction, is_dark_mod):
+            if not await permcheck(interaction, is_admin):
                 await interaction.followup.send(
                     f"{self.config.emotes.fail} {offender.mention} is immune."
                 )
@@ -90,7 +102,41 @@ class KickSystem(commands.Cog):
                 reason=reason,
             )
             with db_session(interaction.user) as session:
+                if related_warning is not None:
+                    if (
+                        not session.query(WarningCase)
+                        .filter_by(id=related_warning)
+                        .first()
+                    ):
+                        await interaction.followup.send(
+                            f"{self.config.emotes.fail} {related_warning} is not a valid warning case."
+                        )
+                        return
+                elif last_warning := get_last_warning(offender.id):
+                    # If the last warning was issued within the last 15 minutes, ask user if the warning is related
+                    if last_warning.created > datetime.utcnow() - timedelta(minutes=15):
+                        if await confirm(
+                            interaction,
+                            content=f"Recent warning found for {offender.mention}. Is it related?",
+                            embed=create_case_embed(
+                                last_warning,
+                                interaction=interaction,
+                                config=self.config,
+                            ),
+                            true_button=ButtonPreset.YES_PRIMARY,
+                            false_button=ButtonPreset.NO_NEUTRAL,
+                            ephemeral=True,
+                        ):
+                            related_warning = last_warning.id
+
                 session.add(case)
+                if related_warning is not None:
+                    session.add(
+                        RelatedCase(
+                            case_id=case.id,
+                            related_case_id=related_warning,
+                        )
+                    )
                 session.commit()
 
             logging_embed = create_case_embed(
@@ -111,6 +157,8 @@ class KickSystem(commands.Cog):
                     "Successful:": self.config.emotes.success,
                     "Case ID:": case.id,
                 },
+                author=interaction.user,
+                thumbnail_url=offender.avatar.url,
             )
 
         except nextcord.HTTPException:
@@ -121,9 +169,25 @@ class KickSystem(commands.Cog):
                     "Moderator:": f"{interaction.user.mention} ({interaction.user.id})",
                     "Successful:": self.config.emotes.fail,
                 },
+                author=interaction.user,
             )
 
-        await interaction.followup.send(embed=confirm_embed)
+        await interaction.channel.send(embed=confirm_embed)
+
+    @kick.on_autocomplete("related_warning")
+    async def search_warnings(
+        self,
+        interaction: nextcord.Interaction,
+        related_warning: str,
+        offender: nextcord.Member,
+    ):
+        if not is_mod(interaction.user):
+            await interaction.response.send_autocomplete([])
+
+        warnings: list[str] = fetch_cases_by_partial_id(
+            related_warning, type="Warning", offender=offender.id
+        )
+        await interaction.response.send_autocomplete(warnings)
 
 
 def setup(bot: commands.Bot, **kwargs):

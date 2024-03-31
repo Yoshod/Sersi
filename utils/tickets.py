@@ -231,7 +231,12 @@ async def ticket_close(
     ticketer_avatar = nextcord.Embed.Empty
     ticketer = guild.get_member(ticket.creator)
     if ticketer is None:
-        ticketer = await guild.fetch_member(ticket.creator)
+        try:
+            ticketer = await guild.fetch_member(ticket.creator)
+
+        except nextcord.NotFound:
+            ticketer = None
+
     if ticketer is not None:
         ticketer_avatar = ticketer.avatar.url
 
@@ -262,6 +267,15 @@ async def ticket_close(
         reason=f"Ticket closed by {ticket_closer.display_name} ({ticket_closer.id})"
     )
 
+    if ticket.category is None or ticket.subcategory is None:
+        await transcript_channel.send(
+            f"{config.emotes.fail} Ticket {ticket.id} was closed without a category or subcategory.\n"
+            f"<@{ticket_closer.id}> please set the category and subcategory for this ticket."
+        )
+
+    if ticketer is None:
+        return True
+
     dm_embed = SersiEmbed(
         title=f"{ticket.escalation_level} Ticket Closed",
         description=f"Your {ticket.escalation_level} Ticket has been closed on {guild.name}.\n\n"
@@ -276,12 +290,6 @@ async def ticket_close(
     )
 
     await ticketer.send(embed=dm_embed, file=transcript_file)
-
-    if ticket.category is None or ticket.subcategory is None:
-        await transcript_channel.send(
-            f"{config.emotes.fail} Ticket {ticket.id} was closed without a category or subcategory.\n"
-            f"<@{ticket_closer.id}> please set the category and subcategory for this ticket."
-        )
 
     return True
 

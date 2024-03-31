@@ -1,4 +1,5 @@
-from datetime import datetime
+from dataclasses import dataclass
+from datetime import datetime, timedelta
 from typing import Any
 import random
 import re
@@ -8,7 +9,7 @@ import sqlalchemy
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, event
 from sqlalchemy.orm import Session, relationship
 from sqlalchemy.ext.declarative import declarative_base
-
+from dataclass_wizard import JSONWizard
 
 from utils.base import limit_string, encode_snowflake
 
@@ -239,6 +240,17 @@ class ScrubbedCase(_Base):
     scrubber = Column(Integer, nullable=False)
     reason = Column(String, nullable=False)
     timestamp = Column(DateTime, default=datetime.utcnow)
+
+
+class RelatedCase(_Base):
+    __tablename__ = "related_cases"
+
+    case_id = Column(
+        String, ForeignKey("cases.id", ondelete="CASCADE"), primary_key=True
+    )
+    related_id = Column(
+        String, ForeignKey("cases.id", ondelete="CASCADE"), primary_key=True
+    )
 
 
 class PeerReview(_Base):
@@ -504,6 +516,43 @@ class Goodword(_Base):
     added_by = Column(Integer, nullable=False)
 
 
+class Slowmode(_Base):
+    """
+    Represents a slowmode configuration for a channel.
+
+    Attributes:
+        channel (int): The ID of the channel.
+        slowmode (int): The slowmode duration in seconds
+        added (datetime): The datetime when the slowmode was added.
+        added_by (int): The ID of the user who added the slowmode.
+        added_reason (str): The reason for adding the slowmode.
+        origin (str): Whether the slowmode was added by a Moderator or Community Engagement Member.
+        scheduled_removal (datetime): The datetime when the slowmode is scheduled to be removed.
+        modified (datetime): The datetime when the slowmode was last modified.
+    """
+
+    __tablename__ = "slowmode"
+    channel = Column(Integer, nullable=False, primary_key=True)
+    slowmode = Column(Integer, nullable=False)  # in seconds, max discord limit 21600
+    added = Column(DateTime, default=datetime.utcnow)
+    added_by = Column(Integer, nullable=False)
+    added_reason = Column(String, nullable=False)
+    origin = Column(String, ForeignKey("staff_branches.branch"), nullable=False)
+    scheduled_removal = Column(DateTime)
+
+    modified = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def __getattr__(self, __name: str) -> Any:
+        if __name == "list_entry_header":
+            return f"<#{self.channel}>"
+        raise AttributeError(
+            f"'{self.__class__.__name__}' object has no attribute '{__name}'"
+        )
+
+    def __repr__(self):
+        return f"{timedelta(seconds=self.slowmode)}"
+
+
 ### Staff Records ###
 
 
@@ -522,6 +571,24 @@ class StaffRoles(_Base):
     rank = Column(Integer, nullable=False)
 
 
+@dataclass
+class StaffPreferences(JSONWizard):
+    timezone: int = 0
+    dynamic_availability: int = 15
+
+    def __post_init__(self):
+        self.member_record: StaffMembers = None
+
+    def __setattr__(self, __name: str, __value: Any) -> None:
+        super().__setattr__(__name, __value)
+        if (
+            __name != "member_record"
+            and hasattr(self, "member_record")
+            and self.member_record is not None
+        ):
+            self.member_record.preferences = self.to_json()
+
+
 class StaffMembers(_Base):
     __tablename__ = "staff_members"
 
@@ -535,6 +602,17 @@ class StaffMembers(_Base):
     removed_by = Column(Integer, default=None)
     discharge_type = Column(String, default=None)
     discharge_reason = Column(String, default=None)
+    preferences = Column(String, default="{}")
+
+    @property
+    def pref(self) -> StaffPreferences:
+        preferences = StaffPreferences.from_json(self.preferences)
+        preferences.member_record = self
+        return preferences
+
+    @pref.setter
+    def pref(self, value: StaffPreferences) -> None:
+        self.preferences = value.to_json()
 
 
 class ModerationRecords(_Base):
@@ -592,6 +670,20 @@ class StaffStrikes(_Base):
     active = Column(Boolean, default=True)
 
 
+class ModeratorAvailability(_Base):
+    __tablename__ = "moderator_availability"
+
+    member = Column(Integer, ForeignKey("staff_members.member"), primary_key=True)
+    window_identifier = Column(String, primary_key=True)
+    window_type = Column(String, nullable=False)
+    priority = Column(Integer, nullable=False)
+    available = Column(Boolean, default=True)
+    start = Column(Integer)
+    end = Column(Integer)
+    valid_until = Column(DateTime)
+    modified = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
 ### Vote Models ###
 
 
@@ -625,18 +717,7 @@ class VoteRecord(_Base):
     vote = Column(String, nullable=False)
     comment = Column(String)
 
-    timestamp = Column(DateTime, default=datetime.utcnow)
-
-
-class StaffBlacklist(_Base):
-    # TODO: remove in 5.2.0
-    __tablename__ = "staff_blacklist"
-
-    blacklisted_user = Column(Integer, primary_key=True)
-    staff_member = Column(Integer, nullable=False)
-    reason = Column(String, nullable=False)
-
-    timestamp = Column(DateTime, default=datetime.utcnow)
+    timestamp = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
 class MemberLevel(_Base):
@@ -654,6 +735,70 @@ class ExperienceJournal(_Base):
     timestamp = Column(DateTime, primary_key=True, default=datetime.utcnow)
     xp_type = Column(String, primary_key=True)
     xp = Column(Integer, nullable=False)
+
+
+# Autopost Models
+
+
+class Autopost(_Base):
+    """
+    Represents an autopost entry in the database.
+
+    Attributes:
+        autopost_id (int): The unique identifier for the autopost entry.
+        author (int): The ID of the author associated with the autopost entry.
+        title (str): The title of the autopost entry.
+        description (str): The description of the autopost entry.
+        type (str): The type of the autopost entry.
+        channel (int): The ID of the channel associated with the autopost entry.
+        timedelta_str (str): The time interval for autoposting in string format.
+        active (bool): Indicates whether the autopost entry is active or not.
+        created (datetime): The datetime when the autopost entry was created.
+        modified (datetime): The datetime when the autopost entry was last modified.
+    """
+
+    __tablename__ = "autopost"
+
+    autopost_id = Column(Integer, primary_key=True, autoincrement=True)
+    author = Column(Integer, nullable=False)
+    title = Column(String, nullable=False)
+    description = Column(String, nullable=False)
+    type = Column(String, nullable=False)
+    channel = Column(Integer, nullable=False)
+    timedelta_str = Column(String, nullable=False)
+    media_url = Column(String, nullable=True)
+    last_post_id = Column(Integer, default=None)
+    active = Column(Boolean, default=True)
+
+    created = Column(DateTime, default=datetime.utcnow)
+    modified = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    def __getattr__(self, __name: str) -> Any:
+        if __name == "list_entry_header":
+            return f"__{self.autopost_id}__ <t:{int(self.created.timestamp())}:R>"
+        raise AttributeError(
+            f"'{self.__class__.__name__}' object has no attribute '{__name}'"
+        )
+
+    def __repr__(self):
+        return f"**{self.title}** <#{self.channel}>"
+
+
+class AutopostFields(_Base):
+    """
+    Represents the fields for an autopost entry in the database.
+
+    Attributes:
+        autopost_id (int): The unique identifier for the autopost entry.
+        field_name (str): The name of the field.
+        field_value (str): The value of the field.
+    """
+
+    __tablename__ = "autopost_fields"
+
+    autopost_id = Column(Integer, ForeignKey("autopost.autopost_id"), primary_key=True)
+    field_name = Column(String, primary_key=True)
+    field_value = Column(String, nullable=False)
 
 
 def create_db_tables():

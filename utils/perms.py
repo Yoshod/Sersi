@@ -10,7 +10,7 @@ config = Configuration.from_yaml_file("./persistent_data/config.yaml")
 
 
 async def permcheck(
-    hook: [nextcord.ext.commands.Context | nextcord.Interaction], function: callable
+    hook: nextcord.ext.commands.Context|nextcord.Interaction, function: callable
 ) -> bool:
     if isinstance(hook, nextcord.ext.commands.Context):
         if function(hook.author):
@@ -104,6 +104,10 @@ def is_mod(member: nextcord.Member) -> bool:
     )
 
 
+def is_trial_mod(member: nextcord.Member) -> bool:
+    return is_allowed(member, [config.permission_roles.trial_moderator])
+
+
 def is_full_mod(member: nextcord.Member) -> bool:
     return is_allowed(member, [config.permission_roles.moderator])
 
@@ -150,6 +154,10 @@ def is_cet(member: nextcord.Member) -> bool:
     return is_allowed(
         member, [config.permission_roles.cet, config.permission_roles.cet_lead]
     )
+
+
+def is_owner(member: nextcord.Member) -> bool:
+    return member == member.guild.owner
 
 
 # legacy function aliases
