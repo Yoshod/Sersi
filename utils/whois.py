@@ -1,8 +1,16 @@
 import nextcord
 from utils.base import encode_button_id, encode_snowflake
 from utils.config import Configuration
-from utils.database import WarningCase, db_session, VoteDetails, BanCase, BlacklistCase
+from utils.database import (
+    WarningCase,
+    db_session,
+    VoteDetails,
+    BanCase,
+    BlacklistCase,
+    Note,
+)
 from utils.sersi_embed import SersiEmbed
+from utils.staff import StaffDataButton, ModerationDataButton, determine_staff_member
 
 
 class WhoisCasesButton(nextcord.ui.Button):
@@ -44,6 +52,10 @@ class WhoisView(nextcord.ui.View):
         self.add_item(WhoisNotesButton(user_id))
         self.add_item(WhoisWarningsButton(user_id))
 
+        if determine_staff_member(user_id):
+            self.add_item(StaffDataButton(user_id))
+            self.add_item(ModerationDataButton(user_id))
+
 
 def _get_user_ban(user_id: int) -> BanCase | None:
     with db_session() as session:
@@ -72,6 +84,8 @@ async def create_whois_embed(
         blacklists = (
             session.query(BlacklistCase).filter_by(offender=user.id, active=True).all()
         )
+
+        user_notes = session.query(Note).filter_by(member=user.id).count()
 
     try:
         if user.communication_disabled_until:
@@ -116,7 +130,7 @@ async def create_whois_embed(
             title=f"Whois {user.display_name}?",
             fields={
                 "General Information": f"{config.emotes.blank}**Username**: {user.name}\n{config.emotes.blank}**Global Name**: {user.global_name}\n{config.emotes.blank}**Nickname**: {user.nick}\n{config.emotes.blank}**User ID**: {user.id}\n{config.emotes.blank}**Mention**: {user.mention}\n{config.emotes.blank}**Creation Date**: <t:{int(user.created_at.timestamp())}:R>\n{config.emotes.blank}**Join Date**: <t:{int(user.joined_at.timestamp())}:R>",
-                "Sersi Information": f"{config.emotes.blank}**Active Warns**: {user_warns}\n{config.emotes.blank}**Ban Vote**: {config.emotes.success if ban_vote else config.emotes.fail}\n{config.emotes.blank}{timeout_string}{blacklists_string}",
+                "Sersi Information": f"{config.emotes.blank}**Active Warns**: {user_warns}\n{config.emotes.blank}**Notes**: {user_notes}\n{config.emotes.blank}**Ban Vote**: {config.emotes.success if ban_vote else config.emotes.fail}\n{config.emotes.blank}{timeout_string}{blacklists_string}",
             },
         )
         whois_embed.set_footer(text="Sersi Whois - Server Member")
@@ -127,7 +141,7 @@ async def create_whois_embed(
             title=f"Whois {user.display_name}?",
             fields={
                 "General Information": f"{config.emotes.blank}**Username**: {user.name}\n{config.emotes.blank}**Global Name**: {user.global_name}\n{config.emotes.blank}**User ID**: {user.id}\n{config.emotes.blank}**Creation Date**: <t:{int(user.created_at.timestamp())}:R>",
-                "Sersi Information": f"{config.emotes.blank}**Active Warns**: {user_warns}\n{config.emotes.blank}{timeout_string}{blacklists_string}",
+                "Sersi Information": f"{config.emotes.blank}**Active Warns**: {user_warns}\n{config.emotes.blank}**Notes**: {user_notes}\n{timeout_string}{blacklists_string}",
             },
         )
         whois_embed.set_footer(text="Sersi Whois - Not a Server Member")

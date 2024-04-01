@@ -11,6 +11,8 @@ class ConfigurationBot(YAMLWizard):
     version: str
     git_url: str
     authors: list[str]
+    privacy_policy: str
+    wiki_header: str
     dev_mode: bool = False
 
 
@@ -70,6 +72,8 @@ class ConfigurationChannels(YAMLWizard):
     suggestion_voting: int
     suggestion_review: int
 
+    afk_voice: int
+
 
 @dataclass
 class ConfigurationRoles(YAMLWizard):
@@ -94,6 +98,8 @@ class ConfigurationRoles(YAMLWizard):
 
     adult_access: int
     adult_verified: int
+
+    available_mod: int
 
 
 @dataclass

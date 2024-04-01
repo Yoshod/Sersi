@@ -1,7 +1,8 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import nextcord
 from nextcord.ext import commands
+from nextcord.utils import format_dt
 
 from utils.tickets import (
     ticket_check,
@@ -17,6 +18,7 @@ from utils.tickets import (
 )
 
 from utils.database import db_session, Ticket, TicketCategory, TicketSurvey
+from utils.dialog import TextArea, modal_dialog
 from utils.config import Configuration
 from utils.sersi_embed import SersiEmbed
 from utils.views import PageView
@@ -26,6 +28,7 @@ class TicketingSystem(commands.Cog):
     def __init__(self, bot: commands.Bot, config: Configuration):
         self.bot = bot
         self.config = config
+        self.last_message: dict[int, datetime] = {}
 
     @nextcord.slash_command(
         dm_permission=True,
@@ -70,6 +73,20 @@ class TicketingSystem(commands.Cog):
             await interaction.response.send_message(
                 f"{self.config.emotes.fail} You already have an open {ticket_type} ticket of the same category."
                 " You need to close that one before opening a new one.",
+            )
+            return
+
+        member = (
+            interaction.user
+            if interaction.guild is not None
+            else self.bot.get_guild(self.config.guilds.main).get_member(
+                interaction.user.id
+            )
+        )
+        if category != "Appeal" and member.communication_disabled_until is not None:
+            await interaction.response.send_message(
+                f"{self.config.emotes.fail} You can only open an Appeal ticket while timed out.",
+                ephemeral=True,
             )
             return
 
@@ -149,15 +166,13 @@ class TicketingSystem(commands.Cog):
             if not await ticket_permcheck(interaction, ticket.escalation_level):
                 return
 
-            await interaction.response.defer(ephemeral=True)
-
             if category:
                 ticket.category = category
             if subcategory:
                 ticket.subcategory = subcategory
-            ticket.active = False
-            ticket.closing_comment = close_reason
-            ticket.closed = datetime.utcnow()
+            session.commit()
+
+            await interaction.response.defer(ephemeral=True)
 
             channel = interaction.guild.get_channel(ticket.channel)
             if channel is None:
@@ -179,6 +194,10 @@ class TicketingSystem(commands.Cog):
                     ephemeral=True,
                 )
                 return
+
+            ticket.active = False
+            ticket.closing_comment = close_reason
+            ticket.closed = datetime.utcnow()
             session.commit()
 
             if do_survey:
@@ -265,7 +284,6 @@ class TicketingSystem(commands.Cog):
                 return
 
             ticket.escalation_level = escalation_level
-
             session.commit()
 
         await interaction.followup.send(
@@ -326,7 +344,7 @@ class TicketingSystem(commands.Cog):
         )
 
     @ticket.subcommand(
-        description="Used to get ticket information from database record"
+        description="Used to get ticket information from database record",
     )
     async def info(
         self,
@@ -455,6 +473,96 @@ class TicketingSystem(commands.Cog):
 
         await view.send_followup(interaction)
 
+    @ticket.subcommand(description="Send a message to ticket channel while timed out")
+    async def send_message(
+        self,
+        interaction: nextcord.Interaction,
+        ticket: str = nextcord.SlashOption(
+            required=False,
+            name="ticket",
+            description="The ticket to send message to",
+        ),
+    ):
+        guild = self.bot.get_guild(self.config.guilds.main)
+        member = guild.get_member(interaction.user.id)
+        if member is None:
+            await interaction.response.send_message(
+                f"{self.config.emotes.fail} You are not a member of The Crossroads.",
+                ephemeral=True,
+            )
+            return
+        if member.communication_disabled_until is None and not self.config.bot.dev_mode:
+            await interaction.response.send_message(
+                f"{self.config.emotes.fail} You are currently not timed out, please use ticket channel instead.",
+                ephemeral=True,
+            )
+            return
+
+        query_filter = {
+            "creator": interaction.user.id,
+            "active": True,
+            "category": "Appeal",
+        }
+        if ticket:
+            query_filter["id"] = ticket
+        with db_session(interaction.user) as session:
+            ticket: Ticket = (
+                session.query(Ticket)
+                .filter_by(**query_filter)
+                .order_by(Ticket.created.desc())
+                .first()
+            )
+        if ticket is None:
+            await interaction.response.send_message(
+                f"{self.config.emotes.fail} No such open Appeal ticket found.",
+                ephemeral=True,
+            )
+            return
+
+        channel = guild.get_channel(ticket.channel)
+        if channel is None:
+            await interaction.response.send_message(
+                f"{self.config.emotes.fail} Could not find ticket channel, please contact administartor.",
+                ephemeral=True,
+            )
+            return
+
+        if channel.slowmode_delay > 0 and channel.id in self.last_message:
+            slowed_until = self.last_message[channel.id] + timedelta(
+                seconds=channel.slowmode_delay
+            )
+            if datetime.utcnow() < slowed_until:
+                await interaction.response.send_message(
+                    f"{self.config.emotes.fail} You have to wait until {format_dt(slowed_until, 'T')} ({format_dt(slowed_until, 'R')}) to send another message.",
+                    ephemeral=True,
+                )
+                return
+        self.last_message[channel.id] = datetime.utcnow()
+
+        response = await modal_dialog(
+            interaction,
+            f"Send Message to {channel.name}",
+            message=TextArea(
+                "Message",
+                required=True,
+                placeholder="please provide a message",
+                max_length=4000,
+            ),
+        )
+
+        embed = SersiEmbed(
+            author=member,
+            description=response["message"],
+            footer=f"{interaction.user} ({interaction.user.id})",
+            footer_icon=interaction.user.avatar.url,
+            colour=member.top_role.colour,
+        )
+
+        message = await channel.send(embed=embed)
+        await interaction.followup.send(
+            f"{self.config.emotes.success} Your message has been sent! {message.jump_url}",
+        )
+
     @create.on_autocomplete("category")
     @close.on_autocomplete("category")
     @recategorize.on_autocomplete("category")
@@ -522,6 +630,21 @@ class TicketingSystem(commands.Cog):
                         allowed_escalation_levels(interaction.user)
                     ),
                 )
+                .group_by(Ticket.id)
+                .limit(25)
+                .all()
+            )
+            return [ticket.id for ticket in tickets]
+
+    @send_message.on_autocomplete("ticket")
+    async def ticket_send_message_autocomplete(
+        self, interaction: nextcord.Interaction, ticket: str
+    ):
+        with db_session(interaction.user) as session:
+            tickets: list[Ticket] = (
+                session.query(Ticket)
+                .filter_by(creator=interaction.user.id, active=True, category="Appeal")
+                .filter(Ticket.id.ilike(f"%{ticket}%"))
                 .group_by(Ticket.id)
                 .limit(25)
                 .all()

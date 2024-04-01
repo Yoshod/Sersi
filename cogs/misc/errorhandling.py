@@ -1,4 +1,5 @@
 import traceback
+import logging
 from enum import Enum
 
 import nextcord
@@ -27,6 +28,9 @@ class ApplicationCommandOptionType(Enum):
     ROLE = 8
     MENTIONABLE = 9
     FLOAT = 10
+
+
+error_logger = logging.getLogger("error_logger")
 
 
 class ErrorHandling(commands.Cog):
@@ -87,13 +91,13 @@ class ErrorHandling(commands.Cog):
                     if isinstance(target, nextcord.Role):
                         fields[option["name"]] = f"{target.name} (`{target.id}`)"
                     elif isinstance(target, nextcord.TextChannel):
-                        fields[
-                            option["name"]
-                        ] = f"{target.mention} (#{target.name} `{target.id}`)"
+                        fields[option["name"]] = (
+                            f"{target.mention} (#{target.name} `{target.id}`)"
+                        )
                     elif target is not None:
-                        fields[
-                            option["name"]
-                        ] = f"{target.mention} ({target.display_name} `{target.id}`)"
+                        fields[option["name"]] = (
+                            f"{target.mention} ({target.display_name} `{target.id}`)"
+                        )
                     else:
                         fields[option["name"]] = f"`{option['value']}`"
 
@@ -108,6 +112,10 @@ class ErrorHandling(commands.Cog):
                 "This command is currently disabled.", ephemeral=True
             )
             return
+
+        error_logger.exception(
+            f"An error occurred while executing slash command: {error}"
+        )
 
         channel = self.error_guild.get_channel(self.config.channels.errors)
         if channel is None:
@@ -135,9 +143,9 @@ class ErrorHandling(commands.Cog):
                 )
                 embed_fields["Command:"] = f"{interaction.data.get('name')}"
                 if target is not None:
-                    embed_fields[
-                        "Target:"
-                    ] = f"{target.mention} ({target.display_name} `{target.id}`)"
+                    embed_fields["Target:"] = (
+                        f"{target.mention} ({target.display_name} `{target.id}`)"
+                    )
                 else:
                     embed_fields["Target:"] = f"`{interaction.data.get('target_id')}`"
             case ApplicationCommandType.MESSAGE:
@@ -155,9 +163,9 @@ class ErrorHandling(commands.Cog):
                         }
                     )
                 else:
-                    embed_fields[
-                        "Message:"
-                    ] = f"{interaction.channel.jump_url}/{interaction.data.get('target_id')}"
+                    embed_fields["Message:"] = (
+                        f"{interaction.channel.jump_url}/{interaction.data.get('target_id')}"
+                    )
 
         await channel.send(
             embed=SersiEmbed(
@@ -199,6 +207,8 @@ class ErrorHandling(commands.Cog):
                 f"{self.config.emotes.fail} You are using this command too quickly. Please wait {round(error.retry_after, 2)}s before trying again."
             )
             return
+
+        error_logger.exception(f"An error occurred while executing command: {error}")
 
         channel = self.error_guild.get_channel(self.config.channels.errors)
         if channel is None:
