@@ -38,6 +38,11 @@ class MemberReport:
 
     def __post_init__(self):
         self.next_level = xp_needed_to_level(self.level + 1)
+    
+    def __setattr__(self, __name: str, __value) -> None:
+        if __name == "level":
+            self.next_level = xp_needed_to_level(__value + 1)
+        super().__setattr__(__name, __value)
 
 
 @cache
@@ -166,7 +171,6 @@ class Levelling(commands.Cog):
 
         if report.next_level <= report.xp:
             report.level += 1
-            report.next_level = xp_needed_to_next_level(report.level)
             self.save_report(report)
 
             await self.update_member_level(member, report.level)
