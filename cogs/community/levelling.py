@@ -80,7 +80,7 @@ class Levelling(commands.Cog):
         self.voice_xp.start()
 
     async def update_member_level(self, member: nextcord.Member, level: int):
-        if level not in self.config.level_roles:
+        if level > 0 and level not in self.config.level_roles:
             await member.guild.owner.send(
                 f"Level {level} does not have a role assigned in the configuration, should be given to {member.mention} `{member.id}`."
             )
@@ -94,6 +94,8 @@ class Levelling(commands.Cog):
                 )
             )
         )
+        if level == 0:
+            return
         await member.add_roles(member.guild.get_role(self.config.level_roles[level]))
 
     async def fetch_report(self, member: nextcord.Member):
@@ -164,9 +166,10 @@ class Levelling(commands.Cog):
 
         if report.next_level <= report.xp:
             report.level += 1
+            report.next_level = xp_needed_to_next_level(report.level)
             self.save_report(report)
 
-            await self.update_member_level(member)
+            await self.update_member_level(member, report.level)
             return
 
         if not report.xp_since_last_save:
