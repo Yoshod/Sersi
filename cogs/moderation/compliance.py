@@ -19,7 +19,7 @@ from utils.compliance import (
 )
 from utils.help import verify_author
 
-from utils.perms import is_mod, permcheck, is_admin, is_compliance, is_mod_lead
+from utils.perms import is_mod, permcheck, is_admin, is_mod_lead
 from utils.staff import get_moderation_leaderboard_embed
 
 
@@ -72,9 +72,7 @@ class Compliance(commands.Cog):
             description="The year the report ends on."
         ),
     ):
-        if not await permcheck(interaction, is_mod_lead) or not await permcheck(
-            interaction, is_compliance
-        ):
+        if not await permcheck(interaction, is_mod_lead):
             return
 
         try:
@@ -130,9 +128,7 @@ class Compliance(commands.Cog):
             ],
         ),
     ):
-        if not await permcheck(interaction, is_mod_lead) or not await permcheck(
-            interaction, is_compliance
-        ):
+        if not await permcheck(interaction, is_mod_lead):
             return
 
         await interaction.response.defer()
@@ -226,9 +222,7 @@ class Compliance(commands.Cog):
         self,
         interaction: nextcord.Interaction,
     ):
-        if not await permcheck(interaction, is_mod_lead) or not await permcheck(
-            interaction, is_compliance
-        ):
+        if not await permcheck(interaction, is_mod_lead):
             return
 
         await interaction.response.defer()
