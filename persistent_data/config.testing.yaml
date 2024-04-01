@@ -59,6 +59,7 @@ channels:
     moderation_votes: 0
     staff_votes: 0
     cet_votes: 0
+    afk_voice: 0
 
 ignored_categories:
     - alerts

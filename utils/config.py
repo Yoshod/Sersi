@@ -72,6 +72,8 @@ class ConfigurationChannels(YAMLWizard):
     suggestion_voting: int
     suggestion_review: int
 
+    afk_voice: int
+
 
 @dataclass
 class ConfigurationRoles(YAMLWizard):

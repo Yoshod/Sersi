@@ -64,6 +64,7 @@ channels:
     suggestion_review:       1168176532750082119
     staff_votes:                               0
     cet_votes:                                 0
+    afk_voice:               1139655531770937384
 
 ignored_categories:
     - IMPORTANT STUFF
