@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from typing import Any
 import random
 import re
+import json
 
 import nextcord
 import sqlalchemy
@@ -727,14 +728,16 @@ class MemberLevel(_Base):
     level = Column(Integer, default=0)
     xp = Column(Integer, default=0)
 
+    xp_breakdown = Column(String, default="{}")
+    updated = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-class ExperienceJournal(_Base):
-    __tablename__ = "experience_journal"
+    @property
+    def xp_dict(self) -> dict:
+        return json.loads(self.xp_breakdown)
 
-    member = Column(Integer, primary_key=True)
-    timestamp = Column(DateTime, primary_key=True, default=datetime.utcnow)
-    xp_type = Column(String, primary_key=True)
-    xp = Column(Integer, nullable=False)
+    @xp_dict.setter
+    def xp_dict(self, value: dict) -> None:
+        self.xp_breakdown = json.dumps(value)
 
 
 # Autopost Models

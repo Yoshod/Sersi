@@ -129,7 +129,7 @@ def ignored_message(
     return False
 
 
-def convert_to_timedelta(timespan: str, duration: int|float) -> timedelta | None:
+def convert_to_timedelta(timespan: str, duration: int | float) -> timedelta | None:
     return parse_timedelta(f"{duration}{timespan}")
 
 
@@ -236,9 +236,12 @@ def get_member_level(config: Configuration, member: nextcord.Member) -> int:
             return level
     return 0
 
+
 def parse_timedelta(timedelta_str: str) -> timedelta | None:
     # python timedelta string parsing
-    if match := re.match(r"(?:(\d+) days?, )?(\d+):(\d+):(\d+(?:\.\d+)?)", timedelta_str):
+    if match := re.match(
+        r"(?:(\d+) days?, )?(\d+):(\d+):(\d+(?:\.\d+)?)", timedelta_str
+    ):
         days, hours, minutes, seconds = match.groups()
         return timedelta(
             days=int(days or 0),
@@ -262,3 +265,7 @@ def parse_timedelta(timedelta_str: str) -> timedelta | None:
         milliseconds=float(deltas.get("ms", 0)),
         microseconds=float(deltas.get("us", 0)),
     )
+
+
+def dt_from_snowflake(snowflake: int) -> datetime:
+    return datetime(2015, 1, 1) + timedelta(milliseconds=(snowflake >> 22))

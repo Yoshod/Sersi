@@ -1,17 +1,19 @@
 import math
-import io
-from datetime import datetime, timedelta
 from enum import Enum
 from dataclasses import dataclass, field
+from functools import cache
+from datetime import datetime, timedelta
+import json
 
 import nextcord
 from nextcord.ext import commands, tasks
-from sqlalchemy import func
+import requests
 
 from utils.base import ignored_message, get_member_level
 from utils.config import Configuration
-from utils.database import db_session, MemberLevel, ExperienceJournal
-from utils.perms import permcheck, is_sersi_contributor
+from utils.database import db_session, MemberLevel
+
+import discordTokens
 
 
 class XPType(Enum):
@@ -25,8 +27,36 @@ class MemberReport:
     level: int
     xp: int
 
+    xp_breakdown: dict[str, int] = field(default_factory=dict)
+
     last_message: dict[int, int] = field(default_factory=dict)
+
     updated: bool = False
+
+    xp_since_last_save: int = 0
+    last_saved: datetime = field(default_factory=datetime.now)
+
+    def __post_init__(self):
+        self.next_level = xp_needed_to_level(self.level + 1)
+
+
+@cache
+def xp_needed_to_next_level(level: int) -> int:
+    return round(10 ** (level / 5) * 1000, -2 - level // 5)
+
+
+@cache
+def xp_needed_to_level(level: int) -> int:
+    return sum(xp_needed_to_next_level(i) for i in range(level))
+
+
+@cache
+def xp_to_level(xp: int) -> int:
+    level = 0
+    while xp >= xp_needed_to_next_level(level):
+        xp -= xp_needed_to_next_level(level)
+        level += 1
+    return level
 
 
 class Levelling(commands.Cog):
@@ -36,53 +66,117 @@ class Levelling(commands.Cog):
 
         self.reports: dict[int, MemberReport] = {}
 
-        self.session = db_session()
-
         if self.bot.is_ready():
             self.voice_xp.start()
 
     def cog_unload(self):
         self.voice_xp.cancel()
-        self.session.commit()
+        for report in self.reports.values():
+            if report.xp_since_last_save:
+                self.save_report(report)
 
     @commands.Cog.listener()
     async def on_ready(self):
         self.voice_xp.start()
 
-    async def earn_xp(self, member: nextcord.Member, amount: int, type: XPType):
-        if amount <= 0:
+    async def update_member_level(self, member: nextcord.Member, level: int):
+        if level not in self.config.level_roles:
+            await member.guild.owner.send(
+                f"Level {level} does not have a role assigned in the configuration, should be given to {member.mention} `{member.id}`."
+            )
             return
 
-        if member.id not in self.reports:
-            member_level = (
-                self.session.query(MemberLevel).filter_by(member=member.id).first()
+        await member.remove_roles(
+            *list(
+                filter(
+                    lambda role: role.id in self.config.level_roles.values(),
+                    member.roles,
+                )
             )
-            if member_level is None:
+        )
+        await member.add_roles(member.guild.get_role(self.config.level_roles[level]))
+
+    async def fetch_report(self, member: nextcord.Member):
+        with db_session() as session:
+            member_level = (
+                session.query(MemberLevel).filter_by(member=member.id).first()
+            )
+            if member_level is None:  # migrate from Tatsu
+                response = requests.get(
+                    f"https://api.tatsu.gg/v1/guilds/856262303795380224/rankings/members/{member.id}/all",
+                    headers={"Authorization": discordTokens.getTatsuApiKey()},
+                )
+                if response.status_code != 200:
+                    xp = xp_needed_to_level(get_member_level(self.config, member))
+                else:
+                    xp = response.json()["score"]
+
                 member_level = MemberLevel(
                     member=member.id,
-                    level=get_member_level(self.config, member),
-                    xp=0,
+                    level=xp_to_level(xp),
+                    xp=xp,
+                    xp_breakdown=json.dumps(
+                        {
+                            "message": xp,
+                            "voice chat": 0,
+                            "legacy": xp,
+                        }
+                    ),
                 )
-                self.session.add(member_level)
-                self.session.commit()
+                session.add(member_level)
+                session.commit()
+
+                await self.update_member_level(member, xp_to_level(xp))
 
             self.reports[member.id] = MemberReport(
                 member=member,
                 level=member_level.level,
                 xp=member_level.xp,
+                xp_breakdown=member_level.xp_dict,
+                last_saved=datetime.now(),
             )
 
-        self.reports[member.id].xp += amount
-        self.reports[member.id].updated = True
-
-        self.session.add(
-            ExperienceJournal(
-                member=member.id,
-                timestamp=datetime.utcnow(),
-                xp_type=type.value,
-                xp=amount,
+    def save_report(self, report: MemberReport):
+        with db_session() as session:
+            session.query(MemberLevel).filter_by(member=report.member.id).update(
+                {
+                    "level": report.level,
+                    "xp": report.xp,
+                    "xp_breakdown": json.dumps(report.xp_breakdown),
+                }
             )
-        )
+            session.commit()
+
+        report.last_saved = datetime.now()
+        report.xp_since_last_save = 0
+
+    async def earn_xp(self, member: nextcord.Member, amount: int, type: XPType):
+        if amount <= 0:
+            return
+
+        if member.id not in self.reports:  # get record from database
+            await self.fetch_report(member)
+        report = self.reports[member.id]
+
+        report.xp += amount
+        report.xp_breakdown[type.value] += amount
+        report.xp_since_last_save += amount
+
+        if report.next_level <= report.xp:
+            report.level += 1
+            self.save_report(report)
+
+            await self.update_member_level(member)
+            return
+
+        if not report.xp_since_last_save:
+            return
+
+        if (
+            report.last_saved + timedelta(minutes=5) <= datetime.now()
+            or report.xp_since_last_save >= 100
+        ):
+            self.save_report(report)
 
     @tasks.loop(minutes=1)
     async def voice_xp(self):
@@ -95,83 +189,23 @@ class Levelling(commands.Cog):
                 if member.bot:
                     continue
 
-                await self.earn_xp(member, len(channel.members), XPType.VOICE)
+                if len(channel.members) <= 3:
+                    xp = len(channel.members) * 2 - 1
+                elif len(channel.members) <= 5:
+                    xp = len(channel.members) + 2
+                elif len(channel.members) < 10:
+                    xp = len(channel.members) // 2 + 5
+                else:
+                    xp = 10
 
-        for member_id, report in self.reports.items():
-            if not report.updated:
-                continue
+                await self.earn_xp(member, xp, XPType.VOICE)
 
-            self.session.query(MemberLevel).filter_by(member=member_id).update(
-                {
-                    "level": report.level,
-                    "xp": report.xp,
-                }
-            )
-
-        self.session.commit()
-        self.session.close()
-        self.session = db_session()
-
-    @nextcord.slash_command(
-        description="daily user experience report",
-        guild_ids=[1166770860787515422, 977377117895536640, 856262303795380224],
-        dm_permission=False,
-    )
-    async def daily_report(self, interaction: nextcord.Interaction):
-        if not await permcheck(interaction, is_sersi_contributor):
-            return
-
-        await interaction.response.defer()
-
-        with db_session() as session:
-            journals: list[tuple[int, str, int]] = (
-                session.query(
-                    ExperienceJournal.member,
-                    ExperienceJournal.xp_type,
-                    func.sum(ExperienceJournal.xp).label("xp"),
-                )
-                .filter(
-                    ExperienceJournal.timestamp
-                    < datetime.utcnow().replace(
-                        hour=0, minute=0, second=0, microsecond=0
-                    )
-                )
-                .group_by(ExperienceJournal.member, ExperienceJournal.xp_type)
-                .order_by(ExperienceJournal.member)
-                .all()
-            )
-
-            session.query(ExperienceJournal).filter(
-                ExperienceJournal.timestamp
-                < datetime.utcnow().replace(
-                    hour=0, minute=0, second=0, microsecond=0
-                )
-            ).delete()
-            session.commit()
-        
-        if journals is None or len(journals) == 0:
-            await interaction.followup.send("No data to report!", ephemeral=True)
-            return
-
-        csv = "member,member_id,xp_type,xp\n"
-
-        for journal in journals:
-            user = self.bot.get_user(journal[0])
-            name = user.name if user is not None else "n/a"
-
-            csv += f"{name},{journal[0]},{journal[1]},{journal[2]}\n"
-
-        yesterday = datetime.utcnow().replace(
-            hour=0, minute=0, second=0, microsecond=0
-        ) - timedelta(days=1)
-
-        file = nextcord.File(
-            io.BytesIO(csv.encode("utf-8")), filename=f"crossroads_xp_report_{yesterday.date()}.csv"
-        )
-        
-        await interaction.followup.send(
-            "Here's the daily report!", file=file
-        )
+        for report in self.reports.values():
+            if (
+                report.xp_since_last_save
+                and report.last_saved + timedelta(minutes=5) <= datetime.now()
+            ):
+                self.save_report(report)
 
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.Message):
@@ -194,11 +228,10 @@ class Levelling(commands.Cog):
 
         await self.earn_xp(message.author, xp, XPType.MESSAGE)
 
-        self.reports[message.author.id].last_message[
-            message.channel.id
-        ] = message.created_at.timestamp()
+        self.reports[message.author.id].last_message[message.channel.id] = (
+            message.created_at.timestamp()
+        )
 
 
 def setup(bot: commands.Bot, **kwargs):
-    if kwargs["config"].bot.dev_mode:
-        bot.add_cog(Levelling(bot, kwargs["config"]))
+    bot.add_cog(Levelling(bot, kwargs["config"]))
