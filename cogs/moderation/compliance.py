@@ -316,7 +316,7 @@ class Compliance(commands.Cog):
 
             await message.delete()
 
-    @tasks.loop(minutes=1)
+    @tasks.loop(hours=1)
     async def compliance_report_loop(self):
         if datetime.datetime.now().hour != 6:
             return
