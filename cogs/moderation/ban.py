@@ -363,7 +363,7 @@ class BanSystem(commands.Cog):
                     embed=logging_embed
                 )
 
-                result: nextcord.WebhookMessage = await interaction.message.edit(
+                result: nextcord.WebhookMessage = await interaction.followup.send(
                     embed=SersiEmbed(
                         title="Ban Result:",
                         fields={
