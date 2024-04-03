@@ -343,13 +343,18 @@ class BanSystem(commands.Cog):
 
                 await interaction.guild.ban(
                     offender,
-                    reason=f"{[sersi_case.details]} -{interaction.user.name}",
+                    reason=f"{sersi_case.details} - {interaction.user.name}",
                     delete_message_days=0,
                 )
 
-                logging_embed: SersiEmbed = create_case_embed(
-                    sersi_case, interaction=interaction, config=self.config
-                )
+                with db_session(interaction.user) as session:
+                    sersi_case.active = True
+                    session.add(sersi_case)
+                    session.commit()
+
+                    logging_embed: SersiEmbed = create_case_embed(
+                        sersi_case, interaction=interaction, config=self.config
+                    )
 
                 await interaction.guild.get_channel(self.config.channels.mod_logs).send(
                     embed=logging_embed
@@ -357,11 +362,6 @@ class BanSystem(commands.Cog):
                 await interaction.guild.get_channel(self.config.channels.logging).send(
                     embed=logging_embed
                 )
-
-                with db_session(interaction.user) as session:
-                    sersi_case.active = True
-                    session.add(sersi_case)
-                    session.commit()
 
                 result: nextcord.WebhookMessage = await interaction.message.edit(
                     embed=SersiEmbed(
