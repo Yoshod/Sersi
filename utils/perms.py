@@ -10,7 +10,7 @@ config = Configuration.from_yaml_file("./persistent_data/config.yaml")
 
 
 async def permcheck(
-    hook: nextcord.ext.commands.Context|nextcord.Interaction, function: callable
+    hook: nextcord.ext.commands.Context | nextcord.Interaction, function: callable
 ) -> bool:
     if isinstance(hook, nextcord.ext.commands.Context):
         if function(hook.author):
@@ -116,6 +116,18 @@ def is_compliance(member: nextcord.Member) -> bool:
     return is_allowed(member, [config.permission_roles.compliance])
 
 
+def is_reporter(member: nextcord.Member) -> bool:
+    return is_allowed(
+        member,
+        [
+            config.permission_roles.sersi_contributor,
+            config.permission_roles.senior_moderator,
+            config.permission_roles.compliance,
+            config.permission_roles.dark_moderator,
+        ],
+    )
+
+
 def is_admin(member: nextcord.Member) -> bool:
     return is_allowed(member, [config.permission_roles.dark_moderator])
 
@@ -148,6 +160,16 @@ def is_slt(member: nextcord.Member) -> bool:
 
 def is_sersi_contributor(member: nextcord.Member) -> bool:
     return is_allowed(member, [config.permission_roles.sersi_contributor])
+
+
+def is_manager(member: nextcord.Member) -> bool:
+    return is_allowed(
+        member,
+        [
+            config.permission_roles.sersi_contributor,
+            config.permission_roles.dark_moderator,
+        ],
+    )
 
 
 def is_cet(member: nextcord.Member) -> bool:
@@ -242,7 +264,7 @@ async def cb_is_mod(interaction) -> bool:
 
 
 async def cb_is_dark_mod(interaction) -> bool:
-    return await permcheck(interaction, is_dark_mod)
+    return await permcheck(interaction, is_admin)
 
 
 async def cb_is_cet(interaction) -> bool:
