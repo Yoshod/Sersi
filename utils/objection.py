@@ -110,6 +110,7 @@ class AlertView(nextcord.ui.View):
         super().__init__(timeout=None)
         self.config = config
         self.reviewer = reviewer
+        self.sersi_case = sersi_case
         self.add_item(ApprovalButton(config, sersi_case))
         self.add_item(ObjectionButton(config, sersi_case))
 
@@ -118,6 +119,8 @@ class AlertView(nextcord.ui.View):
             case self.config.permission_roles.compliance:
                 return await permcheck(interaction, is_compliance)
             case self.config.permission_roles.dark_moderator:
+                if interaction.user.id == self.sersi_case.moderator:
+                    return False
                 return await permcheck(interaction, is_admin)
             case self.config.permission_roles.senior_moderator:
                 return await permcheck(interaction, is_mod_lead)
