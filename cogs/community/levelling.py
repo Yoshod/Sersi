@@ -135,7 +135,9 @@ class Levelling(commands.Cog):
                 session.add(member_level)
                 session.commit()
 
-                await self.update_member_level(member, xp_to_level(xp))
+            elif member_level.level != xp_to_level(member_level.xp):
+                member_level.level = xp_to_level(member_level.xp)
+                session.commit()
 
             self.reports[member.id] = MemberReport(
                 member=member,
@@ -144,6 +146,8 @@ class Levelling(commands.Cog):
                 xp_breakdown=member_level.xp_dict,
                 last_saved=datetime.now(),
             )
+        
+        await self.update_member_level(member, self.reports[member.id].level)
 
     def save_report(self, report: MemberReport):
         with db_session() as session:
