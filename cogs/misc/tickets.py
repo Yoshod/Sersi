@@ -156,9 +156,11 @@ class TicketingSystem(commands.Cog):
             ticket: Ticket = session.query(Ticket).filter_by(**filter_dict).first()
             if ticket is None:
                 await interaction.response.send_message(
-                    f"{self.config.emotes.fail} No open ticket with that ID exists."
-                    if ticket_id
-                    else f"{self.config.emotes.fail} This channel is not a ticket channel",
+                    (
+                        f"{self.config.emotes.fail} No open ticket with that ID exists."
+                        if ticket_id
+                        else f"{self.config.emotes.fail} This channel is not a ticket channel"
+                    ),
                     ephemeral=True,
                 )
                 return
@@ -187,6 +189,7 @@ class TicketingSystem(commands.Cog):
                 interaction.guild,
                 ticket,
                 interaction.user,
+                close_reason,
                 channel,
             ):
                 await interaction.followup.send(
@@ -252,9 +255,11 @@ class TicketingSystem(commands.Cog):
             ticket: Ticket = session.query(Ticket).filter_by(**filter_dict).first()
             if ticket is None:
                 await interaction.response.send_message(
-                    f"{self.config.emotes.fail} No open ticket with that ID exists."
-                    if ticket_id
-                    else f"{self.config.emotes.fail} This channel is not a ticket channel",
+                    (
+                        f"{self.config.emotes.fail} No open ticket with that ID exists."
+                        if ticket_id
+                        else f"{self.config.emotes.fail} This channel is not a ticket channel"
+                    ),
                     ephemeral=True,
                 )
                 return
@@ -320,9 +325,11 @@ class TicketingSystem(commands.Cog):
             ticket: Ticket = session.query(Ticket).filter_by(**filter_dict).first()
             if ticket is None:
                 await interaction.response.send_message(
-                    f"{self.config.emotes.fail} No open ticket with that ID exists."
-                    if ticket_id
-                    else f"{self.config.emotes.fail} This channel is not a ticket channel",
+                    (
+                        f"{self.config.emotes.fail} No open ticket with that ID exists."
+                        if ticket_id
+                        else f"{self.config.emotes.fail} This channel is not a ticket channel"
+                    ),
                     ephemeral=True,
                 )
                 return
@@ -375,9 +382,11 @@ class TicketingSystem(commands.Cog):
                 {
                     "Ticket ID": ticket.id,
                     "Ticket Creator": ticket_creator.mention,
-                    "Ticket Channel": ticket_channel.mention
-                    if ticket_channel
-                    else "`deleted channel`",
+                    "Ticket Channel": (
+                        ticket_channel.mention
+                        if ticket_channel
+                        else "`deleted channel`"
+                    ),
                 },
                 {
                     "Escalation Level": ticket.escalation_level,
@@ -385,9 +394,11 @@ class TicketingSystem(commands.Cog):
                     "Subcategory": ticket.subcategory or "N/A",
                 },
                 {
-                    "Open": f"{self.config.emotes.success}"
-                    if ticket.active
-                    else f"{self.config.emotes.fail}",
+                    "Open": (
+                        f"{self.config.emotes.success}"
+                        if ticket.active
+                        else f"{self.config.emotes.fail}"
+                    ),
                     "Opened": f"<t:{int(ticket.created.timestamp())}:F>",
                 },
                 {"Opening Comment": ticket.opening_comment},
@@ -402,9 +413,11 @@ class TicketingSystem(commands.Cog):
             survey = session.query(TicketSurvey).filter_by(ticket_id=ticket.id).first()
             embed_fields.append(
                 {
-                    "Survey Sent": self.config.emotes.success
-                    if survey
-                    else self.config.emotes.fail,
+                    "Survey Sent": (
+                        self.config.emotes.success
+                        if survey
+                        else self.config.emotes.fail
+                    ),
                 }
             )
             if survey:
