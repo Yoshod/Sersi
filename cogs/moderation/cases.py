@@ -377,6 +377,11 @@ class Cases(commands.Cog):
             min_length=10,
             max_length=22,
         ),
+        moderator: nextcord.Member = nextcord.SlashOption(
+            name="moderator",
+            description="The moderator who is responsible for the case",
+            required=False,
+        ),
         offence: str = nextcord.SlashOption(
             name="offence",
             description="The offence for which the user is being warned.",
@@ -407,6 +412,11 @@ class Cases(commands.Cog):
             },
             required=False,
         ),
+        active: bool = nextcord.SlashOption(
+            name="active",
+            description="Whether the case is still active",
+            required=False,
+        ),
         state: str = nextcord.SlashOption(
             name="state",
             description="The state of the reformation case",
@@ -432,6 +442,7 @@ class Cases(commands.Cog):
             detail,
             duration,
             timespan,
+            moderator,
         )
 
         if not valid_output:
@@ -458,7 +469,24 @@ class Cases(commands.Cog):
                     else:
                         detail_changed = False
 
-                    if not detail_changed and not offence_changed:
+                    try:
+                        if (
+                            moderator.id != sersi_case.moderator
+                            and moderator is not None
+                        ):
+                            sersi_case.moderator = moderator.id
+                            moderator_changed = True
+                        else:
+                            moderator_changed = False
+
+                    except AttributeError:
+                        moderator_changed = False
+
+                    if (
+                        not detail_changed
+                        and not offence_changed
+                        and not moderator_changed
+                    ):
                         await interaction.followup.send(
                             f"{self.config.emotes.fail} You have not changed any details about the case!"
                         )
@@ -485,6 +513,7 @@ class Cases(commands.Cog):
                                 fields={
                                     "Offence:": f"`{sersi_case.offence}`",
                                     "Detail:": f"`{sersi_case.details}`",
+                                    "Moderator:": f"{moderator.mention} ({moderator.id})",
                                 },
                                 footer="Sersi Warning",
                             ).set_thumbnail(interaction.guild.icon.url)
@@ -514,7 +543,24 @@ class Cases(commands.Cog):
                     else:
                         detail_changed = False
 
-                    if not detail_changed and not offence_changed:
+                    try:
+                        if (
+                            moderator.id != sersi_case.moderator
+                            and moderator is not None
+                        ):
+                            sersi_case.moderator = moderator.id
+                            moderator_changed = True
+                        else:
+                            moderator_changed = False
+
+                    except AttributeError:
+                        moderator_changed = False
+
+                    if (
+                        not detail_changed
+                        and not offence_changed
+                        and not moderator_changed
+                    ):
                         await interaction.followup.send(
                             f"{self.config.emotes.fail} You have not changed any details about the case!"
                         )
@@ -560,6 +606,19 @@ class Cases(commands.Cog):
                         duration_changed = False
 
                     try:
+                        if (
+                            moderator.id != sersi_case.moderator
+                            and moderator is not None
+                        ):
+                            sersi_case.moderator = moderator.id
+                            moderator_changed = True
+                        else:
+                            moderator_changed = False
+
+                    except AttributeError:
+                        moderator_changed = False
+
+                    try:
                         time_delta: datetime.timedelta = convert_to_timedelta(
                             timespan, duration
                         )
@@ -582,12 +641,14 @@ class Cases(commands.Cog):
                             "Offence:": f"`{sersi_case.offence}`",
                             "Detail:": f"`{sersi_case.details}`",
                             "Duration:": f"`{duration}{timespan}`",
+                            "Moderator:": f"{moderator.mention} ({moderator.id})",
                         }
 
                     else:
                         embed_fields = {
                             "Offence:": f"`{sersi_case.offence}`",
                             "Detail:": f"`{sersi_case.details}`",
+                            "Moderator:": f"{moderator.mention} ({moderator.id})",
                         }
                         planned_end_changed = False
 
@@ -596,6 +657,7 @@ class Cases(commands.Cog):
                         and not offence_changed
                         and not duration_changed
                         and not planned_end_changed
+                        and not moderator_changed
                     ):
                         await interaction.followup.send(
                             f"{self.config.emotes.fail} You have not changed any details about the case!"
@@ -658,7 +720,25 @@ class Cases(commands.Cog):
                     else:
                         state_changed = False
 
-                    if not detail_changed and not offence_changed and not state_changed:
+                    try:
+                        if (
+                            moderator.id != sersi_case.moderator
+                            and moderator is not None
+                        ):
+                            sersi_case.moderator = moderator.id
+                            moderator_changed = True
+                        else:
+                            moderator_changed = False
+
+                    except AttributeError:
+                        moderator_changed = False
+
+                    if (
+                        not detail_changed
+                        and not offence_changed
+                        and not state_changed
+                        and not moderator_changed
+                    ):
                         await interaction.followup.send(
                             f"{self.config.emotes.fail} You have not changed any details about the case!"
                         )
@@ -711,7 +791,7 @@ class Cases(commands.Cog):
     ):
         if not await permcheck(interaction, is_mod):
             return
-        
+
         if case_id == related_case_id:
             await interaction.response.send_message(
                 "A case cannot be related to itself.",
@@ -729,27 +809,32 @@ class Cases(commands.Cog):
                 )
                 return
 
-            related_case = session.query(Case).filter(Case.id == related_case_id).first()
+            related_case = (
+                session.query(Case).filter(Case.id == related_case_id).first()
+            )
             if related_case is None:
                 await interaction.followup.send(
                     f"{self.config.emotes.fail} Case `{related_case_id}` does not exist."
                 )
                 return
 
-            relation = session.query(RelatedCase).filter_by(
-                case_id=case_id, related_id=related_case_id
-            ).union(
-                session.query(RelatedCase).filter_by(
-                    case_id=related_case_id, related_id=case_id
+            relation = (
+                session.query(RelatedCase)
+                .filter_by(case_id=case_id, related_id=related_case_id)
+                .union(
+                    session.query(RelatedCase).filter_by(
+                        case_id=related_case_id, related_id=case_id
+                    )
                 )
-            ).first()
+                .first()
+            )
 
             if relation is not None:
                 await interaction.followup.send(
                     f"{self.config.emotes.fail} Case `{case_id}` is already related to case `{related_case_id}`."
                 )
                 return
-            
+
             session.add(RelatedCase(case_id=case_id, related_id=related_case_id))
             session.commit()
 
@@ -777,7 +862,7 @@ class Cases(commands.Cog):
     ):
         if not await permcheck(interaction, is_mod):
             return
-        
+
         if case_id == related_case_id:
             await interaction.response.send_message(
                 "A case cannot be related to itself.",
@@ -795,34 +880,38 @@ class Cases(commands.Cog):
                 )
                 return
 
-            related_case = session.query(Case).filter(Case.id == related_case_id).first()
+            related_case = (
+                session.query(Case).filter(Case.id == related_case_id).first()
+            )
             if related_case is None:
                 await interaction.followup.send(
                     f"{self.config.emotes.fail} Case `{related_case_id}` does not exist."
                 )
                 return
 
-            relation = session.query(RelatedCase).filter_by(
-                case_id=case_id, related_id=related_case_id
-            ).union(
-                session.query(RelatedCase).filter_by(
-                    case_id=related_case_id, related_id=case_id
+            relation = (
+                session.query(RelatedCase)
+                .filter_by(case_id=case_id, related_id=related_case_id)
+                .union(
+                    session.query(RelatedCase).filter_by(
+                        case_id=related_case_id, related_id=case_id
+                    )
                 )
-            ).first()
+                .first()
+            )
 
             if relation is None:
                 await interaction.followup.send(
                     f"{self.config.emotes.fail} Case `{case_id}` is not related to case `{related_case_id}`."
                 )
                 return
-            
+
             session.delete(relation)
             session.commit()
 
         await interaction.followup.send(
             f"{self.config.emotes.success} Case `{case_id}` is no longer related to case `{related_case_id}`."
         )
-        
 
     # TODO: its own cog perhaps?
     @nextcord.slash_command(
