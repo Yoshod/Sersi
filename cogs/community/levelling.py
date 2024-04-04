@@ -12,6 +12,9 @@ import requests
 from utils.base import ignored_message, get_member_level
 from utils.config import Configuration
 from utils.database import db_session, MemberLevel
+from utils.dialog import confirm
+from utils.perms import permcheck, is_cet, is_admin, is_cet_lead
+from utils.sersi_embed import SersiEmbed
 
 import discordTokens
 
@@ -19,6 +22,7 @@ import discordTokens
 class XPType(Enum):
     MESSAGE = "message"
     VOICE = "voice chat"
+    COMMAND = "command"
 
 
 @dataclass
@@ -38,7 +42,10 @@ class MemberReport:
 
     def __post_init__(self):
         self.next_level = xp_needed_to_level(self.level + 1)
-    
+        for xp_type in XPType:
+            if xp_type.value not in self.xp_breakdown:
+                self.xp_breakdown[xp_type.value] = 0
+
     def __setattr__(self, __name: str, __value) -> None:
         if __name == "level":
             self.next_level = xp_needed_to_level(__value + 1)
@@ -62,6 +69,12 @@ def xp_to_level(xp: int) -> int:
         xp -= xp_needed_to_next_level(level)
         level += 1
     return level
+
+
+XP_COMMAND_LIMITS = {
+    2000: is_cet_lead,
+    5000: is_admin,
+}
 
 
 class Levelling(commands.Cog):
@@ -127,7 +140,6 @@ class Levelling(commands.Cog):
                     xp_breakdown=json.dumps(
                         {
                             "message": xp,
-                            "voice chat": 0,
                             "legacy": xp,
                         }
                     ),
@@ -146,7 +158,7 @@ class Levelling(commands.Cog):
                 xp_breakdown=member_level.xp_dict,
                 last_saved=datetime.now(),
             )
-        
+
         await self.update_member_level(member, self.reports[member.id].level)
 
     def save_report(self, report: MemberReport):
@@ -190,6 +202,78 @@ class Levelling(commands.Cog):
             or report.xp_since_last_save >= 100
         ):
             self.save_report(report)
+
+    @nextcord.slash_command(
+        dm_permission=False,
+        guild_ids=[1166770860787515422, 977377117895536640, 856262303795380224],
+        )
+    async def level(self, interaction: nextcord.Interaction):
+        pass
+
+    @level.subcommand(description="Give a specified amount of XP to a member.")
+    async def give_xp(
+        self,
+        interaction: nextcord.Interaction,
+        member: nextcord.Member,
+        amount: int = nextcord.SlashOption(
+            name="amount",
+            description="Amount of XP to give",
+            min_value=100,
+        ),
+        reason: str = nextcord.SlashOption(
+            name="reason",
+            description="Reason for giving XP",
+        ),
+    ):
+        if not await permcheck(interaction, is_cet):
+            return
+
+        for limit, check in XP_COMMAND_LIMITS.items():
+            if amount > limit and not check(interaction.user):
+                await interaction.response.send_message(
+                    f"You can only give up to {limit} XP.", ephemeral=True
+                )
+                return
+
+        await interaction.response.defer()
+
+        if amount >= 1000:
+            if not await confirm(
+                interaction,
+                title="Giving a large amount of XP",
+                description="Are you sure you want to give this much XP?",
+                embed_fields={
+                    "Amount:": amount,
+                    "Recipient:": member.mention,
+                },
+            ):
+                return
+
+        await self.earn_xp(member, amount, XPType.COMMAND)
+        await interaction.followup.send(
+            f"{interaction.user.mention} gave **{amount}** XP to {member.mention} for *{reason}*!"
+        )
+
+        # logging
+        log_embed = SersiEmbed(
+            title="XP Given",
+            colour=nextcord.Colour.green(),
+            fields={
+                "Giver:": interaction.user.mention,
+                "Recipient:": member.mention,
+                "Amount:": amount,
+                "Reason:": reason,
+            },
+        )
+        await interaction.guild.get_channel(self.config.channels.logging).send(
+            embed=log_embed
+        )
+        await interaction.guild.get_channel(self.config.channels.user_chanes).send(
+            embed=log_embed
+        )
+        await interaction.guild.get_channel(self.config.channels.alert).send(
+            embed=log_embed
+        )
 
     @tasks.loop(minutes=1)
     async def voice_xp(self):
