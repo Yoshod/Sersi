@@ -203,10 +203,31 @@ class Levelling(commands.Cog):
         ):
             self.save_report(report)
 
+    async def lose_xp(self, member: nextcord.Member, amount: int, type: XPType):
+        if amount <= 0:
+            return
+
+        if member.id not in self.reports:
+            await self.fetch_report(member)
+        report = self.reports[member.id]
+
+        report.xp -= amount
+        report.xp_breakdown[type.value] -= amount
+
+        if report.xp < 0:
+            report.xp = 0
+
+        if report.xp < xp_needed_to_level(report.level):
+            report.level -= 1
+
+            await self.update_member_level(member, report.level)
+
+        self.save_report(report)
+
     @nextcord.slash_command(
         dm_permission=False,
         guild_ids=[1166770860787515422, 977377117895536640, 856262303795380224],
-        )
+    )
     async def level(self, interaction: nextcord.Interaction):
         pass
 
@@ -258,6 +279,82 @@ class Levelling(commands.Cog):
         log_embed = SersiEmbed(
             title="XP Given",
             colour=nextcord.Colour.green(),
+            fields={
+                "Giver:": interaction.user.mention,
+                "Recipient:": member.mention,
+                "Amount:": amount,
+                "Reason:": reason,
+            },
+        )
+        await interaction.guild.get_channel(self.config.channels.logging).send(
+            embed=log_embed
+        )
+        await interaction.guild.get_channel(self.config.channels.user_chanes).send(
+            embed=log_embed
+        )
+        await interaction.guild.get_channel(self.config.channels.alert).send(
+            embed=log_embed
+        )
+
+    @level.subcommand(description="Remove a specified amount of XP from a member.")
+    async def remove_xp(
+        self,
+        interaction: nextcord.Interaction,
+        member: nextcord.Member,
+        amount: int = nextcord.SlashOption(
+            name="amount",
+            description="Amount of XP to remove",
+            min_value=100,
+        ),
+        reason: str = nextcord.SlashOption(
+            name="reason",
+            description="Reason for removing XP",
+        ),
+        hidden: bool = nextcord.SlashOption(
+            name="hidden",
+            description="Whether to hide the response from other users.",
+            required=False,
+            choices={
+                "True": True,
+                "False": False,
+            },
+        ),
+    ):
+        if not await permcheck(interaction, is_cet):
+            return
+
+        for limit, check in XP_COMMAND_LIMITS.items():
+            if amount > limit and not check(interaction.user):
+                await interaction.response.send_message(
+                    f"You can only remove up to {limit} XP.", ephemeral=True
+                )
+                return
+
+        await interaction.response.defer(ephemeral=hidden)
+
+        if amount >= 1000:
+            if not await confirm(
+                interaction,
+                title="Removing a large amount of XP",
+                description="Are you sure you want to remove this much XP?",
+                embed_fields={
+                    "Amount:": amount,
+                    "Recipient:": member.mention,
+                },
+                ephemeral=hidden,
+            ):
+                return
+
+        await self.lose_xp(member, amount, XPType.COMMAND)
+        await interaction.followup.send(
+            f"{interaction.user.mention} removed **{amount}** XP from {member.mention} for *{reason}*!",
+            ephemeral=hidden,
+        )
+
+        # logging
+        log_embed = SersiEmbed(
+            title="XP Removed",
+            colour=nextcord.Colour.red(),
             fields={
                 "Giver:": interaction.user.mention,
                 "Recipient:": member.mention,
