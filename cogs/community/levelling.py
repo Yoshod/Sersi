@@ -54,7 +54,7 @@ class MemberReport:
 
 @cache
 def xp_needed_to_next_level(level: int) -> int:
-    return round(10 ** (level / 5) * 1000, -2 - level // 5)
+    return int(round(10 ** (level / 5) * 1000, -2 - level // 5))
 
 
 @cache
@@ -161,6 +161,11 @@ class Levelling(commands.Cog):
 
         await self.update_member_level(member, self.reports[member.id].level)
 
+    async def get_report(self, member: nextcord.Member) -> MemberReport:
+        if member.id not in self.reports:
+            await self.fetch_report(member)
+        return self.reports[member.id]
+
     def save_report(self, report: MemberReport):
         with db_session() as session:
             session.query(MemberLevel).filter_by(member=report.member.id).update(
@@ -179,9 +184,7 @@ class Levelling(commands.Cog):
         if amount <= 0:
             return
 
-        if member.id not in self.reports:  # get record from database
-            await self.fetch_report(member)
-        report = self.reports[member.id]
+        report = await self.get_report(member)
 
         report.xp += amount
         report.xp_breakdown[type.value] += amount
@@ -207,9 +210,7 @@ class Levelling(commands.Cog):
         if amount <= 0:
             return
 
-        if member.id not in self.reports:
-            await self.fetch_report(member)
-        report = self.reports[member.id]
+        report = await self.get_report(member)
 
         report.xp -= amount
         report.xp_breakdown[type.value] -= amount
@@ -230,6 +231,54 @@ class Levelling(commands.Cog):
     )
     async def level(self, interaction: nextcord.Interaction):
         pass
+
+    @level.subcommand(description="View your own XP and level or someone else's.")
+    async def show(
+        self,
+        interaction: nextcord.Interaction,
+        member: nextcord.Member = nextcord.SlashOption(
+            name="member",
+            description="Member to view the level of",
+            required=False,
+        ),
+    ):
+        if member is None:
+            member = interaction.user
+        report = await self.get_report(member)
+
+        xp_base = xp_needed_to_level(report.level)
+        xp_above_current = report.xp - xp_base
+        xp_to_next = report.next_level - report.xp
+        fraction = xp_above_current / xp_needed_to_next_level(report.level)
+
+        level_role = member.guild.get_role(
+            self.config.level_roles.get(report.level, None)
+        )
+        level_name = (
+            level_role.name.replace("(", "(Level ")
+            if level_role
+            else "Civil Engineering Initiate (Level 0)"
+        )
+
+        embed = SersiEmbed(
+            title=f"__{level_name}__",
+            description=f"`{report.xp:13d} XP / {report.next_level:7d} XP`\n"
+            f"`{report.level:2d}` {'█'*round(fraction*20)}{'░'*(20-round(fraction*20))} `{report.level+1:2d}`\n\n"
+            f"XP needed to next level: **{xp_to_next}**",
+            fields=[
+                {
+                    XPType(type).value.capitalize(): f"{amount} XP"
+                    for type, amount in report.xp_breakdown.items()
+                    if amount and type in [type.value for type in XPType]
+                }
+            ],
+            colour=member.colour,
+            thumbnail_url=member.avatar.url,
+            author=member,
+            footer_icon=interaction.user.avatar.url,
+            footer=f"Requested by {interaction.user.display_name}",
+        )
+        await interaction.response.send_message(embed=embed)
 
     @level.subcommand(description="Give a specified amount of XP to a member.")
     async def give_xp(
@@ -427,14 +476,14 @@ class Levelling(commands.Cog):
         self.reports[message.author.id].last_message[message.channel.id] = (
             message.created_at.timestamp()
         )
-    
+
     @commands.Cog.listener()
-    async def on_add_xp(self, member: nextcord.Member, amount: int, type: XPType):
-        await self.earn_xp(member, amount, type)
-    
+    async def on_add_xp(self, member: nextcord.Member, amount: int, type: str):
+        await self.earn_xp(member, amount, XPType[type])
+
     @commands.Cog.listener()
-    async def on_remove_xp(self, member: nextcord.Member, amount: int, type: XPType):
-        await self.lose_xp(member, amount, type)
+    async def on_remove_xp(self, member: nextcord.Member, amount: int, type: str):
+        await self.lose_xp(member, amount, XPType[type])
 
 
 def setup(bot: commands.Bot, **kwargs):
