@@ -677,7 +677,7 @@ def check_staff_availability(staff_member: int | nextcord.Member):
 
 def is_available(member: nextcord.Member):
     """Checks if a staff member has the availability role."""
-    return is_allowed(member, [CONFIG.roles.available_mod])
+    return CONFIG.roles.available_mod in member._roles
 
 
 def get_available_mods(guild: nextcord.Guild):
