@@ -427,6 +427,14 @@ class Levelling(commands.Cog):
         self.reports[message.author.id].last_message[message.channel.id] = (
             message.created_at.timestamp()
         )
+    
+    @commands.Cog.listener()
+    async def on_add_xp(self, member: nextcord.Member, amount: int, type: XPType):
+        await self.earn_xp(member, amount, type)
+    
+    @commands.Cog.listener()
+    async def on_remove_xp(self, member: nextcord.Member, amount: int, type: XPType):
+        await self.lose_xp(member, amount, type)
 
 
 def setup(bot: commands.Bot, **kwargs):
