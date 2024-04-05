@@ -4,17 +4,19 @@ from dataclasses import dataclass, field
 from functools import cache
 from datetime import datetime, timedelta
 import json
+from collections import namedtuple
 
 import nextcord
 from nextcord.ext import commands, tasks
 import requests
 
-from utils.base import ignored_message, get_member_level
+from utils.base import ignored_message, get_member_level, get_page
 from utils.config import Configuration
 from utils.database import db_session, MemberLevel
 from utils.dialog import confirm
 from utils.perms import permcheck, is_cet, is_admin, is_cet_lead
 from utils.sersi_embed import SersiEmbed
+from utils.views import PageView
 
 import discordTokens
 
@@ -75,6 +77,28 @@ XP_COMMAND_LIMITS = {
     2000: is_cet_lead,
     5000: is_admin,
 }
+
+
+MemberRank = namedtuple("MemberRank", ["id", "xp", "level", "rank"])
+
+
+def fetch_leaderboard(
+    config: Configuration, page: int, per_page: int = 10
+) -> tuple[list[MemberRank], int, int]:
+    with db_session() as session:
+        members: MemberLevel = (
+            session.query(MemberLevel).order_by(MemberLevel.xp.desc()).all()
+        )
+
+    members, pages, page = get_page(members, page, per_page)
+    return (
+        [
+            MemberRank(id=member.member, xp=member.xp, level=member.level, rank=i + 1)
+            for i, member in enumerate(members)
+        ],
+        pages,
+        page,
+    )
 
 
 class Levelling(commands.Cog):
@@ -279,6 +303,37 @@ class Levelling(commands.Cog):
             footer=f"Requested by {interaction.user.display_name}",
         )
         await interaction.response.send_message(embed=embed)
+
+    @level.subcommand(description="View the leaderboard.")
+    async def leaderboard(
+        self,
+        interaction: nextcord.Interaction,
+        page: int = nextcord.SlashOption(
+            name="page",
+            description="Page number",
+            required=False,
+            default=1,
+        ),
+    ):
+        await interaction.response.defer()
+
+        embed = SersiEmbed(
+            title=f"{interaction.guild.name} Leaderboard",
+            thumbnail_url=interaction.guild.icon.url,
+            footer_icon=interaction.user.avatar.url,
+        )
+
+        view = PageView(
+            config=self.config,
+            base_embed=embed,
+            fetch_function=fetch_leaderboard,
+            author=interaction.user,
+            init_page=page,
+            use_description=True,
+            entry_form="**{entry.rank}.** <@{entry.id}> - {entry.xp} XP - Level {entry.level}",
+        )
+
+        await view.send_followup(interaction)
 
     @level.subcommand(description="Give a specified amount of XP to a member.")
     async def give_xp(
