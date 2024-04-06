@@ -1410,7 +1410,7 @@ class Staff(commands.Cog):
                 if field not in updated
                 else f"{field} {self.config.emotes.success}",
                 value=value,
-                inline=False, # TODO: make inline when more settings are added
+                inline=False,  # TODO: make inline when more settings are added
             )
 
         await interaction.followup.send(
@@ -1423,7 +1423,7 @@ class Staff(commands.Cog):
 
         if not updated:
             return
-        
+
         log_embed = SersiEmbed(
             title="Preferences Updated",
             description=f"{interaction.user.mention} has updated their preferences.",
@@ -1434,7 +1434,6 @@ class Staff(commands.Cog):
         await interaction.guild.get_channel(self.config.channels.logging).send(
             embed=log_embed
         )
-
 
     @staff.subcommand(description="Moderator Availability")
     async def availability(self, interaction: nextcord.Interaction):
@@ -1604,7 +1603,7 @@ class Staff(commands.Cog):
             },
         ),
         available_on_message: bool = SlashOption(
-            description="Whether to become available during leave if you have recently messaged",
+            description="Whether to still become available during leave if you have recently messaged",
             required=False,
             choices={"Yes": True, "No": False},
         ),
@@ -1655,7 +1654,7 @@ class Staff(commands.Cog):
                     member=interaction.user.id,
                     window_identifier=window_name,
                     window_type="Duration",
-                    priority=200 if available_on_message else 50,
+                    priority=50 if available_on_message else 200,
                     available=False,
                     valid_until=datetime.now() + unavailable_timedelta,
                 )
@@ -1890,6 +1889,17 @@ class Staff(commands.Cog):
             session.commit()
 
             if not is_available(member):
+                forced_unavailable = (
+                    session.query(ModeratorAvailability)
+                    .filter_by(member=member.id, available=False)
+                    .filter(
+                        ModeratorAvailability.valid_until > datetime.now(),
+                        ModeratorAvailability.priority > 100,
+                    )
+                    .first()
+                )
+                if forced_unavailable:
+                    return
                 await set_availability_status(member, True)
 
     @commands.Cog.listener()
