@@ -131,7 +131,9 @@ class Voting(commands.Cog):
                     not end_vote
                     and details.created
                     + timedelta(
-                        hours=vote_type.duration / 24 - max(0, abs(diff) - threshold)
+                        hours=vote_type.duration / 24
+                        - max(0, abs(diff) - threshold)
+                        + (2 ** votes.get("maybe", 0) - 1)
                     )
                     > datetime.utcnow()
                 ):
