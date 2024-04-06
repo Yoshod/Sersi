@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - Added a new command `/suggestion retrieve_control_panel` to retrieve a control panel for a suggestion.
+- Added a new command `/cases review` to review a case via a command.
 
 ### Changed
 - Administrators can now review a Moderator Action taken by another Administrator.
