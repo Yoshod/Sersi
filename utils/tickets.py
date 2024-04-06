@@ -243,7 +243,7 @@ async def ticket_close(
 
     embed = SersiEmbed(
         title=f"{ticket.escalation_level} Ticket Closed",
-        description=f"{ticket_closer.mention} ({ticket_closer.id}) has closed a {ticket.escalation_level} Ticket.",
+        description=f"{ticket_closer.mention} ({ticket_closer.id}) has closed `{ticket.id}`",
         fields={
             "Ticket Opened By": f"<@{ticket.creator}> ({ticket.creator})",
             "Opening Remarks": ticket.opening_comment,
