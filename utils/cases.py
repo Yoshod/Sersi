@@ -368,6 +368,7 @@ def validate_case_edit(
     duration: int | None,
     timespan: str | None,
     moderator: nextcord.Member,
+    active: bool,
 ):
     if not offence and not detail and not duration and not timespan:
         return (
@@ -376,6 +377,12 @@ def validate_case_edit(
         )
 
     if (case_type == "Warning" or case_type == "Ban") and (duration or timespan):
+        return (
+            False,
+            f"{config.emotes.fail} You provided an invalid value for the case type {case_type}.",
+        )
+
+    if case_type == "Warning" and active is not None:
         return (
             False,
             f"{config.emotes.fail} You provided an invalid value for the case type {case_type}.",

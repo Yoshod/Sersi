@@ -443,6 +443,7 @@ class Cases(commands.Cog):
             duration,
             timespan,
             moderator,
+            active,
         )
 
         if not valid_output:
@@ -556,10 +557,18 @@ class Cases(commands.Cog):
                     except AttributeError:
                         moderator_changed = False
 
+                    if active != sersi_case.active and active is not None:
+                        sersi_case.active = active
+                        active_changed = True
+
+                    else:
+                        active_changed = False
+
                     if (
                         not detail_changed
                         and not offence_changed
                         and not moderator_changed
+                        and not active_changed
                     ):
                         await interaction.followup.send(
                             f"{self.config.emotes.fail} You have not changed any details about the case!"
