@@ -29,7 +29,7 @@ class ButtonPreset(Enum):
     NO_NEUTRAL = ("No", ButtonStyle.secondary)
 
 
-class _DialogView(View):
+class _ButtonDialogView(View):
     """
     View class for message based dialog.
 
@@ -99,7 +99,7 @@ async def message_dialog(
     if content is None and embed is None:
         raise ValueError("You must provide either content or an embed.")
 
-    view = _DialogView(confirm_future, interaction.user, buttons, timeout)
+    view = _ButtonDialogView(confirm_future, interaction.user, buttons, timeout)
 
     message = await interaction.send(
         content=content,
@@ -268,3 +268,47 @@ class TextField(TextInput):
             min_length=min_length,
             max_length=max_length,
         )
+
+
+async def choice_dialog(
+    interaction: nextcord.Interaction,
+    title: str,
+    description: str,
+    choices: dict[str, Any],
+    *,
+    timeout: int = 300,
+    ephemeral: bool = False,
+) -> Any:
+    """
+    Creates a choice dialog for the user to select an option.
+
+    Args:
+    interaction (nextcord.Interaction): The interaction to send the dialog to.
+    title (str): The title of the dialog.
+    description (str): The description of the dialog.
+    choices (dict[str, Any]): The choices for the user to select from.
+    timeout (int, optional): The timeout for the dialog. Defaults to 300.
+    ephemeral (bool, optional): If ``True``, the dialog will be ephemeral. Defaults to False.
+
+    Returns:
+    Any: The value of the choice selected by the user.
+    None: If the user did not respond.
+    """
+
+    buttons = {
+        (label, ButtonStyle.primary): value
+        for label, value in choices.items()
+    }
+
+    return await message_dialog(
+        interaction,
+        buttons,
+        content=description,
+        embed=SersiEmbed(
+            title=title,
+            description=description,
+            author=interaction.user,
+        ),
+        timeout=timeout,
+        ephemeral=ephemeral,
+    )
