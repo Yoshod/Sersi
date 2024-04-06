@@ -13,6 +13,7 @@ from utils.tickets import (
     ticket_escalate,
     send_survey,
     ticket_audit_logs,
+    ticket_log_channel,
     SurveyModal,
     ReportModal,
 )
@@ -29,6 +30,7 @@ class TicketingSystem(commands.Cog):
         self.bot = bot
         self.config = config
         self.last_message: dict[int, datetime] = {}
+        self.ticket_lock: dict[str, str] = {}
 
     @nextcord.slash_command(
         dm_permission=True,
@@ -174,6 +176,14 @@ class TicketingSystem(commands.Cog):
                 ticket.subcategory = subcategory
             session.commit()
 
+            if ticket.id in self.ticket_lock:
+                await interaction.response.send_message(
+                    f"{self.config.emotes.fail} Ticket is currently locked for another operation: `{self.ticket_lock[ticket.id]}`. Please try later.",
+                    ephemeral=True,
+                )
+                return
+
+            self.ticket_lock[ticket.id] = "close"
             await interaction.response.defer(ephemeral=True)
 
             channel = interaction.guild.get_channel(ticket.channel)
@@ -196,12 +206,14 @@ class TicketingSystem(commands.Cog):
                     f"{self.config.emotes.fail} An error occurred while closing your ticket.",
                     ephemeral=True,
                 )
+                del self.ticket_lock[ticket.id]
                 return
 
             ticket.active = False
             ticket.closing_comment = close_reason
             ticket.closed = datetime.utcnow()
             session.commit()
+            del self.ticket_lock[ticket.id]
 
             if do_survey:
                 survey = await send_survey(
@@ -273,6 +285,14 @@ class TicketingSystem(commands.Cog):
             if not await ticket_permcheck(interaction, ticket.escalation_level):
                 return
 
+            if ticket.id in self.ticket_lock:
+                await interaction.response.send_message(
+                    f"{self.config.emotes.fail} Ticket is currently locked for another operation: `{self.ticket_lock[ticket.id]}`. Please try later.",
+                    ephemeral=True,
+                )
+                return
+            self.ticket_lock[ticket.id] = "escalate"
+
             await interaction.response.defer(ephemeral=True)
 
             if not await ticket_escalate(
@@ -286,10 +306,12 @@ class TicketingSystem(commands.Cog):
                     f"{self.config.emotes.fail} An error occurred while trying to escalate ticket.",
                     ephemeral=True,
                 )
+                del self.ticket_lock[ticket.id]
                 return
 
             ticket.escalation_level = escalation_level
             session.commit()
+            del self.ticket_lock[ticket.id]
 
         await interaction.followup.send(
             f"{self.config.emotes.success} Ticket has been escalated to {escalation_level}!",
@@ -337,6 +359,13 @@ class TicketingSystem(commands.Cog):
             if not await ticket_permcheck(interaction, ticket.escalation_level):
                 return
 
+            if ticket.id in self.ticket_lock:
+                await interaction.response.send_message(
+                    f"{self.config.emotes.fail} Ticket is currently locked for another operation: `{self.ticket_lock[ticket.id]}`. Please try later.",
+                    ephemeral=True,
+                )
+                return
+            self.ticket_lock[ticket.id] = "recategorize"
             await interaction.response.defer(ephemeral=True)
 
             ticket.category = category
@@ -344,6 +373,7 @@ class TicketingSystem(commands.Cog):
                 ticket.subcategory = subcategory
 
             session.commit()
+            del self.ticket_lock[ticket.id]
 
         await interaction.followup.send(
             f"{self.config.emotes.success} Ticket has been recategorized!",
@@ -693,6 +723,53 @@ class TicketingSystem(commands.Cog):
                         rating,
                     )
                 )
+
+    @commands.Cog.listener()
+    async def on_guild_channel_delete(self, channel: nextcord.TextChannel):
+        with db_session() as session:
+            ticket: Ticket = session.query(Ticket).filter_by(channel=channel.id).first()
+            if (
+                ticket is None
+                or not ticket.active
+                or self.ticket_lock.get(ticket.id, None) == "close"
+            ):
+                return
+
+            ticket.active = False
+            ticket.closed = datetime.utcnow()
+            session.commit()
+
+            log_channel = channel.guild.get_channel(
+                ticket_log_channel(self.config, ticket.escalation_level)
+            )
+
+            match ticket.escalation_level:
+                case "Moderator" | "Moderation Lead":
+                    ping = f"<@&{self.config.permission_roles.moderator}>"
+                case "Community Engagement" | "Community Engagement Lead":
+                    ping = f"<@&{self.config.permission_roles.ce}>"
+                case _:
+                    ping = f"<@&{self.config.permission_roles.staff}>"
+
+            await log_channel.send(
+                f"{self.config.emotes.fail} {ping} Ticket channel for `{ticket.id}` has been deleted without closing, please investigate.",
+            )
+
+        # attempt to get the audit log entry for the channel deletion
+        audit_entries = await channel.guild.audit_logs(
+            action=nextcord.AuditLogAction.channel_delete,
+            limit=5,
+        ).flatten()
+
+        for log in audit_entries:
+            if log.target.id == channel.id:
+                break
+        else:
+            return
+
+        await log_channel.send(
+            f"Ticket channel was deleted by {log.user.mention}, please don't delete ticket channels manually unless absolutely necessary.",
+        )
 
 
 def setup(bot: commands.Bot, **kwargs):
