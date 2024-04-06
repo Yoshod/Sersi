@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 import nextcord
 from nextcord.ext import commands, tasks
 
-from utils.alerts import AlertType, get_alert_type, add_response_time
+from utils.alerts import AlertType, AlertView, get_alert_type, add_response_time
 from utils.base import sanitize_mention, get_message_from_url
 from utils.config import Configuration
 from utils.database import db_session, SlurUsageCase, BadFaithPingCase, Alert
@@ -41,7 +41,7 @@ class Alerts(commands.Cog):
             if message is None or not message.components:
                 add_response_time(alert.id)
                 continue
-                
+
             if self.config.bot.dev_mode:
                 await message.reply(
                     f"This alert has not had a recorded response for {time_since_alert.seconds//3600} hours."
@@ -169,6 +169,20 @@ class Alerts(commands.Cog):
 
         await interaction.message.edit(embed=embed, view=None)
         add_response_time(interaction.message)
+
+    @commands.Cog.listener()
+    async def on_message_delete(self, message: nextcord.Message):
+        if message.channel.id != self.config.channels.alert:
+            return
+
+        new_message: nextcord.Message = await message.channel.send(
+            embed=message.embeds[0], view=AlertView(AlertType.Slur, message.author)
+        )
+
+        with db_session() as session:
+            alert = session.query(Alert).filter_by(report_url=message.jump_url).first()
+            alert.report_url = new_message.jump_url
+            session.commit()
 
 
 def setup(bot: commands.Bot, **kwargs):
