@@ -176,7 +176,12 @@ class Alerts(commands.Cog):
             return
 
         new_message: nextcord.Message = await message.channel.send(
-            embed=message.embeds[0], view=AlertView(AlertType.Slur, message.author)
+            embed=message.embeds[0],
+            view=(
+                AlertView(AlertType.Slur, message.author)
+                if "Moderator Ping" not in message.embeds[0].title
+                else AlertView(AlertType.Ping, message.author)
+            ),
         )
 
         with db_session() as session:
