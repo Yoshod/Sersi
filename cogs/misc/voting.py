@@ -256,7 +256,12 @@ class Voting(commands.Cog):
     @commands.Cog.listener()
     async def on_message_delete(self, message: nextcord.Message):
         if (
-            message.channel.id != self.config.channels.moderation_votes
+            message.channel.id
+            not in [
+                self.config.channels.moderation_votes,
+                self.config.channels.staff_votes,
+                self.config.channels.cet_votes,
+            ]
             or message.author.id != self.bot.user.id
         ):
             return
@@ -269,7 +274,8 @@ class Voting(commands.Cog):
                 return
 
             new_message: nextcord.Message = await message.channel.send(
-                embed=message.embeds[0], view=VoteView(details.vote_type, details),
+                embed=message.embeds[0],
+                view=VoteView(details.vote_type, details),
             )
 
             details.vote_url = new_message.jump_url
