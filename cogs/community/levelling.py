@@ -526,6 +526,9 @@ class Levelling(commands.Cog):
         ):
             xp += 5
 
+        if message.type == nextcord.MessageType.reply:
+            xp += 5
+
         await self.earn_xp(message.author, xp, XPType.MESSAGE)
 
         self.reports[message.author.id].last_message[message.channel.id] = (
