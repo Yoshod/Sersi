@@ -1,12 +1,29 @@
 import nextcord
 from nextcord.ext import commands
+from nextcord.ui import Button, View
 
 from utils.sersi_embed import SersiEmbed
 from utils.base import get_discord_timestamp
 from utils.config import Configuration
-from utils.database import db_session, TimeoutCase, VoteDetails, BanCase
+from utils.database import Case, Note, db_session, TimeoutCase, VoteDetails, BanCase
 from nextcord.utils import format_dt
 import datetime
+
+
+class JoinLeaveWhoIs(Button):
+    def __init__(self, user_id: int):
+        super().__init__(
+            custom_id=f"join-leave-whois:{user_id}",
+            label="Whois",
+            style=nextcord.ButtonStyle.blurple,
+            row=1,
+        )
+
+
+class JoinLeaveView(View):
+    def __init__(self, user_id: int):
+        super().__init__(timeout=None)
+        self.add_item(JoinLeaveWhoIs(user_id))
 
 
 class JoinLeave(commands.Cog):
@@ -75,6 +92,24 @@ class JoinLeave(commands.Cog):
                 footer="Sersi Join/Leave Logging",
                 colour=nextcord.Colour.brand_green(),
             ).set_author(name=member, icon_url=member.display_avatar.url)
+        )
+
+        with db_session() as session:
+            cases = (session.query(Case)).filter_by(offender=member.id).all()
+
+            notes = session.query(Note).filter_by(member=member.id).all()
+
+        if not cases and not notes:
+            return
+
+        await member.guild.get_channel(self.config.channels.alert).send(
+            embed=SersiEmbed(
+                title="User With Cases/Notes Joined",
+                description=f"{member.mention} ({member.id}) has joined the server with cases and/or notes already on record.",
+                footer="Sersi Join/Leave Logging",
+                colour=nextcord.Colour.brand_red(),
+            ),
+            view=JoinLeaveView(member.id),
         )
 
     @commands.Cog.listener()
