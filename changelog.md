@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [5.2.2] - YYYY-MM-DD
+## [5.2.2] - 2024-04-07
 
 ### Added
 - Added a new command `/suggestion retrieve_control_panel` to retrieve a control panel for a suggestion.
@@ -22,7 +22,8 @@ All notable changes to this project will be documented in this file.
 - If a suggestion is deleted it will be closed.
 - If a vote embed is deleted it will be reposted.
 - Replies now get bonus XP.
-- if a ticket channel is deleted the ticket will be closed.
+- If a ticket channel is deleted the ticket will be closed.
+- Maybe votes increase the minimum time before a vote is decided.
 
 ### Fixed
 - Fixed a bug where a closed ticket did not have the Close Reason displayed in the ticket closed embed or survey.
