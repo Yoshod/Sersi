@@ -17,3 +17,4 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 - Fixed a bug where a closed ticket did not have the Close Reason displayed in the ticket closed embed or survey.
+- Fixed a bug where "None" was displayed as the ranking parameter in the moderation leaderboard.
