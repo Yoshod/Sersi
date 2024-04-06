@@ -6,6 +6,7 @@ from utils.config import Configuration
 from utils.perms import permcheck, is_dark_mod
 from utils.sersi_embed import SersiEmbed
 
+
 class ConfirmView(nextcord.ui.View):
     def __init__(
         self,
@@ -162,13 +163,14 @@ class PageView(View):
         base_embed: nextcord.Embed,
         fetch_function: callable,
         author: nextcord.Member,
-        entry_form: str = "**•**\u00A0{entry}",
+        entry_form: str = "**•**\u00a0{entry}",
         field_title: str = "{start} \u2014 {end}",
         inline_fields: bool = True,
         cols: int = 1,
         per_col: int = 10,
         init_page: int = 1,
         no_entries: str = "{config.emotes.fail} There are no entries to display.",
+        use_description: bool = False,
         ephemeral: bool = False,
         **kwargs,
     ):
@@ -191,6 +193,7 @@ class PageView(View):
         self.inline_fields = inline_fields
         self.get_entries = fetch_function
         self.no_entries = no_entries
+        self.use_desc = use_description
         self.ephemeral = ephemeral
         self.message: nextcord.Message
 
@@ -221,22 +224,25 @@ class PageView(View):
         if not entries:
             embed.description = self.no_entries.format(config=self.config)
             return embed
-        cols = min(self.columns, 1 + (len(entries) - 1) // self.per_column)
-        offset = (self.page - 1) * self.columns * self.per_column
-        for col in range(1, cols + 1):
-            col_start = (col - 1) * self.per_column
-            col_end = len(entries) if col == cols else col * self.per_column
-            col_entries = entries[col_start:col_end]
-            embed.add_field(
-                name=self.column_title.format(
-                    config=self.config,
-                    start=col_start + offset + 1,
-                    end=col_end + offset,
-                    entries=col_entries,
-                ),
-                value=self.make_column(col_entries),
-                inline=self.inline_fields,
-            )
+        if self.use_desc:
+            embed.description = self.make_column(entries)
+        else:
+            cols = min(self.columns, 1 + (len(entries) - 1) // self.per_column)
+            offset = (self.page - 1) * self.columns * self.per_column
+            for col in range(1, cols + 1):
+                col_start = (col - 1) * self.per_column
+                col_end = len(entries) if col == cols else col * self.per_column
+                col_entries = entries[col_start:col_end]
+                embed.add_field(
+                    name=self.column_title.format(
+                        config=self.config,
+                        start=col_start + offset + 1,
+                        end=col_end + offset,
+                        entries=col_entries,
+                    ),
+                    value=self.make_column(col_entries),
+                    inline=self.inline_fields,
+                )
         embed.set_footer(text=f"page {self.page}/{pages}")
         return embed
 
