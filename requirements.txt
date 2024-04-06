@@ -10,3 +10,4 @@ aiohttp
 pyyaml
 unidecode
 sqlalchemy
+wikipedia-api

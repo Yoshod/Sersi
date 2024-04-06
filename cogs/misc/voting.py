@@ -17,6 +17,7 @@ from utils.perms import (
     is_admin,
 )
 from utils.sersi_embed import SersiEmbed
+from utils.voting import VoteView
 
 
 class Voting(commands.Cog):
@@ -130,7 +131,9 @@ class Voting(commands.Cog):
                     not end_vote
                     and details.created
                     + timedelta(
-                        hours=vote_type.duration / 24 - max(0, abs(diff) - threshold)
+                        hours=vote_type.duration / 24
+                        - max(0, abs(diff) - threshold)
+                        + (2 ** votes.get("maybe", 0) - 1)
                     )
                     > datetime.utcnow()
                 ):
@@ -251,6 +254,34 @@ class Voting(commands.Cog):
             )
 
         await interaction.message.edit(embed=new_embed)
+
+    @commands.Cog.listener()
+    async def on_message_delete(self, message: nextcord.Message):
+        if (
+            message.channel.id
+            not in [
+                self.config.channels.moderation_votes,
+                self.config.channels.staff_votes,
+                self.config.channels.cet_votes,
+            ]
+            or message.author.id != self.bot.user.id
+        ):
+            return
+
+        with db_session() as session:
+            details: VoteDetails = (
+                session.query(VoteDetails).filter_by(vote_url=message.jump_url).first()
+            )
+            if details is None or details.outcome is not None:
+                return
+
+            new_message: nextcord.Message = await message.channel.send(
+                embed=message.embeds[0],
+                view=VoteView(details.vote_type, details),
+            )
+
+            details.vote_url = new_message.jump_url
+            session.commit()
 
 
 def setup(bot: commands.Bot, **kwargs):

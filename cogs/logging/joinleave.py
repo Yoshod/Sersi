@@ -1,12 +1,32 @@
 import nextcord
 from nextcord.ext import commands
+from nextcord.ui import Button, View
+from utils.perms import is_mod, permcheck
 
 from utils.sersi_embed import SersiEmbed
 from utils.base import get_discord_timestamp
 from utils.config import Configuration
-from utils.database import db_session, TimeoutCase, VoteDetails, BanCase
+from utils.database import Case, Note, db_session, TimeoutCase, VoteDetails, BanCase
 from nextcord.utils import format_dt
 import datetime
+
+from utils.whois import WhoisView, create_whois_embed
+
+
+class JoinLeaveWhoIs(Button):
+    def __init__(self, user_id: int):
+        super().__init__(
+            custom_id=f"join-leave-whois:{user_id}",
+            label="Whois",
+            style=nextcord.ButtonStyle.blurple,
+            row=1,
+        )
+
+
+class JoinLeaveView(View):
+    def __init__(self, user_id: int):
+        super().__init__(timeout=None)
+        self.add_item(JoinLeaveWhoIs(user_id))
 
 
 class JoinLeave(commands.Cog):
@@ -26,13 +46,11 @@ class JoinLeave(commands.Cog):
             self.invites[guild.id] = await guild.invites()
 
     def find_invite_by_code(self, invite_list: list[nextcord.Invite], code: str):
-
         for invite in invite_list:
             if invite.code == code:
                 return invite
 
     async def get_invite_used(self, member: nextcord.Member) -> nextcord.Invite:
-
         invites_before_join: list[nextcord.Invite] = self.invites[member.guild.id]
         invites_after_join: list[nextcord.Invite] = await member.guild.invites()
 
@@ -54,7 +72,6 @@ class JoinLeave(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self, member: nextcord.Member):
-
         invite: nextcord.Invite = await self.get_invite_used(member)
 
         await member.guild.get_channel(self.config.channels.joinleave).send(
@@ -75,6 +92,47 @@ class JoinLeave(commands.Cog):
                 footer="Sersi Join/Leave Logging",
                 colour=nextcord.Colour.brand_green(),
             ).set_author(name=member, icon_url=member.display_avatar.url)
+        )
+
+        with db_session() as session:
+            cases = session.query(Case).filter_by(offender=member.id).all()
+            notes = session.query(Note).filter_by(member=member.id).all()
+
+        if not cases and not notes:
+            return
+
+        case_types = {}
+        if cases:
+            for case in cases:
+                if case.type in case_types:
+                    case_types[case.type] += 1
+                else:
+                    case_types[case.type] = 1
+
+        await member.guild.get_channel(self.config.channels.alert).send(
+            embed=SersiEmbed(
+                title="User With Cases/Notes Joined",
+                description=f"{member.mention} ({member.id}) has joined the server with cases and/or notes already on record.",
+                fields=[
+                    {
+                        "Invite Used": f"`{invite.code}` with {invite.uses} uses"
+                        + (
+                            f" by {invite.inviter.mention} `{invite.inviter.id}`"
+                            if invite.inviter
+                            else ""
+                        )
+                    },
+                    {
+                        "Notes": len(notes) if notes else 0,
+                        "Total Cases": len(cases) if cases else 0,
+                        **case_types,
+                    },
+                ],
+                footer="Sersi Join/Leave Logging",
+                colour=nextcord.Colour.brand_red(),
+                thumbnail_url=member.display_avatar.url,
+            ),
+            view=JoinLeaveView(member.id),
         )
 
     @commands.Cog.listener()
@@ -151,6 +209,25 @@ class JoinLeave(commands.Cog):
                 )
 
                 break
+
+    @commands.Cog.listener()
+    async def on_interaction(self, interaction: nextcord.Interaction):
+        try:
+            btn_id = interaction.data["custom_id"]
+        except KeyError:
+            return
+
+        match btn_id.split(":", 1):
+
+            case ["join-leave-whois", user_id]:
+                if await permcheck(interaction, is_mod):
+                    user = interaction.guild.get_member(int(user_id))
+                    await interaction.response.defer(ephemeral=True)
+                    await interaction.followup.send(
+                        embed=await create_whois_embed(self.config, interaction, user),
+                        view=WhoisView(user.id),
+                        ephemeral=True,
+                    )
 
 
 def setup(bot: commands.Bot, **kwargs):

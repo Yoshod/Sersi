@@ -221,6 +221,7 @@ async def ticket_close(
     guild: nextcord.Guild,
     ticket: Ticket,
     ticket_closer: nextcord.Member,
+    close_reason: str,
     ticket_channel: nextcord.TextChannel = None,
 ) -> str | None:
     if ticket_channel is None:
@@ -242,12 +243,12 @@ async def ticket_close(
 
     embed = SersiEmbed(
         title=f"{ticket.escalation_level} Ticket Closed",
-        description=f"{ticket_closer.mention} ({ticket_closer.id}) has closed a {ticket.escalation_level} Ticket.",
+        description=f"{ticket_closer.mention} ({ticket_closer.id}) has closed `{ticket.id}`",
         fields={
             "Ticket Opened By": f"<@{ticket.creator}> ({ticket.creator})",
             "Opening Remarks": ticket.opening_comment,
             "Ticket Closed By": f"<@{ticket_closer.id}> ({ticket_closer.id})",
-            "Closing Remarks": ticket.closing_comment,
+            "Closing Remarks": close_reason,
             "Category": f"{ticket.category or '`N/A`'} - {ticket.subcategory or '`N/A`'}",
         },
         footer=ticket_closer.display_name,

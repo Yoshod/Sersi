@@ -10,7 +10,7 @@ from utils.cases import (
     fetch_cases_by_partial_id,
 )
 from utils.config import Configuration
-from utils.database import db_session, KickCase, WarningCase, RelatedCase
+from utils.database import db_session, KickCase, WarningCase, RelatedCase, Offence
 from utils.perms import permcheck, is_mod, is_admin, is_immune, target_eligibility
 from utils.dialog import confirm, ButtonPreset
 from utils.sersi_embed import SersiEmbed
@@ -31,9 +31,11 @@ class KickSystem(commands.Cog):
         self,
         interaction: nextcord.Interaction,
         offender: nextcord.Member,
-        reason: str = nextcord.SlashOption(
-            name="reason",
-            description="The reason you are kicking the user",
+        offence: str = nextcord.SlashOption(
+            description="The offence the user committed",
+        ),
+        details: str = nextcord.SlashOption(
+            description="Details of the offence",
             min_length=8,
             max_length=1024,
         ),
@@ -87,19 +89,23 @@ class KickSystem(commands.Cog):
                 description=f"You have been kicked from {interaction.guild.name}. "
                 "As this is not a ban you do not have to appeal this decision and can rejoin at your leisure. "
                 "If you believe this was in error please rejoin and open an Administrator ticket.",
-                fields={"Reason:": reason},
+                fields={
+                    "Offence:": offence,
+                    "Details:": details,
+                },
                 footer="Sersi Moderation",
             )
         )
 
         try:
             await interaction.guild.kick(
-                offender, reason=f"[{reason}] -{interaction.user.name}"
+                offender, reason=f"[{offence}] -{interaction.user.name}"
             )
             case = KickCase(
                 offender=offender.id,
                 moderator=interaction.user.id,
-                reason=reason,
+                offence=offence,
+                details=details,
             )
             with db_session(interaction.user) as session:
                 if related_warning is not None:
@@ -173,6 +179,24 @@ class KickSystem(commands.Cog):
             )
 
         await interaction.channel.send(embed=confirm_embed)
+
+    @kick.on_autocomplete("offence")
+    async def search_offences(
+        self,
+        interaction: nextcord.Interaction,
+        offence: str,
+    ):
+        if not is_mod(interaction.user):
+            await interaction.response.send_autocomplete([])
+
+        offences: list[str] = [
+            offence.offence
+            for offence in db_session()
+            .query(Offence)
+            .filter(Offence.offence.ilike(f"%{offence}%"))
+            .limit(25)
+        ]
+        await interaction.response.send_autocomplete(offences)
 
     @kick.on_autocomplete("related_warning")
     async def search_warnings(

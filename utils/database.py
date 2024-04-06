@@ -255,6 +255,18 @@ class RelatedCase(_Base):
 
 
 class PeerReview(_Base):
+    """
+    Represents a peer review for a case in the database.
+
+    Attributes:
+        id (str): The unique identifier for the peer review.
+        case_id (str): The ID of the case associated with the peer review.
+        reviewer (int): The ID of the reviewer who conducted the peer review.
+        review_outcome (str): The outcome of the peer review.
+        review_comment (str): Additional comments provided by the reviewer.
+        timestamp (datetime): The timestamp of when the peer review was created.
+    """
+
     __tablename__ = "peer_reviews"
 
     id = Column(String, primary_key=True, default=random_id)

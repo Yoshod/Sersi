@@ -5,7 +5,7 @@ from nextcord.ui import Button, View
 import datetime
 from sqlalchemy import or_
 
-from utils.base import get_page, decode_snowflake, encode_button_id, encode_snowflake
+from utils.base import get_page, decode_snowflake, encode_button_id
 from utils.sersi_embed import SersiEmbed
 from utils.config import Configuration
 from utils.database import (
@@ -25,6 +25,7 @@ from utils.database import (
     RelatedCase,
     PeerReview,
 )
+from utils.review import highest_mod_role
 
 
 def fetch_cases_by_partial_id(case_id: str, **kwargs) -> list[str]:
@@ -68,9 +69,9 @@ def create_case_embed(
             fields.append(
                 {
                     "Ban Type": case.ban_type,
-                    "Active": config.emotes.success
-                    if case.active
-                    else config.emotes.fail,
+                    "Active": (
+                        config.emotes.success if case.active else config.emotes.fail
+                    ),
                 }
             )
 
@@ -101,9 +102,9 @@ def create_case_embed(
             fields.append({"Reason": f"{case.reason}"})
             fields.append(
                 {
-                    "Active:": config.emotes.success
-                    if case.active
-                    else config.emotes.fail
+                    "Active:": (
+                        config.emotes.success if case.active else config.emotes.fail
+                    )
                 }
             )
             if not case.active:
@@ -170,9 +171,11 @@ def create_case_embed(
         if review:
             fields.append(
                 {
-                    "Review Outcome": config.emotes.success
-                    if review.review_outcome == "Approved"
-                    else config.emotes.fail,
+                    "Review Outcome": (
+                        config.emotes.success
+                        if review.review_outcome == "Approved"
+                        else config.emotes.fail
+                    ),
                     "Reviewer": f"<@{review.reviewer}> `{review.reviewer}`",
                 }
             )
@@ -364,6 +367,8 @@ def validate_case_edit(
     detail: str | None,
     duration: int | None,
     timespan: str | None,
+    moderator: nextcord.Member,
+    active: bool,
 ):
     if not offence and not detail and not duration and not timespan:
         return (
@@ -372,6 +377,12 @@ def validate_case_edit(
         )
 
     if (case_type == "Warning" or case_type == "Ban") and (duration or timespan):
+        return (
+            False,
+            f"{config.emotes.fail} You provided an invalid value for the case type {case_type}.",
+        )
+
+    if case_type == "Warning" and active is not None:
         return (
             False,
             f"{config.emotes.fail} You provided an invalid value for the case type {case_type}.",
@@ -403,6 +414,12 @@ def validate_case_edit(
         return (
             False,
             f"{config.emotes.fail} `{sersi_case.id}` is a {sersi_case.type} not {case_type}.",
+        )
+
+    if highest_mod_role(moderator, config) == 0:
+        return (
+            False,
+            f"{config.emotes.fail} The person you have selected is not a moderator.",
         )
 
     return True, None

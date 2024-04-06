@@ -24,7 +24,7 @@ def determine_reviewer(moderator: nextcord.Member, config: Configuration):
         config.permission_roles.trial_moderator: config.permission_roles.moderator,
         config.permission_roles.moderator: config.permission_roles.senior_moderator,
         config.permission_roles.senior_moderator: config.permission_roles.dark_moderator,
-        config.permission_roles.dark_moderator: config.permission_roles.compliance,
+        config.permission_roles.dark_moderator: config.permission_roles.dark_moderator,
     }
 
     mod_role = highest_mod_role(moderator, config)
@@ -55,10 +55,19 @@ def create_alert(
             review_channel = moderator.guild.get_channel(
                 config.channels.dark_mod_review
             )
+
             reviewer_role = moderator.guild.get_role(reviewer)
-            reviewed_role = moderator.guild.get_role(
-                config.permission_roles.senior_moderator
-            )
+
+            mod_role = highest_mod_role(moderator, config)
+
+            if mod_role == config.permission_roles.dark_moderator:
+                reviewed_role = moderator.guild.get_role(
+                    config.permission_roles.dark_moderator
+                )
+            else:
+                reviewed_role = moderator.guild.get_role(
+                    config.permission_roles.senior_moderator
+                )
 
         case config.permission_roles.senior_moderator:
             review_channel = moderator.guild.get_channel(
