@@ -37,6 +37,12 @@ class ObjectionButton(nextcord.ui.Button):
         )
 
         with db_session(interaction.user) as session:
+            existing_review = session.query(PeerReview).filter_by(
+                case_id=self.sersi_case.id
+            )
+
+            if existing_review:
+                existing_review.delete()
             session.add(review_case)
             session.commit()
 
@@ -82,6 +88,13 @@ class ApprovalButton(nextcord.ui.Button):
         )
 
         with db_session(interaction.user) as session:
+            existing_review = session.query(PeerReview).filter_by(
+                case_id=self.sersi_case.id
+            )
+
+            if existing_review:
+                existing_review.delete()
+
             session.add(review_case)
             session.commit()
 

@@ -28,6 +28,7 @@ from utils.database import (
     ScrubbedCase,
     RelatedCase,
     Offence,
+    PeerReview,
 )
 from utils.offences import fetch_offences_by_partial_name
 from utils.perms import permcheck, is_mod, is_mod_lead, is_admin
@@ -1041,6 +1042,53 @@ class Cases(commands.Cog):
         await logging_channel.send(embed=offence_added_log)
 
         await interaction.followup.send(embed=offence_added_log)
+
+    @cases.subcommand(description="Review an existing case")
+    async def review(
+        self,
+        interaction: nextcord.Interaction,
+        case_id: str = nextcord.SlashOption(
+            name="case_id",
+            description="Case ID",
+            min_length=10,
+            max_length=22,
+        ),
+        outcome: str = nextcord.SlashOption(
+            name="outcome",
+            description="The outcome of the review",
+            choices=["Approved", "Objection"],
+        ),
+    ):
+        if not await permcheck(interaction, is_admin):
+            return
+
+        await interaction.response.defer(ephemeral=False)
+
+        with db_session(interaction.user) as session:
+            if not session.query(Case).filter(Case.id == case_id).first():
+                await interaction.followup.send(
+                    f"{self.config.emotes.fail} Case {case_id} does not exist."
+                )
+                return
+
+            if session.query(PeerReview).filter(PeerReview.case_id == case_id).first():
+                await interaction.followup.send(
+                    f"{self.config.emotes.fail} Case {case_id} has already been reviewed."
+                )
+                return
+
+            session.add(
+                PeerReview(
+                    case_id=case_id,
+                    reviewer=interaction.user.id,
+                    review_outcome=outcome,
+                )
+            )
+            session.commit()
+
+        await interaction.followup.send(
+            f"{self.config.emotes.success} Case {case_id} has been reviewed."
+        )
 
     @list.on_autocomplete("related_case")
     @detail.on_autocomplete("case_id")
