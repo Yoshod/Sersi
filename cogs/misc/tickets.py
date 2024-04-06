@@ -19,7 +19,7 @@ from utils.tickets import (
 )
 
 from utils.database import db_session, Ticket, TicketCategory, TicketSurvey
-from utils.dialog import TextArea, modal_dialog
+from utils.dialog import TextArea, modal_dialog, choice_dialog
 from utils.config import Configuration
 from utils.sersi_embed import SersiEmbed
 from utils.views import PageView
@@ -193,6 +193,42 @@ class TicketingSystem(commands.Cog):
                     ephemeral=True,
                 )
                 return
+
+            if ticket.category is None:
+                ticket.category = await choice_dialog(
+                    interaction,
+                    title="Ticket Category Selection",
+                    description="Please select the category for the ticket.",
+                    choices={
+                        category.category: category.category
+                        for category in session.query(TicketCategory)
+                        .group_by(TicketCategory.category)
+                        .all()
+                    },
+                    ephemeral=True,
+                )
+                if ticket.category is None:
+                    del self.ticket_lock[ticket.id]
+                    return
+                session.commit()
+
+            if ticket.subcategory is None:
+                ticket.subcategory = await choice_dialog(
+                    interaction,
+                    title="Ticket Subcategory Selection",
+                    description="Please select the subcategory for the ticket.",
+                    choices={
+                        subcategory.subcategory: subcategory.subcategory
+                        for subcategory in session.query(TicketCategory)
+                        .filter_by(category=ticket.category)
+                        .all()
+                    },
+                    ephemeral=True,
+                )
+                if ticket.subcategory is None:
+                    del self.ticket_lock[ticket.id]
+                    return
+                session.commit()
 
             if not await ticket_close(
                 self.config,
