@@ -1,6 +1,7 @@
 import nextcord
 from nextcord.ext import commands
 from nextcord.ui import Button, View
+from utils.perms import is_mod, permcheck
 
 from utils.sersi_embed import SersiEmbed
 from utils.base import get_discord_timestamp
@@ -8,6 +9,8 @@ from utils.config import Configuration
 from utils.database import Case, Note, db_session, TimeoutCase, VoteDetails, BanCase
 from nextcord.utils import format_dt
 import datetime
+
+from utils.whois import WhoisView, create_whois_embed
 
 
 class JoinLeaveWhoIs(Button):
@@ -206,6 +209,25 @@ class JoinLeave(commands.Cog):
                 )
 
                 break
+
+    @commands.Cog.listener()
+    async def on_interaction(self, interaction: nextcord.Interaction):
+        try:
+            btn_id = interaction.data["custom_id"]
+        except KeyError:
+            return
+
+        match btn_id.split(":", 1):
+
+            case ["join-leave-whois", user_id]:
+                if await permcheck(interaction, is_mod):
+                    user = interaction.guild.get_member(int(user_id))
+                    await interaction.response.defer(ephemeral=True)
+                    await interaction.followup.send(
+                        embed=await create_whois_embed(self.config, interaction, user),
+                        view=WhoisView(user.id),
+                        ephemeral=True,
+                    )
 
 
 def setup(bot: commands.Bot, **kwargs):
