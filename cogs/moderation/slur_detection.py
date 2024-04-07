@@ -484,7 +484,7 @@ class SlurDetection(commands.Cog):
         if not after.nick:
             return
 
-        slur_matches = self.slur_detector.find_slurs(after)
+        slur_matches = self.slur_detector.find_slurs(after.nick)
         if not slur_matches:
             return
 
