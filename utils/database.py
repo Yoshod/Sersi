@@ -816,5 +816,24 @@ class AutopostFields(_Base):
     field_value = Column(String, nullable=False)
 
 
+class GithubIntegrationBlacklist(_Base):
+    """
+    Represents a blacklist entry for the GitHub integration in the database.
+
+    Attributes:
+        user (int): The ID of the user who is blacklisted.
+        added_by (int): The ID of the user who added the blacklist entry.
+        reason (str): The reason for adding the blacklist entry.
+        timestamp (datetime): The datetime when the blacklist entry was added.
+    """
+
+    __tablename__ = "github_integration_blacklist"
+
+    user = Column(Integer, primary_key=True)
+    added_by = Column(Integer, nullable=False)
+    reason = Column(String, nullable=False)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+
+
 def create_db_tables():
     _Base.metadata.create_all(_engine)

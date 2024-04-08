@@ -34,6 +34,8 @@ class ConfigurationChannels(YAMLWizard):
     moderation_votes: int
     staff_votes: int
     cet_votes: int
+    bug_reports: int
+    feature_requests: int
 
     # debugging channels
     errors: int
