@@ -25,6 +25,9 @@ class XPType(Enum):
     MESSAGE = "message"
     VOICE = "voice chat"
     COMMAND = "command"
+    COMMUNITY = "community activity"
+    EVENT = "event participation"
+    MODERATION = "moderation"
 
 
 @dataclass

@@ -334,6 +334,9 @@ class SuggestionMarkModal(Modal):
             )
             await original_message.thread.edit(locked=True, archived=True)
 
+            bot: commands.Bot = interaction.client
+            bot.dispatch("add_xp", interaction.user, 500, "COMMUNITY")
+
 
 class SuggestionReviewModal(Modal):
     def __init__(self, config: Configuration, passed: bool, suggestion_id: str):
@@ -461,6 +464,9 @@ class SuggestionReviewModal(Modal):
                     name="Current Status", value="Not Marked", inline=False
                 ),
             )
+
+            bot: commands.Bot = interaction.client
+            bot.dispatch("add_xp", interaction.user, 100, "COMMUNITY")
 
         else:
             deny_embed = SersiEmbed(
@@ -711,7 +717,7 @@ class Suggestions(commands.Cog):
                             session.add(new_vote)
                             session.commit()
 
-                            await update_embed_votes(
+                            approval = await update_embed_votes(
                                 original_embed, kwargs["suggestion_id"], session
                             )
 
@@ -722,9 +728,25 @@ class Suggestions(commands.Cog):
                                 ephemeral=True,
                             )
 
+                            self.bot.dispatch(
+                                "add_xp", interaction.user, 25, "COMMUNITY"
+                            )
+
+                            if approval > 0:
+                                suggestion = (
+                                    session.query(SubmittedSuggestion)
+                                    .filter_by(id=kwargs["suggestion_id"])
+                                    .first()
+                                )
+                                self.bot.dispatch(
+                                    "add_xp",
+                                    interaction.guild.get_member(suggestion.suggester),
+                                    approval,
+                                    "COMMUNITY",
+                                )
+
                 case "downvote":
                     await interaction.response.defer(ephemeral=True)
-                    print("downvote")
                     original_embed = interaction.message.embeds[0]
 
                     with db_session(interaction.user) as session:
@@ -776,6 +798,10 @@ class Suggestions(commands.Cog):
                             await interaction.followup.send(
                                 f"{self.config.emotes.success} Your vote has been registered as a downvote.",
                                 ephemeral=True,
+                            )
+
+                            self.bot.dispatch(
+                                "add_xp", interaction.user, 25, "COMMUNITY"
                             )
 
         elif action == "suggestion_submit":
