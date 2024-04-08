@@ -73,6 +73,12 @@ class JoinLeave(commands.Cog):
     @commands.Cog.listener()
     async def on_member_join(self, member: nextcord.Member):
         invite: nextcord.Invite = await self.get_invite_used(member)
+        inviter = invite.inviter if invite else None
+
+        invite_text = (
+            f"`{invite.code}` with {invite.uses} uses" if invite else "`Unknown`"
+        )
+        inviter_text = f"{inviter.mention} `{inviter.id}`" if inviter else "`Unknown`"
 
         await member.guild.get_channel(self.config.channels.joinleave).send(
             embed=SersiEmbed(
@@ -82,12 +88,8 @@ class JoinLeave(commands.Cog):
                     "Joined At": f"{get_discord_timestamp(member.joined_at)} ({get_discord_timestamp(member.joined_at, relative=True)})",
                     "Account Created": f"{get_discord_timestamp(member.created_at)} ({get_discord_timestamp(member.created_at, relative=True)})",
                     "Guild Member Count": member.guild.member_count,
-                    "Inviter": (
-                        f"{invite.inviter.mention} ({invite.inviter.id})"
-                        if invite.inviter
-                        else "None"
-                    ),
-                    "Invite Used": f"{invite.code} with {invite.uses} uses",
+                    "Inviter": inviter_text,
+                    "Invite Used": invite_text,
                 },
                 footer="Sersi Join/Leave Logging",
                 colour=nextcord.Colour.brand_green(),
@@ -114,14 +116,7 @@ class JoinLeave(commands.Cog):
                 title="User With Cases/Notes Joined",
                 description=f"{member.mention} ({member.id}) has joined the server with cases and/or notes already on record.",
                 fields=[
-                    {
-                        "Invite Used": f"`{invite.code}` with {invite.uses} uses"
-                        + (
-                            f" by {invite.inviter.mention} `{invite.inviter.id}`"
-                            if invite.inviter
-                            else ""
-                        )
-                    },
+                    {"Invite Used": f"{invite_text} by {inviter_text}"},
                     {
                         "Notes": len(notes) if notes else 0,
                         "Total Cases": len(cases) if cases else 0,
@@ -218,7 +213,6 @@ class JoinLeave(commands.Cog):
             return
 
         match btn_id.split(":", 1):
-
             case ["join-leave-whois", user_id]:
                 if await permcheck(interaction, is_mod):
                     user = interaction.guild.get_member(int(user_id))
