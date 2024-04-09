@@ -155,17 +155,19 @@ class FeatureRequestModal(nextcord.ui.Modal):
             )
 
         try:
-            await self.bot.get_guild(decode_snowflake(self.guild_id)).get_member(
-                decode_snowflake(self.user_id)
-            ).send(
-                embed=SersiEmbed(
-                    title="Submission Accepted",
-                    description=f"Your suggestion has been accepted. Thanks for your contribution to Sersi!",
-                    fields={
-                        "Developer": f"{interaction.user.display_name} ({interaction.user.id})",
-                        "Development Server": "discord.gg/N5z7azzhTN",
-                        "Issue": f"https://github.com/Yoshod/Sersi/issues/{issue_number}",
-                    },
+            await (
+                self.bot.get_guild(decode_snowflake(self.guild_id))
+                .get_member(decode_snowflake(self.user_id))
+                .send(
+                    embed=SersiEmbed(
+                        title="Submission Accepted",
+                        description=f"Your suggestion has been accepted. Thanks for your contribution to Sersi!",
+                        fields={
+                            "Developer": f"{interaction.user.display_name} ({interaction.user.id})",
+                            "Development Server": "discord.gg/N5z7azzhTN",
+                            "Issue": f"https://github.com/Yoshod/Sersi/issues/{issue_number}",
+                        },
+                    )
                 )
             )
             dm_sent = True
@@ -248,17 +250,19 @@ class RejectReasonModal(nextcord.ui.Modal):
         await interaction.response.defer(ephemeral=True)
 
         try:
-            await self.bot.get_guild(decode_snowflake(self.guild_id)).get_member(
-                decode_snowflake(self.user_id)
-            ).send(
-                embed=SersiEmbed(
-                    title="Submission Rejected",
-                    description=f"Your submission has been rejected. Please do not resubmit this report. To discuss this further, please contact a member of the Sersi team on the Sersi Discord server.",
-                    fields={
-                        "Reason": self.reason.value,
-                        "Developer": f"{interaction.user.display_name} ({interaction.user.id})",
-                        "Development Server": "discord.gg/N5z7azzhTN",
-                    },
+            await (
+                self.bot.get_guild(decode_snowflake(self.guild_id))
+                .get_member(decode_snowflake(self.user_id))
+                .send(
+                    embed=SersiEmbed(
+                        title="Submission Rejected",
+                        description=f"Your submission has been rejected. Please do not resubmit this report. To discuss this further, please contact a member of the Sersi team on the Sersi Discord server.",
+                        fields={
+                            "Reason": self.reason.value,
+                            "Developer": f"{interaction.user.display_name} ({interaction.user.id})",
+                            "Development Server": "discord.gg/N5z7azzhTN",
+                        },
+                    )
                 )
             )
             dm_sent = True
@@ -716,6 +720,9 @@ class GithubIntegration(commands.Cog):
 
     @commands.Cog.listener()
     async def on_interaction(self, interaction: nextcord.Interaction):
+        if interaction.data is None or interaction.data.get("custom_id") is None:
+            return
+
         acceptable_starts = ["github_submit", "github_reject", "github_blacklist"]
         if not interaction.data["custom_id"].startswith(tuple(acceptable_starts)):
             return
@@ -761,17 +768,19 @@ class GithubIntegration(commands.Cog):
             issue_number = submit_issue("bug", interaction, modal_data=None)
 
             try:
-                await self.bot.get_guild(decode_snowflake(guild_id)).get_member(
-                    decode_snowflake(user_id)
-                ).send(
-                    embed=SersiEmbed(
-                        title="Bug Report Accepted",
-                        description=f"Your bug report has been accepted. Thanks for your contribution to Sersi!",
-                        fields={
-                            "Developer": f"{interaction.user.display_name} ({interaction.user.id})",
-                            "Development Server": "discord.gg/N5z7azzhTN",
-                            "Issue": f"https://github.com/Yoshod/Sersi/issues/{issue_number}",
-                        },
+                await (
+                    self.bot.get_guild(decode_snowflake(guild_id))
+                    .get_member(decode_snowflake(user_id))
+                    .send(
+                        embed=SersiEmbed(
+                            title="Bug Report Accepted",
+                            description=f"Your bug report has been accepted. Thanks for your contribution to Sersi!",
+                            fields={
+                                "Developer": f"{interaction.user.display_name} ({interaction.user.id})",
+                                "Development Server": "discord.gg/N5z7azzhTN",
+                                "Issue": f"https://github.com/Yoshod/Sersi/issues/{issue_number}",
+                            },
+                        )
                     )
                 )
                 dm_sent = True
