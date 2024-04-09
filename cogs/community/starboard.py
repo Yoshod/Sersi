@@ -1,6 +1,7 @@
 import nextcord
 import nextcord.ui
 from nextcord.ext import commands
+from utils.perms import is_admin, permcheck
 
 from utils.sersi_embed import SersiEmbed
 from utils.config import Configuration
@@ -20,6 +21,71 @@ class Starboard(commands.Cog):
         self.minimum_entry_stars = self.config.bot.minimum_star_count
         self.minimum_exit_stars = self.config.bot.minimum_star_count - 2
         self.starboard_channel = self.config.channels.starboard
+
+    @nextcord.slash_command(
+        name="starboard",
+        description="Starboard Configuration",
+        dm_permission=False,
+        guild_ids=[1166770860787515422, 977377117895536640, 856262303795380224],
+    )
+    async def starboard(self, interaction: nextcord.Interaction):
+        pass
+
+    @starboard.subcommand(
+        name="ignore",
+        description="Ignore a channel from starboard",
+    )
+    async def ignore(
+        self,
+        interaction: nextcord.Interaction,
+        channel: nextcord.TextChannel,
+    ):
+        if not await permcheck(interaction, is_admin):
+            return
+
+        with db_session() as session:
+            ignored_channel = StarboardIgnoredChannels(channel=channel.id)
+            session.add(ignored_channel)
+            session.commit()
+
+        await interaction.response.send_message(
+            f"{self.config.emotes.success} Ignored {channel.mention} from starboard",
+            ephemeral=True,
+        )
+
+    @starboard.subcommand(
+        name="unignore",
+        description="Unignore a channel from starboard",
+    )
+    async def unignore(
+        self,
+        interaction: nextcord.Interaction,
+        channel: nextcord.TextChannel,
+    ):
+        if not await permcheck(interaction, is_admin):
+            return
+
+        with db_session() as session:
+            ignored_channel = (
+                session.query(StarboardIgnoredChannels)
+                .filter_by(channel=channel.id)
+                .first()
+            )
+
+            if not ignored_channel:
+                await interaction.response.send_message(
+                    f"{self.config.emotes.fail} {channel.mention} is not ignored from starboard",
+                    ephemeral=True,
+                )
+                return
+
+            session.delete(ignored_channel)
+            session.commit()
+
+        await interaction.response.send_message(
+            f"{self.config.emotes.success} Unignored {channel.mention} from starboard",
+            ephemeral=True,
+        )
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload: nextcord.RawReactionActionEvent):
