@@ -15,6 +15,7 @@ bot:
     privacy_policy: "[Here](https://github.com/Yoshod/Sersi/blob/stable/PRIVACY%20POLICY.MD)"
     wiki_header: "SersiBot (contact@sersi.io)"
     minimum_star_count: 7
+    bot_id: 839003324140355585
 
 channels:
     alert:                   1168167178256777226
@@ -180,3 +181,6 @@ voting:
         group: staff
         duration: 168
         supermajority: true
+
+automoderation:
+    max_mentions: 5

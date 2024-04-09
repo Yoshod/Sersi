@@ -219,10 +219,22 @@ class TimeoutCase(Case):
 
 
 class WarningCase(Case):
+    """
+    Represents a warning case in the database.
+
+    Inherits from the `Case` class and adds additional attributes specific to warning cases.
+
+    Attributes:
+        id (str): The primary key of the warning case.
+        active (bool): Indicates whether the warning case is active or not.
+        details (str): Additional details about the warning case.
+        deactivated_by (int): The user ID of the person who deactivated the warning case.
+        deactivate_reason (str): The reason for deactivating the warning case.
+    """
+
     __tablename__ = "warning_cases"
 
     id = Column(String, ForeignKey("cases.id"), primary_key=True)
-
     active = Column(Boolean, default=True)
     details = Column(String)
     deactivated_by = Column(Integer)
