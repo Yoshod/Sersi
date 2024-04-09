@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
     - When a post gets a minimum amount of stars it will be posted to the starboard.
     - When a post goes below a minimum amount of stars it will be removed from the starboard.
     - A post can be starred either from the post itself or the starboard. This is checked for duplicates.
+    - Members with posts on the starboard receive xp for each star
 - Added a command `\starboard` to manage the starboard.
     - `ignore` - Ignore a channel from the starboard.
     - `unignore` - Unignore a channel from the starboard.

@@ -174,6 +174,8 @@ class Starboard(commands.Cog):
                     text=f"{starboard_post.unique_id} | ⭐ {star_count}"
                 )
             )
+
+            self.bot.dispatch("add_xp", message.author, 100, "COMMUNITY")
             return
 
         star_count = message.reactions[0].count
@@ -242,7 +244,7 @@ class Starboard(commands.Cog):
 
         await starboard_message.add_reaction("⭐")
 
-        self.bot.dispatch("add_xp", message.author, 500, "COMMUNITY")
+        self.bot.dispatch("add_xp", message.author, 100 * star_count, "COMMUNITY")
 
     @commands.Cog.listener()
     async def on_raw_reaction_remove(self, payload: nextcord.RawReactionActionEvent):
@@ -274,6 +276,8 @@ class Starboard(commands.Cog):
                     session.query(StarboardStars).filter_by(unique_id=star_id).count()
                 )
 
+            self.bot.dispatch("remove_xp", message.author, 100, "COMMUNITY")
+
             await message.edit(
                 embed=message.embeds[0].set_footer(text=f"{star_id} | ⭐ {star_count}")
             )
@@ -294,7 +298,9 @@ class Starboard(commands.Cog):
                     )
                     session.commit()
 
-                self.bot.dispatch("remove_xp", message.author, 500, "COMMUNITY")
+                self.bot.dispatch(
+                    "remove_xp", message.author, 100 * star_count, "COMMUNITY"
+                )
 
             return
 
@@ -322,6 +328,8 @@ class Starboard(commands.Cog):
                     session.query(StarboardStars).filter_by(unique_id=star_id).count()
                 )
 
+            self.bot.dispatch("remove_xp", message.author, 100, "COMMUNITY")
+
             starboard_message = await self.bot.get_channel(
                 self.starboard_channel
             ).fetch_message(starboard_post.starboard_message)
@@ -348,7 +356,9 @@ class Starboard(commands.Cog):
                     )
                     session.commit()
 
-                self.bot.dispatch("remove_xp", message.author, 500, "COMMUNITY")
+                self.bot.dispatch(
+                    "remove_xp", message.author, 100 * star_count, "COMMUNITY"
+                )
 
             return
 
