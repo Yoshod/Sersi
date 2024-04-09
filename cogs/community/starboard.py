@@ -112,8 +112,6 @@ class Starboard(commands.Cog):
             original_embed = message.embeds[0]
             star_id = original_embed.footer.text[:11]
 
-            print(star_id)
-
             already_starred = check_if_starred(star_id, payload.user_id)
 
             if already_starred:
@@ -218,7 +216,6 @@ class Starboard(commands.Cog):
                 session.query(StarboardPosts).filter_by(message=message.id).first()
             )
 
-            print(starboard_post.unique_id)
             updated_embed = starboard_message.embeds[0]
             updated_embed.set_footer(
                 text=f"{starboard_post.unique_id} | ⭐ {star_count}"
@@ -230,7 +227,6 @@ class Starboard(commands.Cog):
 
             reactions = message.reactions
             for reaction in reactions:
-                print(reaction)
                 if reaction.emoji == "⭐":
                     users = await reaction.users().flatten()
                     break
