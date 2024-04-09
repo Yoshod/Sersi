@@ -13,6 +13,7 @@ class ConfigurationBot(YAMLWizard):
     authors: list[str]
     privacy_policy: str
     wiki_header: str
+    minimum_star_count: int
     dev_mode: bool = False
 
 
@@ -75,6 +76,8 @@ class ConfigurationChannels(YAMLWizard):
     suggestion_review: int
 
     afk_voice: int
+
+    starboard: int
 
 
 @dataclass

@@ -12,6 +12,9 @@ bot:
         - "• Hekkland#0001 `261870562798731266`"
         - "• kisachi#7272  `348142492245426176`"
         - "• Gombik#0935   `264502855602274306`"
+    privacy_policy: "[Here](https://github.com/Yoshod/Sersi/blob/stable/PRIVACY%20POLICY.MD)"
+    wiki_header: "SersiBot (contact@sersi.io)"
+    minimum_star_count: 7
 
 channels:
     alert:             977377171054166037
@@ -62,6 +65,7 @@ channels:
     afk_voice: 0
     bug_reports:             1226988081106653365
     feature_requests:        1226988167215845406
+    starboard: 0
 
 ignored_categories:
     - alerts

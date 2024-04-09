@@ -835,5 +835,55 @@ class GithubIntegrationBlacklist(_Base):
     timestamp = Column(DateTime, default=datetime.utcnow)
 
 
+class StarboardPosts(_Base):
+    """
+    Represents a starboard post in the database.
+
+    Attributes:
+        message (int): The ID of the message.
+        starboard_message (int): The ID of the starboard message.
+        author (int): The ID of the author of the message.
+        channel (int): The ID of the channel where the message was posted.
+    """
+
+    __tablename__ = "starboard_posts"
+
+    unique_id = Column(String, primary_key=True, default=random_id)
+    message = Column(Integer, unique=True, nullable=False)
+    starboard_message = Column(Integer, nullable=False, unique=True)
+    author = Column(Integer, nullable=False)
+    channel = Column(Integer, nullable=False)
+
+
+class StarboardStars(_Base):
+    """
+    Represents the stars given to a post in the starboard.
+
+    Attributes:
+        unique_id (str): The unique identifier of the starboard post.
+        user (int): The user who gave the star.
+    """
+
+    __tablename__ = "starboard_stars"
+
+    unique_id = Column(
+        String, ForeignKey("starboard_posts.unique_id"), primary_key=True
+    )
+    user = Column(Integer, primary_key=True)
+
+
+class StarboardIgnoredChannels(_Base):
+    """
+    Represents a channel that is ignored by the starboard.
+
+    Attributes:
+        channel (int): The ID of the channel.
+    """
+
+    __tablename__ = "starboard_ignored_channels"
+
+    channel = Column(Integer, primary_key=True)
+
+
 def create_db_tables():
     _Base.metadata.create_all(_engine)
