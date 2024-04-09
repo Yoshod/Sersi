@@ -862,6 +862,7 @@ class StarboardStars(_Base):
     Attributes:
         unique_id (str): The unique identifier of the starboard post.
         user (int): The user who gave the star.
+        channel (int): The ID of the channel where the star was given.
     """
 
     __tablename__ = "starboard_stars"
@@ -870,6 +871,7 @@ class StarboardStars(_Base):
         String, ForeignKey("starboard_posts.unique_id"), primary_key=True
     )
     user = Column(Integer, primary_key=True)
+    channel = Column(Integer, nullable=False)
 
 
 class StarboardIgnoredChannels(_Base):

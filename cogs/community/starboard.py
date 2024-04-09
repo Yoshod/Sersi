@@ -58,6 +58,7 @@ class Starboard(commands.Cog):
                 star = StarboardStars(
                     unique_id=star_id,
                     user=payload.user_id,
+                    channel=channel.id,
                 )
                 session.add(star)
                 session.commit()
@@ -89,6 +90,7 @@ class Starboard(commands.Cog):
                 star = StarboardStars(
                     unique_id=starboard_post.unique_id,
                     user=payload.user_id,
+                    channel=message.channel.id,
                 )
                 session.add(star)
                 session.commit()
@@ -171,11 +173,116 @@ class Starboard(commands.Cog):
                 star = StarboardStars(
                     unique_id=starboard_post.unique_id,
                     user=user.id,
+                    channel=message.channel.id,
                 )
                 session.add(star)
                 session.commit()
 
         await starboard_message.add_reaction("⭐")
+
+    @commands.Cog.listener()
+    async def on_raw_reaction_remove(self, payload: nextcord.RawReactionActionEvent):
+        if payload.emoji.name != "⭐":
+            return
+
+        if payload.user_id == self.bot.user.id:
+            return
+
+        channel = self.bot.get_channel(payload.channel_id)
+        message = await channel.fetch_message(payload.message_id)
+
+        if channel.id == self.starboard_channel:
+            with db_session() as session:
+                star_id = message.embeds[0].footer.text[:11]
+                star = (
+                    session.query(StarboardStars)
+                    .filter_by(unique_id=star_id, user=payload.user_id)
+                    .first()
+                )
+
+                if star.channel != channel.id:
+                    return
+
+                session.delete(star)
+                session.commit()
+
+                star_count = (
+                    session.query(StarboardStars).filter_by(unique_id=star_id).count()
+                )
+
+            await message.edit(
+                embed=message.embeds[0].set_footer(text=f"{star_id} | ⭐ {star_count}")
+            )
+
+            if star_count <= self.minimum_exit_stars:
+                await message.delete()
+
+                with db_session() as session:
+                    session.delete(
+                        session.query(StarboardPosts)
+                        .filter_by(unique_id=star_id)
+                        .first()
+                    )
+                    session.commit()
+
+                    session.delete(
+                        session.query(StarboardStars).filter_by(unique_id=star_id).all()
+                    )
+                    session.commit()
+
+            return
+
+        with db_session() as session:
+            starboard_post = (
+                session.query(StarboardPosts).filter_by(message=message.id).first()
+            )
+
+        if starboard_post:
+            with db_session() as session:
+                star_id = starboard_post.unique_id
+                star = (
+                    session.query(StarboardStars)
+                    .filter_by(unique_id=star_id, user=payload.user_id)
+                    .first()
+                )
+
+                if star.channel != channel.id:
+                    return
+
+                session.delete(star)
+                session.commit()
+
+                star_count = (
+                    session.query(StarboardStars).filter_by(unique_id=star_id).count()
+                )
+
+            starboard_message = await self.bot.get_channel(
+                self.starboard_channel
+            ).fetch_message(starboard_post.starboard_message)
+
+            await starboard_message.edit(
+                embed=starboard_message.embeds[0].set_footer(
+                    text=f"{star_id} | ⭐ {star_count}"
+                )
+            )
+
+            if star_count <= self.minimum_exit_stars:
+                await starboard_message.delete()
+
+                with db_session() as session:
+                    session.delete(
+                        session.query(StarboardPosts)
+                        .filter_by(unique_id=star_id)
+                        .first()
+                    )
+                    session.commit()
+
+                    session.delete(
+                        session.query(StarboardStars).filter_by(unique_id=star_id).all()
+                    )
+                    session.commit()
+
+            return
 
 
 def setup(bot: commands.Bot, **kwargs):
