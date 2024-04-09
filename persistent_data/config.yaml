@@ -14,6 +14,7 @@ bot:
         - "• gombik   `264502855602274306`"
     privacy_policy: "[Here](https://github.com/Yoshod/Sersi/blob/stable/PRIVACY%20POLICY.MD)"
     wiki_header: "SersiBot (contact@sersi.io)"
+    minimum_star_count: 7
 
 channels:
     alert:                   1168167178256777226
@@ -65,6 +66,9 @@ channels:
     staff_votes:                               0
     cet_votes:                                 0
     afk_voice:               1139655531770937384
+    bug_reports:             1226988081106653365
+    feature_requests:        1226988167215845406
+    starboard:               1227274502346641448
 
 ignored_categories:
     - IMPORTANT STUFF

@@ -11,3 +11,4 @@ pyyaml
 unidecode
 sqlalchemy
 wikipedia-api
+PyGithub
