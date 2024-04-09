@@ -242,6 +242,8 @@ class Starboard(commands.Cog):
 
         await starboard_message.add_reaction("⭐")
 
+        self.bot.dispatch("add_xp", message.author, 500, "COMMUNITY")
+
     @commands.Cog.listener()
     async def on_raw_reaction_remove(self, payload: nextcord.RawReactionActionEvent):
         if payload.emoji.name != "⭐":
@@ -291,6 +293,8 @@ class Starboard(commands.Cog):
                         session.query(StarboardStars).filter_by(unique_id=star_id).all()
                     )
                     session.commit()
+
+                self.bot.dispatch("remove_xp", message.author, 500, "COMMUNITY")
 
             return
 
@@ -343,6 +347,8 @@ class Starboard(commands.Cog):
                         session.query(StarboardStars).filter_by(unique_id=star_id).all()
                     )
                     session.commit()
+
+                self.bot.dispatch("remove_xp", message.author, 500, "COMMUNITY")
 
             return
 
