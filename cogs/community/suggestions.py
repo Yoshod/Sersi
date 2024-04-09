@@ -334,8 +334,9 @@ class SuggestionMarkModal(Modal):
             )
             await original_message.thread.edit(locked=True, archived=True)
 
-            bot: commands.Bot = interaction.client
-            bot.dispatch("add_xp", interaction.user, 500, "COMMUNITY")
+            if suggestion_instance.suggester != interaction.user.id:
+                bot: commands.Bot = interaction.client
+                bot.dispatch("add_xp", interaction.user, 500, "COMMUNITY")
 
 
 class SuggestionReviewModal(Modal):
@@ -384,9 +385,9 @@ class SuggestionReviewModal(Modal):
                 )
                 suggestion_embed.set_image(url=suggestion_instance.media_url)
 
-            suggestion_embed.add_field(name="Yes Votes", value="`0`", inline=False)
+            suggestion_embed.add_field(name="Yes Votes", value="`1`", inline=False)
             suggestion_embed.add_field(name="No Votes", value="`0`", inline=False)
-            suggestion_embed.add_field(name="Net Approval", value="`0`", inline=False)
+            suggestion_embed.add_field(name="Net Approval", value="`+1`", inline=False)
 
             upvote = Button(
                 label="Upvote",
@@ -432,7 +433,14 @@ class SuggestionReviewModal(Modal):
                     reason=self.review_reason.value,
                 )
                 session.add(review_instance)
-                session.commit()
+
+                session.add(
+                    SuggestionVote(
+                        id=suggestion_instance.id,
+                        voter=interaction.user.id,
+                        vote=True,
+                    )
+                )
 
                 update_suggestion = (
                     session.query(SubmittedSuggestion).filter_by(
@@ -465,8 +473,9 @@ class SuggestionReviewModal(Modal):
                 ),
             )
 
-            bot: commands.Bot = interaction.client
-            bot.dispatch("add_xp", interaction.user, 100, "COMMUNITY")
+            if suggestion_instance.suggester != interaction.user.id:
+                bot: commands.Bot = interaction.client
+                bot.dispatch("add_xp", interaction.user, 100, "COMMUNITY")
 
         else:
             deny_embed = SersiEmbed(
