@@ -92,11 +92,12 @@ class Reformation(commands.Cog):
 
         await member.add_roles(reformation_role, reason=reason)
 
-        # remove civil engineering initiate
+        # remove civil engineering initiate, reformist
         await member.remove_roles(
             *parse_roles(
                 interaction.guild,
                 self.config.roles.civil_engineering_initiate,
+                self.config.permission_roles.reformist,
             ),
             reason=reason,
         )
