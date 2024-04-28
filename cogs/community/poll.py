@@ -26,7 +26,7 @@ class DropdownMenu(nextcord.ui.Select):
         self.max_values = max_values
 
     async def callback(self, interaction: nextcord.Interaction) -> None:
-        self.state[interaction.id] = self.values
+        self.state[interaction.user.id] = self.values
 
         result_embed: nextcord.Embed = interaction.message.embeds[0]
         while result_embed.fields:
