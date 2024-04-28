@@ -30,6 +30,7 @@ All notable changes to this project will be documented in this file.
         - The user has joined the server for the first time.
         - The user has joined the server before.
         - The user has joined the server before and is timedout.
+- Added a feature where if there are any potential tracking strings in a URL the bot will reply (non-ping) with the cleaned URL.
 
 ### Changed
 - Suggestions are now automatically upvoted by the suggester
