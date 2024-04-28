@@ -343,10 +343,11 @@ class TimeoutSystem(commands.Cog):
                 session.query(TimeoutCase).filter(TimeoutCase.id == case_id).first()
             )
 
-            if not case:
+            if case is None or case.type != "Timeout":
                 await interaction.followup.send(
                     f"{self.config.emotes.fail} {case_id} is not a valid timeout case."
                 )
+                return
 
             active = case.planned_end > datetime.utcnow()
             if case.actual_end is not None:
