@@ -1,0 +1,43 @@
+import re
+import nextcord
+from nextcord.ext import commands
+
+from utils.config import Configuration
+
+
+class TrackingUrls(commands.Cog):
+    def __init__(self, bot: commands.Bot, config: Configuration):
+        self.bot = bot
+        self.config = config
+
+    @commands.Cog.listener()
+    async def on_message(self, message: nextcord.Message):
+        if message.author.bot:
+            return
+
+        urls = re.findall(r"(https?://[^\s]+)", message.content)
+
+        if not urls:
+            return
+
+        tracking_string_detected = False
+
+        clean_urls = []
+
+        for url in urls:
+            if "?" in url:
+                url = url.split("?")[0]
+                tracking_string_detected = True
+                clean_urls.append(f"<{url}>")
+
+        if tracking_string_detected:
+            await message.reply(
+                f"Potential tracking strings were detected in your message. Here are the cleaned URL(s):\n{', '.join(clean_urls)}",
+                mention_author=False,
+            )
+
+        return
+
+
+def setup(bot: commands.Bot, **kwargs):
+    bot.add_cog(TrackingUrls(bot, kwargs["config"]))
