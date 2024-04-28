@@ -37,3 +37,4 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 - Fixed a bug where users with previous expired timeout cases would still strigger "Timed Out User Left" alerts
+- Fixed a bug where trying to remove a timeout using an invalid case ID would cause the bot to error
