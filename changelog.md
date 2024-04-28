@@ -24,9 +24,15 @@ All notable changes to this project will be documented in this file.
 - Added a command `\feedback` to give feedback to the bot.
     - `bug_report` - Report a bug.
     - `feature_request` - Request a feature.
-
+- Added a Welcome DM system.
+    - When a user joins the server they will receive a DM from the bot.
+    - This DM will have different contents depending on whether:
+        - The user has joined the server for the first time.
+        - The user has joined the server before.
+        - The user has joined the server before and is timedout.
 
 ### Changed
 - Suggestions are now automatically upvoted by the suggester
 
 ### Fixed
+- Fixed a bug where users with previous expired timeout cases would still strigger "Timed Out User Left" alerts
