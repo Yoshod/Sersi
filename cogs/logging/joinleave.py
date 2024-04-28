@@ -25,7 +25,7 @@ class JoinLeaveWhoIs(Button):
 
 class JoinLeaveView(View):
     def __init__(self, user_id: int):
-        super().__init__(timeout=None)
+        super().__init__(auto_defer=False)
         self.add_item(JoinLeaveWhoIs(user_id))
 
 
@@ -216,8 +216,7 @@ class JoinLeave(commands.Cog):
             case ["join-leave-whois", user_id]:
                 if await permcheck(interaction, is_mod):
                     user = interaction.guild.get_member(int(user_id))
-                    await interaction.response.defer(ephemeral=True)
-                    await interaction.followup.send(
+                    await interaction.send(
                         embed=await create_whois_embed(self.config, interaction, user),
                         view=WhoisView(user.id),
                         ephemeral=True,

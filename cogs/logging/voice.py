@@ -67,8 +67,9 @@ class VoiceLogs(commands.Cog):
                 entries = await member.guild.audit_logs(
                     action=nextcord.AuditLogAction.member_move, limit=1
                 ).flatten()
-                log: nextcord.AuditLogEntry = entries[0]
-                if log.target == member:
+                
+                if entries:
+                    log: nextcord.AuditLogEntry = entries[0]
                     await member.guild.get_channel(
                         self.config.channels.voice_logs
                     ).send(
@@ -101,8 +102,9 @@ class VoiceLogs(commands.Cog):
                 entries = await member.guild.audit_logs(
                     action=nextcord.AuditLogAction.member_disconnect, limit=1
                 ).flatten()
-                log: nextcord.AuditLogEntry = entries[0]
-                if log.target == member:
+                
+                if entries:
+                    log: nextcord.AuditLogEntry = entries[0]
                     await member.guild.get_channel(
                         self.config.channels.voice_logs
                     ).send(
