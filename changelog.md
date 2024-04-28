@@ -31,9 +31,14 @@ All notable changes to this project will be documented in this file.
         - The user has joined the server before.
         - The user has joined the server before and is timedout.
 - Added a feature where if there are any potential tracking strings in a URL the bot will reply (non-ping) with the cleaned URL.
+- Polls now contain a pie chart
 
 ### Changed
 - Suggestions are now automatically upvoted by the suggester
+- Multiple choices polls now display % of people who picked a given option
+- Reformation inamates are no longer allowed to be a reformist at the same time
+    - reformist role is removed upon when sent to reformation
+    - can no longer opt-in to the reformist role while in reformation
 
 ### Fixed
 - Fixed a bug where users with previous expired timeout cases would still strigger "Timed Out User Left" alerts
