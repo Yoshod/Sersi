@@ -408,7 +408,7 @@ class Roles(commands.Cog):
             return
         if not interaction.data["custom_id"].startswith("roles"):
             return
-        
+
         match interaction.data["custom_id"]:
             case "roles-reformist_opt_in":
                 if blacklist_check(interaction.user, "Reformist"):
@@ -420,6 +420,15 @@ class Roles(commands.Cog):
                 if not is_level(interaction.user, 4):
                     await interaction.response.send_message(
                         "You must be level 4 or above to be eligible for the reformist role.",
+                        ephemeral=True,
+                    )
+                    return
+                reformation_role = interaction.guild.get_role(
+                    self.config.roles.reformation
+                )
+                if reformation_role in interaction.user.roles:
+                    await interaction.response.send_message(
+                        "You are currently in reformation and cannot opt in to the Reformist role.",
                         ephemeral=True,
                     )
                     return
@@ -435,7 +444,7 @@ class Roles(commands.Cog):
                     "You have been given the Reformist role.",
                     ephemeral=True,
                 )
-            
+
             case "roles-reformist_opt_out":
                 reformist_role = interaction.guild.get_role(
                     self.config.permission_roles.reformist

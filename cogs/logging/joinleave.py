@@ -159,8 +159,8 @@ class JoinLeave(commands.Cog):
                 )
                 for case in timeout_cases:
                     if (
-                        not case.actual_end
-                        and not case.planned_end > datetime.datetime.utcnow()
+                        case.actual_end is None
+                        and case.planned_end > datetime.datetime.utcnow()
                     ):
                         continue
 

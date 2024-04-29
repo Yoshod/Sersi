@@ -2,29 +2,45 @@
 
 All notable changes to this project will be documented in this file.
 
-## [5.2.2] - 2024-04-07
+## [5.2.3] - 2024-04-??
 
 ### Added
-- Added a new command `/suggestion retrieve_control_panel` to retrieve a control panel for a suggestion.
-- Added a new command `/cases review` to review a case via a command.
-- Added a new command `/level give_xp` to give XP to a user.
-- Added a new command `/level remove_xp` to remove XP from a user.
-- Added a new command `/level leaderboard` to view the leaderboard.
-- Added a new command `/level show` to get an embed showing the user's level.
-- Added a new dialogue option when closing a ticket to ask the staff member what category and subcategory the ticket should be closed under if one was not already selected.
-- Added Join Alerts for when users join the server who have an existing moderation history.
+- Added new xp types (community, event, moderation)
+- Having suggestion approved and voted on and implemented awards the suggester xp, voting on suggestions also awards xp
+- Added a Starboard to the bot.
+    - When a post gets a minimum amount of stars it will be posted to the starboard.
+    - When a post goes below a minimum amount of stars it will be removed from the starboard.
+    - A post can be starred either from the post itself or the starboard. This is checked for duplicates.
+    - Members with posts on the starboard receive xp for each star
+- Added a command `\starboard` to manage the starboard.
+    - `ignore` - Ignore a channel from the starboard.
+    - `unignore` - Unignore a channel from the starboard.
+- Added a feedback system to the bot.
+    - When feedback is received it will be sent to either a feature request or bug report channel in the development server.
+    - These can be responded by the developers.
+    - They can Approved which will automatically create a feature request or bug report on the GitHub repository.
+    - They can Denied which will close the feedback.
+    - A user can be banned from sending feedback.
+- Added a command `\feedback` to give feedback to the bot.
+    - `bug_report` - Report a bug.
+    - `feature_request` - Request a feature.
+- Added a Welcome DM system.
+    - When a user joins the server they will receive a DM from the bot.
+    - This DM will have different contents depending on whether:
+        - The user has joined the server for the first time.
+        - The user has joined the server before.
+        - The user has joined the server before and is timedout.
+- Added a feature where if there are any potential tracking strings in a URL the bot will reply (non-ping) with the cleaned URL.
+- Polls now contain a pie chart
 
 ### Changed
-- Administrators can now review a Moderator Action taken by another Administrator.
-- If a timeout is added using a method other than Sersi a timeout case will be created in Sersi.
-- If a timeout is removed using a method other than Sersi the relevant timeout case will be closed in Sersi.
-- If an Alert is deleted it will be reposted.
-- If a suggestion is deleted it will be closed.
-- If a vote embed is deleted it will be reposted.
-- Replies now get bonus XP.
-- If a ticket channel is deleted the ticket will be closed.
-- Maybe votes increase the minimum time before a vote is decided.
+- Suggestions are now automatically upvoted by the suggester
+- Multiple choices polls now display % of people who picked a given option
+- Reformation inamates are no longer allowed to be a reformist at the same time
+    - reformist role is removed upon when sent to reformation
+    - can no longer opt-in to the reformist role while in reformation
+- Timeouts cases created via non Sersi timeout detections will now gather data from the Audit Logs to determine the Moderator and Reason
 
 ### Fixed
-- Fixed a bug where a closed ticket did not have the Close Reason displayed in the ticket closed embed or survey.
-- Fixed a bug where "None" was displayed as the ranking parameter in the moderation leaderboard.
+- Fixed a bug where users with previous expired timeout cases would still strigger "Timed Out User Left" alerts
+- Fixed a bug where trying to remove a timeout using an invalid case ID would cause the bot to error
