@@ -39,6 +39,7 @@ All notable changes to this project will be documented in this file.
 - Reformation inamates are no longer allowed to be a reformist at the same time
     - reformist role is removed upon when sent to reformation
     - can no longer opt-in to the reformist role while in reformation
+- Timeouts cases created via non Sersi timeout detections will now gather data from the Audit Logs to determine the Moderator and Reason
 
 ### Fixed
 - Fixed a bug where users with previous expired timeout cases would still strigger "Timed Out User Left" alerts
