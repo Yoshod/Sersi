@@ -887,5 +887,18 @@ class StarboardIgnoredChannels(_Base):
     channel = Column(Integer, primary_key=True)
 
 
+class TrackingMessages(_Base):
+    """
+    Represents a tracking message in the database.
+
+    Attributes:
+        message_id (int): The ID of the message.
+    """
+
+    __tablename__ = "tracking_messages"
+
+    message_id = Column(Integer, primary_key=True)
+
+
 def create_db_tables():
     _Base.metadata.create_all(_engine)

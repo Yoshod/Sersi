@@ -3,6 +3,7 @@ import nextcord
 from nextcord.ext import commands
 
 from utils.config import Configuration
+from utils.database import db_session, TrackingMessages
 
 
 class TrackingUrls(commands.Cog):
@@ -20,6 +21,10 @@ class TrackingUrls(commands.Cog):
         if not urls:
             return
 
+        with db_session() as session:
+            if session.query(TrackingMessages).filter_by(message_id=message.id).first():
+                return
+
         tracking_string_detected = False
 
         clean_urls = []
@@ -31,6 +36,10 @@ class TrackingUrls(commands.Cog):
                 clean_urls.append(f"<{url}>")
 
         if tracking_string_detected:
+            with db_session() as session:
+                session.add(TrackingMessages(message_id=message.id))
+                session.commit()
+
             await message.reply(
                 f"Potential tracking strings were detected in your message. Here are the cleaned URL(s):\n{', '.join(clean_urls)}",
                 mention_author=False,
