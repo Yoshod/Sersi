@@ -6,7 +6,7 @@ bot:
     status: "Sword and shield"
     port:   8113 # 8074 for live, 8113 for unstable
     minimum caps length: 8
-    version: "5.2.2"
+    version: "5.2.3"
     git_url: "https://github.com/Yoshod/Sersi"
     authors:
         - "• hekkland `261870562798731266`"
@@ -14,6 +14,7 @@ bot:
         - "• gombik   `264502855602274306`"
     privacy_policy: "[Here](https://github.com/Yoshod/Sersi/blob/stable/PRIVACY%20POLICY.MD)"
     wiki_header: "SersiBot (contact@sersi.io)"
+    minimum_star_count: 2
 
 channels:
     alert:                    1166770862150651976
@@ -59,6 +60,9 @@ channels:
     staff_votes:                                0
     cet_votes:                                  0
     afk_voice: 0
+    bug_reports:             1226988081106653365
+    feature_requests:        1226988167215845406
+    starboard:               1166770862989524998
 
 ignored_categories:
     - IMPORTANT STUFF

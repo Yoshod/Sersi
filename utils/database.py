@@ -816,5 +816,76 @@ class AutopostFields(_Base):
     field_value = Column(String, nullable=False)
 
 
+class GithubIntegrationBlacklist(_Base):
+    """
+    Represents a blacklist entry for the GitHub integration in the database.
+
+    Attributes:
+        user (int): The ID of the user who is blacklisted.
+        added_by (int): The ID of the user who added the blacklist entry.
+        reason (str): The reason for adding the blacklist entry.
+        timestamp (datetime): The datetime when the blacklist entry was added.
+    """
+
+    __tablename__ = "github_integration_blacklist"
+
+    user = Column(Integer, primary_key=True)
+    added_by = Column(Integer, nullable=False)
+    reason = Column(String, nullable=False)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+
+
+class StarboardPosts(_Base):
+    """
+    Represents a starboard post in the database.
+
+    Attributes:
+        message (int): The ID of the message.
+        starboard_message (int): The ID of the starboard message.
+        author (int): The ID of the author of the message.
+        channel (int): The ID of the channel where the message was posted.
+    """
+
+    __tablename__ = "starboard_posts"
+
+    unique_id = Column(String, primary_key=True, default=random_id)
+    message = Column(Integer, unique=True, nullable=False)
+    starboard_message = Column(Integer, nullable=False, unique=True)
+    author = Column(Integer, nullable=False)
+    channel = Column(Integer, nullable=False)
+
+
+class StarboardStars(_Base):
+    """
+    Represents the stars given to a post in the starboard.
+
+    Attributes:
+        unique_id (str): The unique identifier of the starboard post.
+        user (int): The user who gave the star.
+        channel (int): The ID of the channel where the star was given.
+    """
+
+    __tablename__ = "starboard_stars"
+
+    unique_id = Column(
+        String, ForeignKey("starboard_posts.unique_id"), primary_key=True
+    )
+    user = Column(Integer, primary_key=True)
+    channel = Column(Integer, nullable=False)
+
+
+class StarboardIgnoredChannels(_Base):
+    """
+    Represents a channel that is ignored by the starboard.
+
+    Attributes:
+        channel (int): The ID of the channel.
+    """
+
+    __tablename__ = "starboard_ignored_channels"
+
+    channel = Column(Integer, primary_key=True)
+
+
 def create_db_tables():
     _Base.metadata.create_all(_engine)
