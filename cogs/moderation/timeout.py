@@ -451,12 +451,20 @@ class TimeoutSystem(commands.Cog):
                     .first()
                 )
 
+                log: nextcord.AuditLogEntry = (
+                    await after.guild.audit_logs(
+                        action=nextcord.AuditLogAction.member_update, limit=1
+                    ).flatten()
+                )[0]
+
                 if case is None or case.planned_end < datetime.utcnow():
                     sersi_case = TimeoutCase(
                         offender=after.id,
-                        moderator=self.bot.user.id,
+                        moderator=(
+                            log.user.id if log.user.id != after.id else self.bot.user.id
+                        ),
                         offence="Other",
-                        details="Timeout done by method other than Sersi",
+                        details=log.reason if log.reason else "No reason provided",
                         duration=0,
                         planned_end=after.communication_disabled_until,
                     )
