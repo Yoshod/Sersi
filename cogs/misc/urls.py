@@ -30,7 +30,7 @@ class TrackingUrls(commands.Cog):
         clean_urls = []
 
         for url in urls:
-            if "?" in url:
+            if "?" in url and "watch?v=" not in url:
                 url = url.split("?")[0]
                 tracking_string_detected = True
                 clean_urls.append(f"<{url}>")
