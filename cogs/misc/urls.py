@@ -30,8 +30,15 @@ class TrackingUrls(commands.Cog):
 
         clean_urls = []
 
+        acceptable_urls = [
+            "watch?v=",
+            "media.discordapp.net",
+        ]
+
         for url in urls:
-            if "?" in url and "watch?v=" not in url:
+            if "?" in url and not any(
+                acceptable_urls in url for acceptable_urls in acceptable_urls
+            ):
                 url = url.split("?")[0]
                 tracking_string_detected = True
                 clean_urls.append(f"<{url}>")
