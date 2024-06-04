@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from typing import Any
 import random
 import re
@@ -898,6 +898,52 @@ class TrackingMessages(_Base):
     __tablename__ = "tracking_messages"
 
     message_id = Column(Integer, primary_key=True)
+
+
+class VoiceMessageAnalytics(_Base):
+    """
+    Represents a voice message in the database.
+
+    Attributes:
+        message_id (int): The ID of the message.
+        author (int): The ID of the author of the message.
+        channel (int): The ID of the channel where the message was posted.
+        link (str): The link to the voice message.
+        duration (int): The duration of the voice message.
+        filesize (int): The size of the voice message file.
+        timestamp (datetime): The datetime when the voice message was created.
+    """
+
+    __tablename__ = "voice_message_analytics"
+
+    message_id = Column(Integer, primary_key=True)
+    author = Column(Integer, nullable=False)
+    channel = Column(Integer, nullable=False)
+    link = Column(String, nullable=False)
+    duration = Column(Integer, nullable=False)
+    filesize = Column(Integer, nullable=False)
+    timestamp = Column(DateTime, default=date.today())
+
+
+class OptInRoles(_Base):
+    """
+    Represents a role that users can opt in to in the database.
+
+    Attributes:
+        role_id (int): The ID of the role.
+        role_name (str): The name of the role.
+        role_emoji (str): The emoji associated with the role.
+        role_category (str): The category of the role.
+        required_level_role (int): The ID of the role required to opt in to the role.
+    """
+
+    __tablename__ = "opt_in_roles"
+
+    role_id = Column(Integer, primary_key=True)
+    role_name = Column(String, nullable=False)
+    role_emoji = Column(String, nullable=False)
+    role_category = Column(String, nullable=False)
+    required_level_role = Column(Integer, nullable=False)
 
 
 def create_db_tables():
