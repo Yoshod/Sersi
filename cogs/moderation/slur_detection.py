@@ -374,22 +374,11 @@ class SlurDetection(commands.Cog):
             return
 
         slur_matches = self.slur_detector.find_slurs(message.content)
-
-        content = message.content
-
         if not slur_matches:
-            print(kwargs)
-            print(kwargs.get("transcription"))
-            print(kwargs["transcription"])
-            slur_matches = self.slur_detector.find_slurs(kwargs["transcription"])
-
-            if not slur_matches:
-                return
-
-            content = kwargs.get("transcription")
+            return
 
         slurs = slur_matches.keys()
-        highlited = highlight_matches(content, sum(slur_matches.values(), []))
+        highlited = highlight_matches(message.content, sum(slur_matches.values(), []))
 
         embed = SersiEmbed(
             title="Slur(s) Detected in Message",

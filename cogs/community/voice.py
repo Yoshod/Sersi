@@ -251,7 +251,8 @@ class Voice(commands.Cog):
                 os.remove(f"{GRANDPARENT_DIR}/files/TempAudio/{filename[:-4]}.wav")
                 return
 
-            self.bot.dispatch("on_message", message, transcription=transcription.text)
+            message.content = transcription.text
+            self.bot.dispatch("message", message)
 
             await message.reply(f"**Transcription:**\n{transcription.text}")
 
