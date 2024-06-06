@@ -136,7 +136,7 @@ class Alerts(commands.Cog):
                 )
 
                 await interaction.guild.get_channel(
-                    self.config.channels.false_positives
+                    self.config.channels.staff.false_positives
                 ).send(embed=false_positive_embed)
 
             case "alert_bad_faith_ping":
@@ -172,7 +172,7 @@ class Alerts(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message_delete(self, message: nextcord.Message):
-        if message.channel.id != self.config.channels.alert:
+        if message.channel.id != self.config.channels.staff.alert:
             return
 
         new_message: nextcord.Message = await message.channel.send(

@@ -22,7 +22,7 @@ class UserLogging(commands.Cog):
             discriminator"""
 
         if before.avatar != after.avatar:
-            await self.bot.get_channel(self.config.channels.user_chanes).send(
+            await self.bot.get_channel(self.config.channels.log.user_chanes).send(
                 embed=SersiEmbed(
                     description=f"{after.mention} ({after.id}) has changed their avatar",
                     fields={"Before": before.avatar.url, "After": after.avatar.url},
@@ -32,7 +32,7 @@ class UserLogging(commands.Cog):
                 .set_image(url=after.avatar.url)
             )
         if before.name != after.name:
-            await self.bot.get_channel(self.config.channels.user_chanes).send(
+            await self.bot.get_channel(self.config.channels.log.user_chanes).send(
                 embed=SersiEmbed(
                     description=f"{after.mention} ({after.id}) has changed their username",
                     fields={"Before": before.name, "After": after.name},
@@ -40,7 +40,7 @@ class UserLogging(commands.Cog):
                 )
             )
         if before.discriminator != after.discriminator:
-            await self.bot.get_channel(self.config.channels.user_chanes).send(
+            await self.bot.get_channel(self.config.channels.log.user_chanes).send(
                 embed=SersiEmbed(
                     description=f"{after.mention} ({after.id}) has changed their discriminator",
                     fields={"Before": str(before), "After": str(after)},
@@ -64,7 +64,7 @@ class UserLogging(commands.Cog):
             )[0]
 
             if log.target.id == after.id:
-                await after.guild.get_channel(self.config.channels.user_chanes).send(
+                await after.guild.get_channel(self.config.channels.log.user_chanes).send(
                     embed=SersiEmbed(
                         description=f"{after.mention}'s nickname was changed",
                         fields={
@@ -76,7 +76,7 @@ class UserLogging(commands.Cog):
                     ).set_author(name=log.user, icon_url=log.user.display_avatar.url)
                 )
             else:
-                await after.guild.get_channel(self.config.channels.user_chanes).send(
+                await after.guild.get_channel(self.config.channels.log.user_chanes).send(
                     embed=SersiEmbed(
                         description=f"{after.mention} has updated their nickname",
                         fields={"Before": before.nick, "After": after.nick},
@@ -120,7 +120,7 @@ class UserLogging(commands.Cog):
                         inline=False,
                     )
 
-                await after.guild.get_channel(self.config.channels.user_chanes).send(
+                await after.guild.get_channel(self.config.channels.log.user_chanes).send(
                     embed=logging
                 )
 
@@ -142,7 +142,7 @@ class UserLogging(commands.Cog):
                         inline=False,
                     )
 
-                await after.guild.get_channel(self.config.channels.user_chanes).send(
+                await after.guild.get_channel(self.config.channels.log.user_chanes).send(
                     embed=logging
                 )
 
@@ -156,7 +156,7 @@ class UserLogging(commands.Cog):
                 ).flatten()
             )[0]
 
-            await after.guild.get_channel(self.config.channels.user_chanes).send(
+            await after.guild.get_channel(self.config.channels.log.user_chanes).send(
                 embed=SersiEmbed(
                     description=f"{after.mention} was muted",
                     fields={
@@ -179,7 +179,7 @@ class UserLogging(commands.Cog):
                 ).flatten()
             )[0]
 
-            await after.guild.get_channel(self.config.channels.user_chanes).send(
+            await after.guild.get_channel(self.config.channels.log.user_chanes).send(
                 embed=SersiEmbed(
                     description=f"{after.mention} was unmuted",
                     fields={
@@ -193,7 +193,7 @@ class UserLogging(commands.Cog):
             )
 
         if before.display_avatar != after.display_avatar:
-            await self.bot.get_channel(self.config.channels.user_chanes).send(
+            await self.bot.get_channel(self.config.channels.log.user_chanes).send(
                 embed=SersiEmbed(
                     description=f"{after.mention} ({after.id}) has changed their display avatar",
                     fields={

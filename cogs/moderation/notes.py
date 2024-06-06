@@ -254,7 +254,7 @@ class Notes(commands.Cog):
             logging_embed.set_thumbnail(user.display_avatar.url)
 
             logging_channel = interaction.guild.get_channel(
-                self.config.channels.logging
+                self.config.channels.log.general
             )
 
             await logging_channel.send(embed=logging_embed)
@@ -291,7 +291,7 @@ class Notes(commands.Cog):
             logging_embed.set_thumbnail(interaction.user.display_avatar.url)
 
             logging_channel = interaction.guild.get_channel(
-                self.config.channels.logging
+                self.config.channels.log.general
             )
 
             await logging_channel.send(embed=logging_embed)

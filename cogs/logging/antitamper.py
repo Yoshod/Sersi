@@ -16,7 +16,7 @@ class Antitamper(commands.Cog):
             return
 
         # ignore if message was not from logging section
-        if message.channel.category.id != self.config.channels.logging_category:
+        if message.channel.category.id != self.config.channels.log.logging_category:
             return
     
         # fetch the last deleted message
@@ -26,7 +26,7 @@ class Antitamper(commands.Cog):
             ).flatten()
         )[0]
 
-        channel = message.guild.get_channel(self.config.channels.tamper_logs)
+        channel = message.guild.get_channel(self.config.channels.log.tamper)
         await channel.send(
             message.guild.get_role(self.config.permission_roles.dark_moderator).mention,
             embed=SersiEmbed(

@@ -187,10 +187,10 @@ class Reformation(commands.Cog):
 
         embed.add_field(name="Context:", value=message.jump_url, inline=False)
 
-        channel = interaction.guild.get_channel(self.config.channels.logging)
+        channel = interaction.guild.get_channel(self.config.channels.log.general)
         await channel.send(embed=embed)
 
-        channel = interaction.guild.get_channel(self.config.channels.mod_logs)
+        channel = interaction.guild.get_channel(self.config.channels.log.mod)
         await channel.send(embed=embed)
 
         channel = interaction.guild.get_channel(self.config.channels.teachers_lounge)
@@ -272,7 +272,7 @@ class Reformation(commands.Cog):
             session.add(vote_details)
             session.commit()
 
-            channel = self.bot.get_channel(self.config.channels.moderation_votes)
+            channel = self.bot.get_channel(self.config.channels.staff.mod_votes)
             message = await channel.send(
                 embed=embedVar, view=VoteView(vote_type, vote_details)
             )
@@ -351,7 +351,7 @@ class Reformation(commands.Cog):
             session.add(vote_details)
             session.commit()
 
-            channel = self.bot.get_channel(self.config.channels.moderation_votes)
+            channel = self.bot.get_channel(self.config.channels.staff.mod_votes)
             message = await channel.send(
                 embed=embedVar, view=VoteView(vote_type, vote_details)
             )
@@ -443,10 +443,10 @@ class Reformation(commands.Cog):
             color=nextcord.Color.from_rgb(237, 91, 6),
         )
 
-        channel = interaction.guild.get_channel(self.config.channels.logging)
+        channel = interaction.guild.get_channel(self.config.channels.log.general)
         await channel.send(embed=embed)
 
-        channel = interaction.guild.get_channel(self.config.channels.mod_logs)
+        channel = interaction.guild.get_channel(self.config.channels.log.mod)
         await channel.send(embed=embed)
 
         channel = interaction.guild.get_channel(self.config.channels.reform_public_log)
@@ -579,7 +579,7 @@ class Reformation(commands.Cog):
             author=interaction.user,
         )
 
-        channel = interaction.guild.get_channel(self.config.channels.logging)
+        channel = interaction.guild.get_channel(self.config.channels.log.general)
         await channel.send(embed=embed)
 
     @commands.Cog.listener()
@@ -624,10 +624,10 @@ class Reformation(commands.Cog):
                         title=f"Reformation inmate **{member}** ({member.id}) banned!",
                     )
 
-                    channel = self.bot.get_channel(self.config.channels.mod_logs)
+                    channel = self.bot.get_channel(self.config.channels.log.mod)
                     await channel.send(embed=ban_embed)
 
-                    channel = self.bot.get_channel(self.config.channels.logging)
+                    channel = self.bot.get_channel(self.config.channels.log.general)
                     await channel.send(embed=ban_embed)
 
                     channel = self.bot.get_channel(
@@ -691,10 +691,10 @@ class Reformation(commands.Cog):
 
                 cell_channel = member.guild.get_channel(case.cell_channel)
 
-            channel = self.bot.get_channel(self.config.channels.logging)
+            channel = self.bot.get_channel(self.config.channels.log.general)
             await channel.send(embed=embed)
 
-            channel = self.bot.get_channel(self.config.channels.mod_logs)
+            channel = self.bot.get_channel(self.config.channels.log.mod)
             await channel.send(embed=embed)
 
             channel = self.bot.get_channel(self.config.channels.reform_public_log)
@@ -772,10 +772,10 @@ class Reformation(commands.Cog):
             fields=embed_fields,
         )
 
-        channel = self.bot.get_channel(self.config.channels.logging)
+        channel = self.bot.get_channel(self.config.channels.log.general)
         await channel.send(embed=embed)
 
-        channel = self.bot.get_channel(self.config.channels.mod_logs)
+        channel = self.bot.get_channel(self.config.channels.log.mod)
         await channel.send(embed=embed)
 
         channel = self.bot.get_channel(self.config.channels.reform_public_log)
@@ -846,10 +846,10 @@ class Reformation(commands.Cog):
             f"reformed.\nThis has been approved by:\n• {yes_list}.",
         )
 
-        channel = guild.get_channel(self.config.channels.logging)
+        channel = guild.get_channel(self.config.channels.log.general)
         await channel.send(embed=log_embed)
 
-        channel = guild.get_channel(self.config.channels.mod_logs)
+        channel = guild.get_channel(self.config.channels.log.mod)
         await channel.send(embed=log_embed)
 
         channel = guild.get_channel(self.config.channels.reform_public_log)

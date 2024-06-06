@@ -49,7 +49,7 @@ class ObjectionButton(nextcord.ui.Button):
             review_case = session.query(PeerReview).filter_by(id=review_case.id).first()
 
         # Logging
-        await interaction.guild.get_channel(self.config.channels.logging).send(
+        await interaction.guild.get_channel(self.config.channels.log.general).send(
             embed=SersiEmbed(
                 title="Moderation Action Objected To",
                 description="A Moderator Action has been objected to by a moderator in response to a report.",
@@ -101,7 +101,7 @@ class ApprovalButton(nextcord.ui.Button):
             review_case = session.query(PeerReview).filter_by(id=review_case.id).first()
 
         # Logging
-        await interaction.guild.get_channel(self.config.channels.logging).send(
+        await interaction.guild.get_channel(self.config.channels.log.general).send(
             embed=SersiEmbed(
                 title="Moderation Action Approved",
                 description="A Moderator Action has been approved by a moderator in response to a report.",

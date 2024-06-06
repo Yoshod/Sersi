@@ -36,7 +36,7 @@ class ModPing(commands.Cog):
             )
 
             # notification for mods
-            channel = self.bot.get_channel(self.config.channels.alert)
+            channel = self.bot.get_channel(self.config.channels.staff.alert)
             alert_embed: nextcord.Embed = SersiEmbed(
                 title="Moderator Ping",
                 description="A moderation role has been pinged, please investigate the ping and take action as appropriate.",

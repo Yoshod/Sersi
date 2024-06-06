@@ -146,7 +146,7 @@ class FeatureRequestModal(nextcord.ui.Modal):
         issue_number = submit_issue("feature", interaction, modal_data=modal_data)
 
         message: nextcord.Message = await interaction.guild.get_channel(
-            self.config.channels.feature_requests
+            self.config.channels.dev.feature_requests
         ).fetch_message(decode_snowflake(self.message_id))
 
         if not message:
@@ -271,7 +271,7 @@ class RejectReasonModal(nextcord.ui.Modal):
 
         if self.report_type == "feature":
             message: nextcord.WebhookMessage = await interaction.guild.get_channel(
-                self.config.channels.feature_requests
+                self.config.channels.dev.feature_requests
             ).fetch_message(decode_snowflake(self.message_id))
 
             if not message:
@@ -310,7 +310,7 @@ class RejectReasonModal(nextcord.ui.Modal):
 
         elif self.report_type == "bug":
             message: nextcord.WebhookMessage = await interaction.guild.get_channel(
-                self.config.channels.bug_reports
+                self.config.channels.dev.bug_reports
             ).fetch_message(decode_snowflake(self.message_id))
 
             if not message:
@@ -540,7 +540,7 @@ class GithubIntegration(commands.Cog):
         ):
             bug_post = (
                 await self.bot.get_guild(self.config.guilds.errors)
-                .get_channel(self.config.channels.bug_reports)
+                .get_channel(self.config.channels.dev.bug_reports)
                 .send(
                     embed=bug_report_embed,
                 )
@@ -647,7 +647,7 @@ class GithubIntegration(commands.Cog):
         ):
             feature_post = (
                 await self.bot.get_guild(self.config.guilds.errors)
-                .get_channel(self.config.channels.feature_requests)
+                .get_channel(self.config.channels.dev.feature_requests)
                 .send(
                     embed=feature_request_embed,
                 )

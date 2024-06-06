@@ -393,13 +393,13 @@ class Levelling(commands.Cog):
                 "Reason:": reason,
             },
         )
-        await interaction.guild.get_channel(self.config.channels.logging).send(
+        await interaction.guild.get_channel(self.config.channels.log.general).send(
             embed=log_embed
         )
-        await interaction.guild.get_channel(self.config.channels.user_chanes).send(
+        await interaction.guild.get_channel(self.config.channels.log.user_chanes).send(
             embed=log_embed
         )
-        await interaction.guild.get_channel(self.config.channels.alert).send(
+        await interaction.guild.get_channel(self.config.channels.staff.alert).send(
             embed=log_embed
         )
 
@@ -469,13 +469,13 @@ class Levelling(commands.Cog):
                 "Reason:": reason,
             },
         )
-        await interaction.guild.get_channel(self.config.channels.logging).send(
+        await interaction.guild.get_channel(self.config.channels.log.general).send(
             embed=log_embed
         )
-        await interaction.guild.get_channel(self.config.channels.user_chanes).send(
+        await interaction.guild.get_channel(self.config.channels.log.user_chanes).send(
             embed=log_embed
         )
-        await interaction.guild.get_channel(self.config.channels.alert).send(
+        await interaction.guild.get_channel(self.config.channels.staff.alert).send(
             embed=log_embed
         )
 

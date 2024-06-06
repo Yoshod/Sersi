@@ -72,15 +72,15 @@ def ticket_log_channel(
 ) -> nextcord.TextChannel:
     match escalation_level:
         case "Moderator":
-            return config.channels.mod_ticket_logs
+            return config.channels.log.mod_ticket
         case "Moderation Lead":
-            return config.channels.senior_ticket_logs
+            return config.channels.log.mod_lead_ticket
         case "Community Engagement":
-            return config.channels.cet_ticket_logs
+            return config.channels.log.cet_ticket
         case "Community Engagement Lead":
-            return config.channels.cet_lead_ticket_logs
+            return config.channels.log.cet_lead_ticket
         case _:
-            return config.channels.admin_ticket_logs
+            return config.channels.log.admin_ticket
 
 
 def ticket_overwrites(

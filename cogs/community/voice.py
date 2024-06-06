@@ -80,7 +80,7 @@ class Voice(commands.Cog):
             footer_icon=interaction.user.avatar.url,
         )
 
-        channel = interaction.guild.get_channel(self.config.channels.logging)
+        channel = interaction.guild.get_channel(self.config.channels.log.general)
         await channel.send(embed=embed)
 
     @voice.subcommand(

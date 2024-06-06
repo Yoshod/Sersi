@@ -112,10 +112,10 @@ class Probation(commands.Cog):
                 fields=embed_fields,
             )
 
-            log_channel = interaction.guild.get_channel(self.config.channels.logging)
+            log_channel = interaction.guild.get_channel(self.config.channels.log.general)
             await log_channel.send(embed=log_embed)
 
-            log_channel = interaction.guild.get_channel(self.config.channels.mod_logs)
+            log_channel = interaction.guild.get_channel(self.config.channels.log.mod)
             await log_channel.send(embed=log_embed)
 
             if bypass_reason:
@@ -236,10 +236,10 @@ class Probation(commands.Cog):
                 fields=embed_fields,
             )
 
-            log_channel = interaction.guild.get_channel(self.config.channels.logging)
+            log_channel = interaction.guild.get_channel(self.config.channels.log.general)
             await log_channel.send(embed=log_embed)
 
-            log_channel = interaction.guild.get_channel(self.config.channels.mod_logs)
+            log_channel = interaction.guild.get_channel(self.config.channels.log.mod)
             await log_channel.send(embed=log_embed)
 
             if bypass_reason:

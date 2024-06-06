@@ -190,11 +190,11 @@ class Staff(commands.Cog):
             name=interaction.user, icon_url=interaction.user.display_avatar.url
         )
 
-        await interaction.guild.get_channel(self.config.channels.logging).send(
+        await interaction.guild.get_channel(self.config.channels.log.general).send(
             embed=log_embed
         )
 
-        await interaction.guild.get_channel(self.config.channels.mod_logs).send(
+        await interaction.guild.get_channel(self.config.channels.log.mod).send(
             embed=log_embed
         )
 
@@ -246,11 +246,11 @@ class Staff(commands.Cog):
             name=interaction.user, icon_url=interaction.user.display_avatar.url
         )
 
-        await interaction.guild.get_channel(self.config.channels.logging).send(
+        await interaction.guild.get_channel(self.config.channels.log.general).send(
             embed=log_embed
         )
 
-        await interaction.guild.get_channel(self.config.channels.mod_logs).send(
+        await interaction.guild.get_channel(self.config.channels.log.mod).send(
             embed=log_embed
         )
 
@@ -306,10 +306,10 @@ class Staff(commands.Cog):
             footer="Sersi Add Trial Mod",
             author=interaction.user,
         )
-        await interaction.guild.get_channel(self.config.channels.logging).send(
+        await interaction.guild.get_channel(self.config.channels.log.general).send(
             embed=log_embed
         )
-        await interaction.guild.get_channel(self.config.channels.mod_logs).send(
+        await interaction.guild.get_channel(self.config.channels.log.mod).send(
             embed=log_embed
         )
 
@@ -351,7 +351,7 @@ class Staff(commands.Cog):
             name=interaction.user, icon_url=interaction.user.display_avatar.url
         )
 
-        await interaction.guild.get_channel(self.config.channels.logging).send(
+        await interaction.guild.get_channel(self.config.channels.log.general).send(
             embed=log_embed
         )
 
@@ -486,11 +486,11 @@ class Staff(commands.Cog):
             },
         )
 
-        await interaction.guild.get_channel(self.config.channels.logging).send(
+        await interaction.guild.get_channel(self.config.channels.log.general).send(
             embed=log_embed
         )
 
-        await interaction.guild.get_channel(self.config.channels.mod_logs).send(
+        await interaction.guild.get_channel(self.config.channels.log.mod).send(
             embed=log_embed
         )
 
@@ -570,7 +570,7 @@ class Staff(commands.Cog):
             if bypass_reason:
                 await interaction.followup.send(embed=log_embed)
 
-            channel = interaction.guild.get_channel(self.config.channels.logging)
+            channel = interaction.guild.get_channel(self.config.channels.log.general)
             await channel.send(embed=log_embed)
 
             with db_session(interaction.user) as session:
@@ -647,11 +647,11 @@ class Staff(commands.Cog):
             },
         )
 
-        await interaction.guild.get_channel(self.config.channels.logging).send(
+        await interaction.guild.get_channel(self.config.channels.log.general).send(
             embed=log_embed
         )
 
-        await interaction.guild.get_channel(self.config.channels.mod_logs).send(
+        await interaction.guild.get_channel(self.config.channels.log.mod).send(
             embed=log_embed
         )
 
@@ -801,10 +801,10 @@ class Staff(commands.Cog):
                 name=interaction.user, icon_url=interaction.user.display_avatar.url
             )
 
-            await interaction.guild.get_channel(self.config.channels.logging).send(
+            await interaction.guild.get_channel(self.config.channels.log.general).send(
                 embed=log_embed
             )
-            await interaction.guild.get_channel(self.config.channels.mod_logs).send(
+            await interaction.guild.get_channel(self.config.channels.log.mod).send(
                 embed=log_embed
             )
 
@@ -818,7 +818,7 @@ class Staff(commands.Cog):
             author=interaction.user,
         )
 
-        vote_channel = self.config.channels.staff_votes
+        vote_channel = self.config.channels.staff.staff_votes
 
         vote_message = await interaction.guild.get_channel(vote_channel).send(
             embed=vote_embed
@@ -1431,7 +1431,7 @@ class Staff(commands.Cog):
             thumbnail_url=interaction.user.display_avatar.url,
         )
 
-        await interaction.guild.get_channel(self.config.channels.logging).send(
+        await interaction.guild.get_channel(self.config.channels.log.general).send(
             embed=log_embed
         )
 
@@ -1570,14 +1570,14 @@ class Staff(commands.Cog):
                 f"{self.config.emotes.success} You have been forced to be available for {available_timedelta}."
             )
 
-        await interaction.guild.get_channel(self.config.channels.logging).send(
+        await interaction.guild.get_channel(self.config.channels.log.general).send(
             embed=SersiEmbed(
                 title="Forced Availability Set",
                 description=f"{interaction.user.mention} has been forced to be available for {available_timedelta}.",
             )
         )
 
-        await interaction.guild.get_channel(self.config.channels.mod_logs).send(
+        await interaction.guild.get_channel(self.config.channels.log.mod).send(
             embed=SersiEmbed(
                 title="Forced Availability Set",
                 description=f"{interaction.user.mention} has been forced to be available for {available_timedelta}.",
@@ -1675,7 +1675,7 @@ class Staff(commands.Cog):
                 description=f"{interaction.user.mention} has been forced to be unavailable for {unavailable_timedelta}.",
             )
 
-            interaction.guild.get_channel(self.config.channels.moderator_review).send(
+            interaction.guild.get_channel(self.config.channels.staff.mod_review).send(
                 embed=unavailability_log_embed,
             )
 
@@ -1694,14 +1694,14 @@ class Staff(commands.Cog):
                             f"{interaction.user.mention} has been forced to be unavailable for {unavailable_timedelta}."
                         )
 
-        await interaction.guild.get_channel(self.config.channels.logging).send(
+        await interaction.guild.get_channel(self.config.channels.log.general).send(
             embed=SersiEmbed(
                 title="Forced Unavailability Set",
                 description=f"{interaction.user.mention} has been forced to be unavailable for {unavailable_timedelta}.",
             )
         )
 
-        await interaction.guild.get_channel(self.config.channels.mod_logs).send(
+        await interaction.guild.get_channel(self.config.channels.log.mod).send(
             embed=SersiEmbed(
                 title="Forced Unavailability Set",
                 description=f"{interaction.user.mention} has been forced to be unavailable for {unavailable_timedelta}.",
@@ -1748,14 +1748,14 @@ class Staff(commands.Cog):
             f"{self.config.emotes.success} Forced availability or unavailability has been expired."
         )
 
-        await interaction.guild.get_channel(self.config.channels.logging).send(
+        await interaction.guild.get_channel(self.config.channels.log.general).send(
             embed=SersiEmbed(
                 title="Forced Availability/Unavailability Expired",
                 description=f"{interaction.user.mention} has expired their forced availability or unavailability.",
             )
         )
 
-        await interaction.guild.get_channel(self.config.channels.mod_logs).send(
+        await interaction.guild.get_channel(self.config.channels.log.mod).send(
             embed=SersiEmbed(
                 title="Forced Availability/Unavailability Expired",
                 description=f"{interaction.user.mention} has expired their forced availability or unavailability.",
@@ -1823,8 +1823,8 @@ class Staff(commands.Cog):
             },
         )
 
-        await guild.get_channel(self.config.channels.logging).send(embed=log_embed)
-        await guild.get_channel(self.config.channels.mod_logs).send(embed=log_embed)
+        await guild.get_channel(self.config.channels.log.general).send(embed=log_embed)
+        await guild.get_channel(self.config.channels.log.mod).send(embed=log_embed)
 
     @commands.Cog.listener()
     async def on_interaction(self, interaction: nextcord.Interaction):
@@ -1980,7 +1980,7 @@ class Staff(commands.Cog):
 
         guild = self.bot.get_guild(self.config.guilds.main)
 
-        await guild.get_channel(self.config.channels.logging).send(embed=logging_embed)
+        await guild.get_channel(self.config.channels.log.general).send(embed=logging_embed)
 
     @commands.Cog.listener()
     async def on_role_remove(self, member: nextcord.Member, role: nextcord.Role):
@@ -1995,7 +1995,7 @@ class Staff(commands.Cog):
 
         guild = self.bot.get_guild(self.config.guilds.main)
 
-        await guild.get_channel(self.config.channels.logging).send(embed=logging_embed)
+        await guild.get_channel(self.config.channels.log.general).send(embed=logging_embed)
 
 
 def setup(bot: commands.Bot, **kwargs):

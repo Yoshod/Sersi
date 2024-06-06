@@ -18,28 +18,57 @@ class ConfigurationBot(YAMLWizard):
 
 
 @dataclass
-class ConfigurationChannels(YAMLWizard):
-    # moderator sided channels
-    alert: int  # Receives alerts regarding moderation pings and slurs.
-    logging: int
+class ConfigurationStaffChannels(YAMLWizard):
+    alert: int
     false_positives: int
-    mod_logs: int
-    dm_forward: int
     mod_applications: int
     cet_applications: int
-    ageverification: int
+    age_verification: int
     compliance_review: int
-    dark_mod_review: int
-    senior_mod_review: int
-    moderator_review: int
-    moderation_votes: int
+    admin_review: int
+    mod_lead_review: int
+    mod_review: int
+    mod_votes: int
     staff_votes: int
     cet_votes: int
+
+
+@dataclass
+class ConfigurationDevChannels(YAMLWizard):
+    errors: int
     bug_reports: int
     feature_requests: int
 
-    # debugging channels
-    errors: int
+
+@dataclass
+class ConfigurationLoggingChannels(YAMLWizard):
+    logging_category: int
+    general: int
+    mod: int
+    tamper: int
+    admin_ticket: int
+    senior_ticket: int
+    mod_ticket: int
+    cet_ticket: int
+    cet_lead_ticket: int
+    deleted_messages: int
+    roles: int
+    deleted_images: int
+    edited_messages: int
+    join_leave: int
+    channels: int
+    guild: int
+    user_chanes: int
+    ban_unban: int
+    voice: int
+    automod: int
+
+
+@dataclass
+class ConfigurationChannels(YAMLWizard):
+    staff: ConfigurationStaffChannels
+    dev: ConfigurationDevChannels
+    log: ConfigurationLoggingChannels
 
     # user sided channels
     photography: int
@@ -48,27 +77,6 @@ class ConfigurationChannels(YAMLWizard):
     reformation_info: int
     teachers_lounge: int
     reform_public_log: int
-
-    # logging
-    logging_category: int
-    tamper_logs: int
-    admin_ticket_logs: int
-    senior_ticket_logs: int
-    mod_ticket_logs: int
-    cet_ticket_logs: int
-    cet_lead_ticket_logs: int
-    deleted_messages: int
-    role_logs: int
-    deleted_messages: int
-    deleted_images: int
-    edited_messages: int
-    joinleave: int
-    channel_logs: int
-    guild_logs: int
-    user_chanes: int
-    ban_unban: int
-    voice_logs: int
-    automod_logs: int
 
     # suggestions
     suggestion_discussion: int

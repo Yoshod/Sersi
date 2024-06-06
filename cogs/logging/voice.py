@@ -24,7 +24,7 @@ class VoiceLogs(commands.Cog):
             log: nextcord.AuditLogEntry = entries[0]
 
             if after.deaf:
-                await member.guild.get_channel(self.config.channels.voice_logs).send(
+                await member.guild.get_channel(self.config.channels.log.voice).send(
                     embed=SersiEmbed(
                         description=f"{log.target.mention} ({log.target.id}) was server deafened",
                         fields={"Voice Channel": after.channel.mention},
@@ -32,7 +32,7 @@ class VoiceLogs(commands.Cog):
                     ).set_author(name=log.user, icon_url=log.user.display_avatar.url)
                 )
             elif before.deaf:
-                await member.guild.get_channel(self.config.channels.voice_logs).send(
+                await member.guild.get_channel(self.config.channels.log.voice).send(
                     embed=SersiEmbed(
                         description=f"{log.target.mention} ({log.target.id}) was server un-deafened",
                         fields={"Voice Channel": after.channel.mention},
@@ -46,7 +46,7 @@ class VoiceLogs(commands.Cog):
             ).flatten()
             log: nextcord.AuditLogEntry = entries[0]
             if after.mute:
-                await member.guild.get_channel(self.config.channels.voice_logs).send(
+                await member.guild.get_channel(self.config.channels.log.voice).send(
                     embed=SersiEmbed(
                         description=f"{log.target.mention} ({log.target.id}) was server muted",
                         fields={"Voice Channel": after.channel.mention},
@@ -54,7 +54,7 @@ class VoiceLogs(commands.Cog):
                     ).set_author(name=log.user, icon_url=log.user.display_avatar.url)
                 )
             elif before.mute:
-                await member.guild.get_channel(self.config.channels.voice_logs).send(
+                await member.guild.get_channel(self.config.channels.log.voice).send(
                     embed=SersiEmbed(
                         description=f"{log.target.mention} ({log.target.id}) was server un-muted",
                         fields={"Voice Channel": after.channel.mention},
@@ -71,7 +71,7 @@ class VoiceLogs(commands.Cog):
                 if entries:
                     log: nextcord.AuditLogEntry = entries[0]
                     await member.guild.get_channel(
-                        self.config.channels.voice_logs
+                        self.config.channels.log.voice
                     ).send(
                         embed=SersiEmbed(
                             description=f"{log.target.mention} ({log.target.id}) was forcefully moved",
@@ -86,7 +86,7 @@ class VoiceLogs(commands.Cog):
                     )
                 else:
                     await member.guild.get_channel(
-                        self.config.channels.voice_logs
+                        self.config.channels.log.voice
                     ).send(
                         embed=SersiEmbed(
                             description=f"{member.mention} ({member.id}) moved Voice Channels",
@@ -106,7 +106,7 @@ class VoiceLogs(commands.Cog):
                 if entries:
                     log: nextcord.AuditLogEntry = entries[0]
                     await member.guild.get_channel(
-                        self.config.channels.voice_logs
+                        self.config.channels.log.voice
                     ).send(
                         embed=SersiEmbed(
                             description=f"{member.mention} ({member.id}) was forcefully disconnected",
@@ -120,7 +120,7 @@ class VoiceLogs(commands.Cog):
                     )
                 else:
                     await member.guild.get_channel(
-                        self.config.channels.voice_logs
+                        self.config.channels.log.voice
                     ).send(
                         embed=SersiEmbed(
                             description=f"{member.mention} ({member.id}) disconnected from a voice channel",
@@ -131,7 +131,7 @@ class VoiceLogs(commands.Cog):
                         )
                     )
             elif not before.channel:
-                await member.guild.get_channel(self.config.channels.voice_logs).send(
+                await member.guild.get_channel(self.config.channels.log.voice).send(
                     embed=SersiEmbed(
                         description=f"{member.mention} joined a voice channel",
                         fields={"Voice Channel": after.channel.mention},

@@ -77,7 +77,7 @@ class Perspective(commands.Cog):
                 likely_to_reject=evaluation("LIKELY_TO_REJECT"),
             )
         else:
-            error_channel = self.bot.get_channel(self.config.channels.errors)
+            error_channel = self.bot.get_channel(self.config.channels.dev.errors)
             error_embed = SersiEmbed(
                 title="Perspective Error",
                 fields=response.json()["error"],
@@ -148,7 +148,7 @@ class Perspective(commands.Cog):
                 "Moderator:": f"{interaction.user.mention} ({interaction.user.id})",
             },
         )
-        sersi_logs = self.bot.get_channel(self.config.channels.logging)
+        sersi_logs = self.bot.get_channel(self.config.channels.log.general)
         await sersi_logs.send(embed=logging_embed)
 
         add_response_time(interaction.message)
@@ -174,7 +174,7 @@ class Perspective(commands.Cog):
                 "Moderator:": f"{interaction.user.mention} ({interaction.user.id})",
             },
         )
-        sersi_logs = self.bot.get_channel(self.config.channels.logging)
+        sersi_logs = self.bot.get_channel(self.config.channels.log.general)
         await sersi_logs.send(embed=logging_embed)
 
         add_response_time(interaction.message)
@@ -200,7 +200,7 @@ class Perspective(commands.Cog):
                 "Moderator:": f"{interaction.user.mention} ({interaction.user.id})",
             },
         )
-        sersi_logs = self.bot.get_channel(self.config.channels.logging)
+        sersi_logs = self.bot.get_channel(self.config.channels.log.general)
         await sersi_logs.send(embed=logging_embed)
 
         add_response_time(interaction.message)
@@ -239,7 +239,7 @@ class Perspective(commands.Cog):
         if not problems:
             return
 
-        information_centre = self.bot.get_channel(self.config.channels.alert)
+        information_centre = self.bot.get_channel(self.config.channels.staff.alert)
 
         if len(message.content) < 1024:
             citation: str = message.content

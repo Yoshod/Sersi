@@ -211,11 +211,11 @@ class SlowmodeCog(commands.Cog):
             },
         )
 
-        await interaction.guild.get_channel(self.config.channels.logging).send(
+        await interaction.guild.get_channel(self.config.channels.log.general).send(
             embed=slowmode_log
         )
 
-        await interaction.guild.get_channel(self.config.channels.mod_logs).send(
+        await interaction.guild.get_channel(self.config.channels.log.mod).send(
             embed=slowmode_log
         )
 
@@ -293,11 +293,11 @@ class SlowmodeCog(commands.Cog):
             },
         )
 
-        await interaction.guild.get_channel(self.config.channels.logging).send(
+        await interaction.guild.get_channel(self.config.channels.log.general).send(
             embed=slowmode_log
         )
 
-        await interaction.guild.get_channel(self.config.channels.mod_logs).send(
+        await interaction.guild.get_channel(self.config.channels.log.mod).send(
             embed=slowmode_log
         )
 
@@ -442,11 +442,11 @@ class SlowmodeCog(commands.Cog):
                         },
                     )
 
-                    await channel.guild.get_channel(self.config.channels.logging).send(
+                    await channel.guild.get_channel(self.config.channels.log.general).send(
                         embed=slowmode_log
                     )
 
-                    await channel.guild.get_channel(self.config.channels.mod_logs).send(
+                    await channel.guild.get_channel(self.config.channels.log.mod).send(
                         embed=slowmode_log
                     )
 

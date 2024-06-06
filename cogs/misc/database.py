@@ -211,7 +211,7 @@ class Database(commands.Cog):
             )
 
             # logging
-            await interaction.guild.get_channel(self.config.channels.logging).send(
+            await interaction.guild.get_channel(self.config.channels.log.general).send(
                 embed=SersiEmbed(
                     title="SQL Query Executed",
                     fields={

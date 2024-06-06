@@ -132,7 +132,7 @@ class AdultAccessModal(Modal):
                 footer="Sersi Adult Verification",
             )
             channel = interaction.client.get_channel(
-                self.config.channels.ageverification
+                self.config.channels.staff.age_verification
             )
             await channel.send(embed=young_embed)
             return
@@ -151,7 +151,7 @@ class AdultAccessModal(Modal):
                 footer="Sersi Adult Verification",
             )
             channel = interaction.client.get_channel(
-                self.config.channels.ageverification
+                self.config.channels.staff.age_verification
             )
             await channel.send(embed=refusal_embed)
             return
@@ -169,7 +169,7 @@ class AdultAccessModal(Modal):
 
         button_view = AdultAccessView(user_id=applicant_id)
 
-        channel = interaction.client.get_channel(self.config.channels.ageverification)
+        channel = interaction.client.get_channel(self.config.channels.staff.age_verification)
         await channel.send(embed=application_embed, view=button_view)
 
 
@@ -244,7 +244,7 @@ class AdultAccess(commands.Cog):
         )
 
         logging_embed.timestamp = datetime.now(pytz.UTC)
-        logging_channel = interaction.guild.get_channel(self.config.channels.logging)
+        logging_channel = interaction.guild.get_channel(self.config.channels.log.general)
         await logging_channel.send(embed=logging_embed)
 
         accept_embed = nextcord.Embed(
@@ -378,7 +378,7 @@ class AdultAccess(commands.Cog):
             footer="Sersi Adult Verification",
             author=interaction.user,
         )
-        logging_channel = interaction.guild.get_channel(self.config.channels.logging)
+        logging_channel = interaction.guild.get_channel(self.config.channels.log.general)
         await logging_channel.send(embed=logging_embed)
 
         revoke_embed = nextcord.Embed(
@@ -438,7 +438,7 @@ class AdultAccess(commands.Cog):
             footer="Sersi Adult Verification",
             author=interaction.user,
         )
-        logging_channel = interaction.guild.get_channel(self.config.channels.logging)
+        logging_channel = interaction.guild.get_channel(self.config.channels.log.general)
         await logging_channel.send(embed=logging_embed)
 
         await interaction.followup.send(
@@ -520,7 +520,7 @@ class AdultAccess(commands.Cog):
             )
             logging_embed.timestamp = datetime.now(pytz.UTC)
             logging_channel = interaction.guild.get_channel(
-                self.config.channels.logging
+                self.config.channels.log.general
             )
             await logging_channel.send(embed=logging_embed)
 
@@ -619,7 +619,7 @@ class AdultAccess(commands.Cog):
                         )
                         logging_embed.timestamp = datetime.now(pytz.UTC)
                         logging_channel = interaction.guild.get_channel(
-                            self.config.channels.logging
+                            self.config.channels.log.general
                         )
                         await logging_channel.send(embed=logging_embed)
 

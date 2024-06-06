@@ -45,7 +45,7 @@ async def permcheck(
                 kwargs = "`none`"
             embed.add_field(name="Kwargs:", value=kwargs, inline=False)
 
-            await hook.guild.get_channel(hook.cog.config.channels.logging).send(
+            await hook.guild.get_channel(hook.cog.config.channels.log.general).send(
                 embed=embed
             )
 
@@ -68,7 +68,7 @@ async def permcheck(
             if hook.message:
                 embed_fields["Message:"] = hook.message.jump_url
 
-            await hook.guild.get_channel(config.channels.logging).send(
+            await hook.guild.get_channel(config.channels.log.general).send(
                 embed=SersiEmbed(
                     title="Unauthorised Interaction",
                     colour=nextcord.Colour.brand_red(),

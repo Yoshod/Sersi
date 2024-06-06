@@ -232,7 +232,7 @@ class SuggestionMarkModal(Modal):
             },
         )
 
-        await interaction.guild.get_channel(self.config.channels.logging).send(
+        await interaction.guild.get_channel(self.config.channels.log.general).send(
             embed=logging_embed
         )
 

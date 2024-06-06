@@ -31,7 +31,7 @@ class Edits(commands.Cog):
             if not pin_log.extra.message_id == after.id:
                 return
 
-            await before.guild.get_channel(self.config.channels.edited_messages).send(
+            await before.guild.get_channel(self.config.channels.log.edited_messages).send(
                 embed=SersiEmbed(
                     description="A message has been pinned",
                     fields={
@@ -53,7 +53,7 @@ class Edits(commands.Cog):
             if not unpin_log.extra.message_id == after.id:
                 return
 
-            await before.guild.get_channel(self.config.channels.edited_messages).send(
+            await before.guild.get_channel(self.config.channels.log.edited_messages).send(
                 embed=SersiEmbed(
                     description="A message has been unpinned",
                     fields={
@@ -68,7 +68,7 @@ class Edits(commands.Cog):
                 .add_id_field({"Author": after.author.id, "Message": after.id})
             )
         else:
-            await before.guild.get_channel(self.config.channels.edited_messages).send(
+            await before.guild.get_channel(self.config.channels.log.edited_messages).send(
                 embed=SersiEmbed(
                     description="A message has been edited",
                     fields={
@@ -98,7 +98,7 @@ class Edits(commands.Cog):
         channel: nextcord.TextChannel = self.bot.get_channel(payload.channel_id)
         message: nextcord.Message = await channel.fetch_message(payload.message_id)
 
-        await self.bot.get_channel(self.config.channels.edited_messages).send(
+        await self.bot.get_channel(self.config.channels.log.edited_messages).send(
             embed=SersiEmbed(
                 description="An old message has been edited",
                 fields={
