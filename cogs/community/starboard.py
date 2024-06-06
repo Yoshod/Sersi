@@ -20,7 +20,7 @@ class Starboard(commands.Cog):
         self.config = config
         self.minimum_entry_stars = self.config.bot.minimum_star_count
         self.minimum_exit_stars = self.config.bot.minimum_star_count - 2
-        self.starboard_channel = self.config.channels.starboard
+        self.starboard_channel = self.config.channels.misc.starboard
 
     @nextcord.slash_command(
         name="starboard",

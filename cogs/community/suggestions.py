@@ -261,7 +261,7 @@ class SuggestionMarkModal(Modal):
                 session.commit()
 
         original_message: nextcord.WebhookMessage = await interaction.guild.get_channel(
-            self.config.channels.suggestion_voting
+            self.config.channels.suggestions.voting
         ).fetch_message(suggestion_instance.vote_message_id)
 
         if original_message is None:
@@ -417,7 +417,7 @@ class SuggestionReviewModal(Modal):
 
             suggestion_post: nextcord.WebhookMessage = (
                 await interaction.guild.get_channel(
-                    self.config.channels.suggestion_voting
+                    self.config.channels.suggestions.voting
                 ).send(embed=suggestion_embed, view=button_view)
             )
 
@@ -589,7 +589,7 @@ class SuggestionSubmitModal(Modal):
             suggest_embed.set_image(self.media_url.value)
 
         review_channel: nextcord.TextChannel = interaction.guild.get_channel(
-            self.config.channels.suggestion_review
+            self.config.channels.suggestions.review
         )
 
         await review_channel.send(

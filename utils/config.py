@@ -65,27 +65,34 @@ class ConfigurationLoggingChannels(YAMLWizard):
 
 
 @dataclass
+class ConfigurationReformationChannels(YAMLWizard):
+    info: int
+    teachers_lounge: int
+    public_log: int
+
+
+@dataclass
+class ConfigurationSuggestionsChannels(YAMLWizard):
+    discussion: int
+    voting: int
+    review: int
+
+
+@dataclass
+class ConfigurationMiscChannels(YAMLWizard):
+    photography: int
+    afk_voice: int
+    starboard: int
+
+
+@dataclass
 class ConfigurationChannels(YAMLWizard):
     staff: ConfigurationStaffChannels
     dev: ConfigurationDevChannels
     log: ConfigurationLoggingChannels
-
-    # user sided channels
-    photography: int
-
-    # reformation related channels
-    reformation_info: int
-    teachers_lounge: int
-    reform_public_log: int
-
-    # suggestions
-    suggestion_discussion: int
-    suggestion_voting: int
-    suggestion_review: int
-
-    afk_voice: int
-
-    starboard: int
+    reform: ConfigurationReformationChannels
+    suggestions: ConfigurationSuggestionsChannels
+    misc: ConfigurationMiscChannels
 
 
 @dataclass

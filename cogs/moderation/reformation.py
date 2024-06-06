@@ -164,7 +164,7 @@ class Reformation(commands.Cog):
             title="Welcome to Reformation",
             description=f"Hello {member.mention}, you have been sent to reformation by {interaction.user.mention}. "
             f"The reason given for this is `{reason}`. \n\nFor more information on reformation "
-            f"check out <#{self.config.channels.reformation_info}> or talk to a <@&"
+            f"check out <#{self.config.channels.reform.info}> or talk to a <@&"
             f"{self.config.permission_roles.reformist}>.",
             color=nextcord.Color.from_rgb(237, 91, 6),
         )
@@ -193,10 +193,10 @@ class Reformation(commands.Cog):
         channel = interaction.guild.get_channel(self.config.channels.log.mod)
         await channel.send(embed=embed)
 
-        channel = interaction.guild.get_channel(self.config.channels.teachers_lounge)
+        channel = interaction.guild.get_channel(self.config.channels.reform.teachers_lounge)
         await channel.send(embed=embed)
 
-        channel = interaction.guild.get_channel(self.config.channels.reform_public_log)
+        channel = interaction.guild.get_channel(self.config.channels.reform.public_log)
         await channel.send(embed=embed)
 
     @reformation_needed.on_autocomplete("offence")
@@ -449,11 +449,11 @@ class Reformation(commands.Cog):
         channel = interaction.guild.get_channel(self.config.channels.log.mod)
         await channel.send(embed=embed)
 
-        channel = interaction.guild.get_channel(self.config.channels.reform_public_log)
+        channel = interaction.guild.get_channel(self.config.channels.reform.public_log)
         await channel.send(embed=embed)
 
         # transcript
-        channel = interaction.guild.get_channel(self.config.channels.teachers_lounge)
+        channel = interaction.guild.get_channel(self.config.channels.reform.teachers_lounge)
 
         transcript = await make_transcript(cell_channel, channel, embed)
         if transcript is None:
@@ -502,7 +502,7 @@ class Reformation(commands.Cog):
 
             # transcript
             channel = interaction.guild.get_channel(
-                self.config.channels.teachers_lounge
+                self.config.channels.reform.teachers_lounge
             )
             cell_channel = interaction.guild.get_channel(case.cell_channel)
 
@@ -631,13 +631,13 @@ class Reformation(commands.Cog):
                     await channel.send(embed=ban_embed)
 
                     channel = self.bot.get_channel(
-                        self.config.channels.reform_public_log
+                        self.config.channels.reform.public_log
                     )
                     await channel.send(embed=ban_embed)
 
                     # transcript
                     channel = member.guild.get_channel(
-                        self.config.channels.teachers_lounge
+                        self.config.channels.reform.teachers_lounge
                     )
 
                     transcript = await make_transcript(cell_channel, channel, ban_embed)
@@ -697,11 +697,11 @@ class Reformation(commands.Cog):
             channel = self.bot.get_channel(self.config.channels.log.mod)
             await channel.send(embed=embed)
 
-            channel = self.bot.get_channel(self.config.channels.reform_public_log)
+            channel = self.bot.get_channel(self.config.channels.reform.public_log)
             await channel.send(embed=embed)
 
             # transcript
-            channel = member.guild.get_channel(self.config.channels.teachers_lounge)
+            channel = member.guild.get_channel(self.config.channels.reform.teachers_lounge)
 
             transcript = await make_transcript(cell_channel, channel, embed)
             if transcript is None:
@@ -778,11 +778,11 @@ class Reformation(commands.Cog):
         channel = self.bot.get_channel(self.config.channels.log.mod)
         await channel.send(embed=embed)
 
-        channel = self.bot.get_channel(self.config.channels.reform_public_log)
+        channel = self.bot.get_channel(self.config.channels.reform.public_log)
         await channel.send(embed=embed)
 
         # transcript
-        channel = guild.get_channel(self.config.channels.teachers_lounge)
+        channel = guild.get_channel(self.config.channels.reform.teachers_lounge)
 
         transcript = await make_transcript(cell_channel, channel, embed)
         if transcript is None:
@@ -852,11 +852,11 @@ class Reformation(commands.Cog):
         channel = guild.get_channel(self.config.channels.log.mod)
         await channel.send(embed=log_embed)
 
-        channel = guild.get_channel(self.config.channels.reform_public_log)
+        channel = guild.get_channel(self.config.channels.reform.public_log)
         await channel.send(embed=log_embed)
 
         # transcript
-        channel = guild.get_channel(self.config.channels.teachers_lounge)
+        channel = guild.get_channel(self.config.channels.reform.teachers_lounge)
 
         transcript = await make_transcript(cell_channel, channel, log_embed)
         if transcript is None:

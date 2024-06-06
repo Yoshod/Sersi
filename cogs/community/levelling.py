@@ -484,7 +484,7 @@ class Levelling(commands.Cog):
         guild = self.bot.get_guild(self.config.guilds.main)
 
         for channel in guild.voice_channels:
-            if channel.id == self.config.channels.afk_voice:
+            if channel.id == self.config.channels.misc.afk_voice:
                 continue
             if len(channel.members) < 2:
                 continue
