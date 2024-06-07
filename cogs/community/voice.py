@@ -149,7 +149,7 @@ class Voice(commands.Cog):
         await interaction.followup.send(
             embed=SersiEmbed(
                 title="Voice Messages Today",
-                description=f"Today, {global_voice_messages_minutes} minutes ({global_voice_messages_seconds} seconds) of voice messages have been sent. This costs ${global_voice_messages_cost:.2f}.",
+                description=f"Today, {global_voice_messages_minutes} minutes ({global_voice_messages_seconds} seconds) of voice messages have been sent. This costs ${global_voice_messages_cost}.",
             ),
             ephemeral=True,
         )
@@ -193,7 +193,7 @@ class Voice(commands.Cog):
         await interaction.followup.send(
             embed=SersiEmbed(
                 title=f"Voice Messages Today by {user.display_name}",
-                description=f"Today, {author_voice_messages_minutes} minutes ({author_voice_messages_seconds} seconds) of voice messages have been sent by {user.mention}. This costs ${author_voice_messages_cost:.2f}.",
+                description=f"Today, {author_voice_messages_minutes} minutes ({author_voice_messages_seconds} seconds) of voice messages have been sent by {user.mention}. This costs ${author_voice_messages_cost}.",
             ),
             ephemeral=True,
         )
