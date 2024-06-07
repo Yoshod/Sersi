@@ -9,7 +9,7 @@ from openai import OpenAI
 import discordTokens
 
 from utils.config import Configuration
-from utils.perms import permcheck, is_staff
+from utils.perms import permcheck, is_staff, blacklist_check
 from utils.sersi_embed import SersiEmbed
 from utils.database import db_session, VoiceMessageAnalytics
 
@@ -17,6 +17,42 @@ from utils.database import db_session, VoiceMessageAnalytics
 PARENT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 GRANDPARENT_DIR = os.path.dirname(PARENT_DIR)
+
+
+def check_if_voice_message_eligible(message: nextcord.Message, config: Configuration):
+    if not blacklist_check(message.author, "Voice Message"):
+        return False
+
+    with db_session(message.author) as session:
+        today = datetime.datetime.today()
+        today = today.replace(hour=0, minute=0, second=0, microsecond=0)
+
+        voice_messages_today = session.query(VoiceMessageAnalytics).filter(
+            VoiceMessageAnalytics.timestamp == today,
+        )
+
+    author_voice_messages_seconds = 0
+    global_voice_messages_seconds = 0
+
+    for voice_message in voice_messages_today:
+        if voice_message.author == message.author.id:
+            author_voice_messages_seconds += voice_message.duration
+
+        global_voice_messages_seconds += voice_message.duration
+
+    if author_voice_messages_seconds >= 300:
+        return (
+            False,
+            f"{config.emotes.fail} You have reached the maximum voice message allowance for today. Please try again tomorrow.",
+        )
+
+    if global_voice_messages_seconds >= 3000:
+        return (
+            False,
+            f"{config.emotes.fail} The voice message limit has been reached for today. Please try again tomorrow.",
+        )
+
+    return True, None
 
 
 class Voice(commands.Cog):
@@ -84,7 +120,7 @@ class Voice(commands.Cog):
         await channel.send(embed=embed)
 
     @voice.subcommand(
-        description="Get number of voice messages sent today.",
+        description="Get the minutes and cost of voice messages sent today.",
     )
     async def voice_messages(self, interaction: nextcord.Interaction):
         if not await permcheck(interaction, is_staff):
@@ -96,16 +132,22 @@ class Voice(commands.Cog):
         today = today.replace(hour=0, minute=0, second=0, microsecond=0)
 
         with db_session(interaction.user) as session:
-            voice_messages_today = (
-                session.query(VoiceMessageAnalytics)
-                .filter(
-                    VoiceMessageAnalytics.timestamp == today,
-                )
-                .count()
+            voice_messages_today = session.query(VoiceMessageAnalytics).filter(
+                VoiceMessageAnalytics.timestamp == today,
             )
 
+        global_voice_messages_seconds = 0
+        for voice_message in voice_messages_today:
+            global_voice_messages_seconds += voice_message.duration
+
+        global_voice_messages_minutes = global_voice_messages_seconds / 60
+        global_voice_messages_cost = global_voice_messages_minutes * 0.006
+
         await interaction.followup.send(
-            f"Number of voice messages sent today: {voice_messages_today}",
+            embed=SersiEmbed(
+                title="Voice Messages Today",
+                description=f"Today, {global_voice_messages_minutes} minutes ({global_voice_messages_seconds} seconds) of voice messages have been sent. This costs ${global_voice_messages_cost:.2f}.",
+            ),
             ephemeral=True,
         )
 
@@ -184,42 +226,14 @@ class Voice(commands.Cog):
             except mutagen.MutagenError:
                 pass
 
-            with db_session(message.author) as session:
-                # get a count of the number of voice messages sent today by any user
-                today = datetime.datetime.today()
-                today = today.replace(hour=0, minute=0, second=0, microsecond=0)
+            eligible, reason = check_if_voice_message_eligible(message, self.config)
 
-                voice_messages_today = (
-                    session.query(VoiceMessageAnalytics)
-                    .filter(
-                        VoiceMessageAnalytics.timestamp == today,
-                    )
-                    .count()
-                )
+            if not eligible:
+                await message.reply(reason, delete_after=5)
+                os.remove(f"{GRANDPARENT_DIR}/files/TempAudio/{filename[:-4]}.wav")
 
-                if voice_messages_today > 119:
-                    await message.reply(
-                        "Sorry, the voice message limit has been reached for today. Please try again tomorrow.",
-                        delete_after=5,
-                    )
-
-                    await message.delete()
-
-                    return
-
-                else:
-                    session.add(
-                        VoiceMessageAnalytics(
-                            message_id=message.id,
-                            author=message.author.id,
-                            channel=message.channel.id,
-                            link=message.jump_url,
-                            duration=duration,
-                            filesize=filesize,
-                        )
-                    )
-
-                    session.commit()
+                await message.delete()
+                return
 
             if duration > 60 or filesize > 25000000:
                 os.remove(f"{GRANDPARENT_DIR}/files/TempAudio/{filename[:-4]}.wav")
@@ -257,6 +271,20 @@ class Voice(commands.Cog):
             await message.reply(f"**Transcription:**\n{transcription.text}")
 
             os.remove(f"{GRANDPARENT_DIR}/files/TempAudio/{filename[:-4]}.wav")
+
+            with db_session(message.author) as session:
+                session.add(
+                    VoiceMessageAnalytics(
+                        message_id=message.id,
+                        author=message.author.id,
+                        channel=message.channel.id,
+                        link=message.jump_url,
+                        duration=duration,
+                        filesize=filesize,
+                    )
+                )
+
+                session.commit()
 
 
 def setup(bot: commands.Bot, **kwargs):
