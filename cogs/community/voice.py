@@ -151,6 +151,50 @@ class Voice(commands.Cog):
             ephemeral=True,
         )
 
+    @voice.subcommand(
+        description="Get the minutes and cost of voice messages sent today by a specific user.",
+    )
+    async def user_voice_messages(
+        self,
+        interaction: nextcord.Interaction,
+        user: nextcord.Member = nextcord.SlashOption(
+            name="user",
+            description="Member to view the usage of",
+            required=False,
+        ),
+    ):
+        if user is None:
+            user = interaction.user
+            if not await permcheck(interaction, is_staff):
+                return
+
+        await interaction.response.defer(ephemeral=True)
+
+        today = datetime.datetime.today()
+        today = today.replace(hour=0, minute=0, second=0, microsecond=0)
+
+        with db_session(interaction.user) as session:
+            voice_messages_today = session.query(VoiceMessageAnalytics).filter(
+                VoiceMessageAnalytics.timestamp == today,
+                VoiceMessageAnalytics.author == user.id,
+            )
+
+        author_voice_messages_seconds = 0
+
+        for voice_message in voice_messages_today:
+            author_voice_messages_seconds += voice_message.duration
+
+        author_voice_messages_minutes = author_voice_messages_seconds / 60
+        author_voice_messages_cost = author_voice_messages_minutes * 0.006
+
+        await interaction.followup.send(
+            embed=SersiEmbed(
+                title=f"Voice Messages Today by {user.display_name}",
+                description=f"Today, {author_voice_messages_minutes} minutes ({author_voice_messages_seconds} seconds) of voice messages have been sent by {user.mention}. This costs ${author_voice_messages_cost:.2f}.",
+            ),
+            ephemeral=True,
+        )
+
     @commands.Cog.listener()
     async def on_voice_state_update(
         self,
