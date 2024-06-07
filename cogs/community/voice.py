@@ -314,14 +314,6 @@ class Voice(commands.Cog):
                     file=file,
                 )
 
-            if transcription.text == "":
-                await message.reply(
-                    "No transcription could be made from this audio. The Moderation Team has been notified. If this has been done intentionally, please refrain from doing so in the future. Future violations will result in being unable to send voice messages."
-                )
-
-                os.remove(f"{GRANDPARENT_DIR}/files/TempAudio/{filename[:-4]}.wav")
-                return
-
             with db_session(message.author) as session:
                 session.add(
                     VoiceMessageAnalytics(
