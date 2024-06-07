@@ -20,8 +20,11 @@ GRANDPARENT_DIR = os.path.dirname(PARENT_DIR)
 
 
 def check_if_voice_message_eligible(message: nextcord.Message, config: Configuration):
-    if not blacklist_check(message.author, "Voice Message"):
-        return False
+    if blacklist_check(message.author, "Voice Message"):
+        return (
+            False,
+            f"{config.emotes.fail} You are blacklisted from sending voice messages. Please open a Moderation Lead Ticket if you believe this is a mistake.",
+        )
 
     with db_session(message.author) as session:
         today = datetime.datetime.today()
@@ -41,16 +44,16 @@ def check_if_voice_message_eligible(message: nextcord.Message, config: Configura
         global_voice_messages_seconds += voice_message.duration
 
     if author_voice_messages_seconds >= 300:
-        return (
-            False,
+        reason = (
             f"{config.emotes.fail} You have reached the maximum voice message allowance for today. Please try again tomorrow.",
         )
+        return False, reason
 
     if global_voice_messages_seconds >= 3000:
-        return (
-            False,
-            f"{config.emotes.fail} The voice message limit has been reached for today. Please try again tomorrow.",
+        reason = (
+            f"{config.emotes.fail} The server has reached the maximum voice message allowance for today. Please try again tomorrow.",
         )
+        return False, reason
 
     return True, None
 
@@ -242,6 +245,16 @@ class Voice(commands.Cog):
             message.attachments[0].content_type.startswith("audio")
             and message.attachments[0].filename == "voice-message.ogg"
         ):
+            with db_session(message.author) as session:
+                existing_voice_message = (
+                    session.query(VoiceMessageAnalytics)
+                    .filter_by(message_id=message.id)
+                    .first()
+                )
+
+            if existing_voice_message:
+                return
+
             filename = f"voice-message-{message.author.id}-{time.time()}.ogg"
 
             await message.attachments[0].save(f"files/TempAudio/{filename}")
@@ -272,7 +285,7 @@ class Voice(commands.Cog):
 
             eligible, reason = check_if_voice_message_eligible(message, self.config)
 
-            if not eligible:
+            if eligible is False:
                 await message.reply(reason, delete_after=5)
                 os.remove(f"{GRANDPARENT_DIR}/files/TempAudio/{filename[:-4]}.wav")
 
@@ -308,6 +321,20 @@ class Voice(commands.Cog):
 
                 os.remove(f"{GRANDPARENT_DIR}/files/TempAudio/{filename[:-4]}.wav")
                 return
+
+            with db_session(message.author) as session:
+                session.add(
+                    VoiceMessageAnalytics(
+                        message_id=message.id,
+                        author=message.author.id,
+                        channel=message.channel.id,
+                        link=message.jump_url,
+                        duration=duration,
+                        filesize=filesize,
+                    )
+                )
+
+                session.commit()
 
             message.content = transcription.text
             self.bot.dispatch("message", message)
