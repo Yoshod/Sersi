@@ -140,10 +140,23 @@ class BlacklistCase(Case):
 
 
 class BanCase(Case):
+    """
+    Represents a ban case in the database.
+
+    Inherits from the `Case` class and adds additional attributes specific to ban cases.
+
+    Attributes:
+        id (str): The unique identifier of the ban case.
+        active (bool): Indicates whether the ban case is active or not.
+        details (str): Additional details or description of the ban case.
+        ban_type (str): The type of ban.
+        unbanned_by (int): The user ID of the person who unbanned the case.
+        unban_reason (str): The reason for unbanning the case.
+    """
+
     __tablename__ = "ban_cases"
 
     id = Column(String, ForeignKey("cases.id"), primary_key=True)
-
     active = Column(Boolean, default=None)
     details = Column(String)
     ban_type = Column(String)

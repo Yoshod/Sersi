@@ -6,6 +6,7 @@ from utils.database import (
     db_session,
     RaidActivations,
     RaidDeactivations,
+    BanCase,
 )
 from utils.perms import (
     is_full_mod,
@@ -158,6 +159,165 @@ class AntiRaid(commands.Cog):
 
         await interaction.guild.get_channel(self.config.channels.alert).send(
             f"{interaction.guild.get_role(self.config.permission_roles.moderator).mention}",
+            embed=raid_embed,
+        )
+
+    @raid.subcommand(
+        name="ban",
+        description="Ban raiders.",
+    )
+    async def raid_ban(
+        self,
+        interaction: nextcord.Interaction,
+        raider_1: nextcord.User = nextcord.SlashOption(
+            description="Raider 1",
+            required=True,
+        ),
+        raider_2: nextcord.User = nextcord.SlashOption(
+            description="Raider 2",
+            required=False,
+        ),
+        raider_3: nextcord.User = nextcord.SlashOption(
+            description="Raider 3",
+            required=False,
+        ),
+        raider_4: nextcord.User = nextcord.SlashOption(
+            description="Raider 4",
+            required=False,
+        ),
+        raider_5: nextcord.User = nextcord.SlashOption(
+            description="Raider 5",
+            required=False,
+        ),
+        raider_6: nextcord.User = nextcord.SlashOption(
+            description="Raider 6",
+            required=False,
+        ),
+        raider_7: nextcord.User = nextcord.SlashOption(
+            description="Raider 7",
+            required=False,
+        ),
+        raider_8: nextcord.User = nextcord.SlashOption(
+            description="Raider 8",
+            required=False,
+        ),
+        raider_9: nextcord.User = nextcord.SlashOption(
+            description="Raider 9",
+            required=False,
+        ),
+        raider_10: nextcord.User = nextcord.SlashOption(
+            description="Raider 10",
+            required=False,
+        ),
+    ):
+        if not await permcheck(interaction, is_full_mod):
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        with db_session() as session:
+            raid_activation = (
+                session.query(RaidActivations)
+                .order_by(RaidActivations.timestamp.desc())
+                .first()
+            )
+            if not raid_activation:
+                await interaction.followup.send(
+                    "Raid mode is not active.",
+                    ephemeral=True,
+                )
+                return
+
+            raid_deactivation = (
+                session.query(RaidDeactivations)
+                .filter_by(activation_id=raid_activation.activation_id)
+                .first()
+            )
+            if raid_deactivation:
+                await interaction.followup.send(
+                    "Raid mode is not active.",
+                    ephemeral=True,
+                )
+                return
+
+            raid_case = (
+                session.query(RaidActivations)
+                .filter_by(activation_id=raid_activation.activation_id)
+                .first()
+            )
+
+        raiders = []
+        banned_raiders = []
+        not_banned_raiders = []
+        for i in range(1, 11):
+            raider: nextcord.User | None = eval(f"raider_{i}")
+            if raider is None:
+                break
+
+            raiders.append(raider.id)
+
+            with db_session() as session:
+                sersi_case = BanCase(
+                    offender=raider.id,
+                    moderator=interaction.user.id,
+                    offence="Other",
+                    details=f"{raid_case.activation_id} Raid",
+                    ban_type="emergency",
+                )
+                session.add(sersi_case)
+                session.commit()
+
+            try:
+                await interaction.guild.ban(
+                    raider.id,
+                    reason=f"{raid_case.activation_id} Raid",
+                    delete_message_days=1,
+                )
+
+                banned_raiders.append(raider.id)
+            except nextcord.DiscordException:
+                not_banned_raiders.append(raider.id)
+
+        banned_string = f"**Bans Requested by {interaction.user.mention}:**\n"
+        for raider in raiders:
+            if raider in banned_raiders:
+                banned_string += (
+                    f"{self.config.emotes.success} {raider.mention} ({raider.id})\n"
+                )
+
+            elif raider in not_banned_raiders:
+                banned_string += (
+                    f"{self.config.emotes.fail} {raider.mention} ({raider.id})\n"
+                )
+
+            else:
+                banned_string += f"{raider.mention} ({raider.id})\n"
+
+        raid_embed = SersiEmbed(
+            title="Raid Ban Processed",
+            description=banned_string,
+            color=nextcord.Color.red(),
+            thumbnail_url=self.bot.user.avatar.url,
+        )
+
+        await interaction.followup.send(
+            "Raid ban processed.",
+            embed=raid_embed,
+            ephemeral=True,
+        )
+
+        await interaction.guild.get_channel(self.config.channels.alert).send(
+            "**RAID BAN:**",
+            embed=raid_embed,
+        )
+
+        await interaction.guild.get_channel(self.config.channels.logging).send(
+            "**RAID BAN:**",
+            embed=raid_embed,
+        )
+
+        await interaction.guild.get_channel(self.config.channels.mod_logs).send(
+            "**RAID BAN:**",
             embed=raid_embed,
         )
 
