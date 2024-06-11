@@ -3,7 +3,7 @@ from nextcord.ext import commands
 from nextcord.ui import Button, View, Modal
 from utils.sersi_embed import SersiEmbed
 from utils.config import Configuration
-from utils.perms import is_admin, permcheck
+from utils.perms import is_admin, is_cet, permcheck
 from utils.suggestions import (
     check_if_marked,
     get_suggestion_by_id,
@@ -264,6 +264,15 @@ class SuggestionMarkModal(Modal):
             self.config.channels.suggestion_voting
         ).fetch_message(suggestion_instance.vote_message_id)
 
+        if original_message is None:
+            await interaction.followup.send(
+                f"{self.config.emotes.fail} The suggestion message could not be found. Please contact an administrator.",
+                ephemeral=False,
+            )
+
+            interaction.message.edit(view=None)
+            return
+
         with db_session(interaction.user) as session:
             updated_embed = await update_embed_outcome(
                 interaction, original_message.embeds[0], self.suggestion_id, session
@@ -325,6 +334,10 @@ class SuggestionMarkModal(Modal):
             )
             await original_message.thread.edit(locked=True, archived=True)
 
+            if suggestion_instance.suggester != interaction.user.id:
+                bot: commands.Bot = interaction.client
+                bot.dispatch("add_xp", interaction.user, 500, "COMMUNITY")
+
 
 class SuggestionReviewModal(Modal):
     def __init__(self, config: Configuration, passed: bool, suggestion_id: str):
@@ -372,9 +385,9 @@ class SuggestionReviewModal(Modal):
                 )
                 suggestion_embed.set_image(url=suggestion_instance.media_url)
 
-            suggestion_embed.add_field(name="Yes Votes", value="`0`", inline=False)
+            suggestion_embed.add_field(name="Yes Votes", value="`1`", inline=False)
             suggestion_embed.add_field(name="No Votes", value="`0`", inline=False)
-            suggestion_embed.add_field(name="Net Approval", value="`0`", inline=False)
+            suggestion_embed.add_field(name="Net Approval", value="`+1`", inline=False)
 
             upvote = Button(
                 label="Upvote",
@@ -420,7 +433,14 @@ class SuggestionReviewModal(Modal):
                     reason=self.review_reason.value,
                 )
                 session.add(review_instance)
-                session.commit()
+
+                session.add(
+                    SuggestionVote(
+                        id=suggestion_instance.id,
+                        voter=interaction.user.id,
+                        vote=True,
+                    )
+                )
 
                 update_suggestion = (
                     session.query(SubmittedSuggestion).filter_by(
@@ -452,6 +472,10 @@ class SuggestionReviewModal(Modal):
                     name="Current Status", value="Not Marked", inline=False
                 ),
             )
+
+            if suggestion_instance.suggester != interaction.user.id:
+                bot: commands.Bot = interaction.client
+                bot.dispatch("add_xp", interaction.user, 100, "COMMUNITY")
 
         else:
             deny_embed = SersiEmbed(
@@ -599,6 +623,54 @@ class Suggestions(commands.Cog):
 
         await ctx.message.delete()
 
+    @nextcord.slash_command(
+        name="suggestion",
+        description="Manage suggestions.",
+        guild_ids=[1166770860787515422, 977377117895536640, 856262303795380224],
+    )
+    async def suggestion(self, interaction: nextcord.Interaction):
+        pass
+
+    @suggestion.subcommand(
+        name="retrieve_control_panel",
+        description="Retrieve the control panel for a suggestion.",
+    )
+    async def retrieve_control_panel(
+        self, interaction: nextcord.Interaction, suggestion_id: str
+    ):
+        if not await permcheck(interaction, is_cet):
+            return
+
+        suggestion_instance: SubmittedSuggestion = get_suggestion_by_id(
+            interaction, suggestion_id
+        )
+
+        if not suggestion_instance:
+            await interaction.response.send_message(
+                f"{self.config.emotes.fail} The suggestion ID provided is invalid. Please provide a valid suggestion ID.",
+                ephemeral=True,
+            )
+            return
+
+        suggestion_embed = SersiEmbed(
+            title=f"New Suggestion By {interaction.guild.get_member(suggestion_instance.suggester).display_name}",
+            description=suggestion_instance.suggestion_text,
+            fields={
+                "Suggester": f"{interaction.guild.get_member(suggestion_instance.suggester).mention} ({suggestion_instance.suggester})",
+                "Media URL": suggestion_instance.media_url,
+                "Current Status": "Not Marked",
+            },
+        )
+
+        if suggestion_instance.media_url:
+            suggestion_embed.set_image(url=suggestion_instance.media_url)
+
+        suggestion_embed.set_footer(text=f"Suggestion ID: {suggestion_instance.id}")
+
+        await interaction.response.send_message(
+            embed=suggestion_embed, view=SuggestionMarkView(suggestion_instance.id)
+        )
+
     @commands.Cog.listener()
     async def on_interaction(self, interaction: nextcord.Interaction):
         if interaction.data is None or interaction.data.get("custom_id") is None:
@@ -654,7 +726,7 @@ class Suggestions(commands.Cog):
                             session.add(new_vote)
                             session.commit()
 
-                            await update_embed_votes(
+                            approval = await update_embed_votes(
                                 original_embed, kwargs["suggestion_id"], session
                             )
 
@@ -665,9 +737,25 @@ class Suggestions(commands.Cog):
                                 ephemeral=True,
                             )
 
+                            self.bot.dispatch(
+                                "add_xp", interaction.user, 25, "COMMUNITY"
+                            )
+
+                            if approval > 0:
+                                suggestion = (
+                                    session.query(SubmittedSuggestion)
+                                    .filter_by(id=kwargs["suggestion_id"])
+                                    .first()
+                                )
+                                self.bot.dispatch(
+                                    "add_xp",
+                                    interaction.guild.get_member(suggestion.suggester),
+                                    approval,
+                                    "COMMUNITY",
+                                )
+
                 case "downvote":
                     await interaction.response.defer(ephemeral=True)
-                    print("downvote")
                     original_embed = interaction.message.embeds[0]
 
                     with db_session(interaction.user) as session:
@@ -719,6 +807,10 @@ class Suggestions(commands.Cog):
                             await interaction.followup.send(
                                 f"{self.config.emotes.success} Your vote has been registered as a downvote.",
                                 ephemeral=True,
+                            )
+
+                            self.bot.dispatch(
+                                "add_xp", interaction.user, 25, "COMMUNITY"
                             )
 
         elif action == "suggestion_submit":

@@ -10,3 +10,8 @@ aiohttp
 pyyaml
 unidecode
 sqlalchemy
+wikipedia-api
+PyGithub
+mutagen
+pydub
+openai

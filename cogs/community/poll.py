@@ -1,6 +1,9 @@
+import io
 import nextcord
 import nextcord.ui
+import matplotlib.pyplot as plt
 from nextcord.ext import commands
+from matplotlib import colors
 
 from utils.sersi_embed import SersiEmbed
 from utils.config import Configuration
@@ -35,22 +38,53 @@ class DropdownMenu(nextcord.ui.Select):
 
         eval_bar_width: int = 20
         for option in self.choices:
-            percentage: float = all_votes.count(option) / len(all_votes)
+            percentage: float = all_votes.count(option) / len(self.state)
             bar_filled: int = round(percentage * eval_bar_width)
 
             bar = f"{'█'*bar_filled}{'░'*(eval_bar_width-bar_filled)} {round(percentage*100, 2)}% ({all_votes.count(option)} votes)"
 
             result_embed.add_field(name=option, value=bar, inline=False)
 
-        await interaction.message.edit(embed=result_embed)
+        # make a graph using matplotlib
+        poll_data = [all_votes.count(choice) for choice in self.choices]
+
+        label_gen = (label for label in self.choices if all_votes.count(label) > 0)
+        plt.figure(figsize=(4, 4))
+        plt.pie(
+            poll_data,
+            colors=colors.TABLEAU_COLORS,
+            autopct=lambda pct: f"{next(label_gen)}" if pct > 0 else "",
+            startangle=90,
+            counterclock=False,
+            radius=1.2,
+        )
+
+        # make the background transparent
+        plt.gca().set_facecolor("none")
+        plt.gcf().set_facecolor("none")
+        plt.gca().set_axis_off()
+        plt.gca().set_xticks([])
+        plt.gca().set_yticks([])
+        plt.gca().set_frame_on(False)
+
+        plt.tight_layout()
+
+        buf = io.BytesIO()
+        plt.savefig(buf, format="png")
+        plt.close()
+        buf.seek(0)
+
+        result_embed.set_image(url="attachment://poll.png")
+
+        await interaction.message.edit(
+            embed=result_embed, file=nextcord.File(buf, filename="poll.png")
+        )
 
 
 class Choose(commands.Cog):
     def __init__(self, bot: commands.Bot, config: Configuration):
         self.bot = bot
         self.config = config
-        self.filled: str = "█"
-        self.empty: str = "░"
 
     @nextcord.slash_command(
         dm_permission=False,
@@ -94,6 +128,13 @@ class Choose(commands.Cog):
         ]
         while None in options:
             options.remove(None)
+
+        if len(set(options)) < len(options):
+            await interaction.send(
+                f"{self.config.emotes.fail} Options must be unique.",
+                ephemeral=True,
+            )
+            return
 
         if multiple_choice:
             selection = DropdownMenu(options, len(options))

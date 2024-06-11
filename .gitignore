@@ -10,3 +10,5 @@ __pycache__
 
 discordTokens.py
 .DS_Store
+
+Files/import/githubapi.yaml

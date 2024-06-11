@@ -294,9 +294,11 @@ class TimeoutSystem(commands.Cog):
                     "Detail:": f"`{detail}`",
                     "Duration:": f"`{duration}{timespan}`",
                     "Member:": f"{offender.mention} ({offender.id})",
-                    "DM Sent:": self.config.emotes.fail
-                    if not_sent
-                    else self.config.emotes.success,
+                    "DM Sent:": (
+                        self.config.emotes.fail
+                        if not_sent
+                        else self.config.emotes.success
+                    ),
                 },
                 footer="Sersi Timeout",
                 author=interaction.user,
@@ -341,10 +343,11 @@ class TimeoutSystem(commands.Cog):
                 session.query(TimeoutCase).filter(TimeoutCase.id == case_id).first()
             )
 
-            if not case:
+            if case is None or case.type != "Timeout":
                 await interaction.followup.send(
                     f"{self.config.emotes.fail} {case_id} is not a valid timeout case."
                 )
+                return
 
             active = case.planned_end > datetime.utcnow()
             if case.actual_end is not None:
@@ -421,6 +424,112 @@ class TimeoutSystem(commands.Cog):
             related_warning, type="Warning", offender=offender.id
         )
         await interaction.response.send_autocomplete(warnings)
+
+    @commands.Cog.listener()
+    async def on_member_update(self, before: nextcord.Member, after: nextcord.Member):
+        if (
+            before.communication_disabled_until is None
+            and after.communication_disabled_until is None
+        ):
+            return
+
+        if (
+            before.communication_disabled_until is not None
+            and after.communication_disabled_until is not None
+        ):
+            return
+
+        if (
+            before.communication_disabled_until is None
+            and after.communication_disabled_until is not None
+        ):
+            with db_session(before.id) as session:
+                case = (
+                    session.query(TimeoutCase)
+                    .filter_by(offender=after.id)
+                    .order_by(TimeoutCase.created.desc())
+                    .first()
+                )
+
+                log: nextcord.AuditLogEntry = (
+                    await after.guild.audit_logs(
+                        action=nextcord.AuditLogAction.member_update, limit=1
+                    ).flatten()
+                )[0]
+
+                if case is None or case.planned_end < datetime.utcnow():
+                    sersi_case = TimeoutCase(
+                        offender=after.id,
+                        moderator=(
+                            log.user.id if log.user.id != after.id else self.bot.user.id
+                        ),
+                        offence="Other",
+                        details=log.reason if log.reason else "No reason provided",
+                        duration=0,
+                        planned_end=after.communication_disabled_until,
+                    )
+
+                    session.add(sersi_case)
+                    session.commit()
+
+                else:
+                    return
+
+            logging_embed = SersiEmbed(
+                title="Non-Sersi Timeout Detected",
+                description=f"{after.mention} was timed out by a method other than Sersi. Please edit the case to add the Offence and update the moderator if necessary.",
+                fields={
+                    "Member:": f"{after.mention} ({after.id})",
+                },
+                footer="Sersi Timeout",
+            )
+
+            await self.bot.get_channel(self.config.channels.logging).send(
+                embed=logging_embed
+            )
+            await self.bot.get_channel(self.config.channels.alert).send(
+                embed=logging_embed
+            )
+
+        elif (
+            before.communication_disabled_until is not None
+            and after.communication_disabled_until is None
+        ):
+            with db_session(before.id) as session:
+                case = (
+                    session.query(TimeoutCase)
+                    .filter_by(offender=before.id)
+                    .order_by(TimeoutCase.created.desc())
+                    .first()
+                )
+
+                if case is not None:
+                    if case.actual_end is not None:
+                        return
+
+                    case.actual_end = datetime.utcnow()
+                    case.removal_reason = "Timeout ended by method other than Sersi"
+                    case.removed_by = self.bot.user.id
+                    session.commit()
+
+                    logging_embed = SersiEmbed(
+                        title="Sersi Timeout Ended Non-Sersi",
+                        description=f"{before.mention}'s timeout was ended by a method other than Sersi.",
+                        fields={
+                            "Member:": f"{before.mention} ({before.id})",
+                        },
+                        footer="Sersi Timeout",
+                    )
+
+                    await self.bot.get_channel(self.config.channels.logging).send(
+                        embed=logging_embed
+                    )
+                    await self.bot.get_channel(self.config.channels.alert).send(
+                        embed=logging_embed
+                    )
+
+                else:
+                    return
 
 
 def setup(bot: commands.Bot, **kwargs):

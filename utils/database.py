@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from typing import Any
 import random
 import re
@@ -255,6 +255,18 @@ class RelatedCase(_Base):
 
 
 class PeerReview(_Base):
+    """
+    Represents a peer review for a case in the database.
+
+    Attributes:
+        id (str): The unique identifier for the peer review.
+        case_id (str): The ID of the case associated with the peer review.
+        reviewer (int): The ID of the reviewer who conducted the peer review.
+        review_outcome (str): The outcome of the peer review.
+        review_comment (str): Additional comments provided by the reviewer.
+        timestamp (datetime): The timestamp of when the peer review was created.
+    """
+
     __tablename__ = "peer_reviews"
 
     id = Column(String, primary_key=True, default=random_id)
@@ -802,6 +814,136 @@ class AutopostFields(_Base):
     autopost_id = Column(Integer, ForeignKey("autopost.autopost_id"), primary_key=True)
     field_name = Column(String, primary_key=True)
     field_value = Column(String, nullable=False)
+
+
+class GithubIntegrationBlacklist(_Base):
+    """
+    Represents a blacklist entry for the GitHub integration in the database.
+
+    Attributes:
+        user (int): The ID of the user who is blacklisted.
+        added_by (int): The ID of the user who added the blacklist entry.
+        reason (str): The reason for adding the blacklist entry.
+        timestamp (datetime): The datetime when the blacklist entry was added.
+    """
+
+    __tablename__ = "github_integration_blacklist"
+
+    user = Column(Integer, primary_key=True)
+    added_by = Column(Integer, nullable=False)
+    reason = Column(String, nullable=False)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+
+
+class StarboardPosts(_Base):
+    """
+    Represents a starboard post in the database.
+
+    Attributes:
+        message (int): The ID of the message.
+        starboard_message (int): The ID of the starboard message.
+        author (int): The ID of the author of the message.
+        channel (int): The ID of the channel where the message was posted.
+    """
+
+    __tablename__ = "starboard_posts"
+
+    unique_id = Column(String, primary_key=True, default=random_id)
+    message = Column(Integer, unique=True, nullable=False)
+    starboard_message = Column(Integer, nullable=False, unique=True)
+    author = Column(Integer, nullable=False)
+    channel = Column(Integer, nullable=False)
+
+
+class StarboardStars(_Base):
+    """
+    Represents the stars given to a post in the starboard.
+
+    Attributes:
+        unique_id (str): The unique identifier of the starboard post.
+        user (int): The user who gave the star.
+        channel (int): The ID of the channel where the star was given.
+    """
+
+    __tablename__ = "starboard_stars"
+
+    unique_id = Column(
+        String, ForeignKey("starboard_posts.unique_id"), primary_key=True
+    )
+    user = Column(Integer, primary_key=True)
+    channel = Column(Integer, nullable=False)
+
+
+class StarboardIgnoredChannels(_Base):
+    """
+    Represents a channel that is ignored by the starboard.
+
+    Attributes:
+        channel (int): The ID of the channel.
+    """
+
+    __tablename__ = "starboard_ignored_channels"
+
+    channel = Column(Integer, primary_key=True)
+
+
+class TrackingMessages(_Base):
+    """
+    Represents a tracking message in the database.
+
+    Attributes:
+        message_id (int): The ID of the message.
+    """
+
+    __tablename__ = "tracking_messages"
+
+    message_id = Column(Integer, primary_key=True)
+
+
+class VoiceMessageAnalytics(_Base):
+    """
+    Represents a voice message in the database.
+
+    Attributes:
+        message_id (int): The ID of the message.
+        author (int): The ID of the author of the message.
+        channel (int): The ID of the channel where the message was posted.
+        link (str): The link to the voice message.
+        duration (int): The duration of the voice message.
+        filesize (int): The size of the voice message file.
+        timestamp (datetime): The datetime when the voice message was created.
+    """
+
+    __tablename__ = "voice_message_analytics"
+
+    message_id = Column(Integer, primary_key=True)
+    author = Column(Integer, nullable=False)
+    channel = Column(Integer, nullable=False)
+    link = Column(String, nullable=False)
+    duration = Column(Integer, nullable=False)
+    filesize = Column(Integer, nullable=False)
+    timestamp = Column(DateTime, default=date.today())
+
+
+class OptInRoles(_Base):
+    """
+    Represents a role that users can opt in to in the database.
+
+    Attributes:
+        role_id (int): The ID of the role.
+        role_name (str): The name of the role.
+        role_emoji (str): The emoji associated with the role.
+        role_category (str): The category of the role.
+        required_level_role (int): The ID of the role required to opt in to the role.
+    """
+
+    __tablename__ = "opt_in_roles"
+
+    role_id = Column(Integer, primary_key=True)
+    role_name = Column(String, nullable=False)
+    role_emoji = Column(String, nullable=False)
+    role_category = Column(String, nullable=False)
+    required_level_role = Column(Integer, nullable=False)
 
 
 def create_db_tables():

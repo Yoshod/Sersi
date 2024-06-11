@@ -128,9 +128,7 @@ class SlurDetection(commands.Cog):
 
         with db_session() as session:
             session.add(
-                Goodword(
-                    goodword=word, slur=related, added_by=interaction.user.id
-                )
+                Goodword(goodword=word, slur=related, added_by=interaction.user.id)
             )
             session.commit()
 
@@ -202,9 +200,9 @@ class SlurDetection(commands.Cog):
             if bypass_reason and is_dark_mod(interaction.user):
                 embed_fields["Dual Custody Bypass Reason"] = bypass_reason
             else:
-                embed_fields[
-                    "Confirming Moderator:"
-                ] = f"{confirming_moderator.mention} ({confirming_moderator.id})"
+                embed_fields["Confirming Moderator:"] = (
+                    f"{confirming_moderator.mention} ({confirming_moderator.id})"
+                )
 
             channel = self.bot.get_channel(self.config.channels.logging)
             embed_var = SersiEmbed(
@@ -371,7 +369,7 @@ class SlurDetection(commands.Cog):
         return prev_offences
 
     @commands.Cog.listener()
-    async def on_message(self, message: nextcord.Message):
+    async def on_message(self, message: nextcord.Message, *args, **kwargs):
         if ignored_message(self.config, message):
             return
 
@@ -484,7 +482,7 @@ class SlurDetection(commands.Cog):
         if not after.nick:
             return
 
-        slur_matches = self.slur_detector.find_slurs(after)
+        slur_matches = self.slur_detector.find_slurs(after.nick)
         if not slur_matches:
             return
 

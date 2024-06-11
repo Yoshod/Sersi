@@ -21,7 +21,6 @@ from utils.database import (
     ModeratorAvailability,
 )
 from utils.config import Configuration
-from utils.perms import is_allowed
 from utils.sersi_embed import SersiEmbed
 
 parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -600,6 +599,7 @@ def get_moderation_leaderboard_embed(
             case_value = mod_stats[staff_id][case_type]
         else:
             case_value = mod_stats[staff_id]["Total Cases"]
+            case_type = "Total Cases"
 
         embed.add_field(
             name=f"{i+1}. {member}",
@@ -677,7 +677,7 @@ def check_staff_availability(staff_member: int | nextcord.Member):
 
 def is_available(member: nextcord.Member):
     """Checks if a staff member has the availability role."""
-    return is_allowed(member, [CONFIG.roles.available_mod])
+    return CONFIG.roles.available_mod in member._roles
 
 
 def get_available_mods(guild: nextcord.Guild):
