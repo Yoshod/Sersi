@@ -198,6 +198,56 @@ class Voice(commands.Cog):
             ephemeral=True,
         )
 
+    @voice.subcommand(
+        description="Get a ranking of the top voice message senders and their usage of all time.",
+    )
+    async def top_voice_messages(self, interaction: nextcord.Interaction):
+        if not await permcheck(interaction, is_staff):
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        with db_session(interaction.user) as session:
+            voice_messages = session.query(VoiceMessageAnalytics).all()
+
+        author_voice_messages = {}
+
+        for voice_message in voice_messages:
+            if voice_message.author in author_voice_messages:
+                author_voice_messages[voice_message.author] += voice_message.duration
+            else:
+                author_voice_messages[voice_message.author] = voice_message.duration
+
+        author_voice_messages = {
+            k: v
+            for k, v in sorted(
+                author_voice_messages.items(), key=lambda item: item[1], reverse=True
+            )
+        }
+
+        author_voice_messages = {
+            k: v for k, v in author_voice_messages.items() if v > 0
+        }
+
+        top_voice_messages = ""
+        for author in author_voice_messages:
+            user = interaction.guild.get_member(author)
+            if user is None:
+                continue
+
+            minutes = author_voice_messages[author] / 60
+            cost = minutes * 0.006
+
+            top_voice_messages += f"**{user.display_name}** ({user.id}): {minutes:.5f} minutes ({author_voice_messages[author]:.5f} seconds) - ${cost:.5f}\n"
+
+        await interaction.followup.send(
+            embed=SersiEmbed(
+                title="Top Voice Message Senders",
+                description=top_voice_messages,
+            ),
+            ephemeral=True,
+        )
+
     @commands.Cog.listener()
     async def on_voice_state_update(
         self,
