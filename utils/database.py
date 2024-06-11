@@ -953,13 +953,15 @@ class RaidActivations(_Base):
     Attributes:
         activation_id (int): The ID of the raid activation.
         moderator (int): The ID of the moderator who activated the raid.
+        rule_id (int): The ID of the Discord AutoModeration rule created for the raid.
         timestamp (datetime): The datetime when the raid was activated.
     """
 
     __tablename__ = "raid_activations"
 
-    activation_id = Column(Integer, primary_key=True, default=random_id)
+    activation_id = Column(String, primary_key=True, default=random_id)
     moderator = Column(Integer, nullable=False)
+    rule_id = Column(Integer, nullable=False)
     timestamp = Column(DateTime, default=datetime.utcnow)
 
 
@@ -976,7 +978,7 @@ class RaidDeactivations(_Base):
     __tablename__ = "raid_deactivations"
 
     activation_id = Column(
-        Integer, ForeignKey("raid_activations.activation_id"), primary_key=True
+        String, ForeignKey("raid_activations.activation_id"), primary_key=True
     )
     moderator = Column(Integer, nullable=False)
     timestamp = Column(DateTime, default=datetime.utcnow)
