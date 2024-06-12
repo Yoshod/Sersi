@@ -827,7 +827,9 @@ class Suggestions(commands.Cog):
 
                 case "deny":
                     await interaction.response.send_modal(
-                        SuggestionReviewModal(self.config, False),
+                        SuggestionReviewModal(
+                            self.config, False, kwargs["suggestion_id"]
+                        ),
                         kwargs["suggestion_id"],
                     )
 
