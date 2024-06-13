@@ -26,15 +26,14 @@ class MassPing(commands.Cog):
         if await permcheck(message, is_staff):
             return
 
-        if len(message.mentions) > self.config.automoderation.max_mentions:
+        if len(message.mentions) > 2:
             with db_session() as session:
                 previous_warning = (
-                    session.query(Case)
+                    session.query(WarningCase)
                     .filter_by(offender=message.author.id)
-                    .filter_by(type="Warning")
                     .filter_by(moderator=self.bot.user.id)
                     .filter_by(offence="Spamming")
-                    .order_by(Case.created.desc())
+                    .order_by(WarningCase.created.desc())
                     .first()
                 )
 
