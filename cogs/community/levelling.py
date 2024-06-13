@@ -577,7 +577,7 @@ class Levelling(commands.Cog):
 
             report = await self.get_report(member)
             embed = create_levelling_embed(member, report, self.config)
-            await interaction.followup.send(embed=embed)
+            await interaction.followup.send(embed=embed, ephemeral=True)
 
 
 def setup(bot: commands.Bot, **kwargs):
