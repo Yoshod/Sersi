@@ -44,7 +44,7 @@ def fetch_cases_by_partial_id(case_id: str, **kwargs) -> list[str]:
 
 def create_case_embed(
     case: typing.Type[Case],
-    interaction: nextcord.Interaction,
+    interaction: nextcord.Interaction | nextcord.Message,
     config: Configuration,
 ) -> SersiEmbed:
     fields = [
