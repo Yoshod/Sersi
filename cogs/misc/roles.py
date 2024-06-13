@@ -383,9 +383,7 @@ class Roles(commands.Cog):
             return
 
         with db_session() as session:
-            sticky_roles = (
-                session.query(StickyRoles).filter_by(member_id=member.id).all()
-            )
+            sticky_roles = session.query(StickyRoles).filter_by(user_id=member.id).all()
 
             if not sticky_roles:
                 newbie_role = member.guild.get_role(self.config.roles.newbie)
@@ -397,7 +395,7 @@ class Roles(commands.Cog):
                 if role is not None:
                     await member.add_roles(role)
 
-            session.query(StickyRoles).filter_by(member_id=member.id).delete()
+            session.query(StickyRoles).filter_by(user_id=member.id).delete()
             session.commit()
 
     @commands.Cog.listener()
@@ -565,7 +563,7 @@ class Roles(commands.Cog):
 
                 sticky_role = StickyRoles(
                     role_id=role.id,
-                    member_id=member.id,
+                    user_id=member.id,
                 )
                 session.add(sticky_role)
 
