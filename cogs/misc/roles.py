@@ -1,4 +1,4 @@
-from nextcord.ext import commands
+from nextcord.ext import commands, tasks
 from utils.config import Configuration
 import datetime
 import pytz
@@ -13,6 +13,16 @@ class Roles(commands.Cog):
     def __init__(self, bot: commands.Bot, config: Configuration):
         self.bot = bot
         self.config = config
+
+        if self.bot.is_ready():
+            self.sticky_roles_cleanup.start()
+
+    def cog_unload(self):
+        self.sticky_roles_cleanup.cancel()
+
+    @commands.Cog.listener()
+    async def on_ready(self):
+        self.sticky_roles_cleanup.start()
 
     @commands.command()
     async def reformist_opt_in(self, ctx: commands.Context):
@@ -568,6 +578,18 @@ class Roles(commands.Cog):
                 session.add(sticky_role)
 
             session.commit()
+
+    @tasks.loop(hours=24)
+    async def sticky_roles_cleanup(self):
+        twenty_eight_days_ago = datetime.datetime.now() - datetime.timedelta(days=28)
+        twenty_eight_days_ago = twenty_eight_days_ago.replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
+
+        with db_session() as session:
+            session.query(StickyRoles).filter(
+                StickyRoles.leave_date >= twenty_eight_days_ago
+            ).delete()
 
 
 def setup(bot: commands.Bot, **kwargs):
