@@ -46,6 +46,16 @@ class WhoisWarningsButton(nextcord.ui.Button):
         )
 
 
+class WhoIsLevellingButton(nextcord.ui.Button):
+    def __init__(self, user_id: int):
+        super().__init__(
+            style=nextcord.ButtonStyle.blurple,
+            label="Levelling",
+            custom_id=encode_button_id("levelling", user=encode_snowflake(user_id)),
+            disabled=False,
+        )
+
+
 class WhoisView(nextcord.ui.View):
     def __init__(self, user_id: int):
         super().__init__(timeout=None, auto_defer=False)
@@ -56,6 +66,8 @@ class WhoisView(nextcord.ui.View):
         if determine_staff_member(user_id):
             self.add_item(StaffDataButton(user_id))
             self.add_item(ModerationDataButton(user_id))
+
+        self.add_item(WhoIsLevellingButton(user_id))
 
 
 def _get_user_ban(user_id: int) -> BanCase | None:

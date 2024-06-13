@@ -10,11 +10,17 @@ import nextcord
 from nextcord.ext import commands, tasks
 import requests
 
-from utils.base import ignored_message, get_member_level, get_page
+from utils.base import (
+    decode_button_id,
+    decode_snowflake,
+    ignored_message,
+    get_member_level,
+    get_page,
+)
 from utils.config import Configuration
 from utils.database import db_session, MemberLevel
 from utils.dialog import confirm
-from utils.perms import permcheck, is_cet, is_admin, is_cet_lead
+from utils.perms import is_mod, permcheck, is_cet, is_admin, is_cet_lead
 from utils.sersi_embed import SersiEmbed
 from utils.views import PageView
 
@@ -101,6 +107,39 @@ def fetch_leaderboard(
         ],
         pages,
         page,
+    )
+
+
+def create_levelling_embed(
+    member: nextcord.Member, report: MemberReport, config: Configuration
+):
+    xp_base = xp_needed_to_level(report.level)
+    xp_above_current = report.xp - xp_base
+    xp_to_next = report.next_level - report.xp
+    fraction = xp_above_current / xp_needed_to_next_level(report.level)
+
+    level_role = member.guild.get_role(config.level_roles.get(report.level, None))
+    level_name = (
+        level_role.name.replace("(", "(Level ")
+        if level_role
+        else "Civil Engineering Initiate (Level 0)"
+    )
+
+    return SersiEmbed(
+        title=f"__{level_name}__",
+        description=f"`{report.xp:13d} XP / {report.next_level:7d} XP`\n"
+        f"`{report.level:2d}` {'█'*round(fraction*20)}{'░'*(20-round(fraction*20))} `{report.level+1:2d}`\n\n"
+        f"XP needed to next level: **{xp_to_next}**",
+        fields=[
+            {
+                XPType(type).value.capitalize(): f"{amount} XP"
+                for type, amount in report.xp_breakdown.items()
+                if amount and type in [type.value for type in XPType]
+            }
+        ],
+        colour=member.colour,
+        thumbnail_url=member.avatar.url,
+        author=member,
     )
 
 
@@ -273,38 +312,7 @@ class Levelling(commands.Cog):
             member = interaction.user
         report = await self.get_report(member)
 
-        xp_base = xp_needed_to_level(report.level)
-        xp_above_current = report.xp - xp_base
-        xp_to_next = report.next_level - report.xp
-        fraction = xp_above_current / xp_needed_to_next_level(report.level)
-
-        level_role = member.guild.get_role(
-            self.config.level_roles.get(report.level, None)
-        )
-        level_name = (
-            level_role.name.replace("(", "(Level ")
-            if level_role
-            else "Civil Engineering Initiate (Level 0)"
-        )
-
-        embed = SersiEmbed(
-            title=f"__{level_name}__",
-            description=f"`{report.xp:13d} XP / {report.next_level:7d} XP`\n"
-            f"`{report.level:2d}` {'█'*round(fraction*20)}{'░'*(20-round(fraction*20))} `{report.level+1:2d}`\n\n"
-            f"XP needed to next level: **{xp_to_next}**",
-            fields=[
-                {
-                    XPType(type).value.capitalize(): f"{amount} XP"
-                    for type, amount in report.xp_breakdown.items()
-                    if amount and type in [type.value for type in XPType]
-                }
-            ],
-            colour=member.colour,
-            thumbnail_url=member.avatar.url,
-            author=member,
-            footer_icon=interaction.user.avatar.url,
-            footer=f"Requested by {interaction.user.display_name}",
-        )
+        embed = create_levelling_embed(member, report, self.config)
         await interaction.response.send_message(embed=embed)
 
     @level.subcommand(description="View the leaderboard.")
@@ -534,9 +542,9 @@ class Levelling(commands.Cog):
 
         await self.earn_xp(message.author, xp, XPType.MESSAGE)
 
-        self.reports[message.author.id].last_message[message.channel.id] = (
-            message.created_at.timestamp()
-        )
+        self.reports[message.author.id].last_message[
+            message.channel.id
+        ] = message.created_at.timestamp()
 
     @commands.Cog.listener()
     async def on_add_xp(self, member: nextcord.Member, amount: int, type: str):
@@ -545,6 +553,31 @@ class Levelling(commands.Cog):
     @commands.Cog.listener()
     async def on_remove_xp(self, member: nextcord.Member, amount: int, type: str):
         await self.lose_xp(member, amount, XPType[type])
+
+    @commands.Cog.listener()
+    async def on_interaction(self, interaction: nextcord.Interaction):
+        if interaction.data is None or interaction.data.get("custom_id") is None:
+            return
+
+        if not interaction.data["custom_id"].startswith("levelling"):
+            return
+
+        if not await permcheck(interaction, is_mod):
+            return
+
+        if not interaction.response.is_done():
+            await interaction.response.defer(ephemeral=True)
+
+        action, args, kwargs = decode_button_id(interaction.data["custom_id"])
+
+        if action == "levelling":
+            member = interaction.guild.get_member(int(decode_snowflake(kwargs["user"])))
+            if member is None:
+                return
+
+            report = await self.get_report(member)
+            embed = create_levelling_embed(member, report, self.config)
+            await interaction.followup.send(embed=embed)
 
 
 def setup(bot: commands.Bot, **kwargs):
