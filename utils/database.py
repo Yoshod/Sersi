@@ -958,5 +958,22 @@ class OptInRoles(_Base):
     required_level_role = Column(Integer, nullable=False)
 
 
+class StickyRoles(_Base):
+    """
+    Represents a sticky role in the database.
+
+    Attributes:
+        role_id (int): The ID of the role.
+        user_id (int): The ID of the user who has the role.
+        leave_date (datetime): The datetime when the user left the server.
+    """
+
+    __tablename__ = "sticky_roles"
+
+    role_id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, primary_key=True)
+    leave_date = Column(DateTime, default=date.today())
+
+
 def create_db_tables():
     _Base.metadata.create_all(_engine)
