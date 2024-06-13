@@ -143,6 +143,7 @@ async def create_whois_embed(
             fields={
                 "General Information": f"{config.emotes.blank}**Username**: {user.name}\n{config.emotes.blank}**Global Name**: {user.global_name}\n{config.emotes.blank}**Nickname**: {user.nick}\n{config.emotes.blank}**User ID**: {user.id}\n{config.emotes.blank}**Mention**: {user.mention}\n{config.emotes.blank}**Creation Date**: <t:{int(user.created_at.timestamp())}:R>\n{config.emotes.blank}**Join Date**: <t:{int(user.joined_at.timestamp())}:R>",
                 "Sersi Information": f"{config.emotes.blank}**Active Warns**: {user_warns}\n{config.emotes.blank}**Notes**: {user_notes}\n{config.emotes.blank}**Ban Vote**: {config.emotes.success if ban_vote else config.emotes.fail}\n{config.emotes.blank}{timeout_string}{blacklists_string}{config.emotes.blank}**Voice Messages**: {total_voice_messages_count} ({total_voice_messages_minutes:.2f} minutes, ${total_cost:.2f})",
+                "Role Information": f"{config.emotes.blank}**Roles**: {', '.join([role.mention for role in user.roles])}",
             },
         )
         whois_embed.set_footer(text="Sersi Whois - Server Member")
