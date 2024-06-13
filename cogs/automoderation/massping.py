@@ -6,7 +6,7 @@ from utils.cases import create_case_embed
 
 from utils.config import Configuration
 from utils.perms import is_staff, permcheck
-from utils.database import WarningCase, TimeoutCase, db_session, Case
+from utils.database import WarningCase, TimeoutCase, db_session, Case, RelatedCase
 from utils.sersi_embed import SersiEmbed
 
 
@@ -61,11 +61,6 @@ class MassPing(commands.Cog):
                 if previous_within_day:
                     planned_end: datetime.timedelta = convert_to_timedelta("m", 30)
 
-                    await message.author.timeout(
-                        planned_end,
-                        reason="Spamming - Sersi Automoderation",
-                    )
-
                     timeout = TimeoutCase(
                         offender=message.author.id,
                         moderator=self.bot.user.id,
@@ -76,7 +71,19 @@ class MassPing(commands.Cog):
                     )
                     session.add(timeout)
 
+                    related_case = RelatedCase(
+                        case_id=warning.id, related_id=timeout.id
+                    )
+                    session.add(related_case)
+
                 session.commit()
+
+                # This has to be done after the session is committed because the Non-Sersi timeout detection will check the database for the latest timeout
+                if previous_within_day:
+                    await message.author.timeout(
+                        planned_end,
+                        reason="Spamming - Sersi Automoderation",
+                    )
 
                 log_channel = message.guild.get_channel(self.config.channels.logging)
                 mod_log_channel = message.guild.get_channel(
