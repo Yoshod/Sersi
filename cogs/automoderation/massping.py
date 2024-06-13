@@ -26,7 +26,7 @@ class MassPing(commands.Cog):
         if await permcheck(message, is_staff):
             return
 
-        if len(message.mentions) > 2:
+        if len(message.mentions) > 6:
             with db_session() as session:
                 previous_warning = (
                     session.query(WarningCase)
