@@ -605,10 +605,10 @@ class Roles(commands.Cog):
         pass
 
     @roles.subcommand(
-        name="give_temporay_role",
+        name="give_temporary_role",
         description="Give a user a temporary role",
     )
-    async def give_temporay_role(
+    async def give_temporary_role(
         self,
         interaction: nextcord.Interaction,
         member: nextcord.Member,
@@ -723,7 +723,7 @@ class Roles(commands.Cog):
             ephemeral=True,
         )
 
-    @give_temporay_role.on_autocomplete("role")
+    @give_temporary_role.on_autocomplete("role")
     async def role_autocomplete(interaction: nextcord.Interaction):
         if not await permcheck(interaction, is_staff):
             return
@@ -734,10 +734,10 @@ class Roles(commands.Cog):
         return [role.role_name for role in roles]
 
     @roles.subcommand(
-        name="remove_temporay_role",
+        name="remove_temporary_role",
         description="Remove a user's temporary role",
     )
-    async def remove_temporay_role(
+    async def remove_temporary_role(
         self,
         interaction: nextcord.Interaction,
         member: nextcord.Member,
@@ -774,7 +774,7 @@ class Roles(commands.Cog):
             ephemeral=True,
         )
 
-    @remove_temporay_role.on_autocomplete("role")
+    @remove_temporary_role.on_autocomplete("role")
     async def role_remove_autocomplete(interaction: nextcord.Interaction):
         if not await permcheck(interaction, is_staff):
             return
@@ -885,6 +885,40 @@ class Roles(commands.Cog):
 
         await interaction.followup.send(
             f"{self.config.emotes.success} The role has been added as a temporary role.",
+            ephemeral=True,
+        )
+
+    @roles.subcommand(
+        name="unmake_temporary_role",
+        description="Remove a temporary role",
+    )
+    async def unmake_temporary_role(
+        self,
+        interaction: nextcord.Interaction,
+        role: nextcord.Role,
+    ):
+        if not await permcheck(interaction, is_admin):
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        with db_session() as session:
+            role_exists = (
+                session.query(TemporaryRoles).filter_by(role_id=role.id).first()
+            )
+
+            if role_exists is None:
+                await interaction.followup.send(
+                    f"{self.config.emotes.fail} The role you have provided does not exist as a temporary role.",
+                    ephemeral=True,
+                )
+                return
+
+            session.delete(role_exists)
+            session.commit()
+
+        await interaction.followup.send(
+            f"{self.config.emotes.success} The role has been removed as a temporary role.",
             ephemeral=True,
         )
 
