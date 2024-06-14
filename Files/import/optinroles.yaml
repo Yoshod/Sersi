@@ -4,12 +4,6 @@
   role_category: Hobbies
   required_level_role: 0
 
-- role_id:
-  role_name:
-  role_emoji:
-  role_category:
-  required_level_role:
-
 - role_id: 960558399471378483
   role_name: TechCompsci Opt-In
   role_emoji: 💻
