@@ -114,7 +114,7 @@ class ModAppModal(Modal):
 
         guild = interaction.client.get_guild(self.config.guilds.main)
 
-        channel = guild.get_channel(self.config.channels.mod_applications)
+        channel = guild.get_channel(self.config.channels.staff.mod_applications)
         await channel.send(embed=application_embed, view=button_view)
         await interaction.response.send_message(
             f"{self.config.emotes.success} Your application has been received! Thanks for applying.",
@@ -210,7 +210,7 @@ class CetAppModal(Modal):
         button_view.add_item(reject_bttn)
         button_view.add_item(review_bttn)
 
-        channel = interaction.client.get_channel(self.config.channels.cet_applications)
+        channel = interaction.client.get_channel(self.config.channels.staff.cet_applications)
         await channel.send(embed=application_embed, view=button_view)
 
 
@@ -354,7 +354,7 @@ class Applications(commands.Cog):
             )
             logging_embed.timestamp = datetime.now(pytz.UTC)
             logging_channel = interaction.guild.get_channel(
-                self.config.channels.logging
+                self.config.channels.log.general
             )
             await logging_channel.send(embed=logging_embed)
         except (nextcord.HTTPException, nextcord.Forbidden):

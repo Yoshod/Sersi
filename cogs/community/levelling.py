@@ -401,13 +401,13 @@ class Levelling(commands.Cog):
                 "Reason:": reason,
             },
         )
-        await interaction.guild.get_channel(self.config.channels.logging).send(
+        await interaction.guild.get_channel(self.config.channels.log.general).send(
             embed=log_embed
         )
-        await interaction.guild.get_channel(self.config.channels.user_chanes).send(
+        await interaction.guild.get_channel(self.config.channels.log.user_chanes).send(
             embed=log_embed
         )
-        await interaction.guild.get_channel(self.config.channels.alert).send(
+        await interaction.guild.get_channel(self.config.channels.staff.alert).send(
             embed=log_embed
         )
 
@@ -477,13 +477,13 @@ class Levelling(commands.Cog):
                 "Reason:": reason,
             },
         )
-        await interaction.guild.get_channel(self.config.channels.logging).send(
+        await interaction.guild.get_channel(self.config.channels.log.general).send(
             embed=log_embed
         )
-        await interaction.guild.get_channel(self.config.channels.user_chanes).send(
+        await interaction.guild.get_channel(self.config.channels.log.user_chanes).send(
             embed=log_embed
         )
-        await interaction.guild.get_channel(self.config.channels.alert).send(
+        await interaction.guild.get_channel(self.config.channels.staff.alert).send(
             embed=log_embed
         )
 
@@ -492,7 +492,7 @@ class Levelling(commands.Cog):
         guild = self.bot.get_guild(self.config.guilds.main)
 
         for channel in guild.voice_channels:
-            if channel.id == self.config.channels.afk_voice:
+            if channel.id == self.config.channels.misc.afk_voice:
                 continue
             if len(channel.members) < 2:
                 continue

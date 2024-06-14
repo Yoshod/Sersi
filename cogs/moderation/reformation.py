@@ -63,7 +63,7 @@ class Reformation(commands.Cog):
         if not await permcheck(interaction, is_mod):
             return
 
-        reformation_role = interaction.guild.get_role(self.config.roles.reformation)
+        reformation_role = interaction.guild.get_role(self.config.roles.reform.inmate)
 
         if reformation_role in member.roles:
             await interaction.send(
@@ -96,8 +96,8 @@ class Reformation(commands.Cog):
         await member.remove_roles(
             *parse_roles(
                 interaction.guild,
-                self.config.roles.civil_engineering_initiate,
-                self.config.permission_roles.reformist,
+                self.config.roles.access.basic,
+                self.config.roles.reform.reformist,
             ),
             reason=reason,
         )
@@ -120,10 +120,10 @@ class Reformation(commands.Cog):
             ),
             interaction.guild.me: nextcord.PermissionOverwrite(read_messages=True),
             interaction.guild.get_role(
-                self.config.permission_roles.reformist
+                self.config.roles.reform.reformist
             ): nextcord.PermissionOverwrite(read_messages=True),
             interaction.guild.get_role(
-                self.config.permission_roles.moderator
+                self.config.roles.staff.mod
             ): nextcord.PermissionOverwrite(read_messages=True),
             member: nextcord.PermissionOverwrite(
                 read_messages=True,
@@ -164,8 +164,8 @@ class Reformation(commands.Cog):
             title="Welcome to Reformation",
             description=f"Hello {member.mention}, you have been sent to reformation by {interaction.user.mention}. "
             f"The reason given for this is `{reason}`. \n\nFor more information on reformation "
-            f"check out <#{self.config.channels.reformation_info}> or talk to a <@&"
-            f"{self.config.permission_roles.reformist}>.",
+            f"check out <#{self.config.channels.reform.info}> or talk to a <@&"
+            f"{self.config.roles.reform.reformist}>.",
             color=nextcord.Color.from_rgb(237, 91, 6),
         )
         await case_channel.send(embed=welcome_embed)
@@ -187,16 +187,16 @@ class Reformation(commands.Cog):
 
         embed.add_field(name="Context:", value=message.jump_url, inline=False)
 
-        channel = interaction.guild.get_channel(self.config.channels.logging)
+        channel = interaction.guild.get_channel(self.config.channels.log.general)
         await channel.send(embed=embed)
 
-        channel = interaction.guild.get_channel(self.config.channels.mod_logs)
+        channel = interaction.guild.get_channel(self.config.channels.log.mod)
         await channel.send(embed=embed)
 
-        channel = interaction.guild.get_channel(self.config.channels.teachers_lounge)
+        channel = interaction.guild.get_channel(self.config.channels.reform.teachers_lounge)
         await channel.send(embed=embed)
 
-        channel = interaction.guild.get_channel(self.config.channels.reform_public_log)
+        channel = interaction.guild.get_channel(self.config.channels.reform.public_log)
         await channel.send(embed=embed)
 
     @reformation_needed.on_autocomplete("offence")
@@ -229,7 +229,7 @@ class Reformation(commands.Cog):
         # member have reformation role check
         is_in_reformation = False
         for role in member.roles:
-            if role.id == self.config.roles.reformation:
+            if role.id == self.config.roles.reform.inmate:
                 is_in_reformation = True
         if not is_in_reformation:
             await interaction.send("Member is not in reformation.")
@@ -272,7 +272,7 @@ class Reformation(commands.Cog):
             session.add(vote_details)
             session.commit()
 
-            channel = self.bot.get_channel(self.config.channels.moderation_votes)
+            channel = self.bot.get_channel(self.config.channels.staff.mod_votes)
             message = await channel.send(
                 embed=embedVar, view=VoteView(vote_type, vote_details)
             )
@@ -307,7 +307,7 @@ class Reformation(commands.Cog):
         # member have reformation role check
         is_in_reformation = False
         for role in member.roles:
-            if role.id == self.config.roles.reformation:
+            if role.id == self.config.roles.reform.inmate:
                 is_in_reformation = True
         if not is_in_reformation:
             await interaction.send("Member is not in reformation.")
@@ -351,7 +351,7 @@ class Reformation(commands.Cog):
             session.add(vote_details)
             session.commit()
 
-            channel = self.bot.get_channel(self.config.channels.moderation_votes)
+            channel = self.bot.get_channel(self.config.channels.staff.mod_votes)
             message = await channel.send(
                 embed=embedVar, view=VoteView(vote_type, vote_details)
             )
@@ -386,7 +386,7 @@ class Reformation(commands.Cog):
         # member have reformation role check
         is_in_reformation = False
         for role in member.roles:
-            if role.id == self.config.roles.reformation:
+            if role.id == self.config.roles.reform.inmate:
                 is_in_reformation = True
         if not is_in_reformation:
             await interaction.send("Member is not in reformation.")
@@ -408,14 +408,14 @@ class Reformation(commands.Cog):
 
         # remove reformation role
         await member.remove_roles(
-            *parse_roles(interaction.guild, self.config.roles.reformation),
+            *parse_roles(interaction.guild, self.config.roles.reform.inmate),
             reason=reason,
         )
 
         # add civil engineering initiate role
         await member.add_roles(
             *parse_roles(
-                interaction.guild, self.config.roles.civil_engineering_initiate
+                interaction.guild, self.config.roles.access.basic
             ),
             reason=reason,
         )
@@ -443,17 +443,17 @@ class Reformation(commands.Cog):
             color=nextcord.Color.from_rgb(237, 91, 6),
         )
 
-        channel = interaction.guild.get_channel(self.config.channels.logging)
+        channel = interaction.guild.get_channel(self.config.channels.log.general)
         await channel.send(embed=embed)
 
-        channel = interaction.guild.get_channel(self.config.channels.mod_logs)
+        channel = interaction.guild.get_channel(self.config.channels.log.mod)
         await channel.send(embed=embed)
 
-        channel = interaction.guild.get_channel(self.config.channels.reform_public_log)
+        channel = interaction.guild.get_channel(self.config.channels.reform.public_log)
         await channel.send(embed=embed)
 
         # transcript
-        channel = interaction.guild.get_channel(self.config.channels.teachers_lounge)
+        channel = interaction.guild.get_channel(self.config.channels.reform.teachers_lounge)
 
         transcript = await make_transcript(cell_channel, channel, embed)
         if transcript is None:
@@ -502,7 +502,7 @@ class Reformation(commands.Cog):
 
             # transcript
             channel = interaction.guild.get_channel(
-                self.config.channels.teachers_lounge
+                self.config.channels.reform.teachers_lounge
             )
             cell_channel = interaction.guild.get_channel(case.cell_channel)
 
@@ -552,7 +552,7 @@ class Reformation(commands.Cog):
             )
 
         reformist_role = interaction.guild.get_role(
-            self.config.permission_roles.reformist
+            self.config.roles.reform.reformist
         )
 
         if reformist_role not in member.roles:
@@ -579,12 +579,12 @@ class Reformation(commands.Cog):
             author=interaction.user,
         )
 
-        channel = interaction.guild.get_channel(self.config.channels.logging)
+        channel = interaction.guild.get_channel(self.config.channels.log.general)
         await channel.send(embed=embed)
 
     @commands.Cog.listener()
     async def on_member_remove(self, member: nextcord.Member):
-        reformation_role = member.get_role(self.config.roles.reformation)
+        reformation_role = member.get_role(self.config.roles.reform.inmate)
 
         if reformation_role is not None:
             async for ban_entry in member.guild.bans():
@@ -624,20 +624,20 @@ class Reformation(commands.Cog):
                         title=f"Reformation inmate **{member}** ({member.id}) banned!",
                     )
 
-                    channel = self.bot.get_channel(self.config.channels.mod_logs)
+                    channel = self.bot.get_channel(self.config.channels.log.mod)
                     await channel.send(embed=ban_embed)
 
-                    channel = self.bot.get_channel(self.config.channels.logging)
+                    channel = self.bot.get_channel(self.config.channels.log.general)
                     await channel.send(embed=ban_embed)
 
                     channel = self.bot.get_channel(
-                        self.config.channels.reform_public_log
+                        self.config.channels.reform.public_log
                     )
                     await channel.send(embed=ban_embed)
 
                     # transcript
                     channel = member.guild.get_channel(
-                        self.config.channels.teachers_lounge
+                        self.config.channels.reform.teachers_lounge
                     )
 
                     transcript = await make_transcript(cell_channel, channel, ban_embed)
@@ -657,7 +657,7 @@ class Reformation(commands.Cog):
 
             embed = SersiEmbed(
                 title=f"User **{member}** ({member.id}) has left the server while in the reformation centre!",
-                description=f"User has left the server while having the <@&{self.config.roles.reformation}> role. "
+                description=f"User has left the server while having the <@&{self.config.roles.reform.inmate}> role. "
                 f"They have been banned automatically.",
             )
 
@@ -691,17 +691,17 @@ class Reformation(commands.Cog):
 
                 cell_channel = member.guild.get_channel(case.cell_channel)
 
-            channel = self.bot.get_channel(self.config.channels.logging)
+            channel = self.bot.get_channel(self.config.channels.log.general)
             await channel.send(embed=embed)
 
-            channel = self.bot.get_channel(self.config.channels.mod_logs)
+            channel = self.bot.get_channel(self.config.channels.log.mod)
             await channel.send(embed=embed)
 
-            channel = self.bot.get_channel(self.config.channels.reform_public_log)
+            channel = self.bot.get_channel(self.config.channels.reform.public_log)
             await channel.send(embed=embed)
 
             # transcript
-            channel = member.guild.get_channel(self.config.channels.teachers_lounge)
+            channel = member.guild.get_channel(self.config.channels.reform.teachers_lounge)
 
             transcript = await make_transcript(cell_channel, channel, embed)
             if transcript is None:
@@ -772,17 +772,17 @@ class Reformation(commands.Cog):
             fields=embed_fields,
         )
 
-        channel = self.bot.get_channel(self.config.channels.logging)
+        channel = self.bot.get_channel(self.config.channels.log.general)
         await channel.send(embed=embed)
 
-        channel = self.bot.get_channel(self.config.channels.mod_logs)
+        channel = self.bot.get_channel(self.config.channels.log.mod)
         await channel.send(embed=embed)
 
-        channel = self.bot.get_channel(self.config.channels.reform_public_log)
+        channel = self.bot.get_channel(self.config.channels.reform.public_log)
         await channel.send(embed=embed)
 
         # transcript
-        channel = guild.get_channel(self.config.channels.teachers_lounge)
+        channel = guild.get_channel(self.config.channels.reform.teachers_lounge)
 
         transcript = await make_transcript(cell_channel, channel, embed)
         if transcript is None:
@@ -818,9 +818,9 @@ class Reformation(commands.Cog):
         # roles
         try:
             civil_engineering_initiate = guild.get_role(
-                self.config.roles.civil_engineering_initiate
+                self.config.roles.access.basic
             )
-            reformed = guild.get_role(self.config.roles.reformed)
+            reformed = guild.get_role(self.config.roles.reform.reformed)
 
             await member.add_roles(
                 civil_engineering_initiate,
@@ -832,7 +832,7 @@ class Reformation(commands.Cog):
             pass
             # await interaction.send("Could not assign roles.")
         await member.remove_roles(
-            guild.get_role(self.config.roles.reformation),
+            guild.get_role(self.config.roles.reform.inmate),
             reason="Released out of the Reformation Centre",
             atomic=True,
         )
@@ -846,17 +846,17 @@ class Reformation(commands.Cog):
             f"reformed.\nThis has been approved by:\n• {yes_list}.",
         )
 
-        channel = guild.get_channel(self.config.channels.logging)
+        channel = guild.get_channel(self.config.channels.log.general)
         await channel.send(embed=log_embed)
 
-        channel = guild.get_channel(self.config.channels.mod_logs)
+        channel = guild.get_channel(self.config.channels.log.mod)
         await channel.send(embed=log_embed)
 
-        channel = guild.get_channel(self.config.channels.reform_public_log)
+        channel = guild.get_channel(self.config.channels.reform.public_log)
         await channel.send(embed=log_embed)
 
         # transcript
-        channel = guild.get_channel(self.config.channels.teachers_lounge)
+        channel = guild.get_channel(self.config.channels.reform.teachers_lounge)
 
         transcript = await make_transcript(cell_channel, channel, log_embed)
         if transcript is None:

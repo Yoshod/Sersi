@@ -38,7 +38,7 @@ class GuildChanges(commands.Cog):
             if not log.target.id == emoji.id:
                 return
 
-            await guild.get_channel(self.config.channels.guild_logs).send(
+            await guild.get_channel(self.config.channels.log.guild).send(
                 embed=SersiEmbed(
                     description="Guild emoji was removed",
                     fields={
@@ -54,7 +54,7 @@ class GuildChanges(commands.Cog):
         # adding case:
         elif not before_list:
             emoji: nextcord.Emoji = await guild.fetch_emoji(after_list[0].id)
-            await guild.get_channel(self.config.channels.guild_logs).send(
+            await guild.get_channel(self.config.channels.log.guild).send(
                 embed=SersiEmbed(
                     description="Guild emoji was added",
                     fields={
@@ -82,7 +82,7 @@ class GuildChanges(commands.Cog):
             if not log.target.id == emoji.id:
                 return
 
-            await guild.get_channel(self.config.channels.guild_logs).send(
+            await guild.get_channel(self.config.channels.log.guild).send(
                 embed=SersiEmbed(
                     description="Guild emoji was changed",
                     fields={
@@ -124,7 +124,7 @@ class GuildChanges(commands.Cog):
             if not log.target.id == sticker.id:
                 return
 
-            await guild.get_channel(self.config.channels.guild_logs).send(
+            await guild.get_channel(self.config.channels.log.guild).send(
                 embed=SersiEmbed(
                     description="Guild sticker was removed",
                     fields={
@@ -140,7 +140,7 @@ class GuildChanges(commands.Cog):
         # adding case:
         elif not before_list:
             sticker: nextcord.GuildSticker = await guild.fetch_sticker(after_list[0].id)
-            await guild.get_channel(self.config.channels.guild_logs).send(
+            await guild.get_channel(self.config.channels.log.guild).send(
                 embed=SersiEmbed(
                     description="Guild emoji was added",
                     fields={
@@ -168,7 +168,7 @@ class GuildChanges(commands.Cog):
             if not log.target.id == sticker.id:
                 return
 
-            await guild.get_channel(self.config.channels.guild_logs).send(
+            await guild.get_channel(self.config.channels.log.guild).send(
                 embed=SersiEmbed(
                     description="Guild emoji was changed",
                     fields={
@@ -199,7 +199,7 @@ class GuildChanges(commands.Cog):
         for attribute, value in log.before:
             before_values = f"{before_values}\n{attribute}: {value}"
 
-        await after.get_channel(self.config.channels.guild_logs).send(
+        await after.get_channel(self.config.channels.log.guild).send(
             embed=SersiEmbed(
                 description="Guild was changed",
                 fields={"Before": before_values, "After": after_values},

@@ -6,10 +6,10 @@ from utils.database import Case
 
 def highest_mod_role(moderator: nextcord.Member, config: Configuration):
     role_list: list[int] = [
-        config.permission_roles.dark_moderator,
-        config.permission_roles.senior_moderator,
-        config.permission_roles.moderator,
-        config.permission_roles.trial_moderator,
+        config.roles.staff.admin,
+        config.roles.staff.mod_lead,
+        config.roles.staff.mod,
+        config.roles.staff.trial_mod,
     ]
 
     for role in moderator.roles[::-1]:
@@ -21,10 +21,10 @@ def highest_mod_role(moderator: nextcord.Member, config: Configuration):
 
 def determine_reviewer(moderator: nextcord.Member, config: Configuration):
     review_relations: dict[int:int] = {
-        config.permission_roles.trial_moderator: config.permission_roles.moderator,
-        config.permission_roles.moderator: config.permission_roles.senior_moderator,
-        config.permission_roles.senior_moderator: config.permission_roles.dark_moderator,
-        config.permission_roles.dark_moderator: config.permission_roles.dark_moderator,
+        config.roles.staff.trial_mod: config.roles.staff.mod,
+        config.roles.staff.mod: config.roles.staff.mod_lead,
+        config.roles.staff.mod_lead: config.roles.staff.admin,
+        config.roles.staff.admin: config.roles.staff.admin,
     }
 
     mod_role = highest_mod_role(moderator, config)
@@ -42,47 +42,47 @@ def create_alert(
     reviewer = determine_reviewer(moderator, config)
 
     match reviewer:
-        case config.permission_roles.compliance:
+        case config.roles.staff.compliance:
             review_channel = moderator.guild.get_channel(
-                config.channels.compliance_review
+                config.channels.staff.compliance_review
             )
             reviewer_role = moderator.guild.get_role(reviewer)
             reviewed_role = moderator.guild.get_role(
-                config.permission_roles.dark_moderator
+                config.roles.staff.admin
             )
 
-        case config.permission_roles.dark_moderator:
+        case config.roles.staff.admin:
             review_channel = moderator.guild.get_channel(
-                config.channels.dark_mod_review
+                config.channels.staff.admin_review
             )
 
             reviewer_role = moderator.guild.get_role(reviewer)
 
             mod_role = highest_mod_role(moderator, config)
 
-            if mod_role == config.permission_roles.dark_moderator:
+            if mod_role == config.roles.staff.admin:
                 reviewed_role = moderator.guild.get_role(
-                    config.permission_roles.dark_moderator
+                    config.roles.staff.admin
                 )
             else:
                 reviewed_role = moderator.guild.get_role(
-                    config.permission_roles.senior_moderator
+                    config.roles.staff.mod_lead
                 )
 
-        case config.permission_roles.senior_moderator:
+        case config.roles.staff.mod_lead:
             review_channel = moderator.guild.get_channel(
-                config.channels.senior_mod_review
+                config.channels.staff.mod_lead_review
             )
             reviewer_role = moderator.guild.get_role(reviewer)
-            reviewed_role = moderator.guild.get_role(config.permission_roles.moderator)
+            reviewed_role = moderator.guild.get_role(config.roles.staff.mod)
 
-        case config.permission_roles.moderator:
+        case config.roles.staff.mod:
             review_channel = moderator.guild.get_channel(
-                config.channels.moderator_review
+                config.channels.staff.mod_review
             )
             reviewer_role = moderator.guild.get_role(reviewer)
             reviewed_role = moderator.guild.get_role(
-                config.permission_roles.trial_moderator
+                config.roles.staff.trial_mod
             )
 
     review_embed.title = f"{reviewed_role.name} {case.type} Case"

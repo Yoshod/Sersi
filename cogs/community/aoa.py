@@ -132,7 +132,7 @@ class AdultAccessModal(Modal):
                 footer="Sersi Adult Verification",
             )
             channel = interaction.client.get_channel(
-                self.config.channels.ageverification
+                self.config.channels.staff.age_verification
             )
             await channel.send(embed=young_embed)
             return
@@ -151,7 +151,7 @@ class AdultAccessModal(Modal):
                 footer="Sersi Adult Verification",
             )
             channel = interaction.client.get_channel(
-                self.config.channels.ageverification
+                self.config.channels.staff.age_verification
             )
             await channel.send(embed=refusal_embed)
             return
@@ -169,7 +169,7 @@ class AdultAccessModal(Modal):
 
         button_view = AdultAccessView(user_id=applicant_id)
 
-        channel = interaction.client.get_channel(self.config.channels.ageverification)
+        channel = interaction.client.get_channel(self.config.channels.staff.age_verification)
         await channel.send(embed=application_embed, view=button_view)
 
 
@@ -228,7 +228,7 @@ class AdultAccess(commands.Cog):
             return
 
         await interaction.response.defer(ephemeral=True)
-        adult_access_role = user.guild.get_role(self.config.roles.adult_access)
+        adult_access_role = user.guild.get_role(self.config.roles.access.adult)
         await user.add_roles(
             adult_access_role,
             reason=f"Application Approved, verified by {interaction.user.name}",
@@ -244,7 +244,7 @@ class AdultAccess(commands.Cog):
         )
 
         logging_embed.timestamp = datetime.now(pytz.UTC)
-        logging_channel = interaction.guild.get_channel(self.config.channels.logging)
+        logging_channel = interaction.guild.get_channel(self.config.channels.log.general)
         await logging_channel.send(embed=logging_embed)
 
         accept_embed = nextcord.Embed(
@@ -342,10 +342,10 @@ class AdultAccess(commands.Cog):
             )
 
         adult_access_role: nextcord.Role = member.guild.get_role(
-            self.config.roles.adult_access
+            self.config.roles.access.adult
         )
         adult_verified_role: nextcord.Role = member.guild.get_role(
-            self.config.roles.adult_verified
+            self.config.roles.misc.adult_verified
         )
 
         if adult_access_role not in member.roles:
@@ -378,7 +378,7 @@ class AdultAccess(commands.Cog):
             footer="Sersi Adult Verification",
             author=interaction.user,
         )
-        logging_channel = interaction.guild.get_channel(self.config.channels.logging)
+        logging_channel = interaction.guild.get_channel(self.config.channels.log.general)
         await logging_channel.send(embed=logging_embed)
 
         revoke_embed = nextcord.Embed(
@@ -438,7 +438,7 @@ class AdultAccess(commands.Cog):
             footer="Sersi Adult Verification",
             author=interaction.user,
         )
-        logging_channel = interaction.guild.get_channel(self.config.channels.logging)
+        logging_channel = interaction.guild.get_channel(self.config.channels.log.general)
         await logging_channel.send(embed=logging_embed)
 
         await interaction.followup.send(
@@ -502,8 +502,8 @@ class AdultAccess(commands.Cog):
         )
 
         if age >= 18:
-            adult_access_role = user.guild.get_role(self.config.roles.adult_access)
-            adult_verified_role = user.guild.get_role(self.config.roles.adult_verified)
+            adult_access_role = user.guild.get_role(self.config.roles.access.adult)
+            adult_verified_role = user.guild.get_role(self.config.roles.misc.adult_verified)
             await user.add_roles(
                 adult_access_role,
                 adult_verified_role,
@@ -520,7 +520,7 @@ class AdultAccess(commands.Cog):
             )
             logging_embed.timestamp = datetime.now(pytz.UTC)
             logging_channel = interaction.guild.get_channel(
-                self.config.channels.logging
+                self.config.channels.log.general
             )
             await logging_channel.send(embed=logging_embed)
 
@@ -603,7 +603,7 @@ class AdultAccess(commands.Cog):
                     # if not random check
                     if not verification_required:
                         adult_role = interaction.guild.get_role(
-                            self.config.roles.adult_access
+                            self.config.roles.access.adult
                         )
                         await user.add_roles(
                             adult_role,
@@ -619,7 +619,7 @@ class AdultAccess(commands.Cog):
                         )
                         logging_embed.timestamp = datetime.now(pytz.UTC)
                         logging_channel = interaction.guild.get_channel(
-                            self.config.channels.logging
+                            self.config.channels.log.general
                         )
                         await logging_channel.send(embed=logging_embed)
 

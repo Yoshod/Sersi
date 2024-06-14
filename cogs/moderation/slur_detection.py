@@ -79,7 +79,7 @@ class SlurDetection(commands.Cog):
         self.slur_detector.add_slur(slur)
 
         # logging
-        await self.bot.get_channel(self.config.channels.logging).send(
+        await self.bot.get_channel(self.config.channels.log.general).send(
             embed=SersiEmbed(
                 title="Slur Added",
                 description="A new slur has been added to the filter.",
@@ -135,7 +135,7 @@ class SlurDetection(commands.Cog):
         self.slur_detector.add_goodword(related, word)
 
         # logging
-        await self.bot.get_channel(self.config.channels.logging).send(
+        await self.bot.get_channel(self.config.channels.log.general).send(
             embed=SersiEmbed(
                 title="Goodword Added",
                 description="A new goodword has been added to the whitelist.",
@@ -204,7 +204,7 @@ class SlurDetection(commands.Cog):
                     f"{confirming_moderator.mention} ({confirming_moderator.id})"
                 )
 
-            channel = self.bot.get_channel(self.config.channels.logging)
+            channel = self.bot.get_channel(self.config.channels.log.general)
             embed_var = SersiEmbed(
                 title="Slur Removed",
                 description="A slur has been removed from the filter.",
@@ -260,7 +260,7 @@ class SlurDetection(commands.Cog):
         self.slur_detector.remove_goodword(slur, word)
 
         # logging
-        await self.bot.get_channel(self.config.channels.logging).send(
+        await self.bot.get_channel(self.config.channels.log.general).send(
             embed=SersiEmbed(
                 title="Goodword Removed",
                 description="A goodword has been removed from the filter.",
@@ -401,7 +401,7 @@ class SlurDetection(commands.Cog):
             icon_url=str(message.author.avatar.url),
         )
 
-        alert = await self.bot.get_channel(self.config.channels.alert).send(
+        alert = await self.bot.get_channel(self.config.channels.staff.alert).send(
             embed=embed, view=AlertView(AlertType.Slur, message.author)
         )
 
@@ -436,7 +436,7 @@ class SlurDetection(commands.Cog):
             icon_url=str(after.avatar.url),
         )
 
-        alert = await self.bot.get_channel(self.config.channels.alert).send(
+        alert = await self.bot.get_channel(self.config.channels.staff.alert).send(
             embed=embed, view=AlertView(AlertType.Slur, after)
         )
 
@@ -471,7 +471,7 @@ class SlurDetection(commands.Cog):
             icon_url=str(after.avatar.url),
         )
 
-        alert = await self.bot.get_channel(self.config.channels.alert).send(
+        alert = await self.bot.get_channel(self.config.channels.staff.alert).send(
             embed=embed, view=AlertView(AlertType.Slur, after.id)
         )
 
@@ -506,7 +506,7 @@ class SlurDetection(commands.Cog):
             icon_url=str(after.avatar.url),
         )
 
-        alert = await self.bot.get_channel(self.config.channels.alert).send(
+        alert = await self.bot.get_channel(self.config.channels.staff.alert).send(
             embed=embed, view=AlertView(AlertType.Slur, after)
         )
 

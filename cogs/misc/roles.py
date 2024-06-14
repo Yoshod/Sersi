@@ -400,7 +400,7 @@ class Roles(commands.Cog):
             sticky_roles = session.query(StickyRoles).filter_by(user_id=member.id).all()
 
             if not sticky_roles:
-                newbie_role = member.guild.get_role(self.config.roles.newbie)
+                newbie_role = member.guild.get_role(self.config.roles.access.newbie)
                 await member.add_roles(newbie_role)
                 return
 
@@ -420,7 +420,7 @@ class Roles(commands.Cog):
         if message.guild is None:  # ignores if message is a DM
             return
 
-        newbie_role = message.guild.get_role(self.config.roles.newbie)
+        newbie_role = message.guild.get_role(self.config.roles.access.newbie)
 
         if newbie_role in message.author.roles:
             now = datetime.datetime.now()
@@ -452,7 +452,7 @@ class Roles(commands.Cog):
                     )
                     return
                 reformation_role = interaction.guild.get_role(
-                    self.config.roles.reformation
+                    self.config.roles.reform.inmate
                 )
                 if reformation_role in interaction.user.roles:
                     await interaction.response.send_message(
@@ -462,7 +462,7 @@ class Roles(commands.Cog):
                     return
 
                 reformist_role = interaction.guild.get_role(
-                    self.config.permission_roles.reformist
+                    self.config.roles.reform.reformist
                 )
                 await interaction.user.add_roles(
                     reformist_role,
@@ -475,7 +475,7 @@ class Roles(commands.Cog):
 
             case "roles-reformist_opt_out":
                 reformist_role = interaction.guild.get_role(
-                    self.config.permission_roles.reformist
+                    self.config.roles.reform.reformist
                 )
                 await interaction.user.remove_roles(
                     reformist_role,
