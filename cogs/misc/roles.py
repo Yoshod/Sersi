@@ -838,32 +838,33 @@ class Roles(commands.Cog):
             return
 
         forbidden_permissions = [
-            nextcord.Permissions.administrator,
-            nextcord.Permissions.manage_guild,
-            nextcord.Permissions.manage_roles,
-            nextcord.Permissions.manage_channels,
-            nextcord.Permissions.manage_messages,
-            nextcord.Permissions.manage_webhooks,
-            nextcord.Permissions.manage_emojis,
-            nextcord.Permissions.manage_nicknames,
-            nextcord.Permissions.manage_threads,
-            nextcord.Permissions.moderate_members,
-            nextcord.Permissions.ban_members,
-            nextcord.Permissions.kick_members,
-            nextcord.Permissions.view_audit_log,
-            nextcord.Permissions.view_guild_insights,
-            nextcord.Permissions.send_tts_messages,
-            nextcord.Permissions.priority_speaker,
-            nextcord.Permissions.create_private_threads,
-            nextcord.Permissions.create_instant_invite,
-            nextcord.Permissions.create_public_threads,
-            nextcord.Permissions.move_members,
-            nextcord.Permissions.mute_members,
-            nextcord.Permissions.deafen_members,
+            "administrator",
+            "manage_guild",
+            "manage_roles",
+            "manage_channels",
+            "manage_messages",
+            "manage_webhooks",
+            "manage_emojis",
+            "manage_nicknames",
+            "manage_threads",
+            "moderate_members",
+            "ban_members",
+            "kick_members",
+            "view_audit_log",
+            "view_guild_insights",
+            "send_tts_messages",
+            "priority_speaker",
+            "create_private_threads",
+            "create_instant_invite",
+            "create_public_threads",
+            "move_members",
+            "mute_members",
+            "deafen_members",
         ]
 
         has_permissions = any(
-            permission in role.permissions for permission in forbidden_permissions
+            getattr(role.permissions, permission)
+            for permission in forbidden_permissions
         )
 
         if has_permissions:
