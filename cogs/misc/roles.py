@@ -612,10 +612,7 @@ class Roles(commands.Cog):
         self,
         interaction: nextcord.Interaction,
         member: nextcord.Member,
-        role: str = nextcord.SlashOption(
-            description="The role to give to the user",
-            required=True,
-        ),
+        role: nextcord.Role,
         duration: int = nextcord.SlashOption(
             name="duration",
             description="The length of time the user should receive the role",
@@ -647,29 +644,12 @@ class Roles(commands.Cog):
 
         with db_session() as session:
             role_exists = (
-                session.query(TemporaryRoles).filter_by(role_name=role).first()
+                session.query(TemporaryRoles).filter_by(role_id=role.id).first()
             )
 
         if not role_exists:
             await interaction.followup.send(
-                f"{self.config.emotes.fail} The role you have provided does not exist or could not be found.",
-                ephemeral=True,
-            )
-            return
-
-        try:
-            role = interaction.guild.get_role(role_exists.role_id)
-
-        except AttributeError:
-            await interaction.followup.send(
-                f"{self.config.emotes.fail} The role you have provided does not exist or could not be found.",
-                ephemeral=True,
-            )
-            return
-
-        if role is None:
-            await interaction.followup.send(
-                f"{self.config.emotes.fail} The role you have provided does not exist or could not be found.",
+                f"{self.config.emotes.fail} The role you have provided is not a temporary role.",
                 ephemeral=True,
             )
             return
@@ -700,8 +680,6 @@ class Roles(commands.Cog):
             return
 
         role_expiration = datetime.datetime.now() + role_expiration
-
-        role: nextcord.Role = interaction.guild.get_role(role_exists.role_id)
 
         with db_session() as session:
             issued_role = IssuedTemporaryRoles(
@@ -773,16 +751,6 @@ class Roles(commands.Cog):
             f"{self.config.emotes.success} The role has been removed from the user.",
             ephemeral=True,
         )
-
-    @remove_temporary_role.on_autocomplete("role")
-    async def role_remove_autocomplete(interaction: nextcord.Interaction):
-        if not await permcheck(interaction, is_staff):
-            return
-
-        with db_session() as session:
-            roles = session.query(TemporaryRoles).all()
-
-        return [interaction.guild.get_role(role.role_id) for role in roles]
 
     @tasks.loop(minutes=1)
     async def temporary_role_removal(self):
