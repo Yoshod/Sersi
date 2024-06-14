@@ -17,13 +17,16 @@ class Roles(commands.Cog):
 
         if self.bot.is_ready():
             self.sticky_roles_cleanup.start()
+            self.temporary_role_removal.start()
 
     def cog_unload(self):
         self.sticky_roles_cleanup.cancel()
+        self.temporary_role_removal.cancel()
 
     @commands.Cog.listener()
     async def on_ready(self):
         self.sticky_roles_cleanup.start()
+        self.temporary_role_removal.start()
 
     @commands.command()
     async def reformist_opt_in(self, ctx: commands.Context):
@@ -780,6 +783,29 @@ class Roles(commands.Cog):
             roles = session.query(TemporaryRoles).all()
 
         return [interaction.guild.get_role(role.role_id) for role in roles]
+
+    @tasks.loop(minutes=1)
+    async def temporary_role_removal(self):
+        with db_session() as session:
+            roles = session.query(IssuedTemporaryRoles).all()
+
+        for role in roles:
+            if role.expiry_date > datetime.datetime.now():
+                continue
+
+            member = self.bot.get_guild(self.config.guilds.main).get_member(
+                role.user_id
+            )
+            role = self.bot.get_guild(self.config.guilds.main).get_role(role.role_id)
+
+            if member is None or role is None:
+                continue
+
+            try:
+                await member.remove_roles(role, reason="Temporary role expired")
+
+            except nextcord.HTTPException:
+                pass
 
 
 def setup(bot: commands.Bot, **kwargs):
