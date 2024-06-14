@@ -775,6 +775,10 @@ class Roles(commands.Cog):
             except nextcord.HTTPException:
                 pass
 
+            with db_session() as session:
+                session.delete(role)
+                session.commit()
+
     @roles.subcommand(
         name="create_temporary_role",
         description="Create a temporary role",
