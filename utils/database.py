@@ -975,5 +975,45 @@ class StickyRoles(_Base):
     leave_date = Column(DateTime, default=date.today())
 
 
+class TemporaryRoles(_Base):
+    """
+    Represents a temporary role in the database.
+
+    Attributes:
+        role_id (int): The ID of the role.
+        role_name (str): The name of the role.
+        role_description (str): The description of the role.
+    """
+
+    __tablename__ = "temporary_roles"
+
+    role_id = Column(Integer, primary_key=True)
+    role_name = Column(String, nullable=False)
+    role_description = Column(String, nullable=False)
+
+
+class IssuedTemporaryRoles(_Base):
+    """
+    Represents a temporary role in the database.
+
+    Attributes:
+        role_id (int): The ID of the role.
+        user_id (int): The ID of the user who has the role.
+        expiry_date (datetime): The datetime when the role expires.
+        added_by (int): The ID of the user who added the role.
+        reason (str): The reason for adding the role.
+        issued_date (datetime): The datetime when the role was issued.
+    """
+
+    __tablename__ = "issued_temporary_roles"
+
+    role_id = Column(Integer, ForeignKey("temporary_roles.role_id"), primary_key=True)
+    user_id = Column(Integer, primary_key=True)
+    expiry_date = Column(DateTime, nullable=False)
+    added_by = Column(Integer, nullable=False)
+    reason = Column(String, nullable=False)
+    issued_date = Column(DateTime, default=date.today())
+
+
 def create_db_tables():
     _Base.metadata.create_all(_engine)

@@ -1,11 +1,12 @@
 from nextcord.ext import commands, tasks
+from utils.base import convert_to_timedelta
 from utils.config import Configuration
 import datetime
 import pytz
 from utils.perms import is_staff, permcheck, is_admin, is_level, blacklist_check
 from utils.sersi_embed import SersiEmbed
 from nextcord.ui import View, Select, Button
-from utils.database import db_session, StickyRoles
+from utils.database import db_session, StickyRoles, TemporaryRoles, IssuedTemporaryRoles
 import nextcord
 
 
@@ -590,6 +591,195 @@ class Roles(commands.Cog):
             session.query(StickyRoles).filter(
                 StickyRoles.leave_date >= twenty_eight_days_ago
             ).delete()
+
+    @nextcord.slash_command(
+        name="roles",
+        description="Role commands",
+        dm_permission=False,
+        guild_ids=[1166770860787515422, 977377117895536640, 856262303795380224],
+    )
+    async def roles(self, interaction: nextcord.Interaction):
+        pass
+
+    @roles.subcommand(
+        name="give_temporay_role",
+        description="Give a user a temporary role",
+    )
+    async def give_temporay_role(
+        self,
+        interaction: nextcord.Interaction,
+        member: nextcord.Member,
+        role: str = nextcord.SlashOption(
+            description="The role to give to the user",
+            required=True,
+        ),
+        duration: int = nextcord.SlashOption(
+            name="duration",
+            description="The length of time the user should receive the role",
+            min_value=1,
+            max_value=10080,
+            required=True,
+        ),
+        timespan: str = nextcord.SlashOption(
+            name="timespan",
+            description="The unit of time being used",
+            choices={
+                "Minutes": "m",
+                "Hours": "h",
+                "Days": "d",
+                "Weeks": "w",
+            },
+            required=True,
+        ),
+        reason: str = nextcord.SlashOption(
+            name="reason",
+            description="The reason for giving the role",
+            required=True,
+        ),
+    ):
+        if not await permcheck(interaction, is_staff):
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        with db_session() as session:
+            role_exists = (
+                session.query(TemporaryRoles).filter_by(role_name=role).first()
+            )
+
+        if not role_exists:
+            await interaction.followup.send(
+                f"{self.config.emotes.fail} The role you have provided does not exist or could not be found.",
+                ephemeral=True,
+            )
+            return
+
+        try:
+            role = interaction.guild.get_role(role_exists.role_id)
+
+        except AttributeError:
+            await interaction.followup.send(
+                f"{self.config.emotes.fail} The role you have provided does not exist or could not be found.",
+                ephemeral=True,
+            )
+            return
+
+        if role is None:
+            await interaction.followup.send(
+                f"{self.config.emotes.fail} The role you have provided does not exist or could not be found.",
+                ephemeral=True,
+            )
+            return
+
+        if role in member.roles:
+            await interaction.followup.send(
+                f"{self.config.emotes.fail} The user already has the role you are trying to assign.",
+                ephemeral=True,
+            )
+            return
+
+        role_expiration: datetime.timedelta = convert_to_timedelta(timespan, duration)
+
+        role_expiration_hours = role_expiration.total_seconds() / 3600
+
+        if role_expiration_hours > 672:
+            await interaction.followup.send(
+                f"{self.config.emotes.fail} The maximum duration for a temporary role is 28 days.",
+                ephemeral=True,
+            )
+            return
+
+        if role_expiration_hours < 0.25:
+            await interaction.followup.send(
+                f"{self.config.emotes.fail} The minimum duration for a temporary role is 15 minutes.",
+                ephemeral=True,
+            )
+            return
+
+        role_expiration = datetime.datetime.now() + role_expiration
+
+        role: nextcord.Role = interaction.guild.get_role(role_exists.role_id)
+
+        with db_session() as session:
+            issued_role = IssuedTemporaryRoles(
+                role_id=role.id,
+                user_id=member.id,
+                expiry_date=role_expiration,
+                added_by=interaction.user.id,
+                reason=reason,
+            )
+            session.add(issued_role)
+            session.commit()
+
+        await member.add_roles(
+            role, reason=f"Temporary role added by {interaction.user.name}"
+        )
+
+        await interaction.followup.send(
+            f"{self.config.emotes.success} The role has been added to the user.",
+            ephemeral=True,
+        )
+
+    @give_temporay_role.on_autocomplete("role")
+    async def role_autocomplete(interaction: nextcord.Interaction):
+        if not await permcheck(interaction, is_staff):
+            return
+
+        with db_session() as session:
+            roles = session.query(TemporaryRoles).all()
+
+        return [role.role_name for role in roles]
+
+    @roles.subcommand(
+        name="remove_temporay_role",
+        description="Remove a user's temporary role",
+    )
+    async def remove_temporay_role(
+        self,
+        interaction: nextcord.Interaction,
+        member: nextcord.Member,
+        role: nextcord.Role,
+    ):
+        if not await permcheck(interaction, is_staff):
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        with db_session() as session:
+            issued_role = (
+                session.query(IssuedTemporaryRoles)
+                .filter_by(user_id=member.id, role_id=role.id)
+                .first()
+            )
+
+            if issued_role is None:
+                await interaction.followup.send(
+                    f"{self.config.emotes.fail} The user does not have the role you are trying to remove or it is not a temporary role.",
+                    ephemeral=True,
+                )
+                return
+
+            session.delete(issued_role)
+            session.commit()
+
+        await member.remove_roles(
+            role, reason=f"Temporary role removed by {interaction.user.name}"
+        )
+
+        await interaction.followup.send(
+            f"{self.config.emotes.success} The role has been removed from the user.",
+            ephemeral=True,
+        )
+
+    @remove_temporay_role.on_autocomplete("role")
+    async def role_remove_autocomplete(interaction: nextcord.Interaction):
+        if not await permcheck(interaction, is_staff):
+            return
+
+        with db_session() as session:
+            roles = session.query(TemporaryRoles).all()
+
+        return [interaction.guild.get_role(role.role_id) for role in roles]
 
 
 def setup(bot: commands.Bot, **kwargs):
