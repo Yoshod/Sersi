@@ -807,6 +807,86 @@ class Roles(commands.Cog):
             except nextcord.HTTPException:
                 pass
 
+    @roles.subcommand(
+        name="create_temporary_role",
+        description="Create a temporary role",
+    )
+    async def create_temporary_role(
+        self,
+        interaction: nextcord.Interaction,
+        role: nextcord.Role,
+        description: str = nextcord.SlashOption(
+            description="The description of the role",
+            required=True,
+        ),
+    ):
+        if not await permcheck(interaction, is_admin):
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        with db_session() as session:
+            role_exists = (
+                session.query(TemporaryRoles).filter_by(role_id=role.id).first()
+            )
+
+        if role_exists:
+            await interaction.followup.send(
+                f"{self.config.emotes.fail} The role you have provided already exists as a temporary role.",
+                ephemeral=True,
+            )
+            return
+
+        forbidden_permissions = [
+            nextcord.Permissions.administrator,
+            nextcord.Permissions.manage_guild,
+            nextcord.Permissions.manage_roles,
+            nextcord.Permissions.manage_channels,
+            nextcord.Permissions.manage_messages,
+            nextcord.Permissions.manage_webhooks,
+            nextcord.Permissions.manage_emojis,
+            nextcord.Permissions.manage_nicknames,
+            nextcord.Permissions.manage_threads,
+            nextcord.Permissions.moderate_members,
+            nextcord.Permissions.ban_members,
+            nextcord.Permissions.kick_members,
+            nextcord.Permissions.view_audit_log,
+            nextcord.Permissions.view_guild_insights,
+            nextcord.Permissions.send_tts_messages,
+            nextcord.Permissions.priority_speaker,
+            nextcord.Permissions.create_private_threads,
+            nextcord.Permissions.create_instant_invite,
+            nextcord.Permissions.create_public_threads,
+            nextcord.Permissions.move_members,
+            nextcord.Permissions.mute_members,
+            nextcord.Permissions.deafen_members,
+        ]
+
+        has_permissions = any(
+            permission in role.permissions for permission in forbidden_permissions
+        )
+
+        if has_permissions:
+            await interaction.followup.send(
+                f"{self.config.emotes.fail} The role you have provided has forbidden permissions.",
+                ephemeral=True,
+            )
+            return
+
+        with db_session() as session:
+            temporary_role = TemporaryRoles(
+                role_id=role.id,
+                role_name=role.name,
+                role_description=description,
+            )
+            session.add(temporary_role)
+            session.commit()
+
+        await interaction.followup.send(
+            f"{self.config.emotes.success} The role has been added as a temporary role.",
+            ephemeral=True,
+        )
+
 
 def setup(bot: commands.Bot, **kwargs):
     bot.add_cog(Roles(bot, kwargs["config"]))
