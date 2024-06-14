@@ -1,10 +1,11 @@
-from nextcord.ext import commands
+from nextcord.ext import commands, tasks
 from utils.config import Configuration
 import datetime
 import pytz
-from utils.perms import permcheck, is_admin, is_level, blacklist_check
+from utils.perms import is_staff, permcheck, is_admin, is_level, blacklist_check
 from utils.sersi_embed import SersiEmbed
 from nextcord.ui import View, Select, Button
+from utils.database import db_session, StickyRoles
 import nextcord
 
 
@@ -12,6 +13,16 @@ class Roles(commands.Cog):
     def __init__(self, bot: commands.Bot, config: Configuration):
         self.bot = bot
         self.config = config
+
+        if self.bot.is_ready():
+            self.sticky_roles_cleanup.start()
+
+    def cog_unload(self):
+        self.sticky_roles_cleanup.cancel()
+
+    @commands.Cog.listener()
+    async def on_ready(self):
+        self.sticky_roles_cleanup.start()
 
     @commands.command()
     async def reformist_opt_in(self, ctx: commands.Context):
@@ -381,8 +392,21 @@ class Roles(commands.Cog):
         if member.bot:  # do not apply newbie role do bots
             return
 
-        newbie_role = member.guild.get_role(self.config.roles.access.newbie)
-        await member.add_roles(newbie_role)
+        with db_session() as session:
+            sticky_roles = session.query(StickyRoles).filter_by(user_id=member.id).all()
+
+            if not sticky_roles:
+                newbie_role = member.guild.get_role(self.config.roles.access.newbie)
+                await member.add_roles(newbie_role)
+                return
+
+            for sticky_role in sticky_roles:
+                role = member.guild.get_role(sticky_role.role_id)
+                if role is not None:
+                    await member.add_roles(role)
+
+            session.query(StickyRoles).filter_by(user_id=member.id).delete()
+            session.commit()
 
     @commands.Cog.listener()
     async def on_message(self, message: nextcord.Message):
@@ -531,6 +555,41 @@ class Roles(commands.Cog):
         #             self.config.opt_in_roles["environment"],
         #             reason="Sersi role self assignment",
         #         )
+
+    @commands.Cog.listener()
+    async def on_member_remove(self, member: nextcord.Member):
+        if member.bot:
+            return
+
+        if await permcheck(member, is_staff):
+            return
+
+        with db_session() as session:
+            counter = 0
+            for role in member.roles:
+                if counter == 0:
+                    counter += 1
+                    continue
+
+                sticky_role = StickyRoles(
+                    role_id=role.id,
+                    user_id=member.id,
+                )
+                session.add(sticky_role)
+
+            session.commit()
+
+    @tasks.loop(hours=24)
+    async def sticky_roles_cleanup(self):
+        twenty_eight_days_ago = datetime.datetime.now() - datetime.timedelta(days=28)
+        twenty_eight_days_ago = twenty_eight_days_ago.replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
+
+        with db_session() as session:
+            session.query(StickyRoles).filter(
+                StickyRoles.leave_date >= twenty_eight_days_ago
+            ).delete()
 
 
 def setup(bot: commands.Bot, **kwargs):

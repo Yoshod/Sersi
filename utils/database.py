@@ -219,10 +219,22 @@ class TimeoutCase(Case):
 
 
 class WarningCase(Case):
+    """
+    Represents a warning case in the database.
+
+    Inherits from the `Case` class and adds additional attributes specific to warning cases.
+
+    Attributes:
+        id (str): The primary key of the warning case.
+        active (bool): Indicates whether the warning case is active or not.
+        details (str): Additional details about the warning case.
+        deactivated_by (int): The user ID of the person who deactivated the warning case.
+        deactivate_reason (str): The reason for deactivating the warning case.
+    """
+
     __tablename__ = "warning_cases"
 
     id = Column(String, ForeignKey("cases.id"), primary_key=True)
-
     active = Column(Boolean, default=True)
     details = Column(String)
     deactivated_by = Column(Integer)
@@ -944,6 +956,23 @@ class OptInRoles(_Base):
     role_emoji = Column(String, nullable=False)
     role_category = Column(String, nullable=False)
     required_level_role = Column(Integer, nullable=False)
+
+
+class StickyRoles(_Base):
+    """
+    Represents a sticky role in the database.
+
+    Attributes:
+        role_id (int): The ID of the role.
+        user_id (int): The ID of the user who has the role.
+        leave_date (datetime): The datetime when the user left the server.
+    """
+
+    __tablename__ = "sticky_roles"
+
+    role_id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, primary_key=True)
+    leave_date = Column(DateTime, default=date.today())
 
 
 def create_db_tables():
