@@ -87,11 +87,9 @@ class Staff(commands.Cog):
     async def on_ready(self):
         self.check_availability.start()
 
-    async def remove_all_permission_roles(self, member: nextcord.Member):
-        for role in vars(self.config.permission_roles):
-            role_object: nextcord.Role = member.guild.get_role(
-                vars(self.config.permission_roles)[role]
-            )
+    async def remove_all_staff_roles(self, member: nextcord.Member):
+        for role in vars(self.config.roles.staff).values():
+            role_object: nextcord.Role = member.guild.get_role(role)
             if role_object is None:
                 continue
             try:
@@ -544,7 +542,7 @@ class Staff(commands.Cog):
         )
         async def execute(*args, confirming_moderator: nextcord.Member, **kwargs):
             # remove staff/permission roles
-            await self.remove_all_permission_roles(member)
+            await self.remove_all_staff_roles(member)
 
             staff_retire(
                 member, RemovalType.REMOVED_BAD_STANDING, interaction.user.id, reason
@@ -623,7 +621,7 @@ class Staff(commands.Cog):
 
         await interaction.response.defer()
 
-        await self.remove_all_permission_roles(member)
+        await self.remove_all_staff_roles(member)
 
         staff_retire(member, RemovalType.RETIRE, interaction.user.id, reason)
 

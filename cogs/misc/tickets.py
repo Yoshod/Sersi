@@ -783,7 +783,7 @@ class TicketingSystem(commands.Cog):
                 case "Moderator" | "Moderation Lead":
                     ping = f"<@&{self.config.roles.staff.mod}>"
                 case "Community Engagement" | "Community Engagement Lead":
-                    ping = f"<@&{self.config.permission_roles.ce}>"
+                    ping = f"<@&{self.config.roles.staff.cet}>"
                 case _:
                     ping = f"<@&{self.config.roles.staff.base}>"
 
