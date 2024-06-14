@@ -80,7 +80,7 @@ class JoinLeave(commands.Cog):
         )
         inviter_text = f"{inviter.mention} `{inviter.id}`" if inviter else "`Unknown`"
 
-        await member.guild.get_channel(self.config.channels.joinleave).send(
+        await member.guild.get_channel(self.config.channels.log.join_leave).send(
             embed=SersiEmbed(
                 description=f"{member.mention} joined",
                 fields={
@@ -111,7 +111,7 @@ class JoinLeave(commands.Cog):
                 else:
                     case_types[case.type] = 1
 
-        await member.guild.get_channel(self.config.channels.alert).send(
+        await member.guild.get_channel(self.config.channels.staff.alert).send(
             embed=SersiEmbed(
                 title="User With Cases/Notes Joined",
                 description=f"{member.mention} ({member.id}) has joined the server with cases and/or notes already on record.",
@@ -137,7 +137,7 @@ class JoinLeave(commands.Cog):
 
         self.invites[member.guild.id] = await member.guild.invites()
 
-        await member.guild.get_channel(self.config.channels.joinleave).send(
+        await member.guild.get_channel(self.config.channels.log.join_leave).send(
             embed=SersiEmbed(
                 description=f"{member.mention} left",
                 fields={
@@ -165,7 +165,7 @@ class JoinLeave(commands.Cog):
                         continue
 
                     else:
-                        await member.guild.get_channel(self.config.channels.alert).send(
+                        await member.guild.get_channel(self.config.channels.staff.alert).send(
                             embed=SersiEmbed(
                                 title="Timed Out User Left",
                                 description=f"{member.mention} ({member.id}) has left the server while still being timed out. The timeout was set to end at {format_dt(case.planned_end, 'F')}. The time remaining was {format_dt(case.planned_end, 'R')}",
@@ -196,7 +196,7 @@ class JoinLeave(commands.Cog):
                 if not vote_details:
                     continue
 
-                await member.guild.get_channel(self.config.channels.alert).send(
+                await member.guild.get_channel(self.config.channels.staff.alert).send(
                     embed=SersiEmbed(
                         title="Urgent Ban User Left",
                         description=f"{member.mention} ({member.id}) has left the server while a ban vote was ongoing. The ban vote can be found here: {vote_details.vote_url}). The ban vote will still be processed and if accepted the user will still be banned.",

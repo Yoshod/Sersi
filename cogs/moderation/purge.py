@@ -60,7 +60,7 @@ class Purge(commands.Cog):
                 name="User Targeted:", value=f"{member.mention} ({member.id})"
             )
 
-        await interaction.guild.get_channel(self.config.channels.mod_logs).send(
+        await interaction.guild.get_channel(self.config.channels.log.mod).send(
             embed=logging,
             file=nextcord.File(
                 io.BytesIO(
@@ -126,7 +126,7 @@ class Purge(commands.Cog):
                 name="User Targeted:", value=f"{member.mention} ({member.id})"
             )
 
-        await interaction.guild.get_channel(self.config.channels.mod_logs).send(
+        await interaction.guild.get_channel(self.config.channels.log.mod).send(
             embed=logging,
             file=nextcord.File(
                 io.BytesIO(
@@ -161,7 +161,7 @@ class Purge(commands.Cog):
             after=message
         )
 
-        await interaction.guild.get_channel(self.config.channels.mod_logs).send(
+        await interaction.guild.get_channel(self.config.channels.log.mod).send(
             embed=SersiEmbed(
                 title="Messages Purged",
                 fields={

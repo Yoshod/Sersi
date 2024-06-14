@@ -67,7 +67,7 @@ async def determine_embed_type(
     match embed_type:
         case "moderator":
             role: nextcord.Role = interaction.guild.get_role(
-                config.permission_roles.moderator
+                config.roles.staff.mod
             )
 
             announcement_embed.colour = role.colour
@@ -80,7 +80,7 @@ async def determine_embed_type(
 
         case "admin":
             role: nextcord.Role = interaction.guild.get_role(
-                config.permission_roles.dark_moderator
+                config.roles.staff.admin
             )
 
             announcement_embed.colour = role.colour
@@ -93,7 +93,7 @@ async def determine_embed_type(
 
         case "cet":
             role: nextcord.Role = interaction.guild.get_role(
-                config.permission_roles.cet
+                config.roles.staff.cet
             )
 
             announcement_embed.colour = role.colour

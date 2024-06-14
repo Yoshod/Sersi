@@ -50,7 +50,7 @@ class Punish(commands.Cog):
             f"Uh-oh, {member.mention} posted cringe and has been given the role {role.mention} as punishment."
         )
 
-        await member.guild.get_channel(self.config.channels.logging).send(
+        await member.guild.get_channel(self.config.channels.log.general).send(
             embed=SersiEmbed(title="Member Punished")
         )
 

@@ -61,8 +61,8 @@ class WarningSystem(commands.Cog):
                 f"{offender.mention} ({offender.id}) despite being outranked!",
             )
 
-            await interaction.guild.get_channel(self.config.channels.logging).send(
-                content=f"**ALERT:** {interaction.guild.get_role(self.config.permission_roles.dark_moderator).mention}",
+            await interaction.guild.get_channel(self.config.channels.log.general).send(
+                content=f"**ALERT:** {interaction.guild.get_role(self.config.roles.staff.admin).mention}",
                 embed=warning_alert,
             )
 
@@ -114,10 +114,10 @@ class WarningSystem(commands.Cog):
 
         logging_embed: SersiEmbed = create_case_embed(case, interaction, self.config)
 
-        await interaction.guild.get_channel(self.config.channels.mod_logs).send(
+        await interaction.guild.get_channel(self.config.channels.log.mod).send(
             embed=logging_embed
         )
-        await interaction.guild.get_channel(self.config.channels.logging).send(
+        await interaction.guild.get_channel(self.config.channels.log.general).send(
             embed=logging_embed
         )
 
@@ -217,10 +217,10 @@ class WarningSystem(commands.Cog):
         except nextcord.HTTPException:
             pass
 
-        await interaction.guild.get_channel(self.config.channels.mod_logs).send(
+        await interaction.guild.get_channel(self.config.channels.log.mod).send(
             embed=logging_embed
         )
-        await interaction.guild.get_channel(self.config.channels.logging).send(
+        await interaction.guild.get_channel(self.config.channels.log.general).send(
             embed=logging_embed
         )
 
@@ -263,7 +263,7 @@ class WarningSystem(commands.Cog):
                 session.delete(case)
                 session.commit()
 
-                await interaction.guild.get_channel(self.config.channels.logging).send(
+                await interaction.guild.get_channel(self.config.channels.log.general).send(
                     embed=SersiEmbed(
                         title="Warning Deleted",
                     )

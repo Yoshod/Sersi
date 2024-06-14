@@ -97,7 +97,7 @@ class Caps(commands.Cog):
             wait=True,
         )
 
-        await self.bot.get_channel(self.config.channels.logging).send(
+        await self.bot.get_channel(self.config.channels.log.general).send(
             embed=SersiEmbed(
                 title="Caps Lock Message replaced",
                 description="",
