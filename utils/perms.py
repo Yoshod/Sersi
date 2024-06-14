@@ -82,87 +82,87 @@ async def permcheck(
 def is_staff(member: nextcord.Member) -> bool:
     return is_allowed(
         member,
-        config.permission_roles.staff,
-        config.permission_roles.trial_moderator,
-        config.permission_roles.moderator,
-        config.permission_roles.senior_moderator,
-        config.permission_roles.cet,
-        config.permission_roles.cet_lead,
-        config.permission_roles.dark_moderator,
+        config.roles.staff.base,
+        config.roles.staff.trial_mod,
+        config.roles.staff.mod,
+        config.roles.staff.mod_lead,
+        config.roles.staff.cet,
+        config.roles.staff.cet_lead,
+        config.roles.staff.admin,
     )
 
 
 def is_mod(member: nextcord.Member) -> bool:
     return is_allowed(
         member,
-        config.permission_roles.moderator,
-        config.permission_roles.trial_moderator,
+        config.roles.staff.mod,
+        config.roles.staff.trial_mod,
     )
 
 
 def is_trial_mod(member: nextcord.Member) -> bool:
-    return is_allowed(member, config.permission_roles.trial_moderator)
+    return is_allowed(member, config.roles.staff.trial_mod)
 
 
 def is_full_mod(member: nextcord.Member) -> bool:
-    return is_allowed(member, config.permission_roles.moderator)
+    return is_allowed(member, config.roles.staff.mod)
 
 
 def is_compliance(member: nextcord.Member) -> bool:
-    return is_allowed(member, config.permission_roles.compliance)
+    return is_allowed(member, config.roles.staff.compliance)
 
 
 def is_reporter(member: nextcord.Member) -> bool:
     return is_allowed(
         member,
-        config.permission_roles.sersi_contributor,
-        config.permission_roles.senior_moderator,
-        config.permission_roles.compliance,
-        config.permission_roles.dark_moderator,
+        config.roles.staff.sersi_contributor,
+        config.roles.staff.mod_lead,
+        config.roles.staff.compliance,
+        config.roles.staff.admin,
     )
 
 
 def is_admin(member: nextcord.Member) -> bool:
-    return is_allowed(member, config.permission_roles.dark_moderator)
+    return is_allowed(member, config.roles.staff.admin)
 
 
 def is_mod_lead(member: nextcord.Member) -> bool:
     return is_allowed(
         member,
-        config.permission_roles.senior_moderator,
-        config.permission_roles.dark_moderator,
+        config.roles.staff.mod_lead,
+        config.roles.staff.admin,
     )
 
 
 def is_cet_lead(member: nextcord.Member) -> bool:
-    return is_allowed(member, config.permission_roles.cet_lead)
+    return is_allowed(member, config.roles.staff.cet_lead)
 
 
 def is_slt(member: nextcord.Member) -> bool:
     return is_allowed(
         member,
-        config.permission_roles.cet_lead,
-        config.permission_roles.senior_moderator,
-        config.permission_roles.compliance,
-        config.permission_roles.dark_moderator,
+        config.roles.staff.cet_lead,
+        config.roles.staff.mod_lead,
+        config.roles.staff.compliance,
+        config.roles.staff.admin,
     )
 
 
 def is_sersi_contributor(member: nextcord.Member) -> bool:
-    return is_allowed(member, config.permission_roles.sersi_contributor)
+    return is_allowed(member, config.roles.staff.sersi_contributor)
 
 
 def is_manager(member: nextcord.Member) -> bool:
     return is_allowed(
         member,
-        config.permission_roles.sersi_contributor,
-        config.permission_roles.dark_moderator,
+        config.roles.staff.sersi_contributor,
+        config.roles.staff.admin,
     )
 
 
 def is_cet(member: nextcord.Member) -> bool:
     return is_allowed(
-        member, config.permission_roles.cet, config.permission_roles.cet_lead
+        member, config.roles.staff.cet, config.roles.staff.cet_lead
     )
 
 
@@ -176,21 +176,21 @@ is_senior_mod: callable = is_mod_lead
 
 
 def is_immune(member: nextcord.Member) -> bool:
-    return is_allowed(member, config.permission_roles.dark_moderator)
+    return is_allowed(member, config.roles.staff.admin)
 
 
 def target_eligibility(actor: nextcord.Member, target: nextcord.Member) -> bool:
     hierarchy: dict[int:int] = {
-        config.permission_roles.dark_moderator: 10,
-        config.permission_roles.cet_lead: 3,
-        config.permission_roles.senior_moderator: 3,
-        config.permission_roles.moderator: 2,
-        config.permission_roles.cet: 2,
-        config.permission_roles.trial_moderator: 2,
+        config.roles.staff.admin: 10,
+        config.roles.staff.cet_lead: 3,
+        config.roles.staff.mod_lead: 3,
+        config.roles.staff.mod: 2,
+        config.roles.staff.cet: 2,
+        config.roles.staff.trial_mod: 2,
     }
 
     if config.bot.dev_mode:
-        hierarchy[config.permission_roles.sersi_contributor] = 42
+        hierarchy[config.roles.staff.sersi_contributor] = 42
 
     actor_rank = 0
     target_rank = 0
@@ -208,10 +208,10 @@ def target_eligibility(actor: nextcord.Member, target: nextcord.Member) -> bool:
 
 def unban_eligibility(actor: nextcord.Member, target: nextcord.Member) -> bool:
     hierarchy: dict[int:int] = {
-        config.permission_roles.dark_moderator: 10,
-        config.permission_roles.senior_moderator: 3,
-        config.permission_roles.moderator: 2,
-        config.permission_roles.trial_moderator: 2,
+        config.roles.staff.admin: 10,
+        config.roles.staff.mod_lead: 3,
+        config.roles.staff.mod: 2,
+        config.roles.staff.trial_mod: 2,
     }
 
     actor_rank = 0

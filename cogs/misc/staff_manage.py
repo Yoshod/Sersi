@@ -163,10 +163,10 @@ class Staff(commands.Cog):
             return
 
         trial_moderator: nextcord.Role = interaction.guild.get_role(
-            self.config.permission_roles.trial_moderator
+            self.config.roles.staff.trial_mod
         )
         staff: nextcord.Role = interaction.guild.get_role(
-            self.config.permission_roles.staff
+            self.config.roles.staff.base
         )
         await member.add_roles(trial_moderator, reason="Sersi command", atomic=True)
         await member.add_roles(staff, reason="Sersi command", atomic=True)
@@ -214,10 +214,10 @@ class Staff(commands.Cog):
             return
 
         trial_moderator: nextcord.Role = interaction.guild.get_role(
-            self.config.permission_roles.trial_moderator
+            self.config.roles.staff.trial_mod
         )
         moderator: nextcord.Role = interaction.guild.get_role(
-            self.config.permission_roles.moderator
+            self.config.roles.staff.mod
         )
 
         if trial_moderator not in member.roles:
@@ -268,13 +268,13 @@ class Staff(commands.Cog):
             return
 
         honourable_member: nextcord.Role = interaction.guild.get_role(
-            self.config.roles.honourable_member
+            self.config.roles.staff.honourable_member
         )
         moderator: nextcord.Role = interaction.guild.get_role(
-            self.config.permission_roles.moderator
+            self.config.roles.staff.mod
         )
         staff: nextcord.Role = interaction.guild.get_role(
-            self.config.permission_roles.staff
+            self.config.roles.staff.base
         )
 
         if honourable_member not in member.roles:
@@ -327,10 +327,10 @@ class Staff(commands.Cog):
             return
 
         cet: nextcord.Role = interaction.guild.get_role(
-            self.config.permission_roles.cet
+            self.config.roles.staff.cet
         )
         staff: nextcord.Role = interaction.guild.get_role(
-            self.config.permission_roles.staff
+            self.config.roles.staff.base
         )
         await member.add_roles(cet, reason="Sersi command", atomic=True)
         await member.add_roles(staff, reason="Sersi command", atomic=True)
@@ -417,13 +417,13 @@ class Staff(commands.Cog):
         match transfer_type:
             case "mod_to_cet":
                 await member.add_roles(
-                    interaction.guild.get_role(self.config.permission_roles.cet)
+                    interaction.guild.get_role(self.config.roles.staff.cet)
                 )
 
                 try:
                     await member.remove_roles(
                         interaction.guild.get_role(
-                            self.config.permission_roles.moderator
+                            self.config.roles.staff.mod
                         )
                     )
                 except (nextcord.Forbidden, nextcord.HTTPException, AttributeError):
@@ -432,7 +432,7 @@ class Staff(commands.Cog):
                 try:  # remove trial mod role
                     await member.remove_roles(
                         interaction.guild.get_role(
-                            self.config.permission_roles.trial_moderator
+                            self.config.roles.staff.trial_mod
                         )
                     )
 
@@ -442,7 +442,7 @@ class Staff(commands.Cog):
                 try:  # remove moderation lead role
                     await member.remove_roles(
                         interaction.guild.get_role(
-                            self.config.permission_roles.senior_moderator
+                            self.config.roles.staff.mod_lead
                         )
                     )
 
@@ -451,12 +451,12 @@ class Staff(commands.Cog):
 
             case "cet_to_mod":
                 await member.add_roles(
-                    interaction.guild.get_role(self.config.permission_roles.moderator)
+                    interaction.guild.get_role(self.config.roles.staff.mod)
                 )
 
                 try:
                     await member.remove_roles(
-                        interaction.guild.get_role(self.config.permission_roles.cet)
+                        interaction.guild.get_role(self.config.roles.staff.cet)
                     )
                 except (nextcord.Forbidden, nextcord.HTTPException, AttributeError):
                     pass
@@ -464,7 +464,7 @@ class Staff(commands.Cog):
                 try:  # remove cet lead role
                     await member.remove_roles(
                         interaction.guild.get_role(
-                            self.config.permission_roles.cet_lead
+                            self.config.roles.staff.cet_lead
                         )
                     )
 
@@ -629,7 +629,7 @@ class Staff(commands.Cog):
 
         try:
             await member.add_roles(
-                interaction.guild.get_role(self.config.roles.honourable_member)
+                interaction.guild.get_role(self.config.roles.staff.honourable_member)
             )
         except (nextcord.Forbidden, nextcord.HTTPException, AttributeError):
             pass
@@ -759,7 +759,7 @@ class Staff(commands.Cog):
             return
 
         honourable_member: nextcord.Role = interaction.guild.get_role(
-            self.config.roles.honourable_member
+            self.config.roles.staff.honourable_member
         )
 
         if honourable_member not in member.roles:
@@ -943,13 +943,13 @@ class Staff(commands.Cog):
         role: str = SlashOption(
             description="Role the member had",
             choices={
-                "Administrator": str(CONFIG.permission_roles.dark_moderator),
-                "Compliance Officer": str(CONFIG.permission_roles.compliance),
-                "Moderation Lead": str(CONFIG.permission_roles.senior_moderator),
-                "Moderator": str(CONFIG.permission_roles.moderator),
-                "Trial Moderator": str(CONFIG.permission_roles.trial_moderator),
-                "CET Lead": str(CONFIG.permission_roles.cet_lead),
-                "CET": str(CONFIG.permission_roles.cet),
+                "Administrator": str(CONFIG.roles.staff.admin),
+                "Compliance Officer": str(CONFIG.roles.staff.compliance),
+                "Moderation Lead": str(CONFIG.roles.staff.mod_lead),
+                "Moderator": str(CONFIG.roles.staff.mod),
+                "Trial Moderator": str(CONFIG.roles.staff.trial_mod),
+                "CET Lead": str(CONFIG.roles.staff.cet_lead),
+                "CET": str(CONFIG.roles.staff.cet),
             },
         ),
         added_by: nextcord.Member = SlashOption(
@@ -1805,7 +1805,7 @@ class Staff(commands.Cog):
             ]
 
             member = guild.get_member(case.offender)
-        honourable_member = guild.get_role(self.config.roles.honourable_member)
+        honourable_member = guild.get_role(self.config.roles.staff.honourable_member)
 
         await member.remove_roles(
             honourable_member, reason="Honoured member removal vote", atomic=True
@@ -1969,7 +1969,7 @@ class Staff(commands.Cog):
 
     @commands.Cog.listener()
     async def on_role_add(self, member: nextcord.Member, role: nextcord.Role):
-        if role.id != self.config.roles.available_mod:
+        if role.id != self.config.roles.staff.available_mod:
             return
 
         logging_embed = SersiEmbed(
@@ -1984,7 +1984,7 @@ class Staff(commands.Cog):
 
     @commands.Cog.listener()
     async def on_role_remove(self, member: nextcord.Member, role: nextcord.Role):
-        if role.id != self.config.roles.available_mod:
+        if role.id != self.config.roles.staff.available_mod:
             return
 
         logging_embed = SersiEmbed(

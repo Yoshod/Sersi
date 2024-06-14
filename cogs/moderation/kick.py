@@ -64,7 +64,7 @@ class KickSystem(commands.Cog):
             )
 
             mega_admin_role = interaction.guild.get_role(
-                self.config.permission_roles.dark_moderator
+                self.config.roles.staff.admin
             )
 
             await logging_channel.send(

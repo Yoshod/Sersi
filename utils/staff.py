@@ -61,13 +61,13 @@ class Branch(enum.Enum):
 class StaffRole(enum.Enum):
     """Staff Role IDs"""
 
-    ADMIN = CONFIG.permission_roles.dark_moderator
-    COMPLIANCE = CONFIG.permission_roles.compliance
-    HEAD_MOD = CONFIG.permission_roles.senior_moderator
-    MOD = CONFIG.permission_roles.moderator
-    TRIAL_MOD = CONFIG.permission_roles.trial_moderator
-    CET_LEAD = CONFIG.permission_roles.cet_lead
-    CET = CONFIG.permission_roles.cet
+    ADMIN = CONFIG.roles.staff.admin
+    COMPLIANCE = CONFIG.roles.staff.compliance
+    HEAD_MOD = CONFIG.roles.staff.mod_lead
+    MOD = CONFIG.roles.staff.mod
+    TRIAL_MOD = CONFIG.roles.staff.trial_mod
+    CET_LEAD = CONFIG.roles.staff.cet_lead
+    CET = CONFIG.roles.staff.cet
 
 
 class StaffRoleName(enum.Enum):
@@ -618,10 +618,10 @@ async def set_availability_status(
     guild = member.guild
 
     if set_as_available:
-        await member.add_roles(guild.get_role(CONFIG.roles.available_mod))
+        await member.add_roles(guild.get_role(CONFIG.roles.staff.available_mod))
 
     else:
-        await member.remove_roles(guild.get_role(CONFIG.roles.available_mod))
+        await member.remove_roles(guild.get_role(CONFIG.roles.staff.available_mod))
 
 
 def check_staff_availability(staff_member: int | nextcord.Member):
@@ -677,7 +677,7 @@ def check_staff_availability(staff_member: int | nextcord.Member):
 
 def is_available(member: nextcord.Member):
     """Checks if a staff member has the availability role."""
-    return CONFIG.roles.available_mod in member._roles
+    return CONFIG.roles.staff.available_mod in member._roles
 
 
 def get_available_mods(guild: nextcord.Guild):
@@ -703,7 +703,7 @@ def get_available_mods(guild: nextcord.Guild):
             if not member:
                 continue
 
-            if guild.get_role(CONFIG.roles.available_mod) in member.roles:
+            if guild.get_role(CONFIG.roles.staff.available_mod) in member.roles:
                 available_mods.append(member)
 
     return available_mods

@@ -228,7 +228,7 @@ class AdultAccess(commands.Cog):
             return
 
         await interaction.response.defer(ephemeral=True)
-        adult_access_role = user.guild.get_role(self.config.roles.adult_access)
+        adult_access_role = user.guild.get_role(self.config.roles.access.adult)
         await user.add_roles(
             adult_access_role,
             reason=f"Application Approved, verified by {interaction.user.name}",
@@ -342,10 +342,10 @@ class AdultAccess(commands.Cog):
             )
 
         adult_access_role: nextcord.Role = member.guild.get_role(
-            self.config.roles.adult_access
+            self.config.roles.access.adult
         )
         adult_verified_role: nextcord.Role = member.guild.get_role(
-            self.config.roles.adult_verified
+            self.config.roles.misc.adult_verified
         )
 
         if adult_access_role not in member.roles:
@@ -502,8 +502,8 @@ class AdultAccess(commands.Cog):
         )
 
         if age >= 18:
-            adult_access_role = user.guild.get_role(self.config.roles.adult_access)
-            adult_verified_role = user.guild.get_role(self.config.roles.adult_verified)
+            adult_access_role = user.guild.get_role(self.config.roles.access.adult)
+            adult_verified_role = user.guild.get_role(self.config.roles.misc.adult_verified)
             await user.add_roles(
                 adult_access_role,
                 adult_verified_role,
@@ -603,7 +603,7 @@ class AdultAccess(commands.Cog):
                     # if not random check
                     if not verification_required:
                         adult_role = interaction.guild.get_role(
-                            self.config.roles.adult_access
+                            self.config.roles.access.adult
                         )
                         await user.add_roles(
                             adult_role,

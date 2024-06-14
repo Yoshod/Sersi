@@ -160,7 +160,7 @@ class BanSystem(commands.Cog):
                 )
 
                 mega_admin_role = interaction.guild.get_role(
-                    self.config.permission_roles.dark_moderator
+                    self.config.roles.staff.admin
                 )
 
                 await logging_channel.send(
@@ -293,7 +293,7 @@ class BanSystem(commands.Cog):
                         self.config.channels.staff.mod_votes
                     )
                     vote_message = await channel.send(
-                        f"<@&{self.config.permission_roles.moderator}> <@&{self.config.permission_roles.trial_moderator}>",
+                        f"<@&{self.config.roles.staff.mod}> <@&{self.config.roles.staff.trial_mod}>",
                         embed=vote_embed,
                         view=VoteView(vote_type, vote_case),
                     )

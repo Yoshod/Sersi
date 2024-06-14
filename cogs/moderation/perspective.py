@@ -287,7 +287,7 @@ class Perspective(commands.Cog):
         # If there are less than 6 fields that means there is no field for response
         if len(updated_message.embeds[0].fields) < 6:
             await alert.reply(
-                f"<@&{self.config.permission_roles.moderator}> This alert has not had a recorded response."
+                f"<@&{self.config.roles.staff.mod}> This alert has not had a recorded response."
             )
 
 

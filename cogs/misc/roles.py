@@ -381,7 +381,7 @@ class Roles(commands.Cog):
         if member.bot:  # do not apply newbie role do bots
             return
 
-        newbie_role = member.guild.get_role(self.config.roles.newbie)
+        newbie_role = member.guild.get_role(self.config.roles.access.newbie)
         await member.add_roles(newbie_role)
 
     @commands.Cog.listener()
@@ -392,7 +392,7 @@ class Roles(commands.Cog):
         if message.guild is None:  # ignores if message is a DM
             return
 
-        newbie_role = message.guild.get_role(self.config.roles.newbie)
+        newbie_role = message.guild.get_role(self.config.roles.access.newbie)
 
         if newbie_role in message.author.roles:
             now = datetime.datetime.now()
@@ -424,7 +424,7 @@ class Roles(commands.Cog):
                     )
                     return
                 reformation_role = interaction.guild.get_role(
-                    self.config.roles.reformation
+                    self.config.roles.reform.inmate
                 )
                 if reformation_role in interaction.user.roles:
                     await interaction.response.send_message(
@@ -434,7 +434,7 @@ class Roles(commands.Cog):
                     return
 
                 reformist_role = interaction.guild.get_role(
-                    self.config.permission_roles.reformist
+                    self.config.roles.reform.reformist
                 )
                 await interaction.user.add_roles(
                     reformist_role,
@@ -447,7 +447,7 @@ class Roles(commands.Cog):
 
             case "roles-reformist_opt_out":
                 reformist_role = interaction.guild.get_role(
-                    self.config.permission_roles.reformist
+                    self.config.roles.reform.reformist
                 )
                 await interaction.user.remove_roles(
                     reformist_role,

@@ -63,7 +63,7 @@ class Reformation(commands.Cog):
         if not await permcheck(interaction, is_mod):
             return
 
-        reformation_role = interaction.guild.get_role(self.config.roles.reformation)
+        reformation_role = interaction.guild.get_role(self.config.roles.reform.inmate)
 
         if reformation_role in member.roles:
             await interaction.send(
@@ -96,8 +96,8 @@ class Reformation(commands.Cog):
         await member.remove_roles(
             *parse_roles(
                 interaction.guild,
-                self.config.roles.civil_engineering_initiate,
-                self.config.permission_roles.reformist,
+                self.config.roles.access.base,
+                self.config.roles.reform.reformist,
             ),
             reason=reason,
         )
@@ -120,10 +120,10 @@ class Reformation(commands.Cog):
             ),
             interaction.guild.me: nextcord.PermissionOverwrite(read_messages=True),
             interaction.guild.get_role(
-                self.config.permission_roles.reformist
+                self.config.roles.reform.reformist
             ): nextcord.PermissionOverwrite(read_messages=True),
             interaction.guild.get_role(
-                self.config.permission_roles.moderator
+                self.config.roles.staff.mod
             ): nextcord.PermissionOverwrite(read_messages=True),
             member: nextcord.PermissionOverwrite(
                 read_messages=True,
@@ -165,7 +165,7 @@ class Reformation(commands.Cog):
             description=f"Hello {member.mention}, you have been sent to reformation by {interaction.user.mention}. "
             f"The reason given for this is `{reason}`. \n\nFor more information on reformation "
             f"check out <#{self.config.channels.reform.info}> or talk to a <@&"
-            f"{self.config.permission_roles.reformist}>.",
+            f"{self.config.roles.reform.reformist}>.",
             color=nextcord.Color.from_rgb(237, 91, 6),
         )
         await case_channel.send(embed=welcome_embed)
@@ -229,7 +229,7 @@ class Reformation(commands.Cog):
         # member have reformation role check
         is_in_reformation = False
         for role in member.roles:
-            if role.id == self.config.roles.reformation:
+            if role.id == self.config.roles.reform.inmate:
                 is_in_reformation = True
         if not is_in_reformation:
             await interaction.send("Member is not in reformation.")
@@ -307,7 +307,7 @@ class Reformation(commands.Cog):
         # member have reformation role check
         is_in_reformation = False
         for role in member.roles:
-            if role.id == self.config.roles.reformation:
+            if role.id == self.config.roles.reform.inmate:
                 is_in_reformation = True
         if not is_in_reformation:
             await interaction.send("Member is not in reformation.")
@@ -386,7 +386,7 @@ class Reformation(commands.Cog):
         # member have reformation role check
         is_in_reformation = False
         for role in member.roles:
-            if role.id == self.config.roles.reformation:
+            if role.id == self.config.roles.reform.inmate:
                 is_in_reformation = True
         if not is_in_reformation:
             await interaction.send("Member is not in reformation.")
@@ -408,14 +408,14 @@ class Reformation(commands.Cog):
 
         # remove reformation role
         await member.remove_roles(
-            *parse_roles(interaction.guild, self.config.roles.reformation),
+            *parse_roles(interaction.guild, self.config.roles.reform.inmate),
             reason=reason,
         )
 
         # add civil engineering initiate role
         await member.add_roles(
             *parse_roles(
-                interaction.guild, self.config.roles.civil_engineering_initiate
+                interaction.guild, self.config.roles.access.base
             ),
             reason=reason,
         )
@@ -552,7 +552,7 @@ class Reformation(commands.Cog):
             )
 
         reformist_role = interaction.guild.get_role(
-            self.config.permission_roles.reformist
+            self.config.roles.reform.reformist
         )
 
         if reformist_role not in member.roles:
@@ -584,7 +584,7 @@ class Reformation(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_remove(self, member: nextcord.Member):
-        reformation_role = member.get_role(self.config.roles.reformation)
+        reformation_role = member.get_role(self.config.roles.reform.inmate)
 
         if reformation_role is not None:
             async for ban_entry in member.guild.bans():
@@ -657,7 +657,7 @@ class Reformation(commands.Cog):
 
             embed = SersiEmbed(
                 title=f"User **{member}** ({member.id}) has left the server while in the reformation centre!",
-                description=f"User has left the server while having the <@&{self.config.roles.reformation}> role. "
+                description=f"User has left the server while having the <@&{self.config.roles.reform.inmate}> role. "
                 f"They have been banned automatically.",
             )
 
@@ -818,9 +818,9 @@ class Reformation(commands.Cog):
         # roles
         try:
             civil_engineering_initiate = guild.get_role(
-                self.config.roles.civil_engineering_initiate
+                self.config.roles.access.base
             )
-            reformed = guild.get_role(self.config.roles.reformed)
+            reformed = guild.get_role(self.config.roles.reform.reformed)
 
             await member.add_roles(
                 civil_engineering_initiate,
@@ -832,7 +832,7 @@ class Reformation(commands.Cog):
             pass
             # await interaction.send("Could not assign roles.")
         await member.remove_roles(
-            guild.get_role(self.config.roles.reformation),
+            guild.get_role(self.config.roles.reform.inmate),
             reason="Released out of the Reformation Centre",
             atomic=True,
         )

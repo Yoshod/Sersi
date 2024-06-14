@@ -62,7 +62,7 @@ class WarningSystem(commands.Cog):
             )
 
             await interaction.guild.get_channel(self.config.channels.log.general).send(
-                content=f"**ALERT:** {interaction.guild.get_role(self.config.permission_roles.dark_moderator).mention}",
+                content=f"**ALERT:** {interaction.guild.get_role(self.config.roles.staff.admin).mention}",
                 embed=warning_alert,
             )
 

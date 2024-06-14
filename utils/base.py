@@ -62,10 +62,10 @@ async def ban(
 
 def modmention_check(config: Configuration, message: str) -> bool:
     modmentions: list[str] = [
-        f"<@&{config.permission_roles.trial_moderator}>",
-        f"<@&{config.permission_roles.moderator}>",
-        f"<@&{config.permission_roles.senior_moderator}>",
-        f"<@&{config.permission_roles.dark_moderator}>",
+        f"<@&{config.roles.staff.trial_mod}>",
+        f"<@&{config.roles.staff.mod}>",
+        f"<@&{config.roles.staff.mod_lead}>",
+        f"<@&{config.roles.staff.admin}>",
     ]
 
     for modmention in modmentions:

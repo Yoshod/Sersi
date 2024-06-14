@@ -28,7 +28,7 @@ class Antitamper(commands.Cog):
 
         channel = message.guild.get_channel(self.config.channels.log.tamper)
         await channel.send(
-            message.guild.get_role(self.config.permission_roles.dark_moderator).mention,
+            message.guild.get_role(self.config.roles.staff.admin).mention,
             embed=SersiEmbed(
                 title="Logs have been tampered with.",
                 description="A message in a logging channel has been deleted. "

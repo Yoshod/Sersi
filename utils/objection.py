@@ -129,15 +129,15 @@ class AlertView(nextcord.ui.View):
 
     async def interaction_check(self, interaction: nextcord.Interaction) -> bool:
         match self.reviewer.id:
-            case self.config.permission_roles.compliance:
+            case self.config.roles.staff.compliance:
                 return await permcheck(interaction, is_compliance)
-            case self.config.permission_roles.dark_moderator:
+            case self.config.roles.staff.admin:
                 if interaction.user.id == self.sersi_case.moderator:
                     return False
                 return await permcheck(interaction, is_admin)
-            case self.config.permission_roles.senior_moderator:
+            case self.config.roles.staff.mod_lead:
                 return await permcheck(interaction, is_mod_lead)
-            case self.config.permission_roles.moderator:
+            case self.config.roles.staff.mod:
                 return await permcheck(interaction, is_full_mod)
             case _:
                 return False

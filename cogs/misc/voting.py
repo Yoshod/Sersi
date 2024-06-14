@@ -108,13 +108,13 @@ class Voting(commands.Cog):
                 if vote_type.supermajority:
                     match vote_type.group:
                         case "staff":
-                            role_id = self.config.permission_roles.staff
+                            role_id = self.config.roles.staff.base
                         case "mod":
-                            role_id = self.config.permission_roles.moderator
+                            role_id = self.config.roles.staff.mod
                         case "cet":
-                            role_id = self.config.permission_roles.cet
+                            role_id = self.config.roles.staff.cet
                         case _:
-                            role_id = self.config.permission_roles.dark_moderator
+                            role_id = self.config.roles.staff.admin
 
                     threshold = (
                         len(

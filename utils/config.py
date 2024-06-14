@@ -96,48 +96,47 @@ class ConfigurationChannels(YAMLWizard):
 
 
 @dataclass
-class ConfigurationRoles(YAMLWizard):
-    # reformation roles
-    reformation: int
-    reformed: int
-
-    # The role assigned to users under probation.
-    probation: int
-
-    # joke roles
-    never_mod: int
-
-    # basic human rights role
-    civil_engineering_initiate: int
-
-    # newbie roles
-    newbie: int
-
-    # former moderator role
-    honourable_member: int
-
-    adult_access: int
-    adult_verified: int
-
+class ConfigurationStaffRoles(YAMLWizard):
+    base: int
+    admin: int
+    trial_mod: int
+    mod: int
+    mod_lead: int
     available_mod: int
-
-
-@dataclass
-class ConfigurationPermissionRoles(YAMLWizard):
-    # The permission roles IDs saved as integers.
-
-    staff: int
-    reformist: int
-    sersi_contributor: int
     cet: int
     cet_lead: int
     compliance: int
+    sersi_contributor: int
+    honourable_member: int
 
-    # AMAB: all mods are bastards ;)
-    trial_moderator: int
-    moderator: int
-    senior_moderator: int
-    dark_moderator: int  # AKA: super-duper mega administrators
+
+@dataclass
+class ConfigurationReformationRoles(YAMLWizard):
+    reformist: int
+    inmate: int
+    reformed: int
+
+
+@dataclass
+class ConfigurationAccessRoles(YAMLWizard):
+    base: int
+    newbie: int
+    adult: int
+
+
+@dataclass
+class ConfigurationMiscRoles(YAMLWizard):
+    probation: int
+    never_mod: int
+    adult_verified: int
+
+
+@dataclass
+class ConfigurationRoles(YAMLWizard):
+    staff: ConfigurationStaffRoles
+    reform: ConfigurationReformationRoles
+    access: ConfigurationAccessRoles
+    misc: ConfigurationMiscRoles
 
 
 @dataclass
@@ -183,7 +182,6 @@ class Configuration(YAMLWizard):
     ignored_categories: list[str]
     roles: ConfigurationRoles
     opt_in_roles: dict[str, int]
-    permission_roles: ConfigurationPermissionRoles
     punishment_roles: dict[str, int]
     level_roles: dict[int, int]
     emotes: ConfigurationEmotes

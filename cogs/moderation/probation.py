@@ -47,7 +47,7 @@ class Probation(commands.Cog):
         if not await permcheck(interaction, is_mod):
             return
 
-        probation_role = interaction.guild.get_role(self.config.roles.probation)
+        probation_role = interaction.guild.get_role(self.config.roles.misc.probation)
 
         if probation_role in member.roles:
             await interaction.send(
@@ -168,7 +168,7 @@ class Probation(commands.Cog):
             return
 
         probation_role: nextcord.Role = interaction.guild.get_role(
-            self.config.roles.probation
+            self.config.roles.misc.probation
         )
 
         if probation_role not in member.roles:

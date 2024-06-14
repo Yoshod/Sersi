@@ -49,7 +49,7 @@ class Alerts(commands.Cog):
                 continue
 
             await message.reply(
-                f"<@&{self.config.permission_roles.moderator}> This alert has not had a recorded response for {time_since_alert.seconds//3600} hours.",
+                f"<@&{self.config.roles.staff.mod}> This alert has not had a recorded response for {time_since_alert.seconds//3600} hours.",
             )
 
     @commands.Cog.listener()
