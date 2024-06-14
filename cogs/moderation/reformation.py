@@ -96,7 +96,7 @@ class Reformation(commands.Cog):
         await member.remove_roles(
             *parse_roles(
                 interaction.guild,
-                self.config.roles.access.base,
+                self.config.roles.access.basic,
                 self.config.roles.reform.reformist,
             ),
             reason=reason,
@@ -415,7 +415,7 @@ class Reformation(commands.Cog):
         # add civil engineering initiate role
         await member.add_roles(
             *parse_roles(
-                interaction.guild, self.config.roles.access.base
+                interaction.guild, self.config.roles.access.basic
             ),
             reason=reason,
         )
@@ -818,7 +818,7 @@ class Reformation(commands.Cog):
         # roles
         try:
             civil_engineering_initiate = guild.get_role(
-                self.config.roles.access.base
+                self.config.roles.access.basic
             )
             reformed = guild.get_role(self.config.roles.reform.reformed)
 

@@ -111,17 +111,17 @@ class ConfigurationStaffRoles(YAMLWizard):
 
 
 @dataclass
+class ConfigurationAccessRoles(YAMLWizard):
+    basic: int
+    newbie: int
+    adult: int
+
+
+@dataclass
 class ConfigurationReformationRoles(YAMLWizard):
     reformist: int
     inmate: int
     reformed: int
-
-
-@dataclass
-class ConfigurationAccessRoles(YAMLWizard):
-    base: int
-    newbie: int
-    adult: int
 
 
 @dataclass
@@ -134,8 +134,8 @@ class ConfigurationMiscRoles(YAMLWizard):
 @dataclass
 class ConfigurationRoles(YAMLWizard):
     staff: ConfigurationStaffRoles
-    reform: ConfigurationReformationRoles
     access: ConfigurationAccessRoles
+    reform: ConfigurationReformationRoles
     misc: ConfigurationMiscRoles
 
 

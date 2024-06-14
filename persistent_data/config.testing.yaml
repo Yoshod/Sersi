@@ -80,15 +80,30 @@ ignored_channels:
     devlog:             977784875618824272
 
 roles:
-    reformation:                 978334782968721468
-    reformed:                    878289678623703080
-    probation:                   984195306038124558
-    never_mod:                   878045315784114216
-    civil_engineering_initiate:  878040658244403253
-    newbie:                      938465528043954267
-    honourable_member:           985984664676225074
-    adult_access:               1094367708306477126
-    adult_verified:             1094367738107019324
+    staff:
+        base:               978678150789754890
+        admin:              978681533453971526
+        trial_mod:         1021476974901870652
+        mod:                977394150494326855
+        mod_lead:          1021477021664153653
+        available_mod:     1212898285048696843
+        cet:               1103757125286641716
+        cet_lead:          1149386994464608387
+        compliance:        1147603484431089705
+        sersi_contributor:  978677753945657356
+        honourable_member:  985984664676225074
+    access:
+        basic:  878040658244403253
+        newbie: 938465528043954267
+        adult: 1080489347834449930
+    reform:
+        reformist:  943193811574751314
+        inmate:     878289857527562310
+        reformed:   878289678623703080
+    misc:
+        probation:       984195306038124558
+        never_mod:       878045315784114216
+        adult_verified: 1094367738107019324
 
 opt_in_roles:
     gaming:         0
@@ -103,19 +118,6 @@ opt_in_roles:
     music:          0
     photography:    0
     environment:    0
-
-permission_roles:
-    staff:              978678150789754890
-    reformist:          943193811574751314
-    ticket_support:    1021477270331850795
-    sersi_contributor:  978677753945657356
-    trial_moderator:   1021476974901870652
-    moderator:          977394150494326855
-    senior_moderator:  1021477021664153653
-    dark_moderator:     978681533453971526
-    cet:               1103757125286641716
-    cet_lead:          1149386994464608387
-    compliance:        1147603484431089705
 
 level_roles:
     1:  0

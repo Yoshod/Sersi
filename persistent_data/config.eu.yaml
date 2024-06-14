@@ -82,16 +82,30 @@ ignored_channels:
     bot-commands: 1166770862989525001
 
 roles:
-    reformation:                1166770861148213305
-    reformed:                   1166770861148213298
-    probation:                  1166770861148213304
-    never_mod:                  1166770860904943713
-    civil_engineering_initiate: 1166770861039173747
-    newbie:                     1166770861039173748
-    honourable_member:          1166770861169197149
-    adult_access:               1166770860787515426
-    adult_verified:             1166770860787515425
-    available_mod:              1212898557737173043
+    staff:
+        base:              1166770861169197147
+        admin:              1166770861232099369
+        trial_mod:          1166770861211123719
+        mod:                1166770861211123720
+        mod_lead:           1166770861211123721
+        available_mod:      1212898557737173043
+        cet:                1166770861169197155
+        cet_lead:           1166770861211123712
+        compliance:         1166770861211123713
+        sersi_contributor:  1166770861169197153
+        honourable_member:  1166770861169197149
+    access:
+        basic:  1166770860787515426
+        newbie: 1166770861039173748
+        adult:  1166770860787515425
+    reform:
+        reformist:  1166770861148213305
+        inmate:     1166770861148213304
+        reformed:   1166770861148213298
+    misc:
+        probation:      1166770861148213304
+        never_mod:      1166770860904943713
+        adult_verified: 1166770860787515425
 
 opt_in_roles:
     gaming:         1166770860980437040
@@ -106,18 +120,6 @@ opt_in_roles:
     music:          1166770860946899051
     photography:    1166770860946899052
     environment:    1166770860946899050
-
-permission_roles:
-    staff:             1166770861169197147
-    reformist:         1166770861169197148
-    sersi_contributor: 1166770861169197153
-    trial_moderator:   1166770861211123719
-    moderator:         1166770861211123720
-    senior_moderator:  1166770861211123721
-    dark_moderator:    1166770861232099369
-    cet:               1166770861169197155
-    cet_lead:          1166770861211123712
-    compliance:        1166770861211123713
 
 level_roles:
     1:  1166770861064323093

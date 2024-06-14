@@ -83,16 +83,30 @@ ignored_channels:
     bot-commands: 875815983632252938
 
 roles:
-    reformation:                878289857527562310
-    reformed:                   878289678623703080
-    probation:                  957671793844445204
-    never_mod:                  878045315784114216
-    civil_engineering_initiate: 878040658244403253
-    newbie:                     938465528043954267
-    honourable_member:          933089148808597505
-    adult_access:               1080489347834449930
-    adult_verified:             1080489419179573369
-    available_mod:              1212898285048696843
+    staff:
+        base:               974166116618350642
+        admin:              875805670799179799
+        trial_mod:          883255791610638366
+        mod:                856424878437040168
+        mod_lead:           963537133589643304
+        available_mod:     1212898285048696843
+        cet:                956795983621132289
+        cet_lead:          1022923124053921853
+        compliance:        1147601480526856202
+        sersi_contributor:  977602747786493972
+        honourable_member:  933089148808597505
+    access:
+        basic:  878040658244403253
+        newbie: 938465528043954267
+        adult: 1080489347834449930
+    reform:
+        reformist:  943193811574751314
+        inmate:     878289857527562310
+        reformed:   878289678623703080
+    misc:
+        probation:       957671793844445204
+        never_mod:       878045315784114216
+        adult_verified: 1080489419179573369
 
 opt_in_roles:
     gaming:         960558372837523476
@@ -107,19 +121,6 @@ opt_in_roles:
     music:          960558800442646578
     photography:   1003725859695370260
     environment:   1028238676230164592
-
-permission_roles:
-    staff:             974166116618350642
-    reformist:         943193811574751314
-    ticket_support:    897927184767914024
-    sersi_contributor: 977602747786493972
-    trial_moderator:   883255791610638366
-    moderator:         856424878437040168
-    senior_moderator:  963537133589643304
-    dark_moderator:    875805670799179799
-    cet:               956795983621132289
-    cet_lead:         1022923124053921853
-    compliance:       1147601480526856202
 
 punishment_roles:
     annoying:                 925191425904238592
