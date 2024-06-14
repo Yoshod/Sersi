@@ -937,6 +937,21 @@ class VoiceMessageAnalytics(_Base):
     timestamp = Column(DateTime, default=date.today())
 
 
+class OptInCategories(_Base):
+    """
+    Represents a category of opt-in roles in the database.
+
+    Attributes:
+        category_name (str): The name of the category.
+        category_description (str): The description of the category.
+    """
+
+    __tablename__ = "opt_in_categories"
+
+    category_name = Column(String, primary_key=True)
+    category_description = Column(String, nullable=False)
+
+
 class OptInRoles(_Base):
     """
     Represents a role that users can opt in to in the database.
@@ -954,7 +969,9 @@ class OptInRoles(_Base):
     role_id = Column(Integer, primary_key=True)
     role_name = Column(String, nullable=False)
     role_emoji = Column(String, nullable=False)
-    role_category = Column(String, nullable=False)
+    role_category = Column(String, nullable=False), ForeignKey(
+        "opt_in_categories.category_name"
+    )
     required_level_role = Column(Integer, nullable=False)
 
 
