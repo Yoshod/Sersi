@@ -430,16 +430,6 @@ class Roles(commands.Cog):
             ephemeral=True,
         )
 
-    @give_temporary_role.on_autocomplete("role")
-    async def role_autocomplete(interaction: nextcord.Interaction):
-        if not await permcheck(interaction, is_staff):
-            return
-
-        with db_session() as session:
-            roles = session.query(TemporaryRoles).all()
-
-        return [role.role_name for role in roles]
-
     @roles.subcommand(
         name="remove_temporary_role",
         description="Remove a user's temporary role",
@@ -715,6 +705,62 @@ class Roles(commands.Cog):
         )
 
         await view.send_followup(interaction)
+
+    @roles.subcommand(
+        name="add_opt_in",
+        description="Make a role opt-in",
+    )
+    async def add_opt_in(
+        self,
+        interaction: nextcord.Interaction,
+        role: nextcord.Role,
+        category: str = nextcord.SlashOption(
+            description="The category of the role",
+            required=True,
+        ),
+        required_level: int = nextcord.SlashOption(
+            description="The required level to opt-in to the role",
+            required=False,
+            default=0,
+            max_value=20,
+        ),
+        emoji: str = nextcord.SlashOption(
+            description="The emoji to use for the role",
+            required=False,
+        ),
+    ):
+        if not await permcheck(interaction, is_admin):
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        with db_session() as session:
+            category_exists = (
+                session.query(OptInCategories).filter_by(category_name=category).first()
+            )
+
+        if category_exists is None:
+            await interaction.followup.send(
+                f"{self.config.emotes.fail} The category you have provided does not exist.",
+                ephemeral=True,
+            )
+            return
+
+        with db_session() as session:
+            opt_in_role = OptInRoles(
+                role_id=role.id,
+                role_name=role.name,
+                role_category=category,
+                role_emoji=emoji if emoji else None,
+                required_level=required_level,
+            )
+            session.add(opt_in_role)
+            session.commit()
+
+        await interaction.followup.send(
+            f"{self.config.emotes.success} The role has been added as an opt-in role.",
+            ephemeral=True,
+        )
 
 
 def setup(bot: commands.Bot, **kwargs):
