@@ -3,11 +3,14 @@ from utils.base import convert_to_timedelta
 from utils.config import Configuration
 import datetime
 import pytz
+from utils.embeds import fetch_all_temporary_roles, fetch_all_issued_temporary_roles
 from utils.perms import is_staff, permcheck, is_admin, is_level, blacklist_check
 from utils.sersi_embed import SersiEmbed
 from nextcord.ui import View, Select, Button
 from utils.database import db_session, StickyRoles, TemporaryRoles, IssuedTemporaryRoles
 import nextcord
+
+from utils.views import PageView
 
 
 class Roles(commands.Cog):
@@ -764,13 +767,15 @@ class Roles(commands.Cog):
             member = self.bot.get_guild(self.config.guilds.main).get_member(
                 role.user_id
             )
-            role = self.bot.get_guild(self.config.guilds.main).get_role(role.role_id)
+            discord_role = self.bot.get_guild(self.config.guilds.main).get_role(
+                role.role_id
+            )
 
-            if member is None or role is None:
+            if member is None or discord_role is None:
                 continue
 
             try:
-                await member.remove_roles(role, reason="Temporary role expired")
+                await member.remove_roles(discord_role, reason="Temporary role expired")
 
             except nextcord.HTTPException:
                 pass
@@ -893,6 +898,97 @@ class Roles(commands.Cog):
             f"{self.config.emotes.success} The role has been removed as a temporary role.",
             ephemeral=True,
         )
+
+    @roles.subcommand(
+        name="list_temporary_roles",
+        description="List all temporary roles",
+    )
+    async def list_temporary_roles(
+        self,
+        interaction: nextcord.Interaction,
+        page: int = nextcord.SlashOption(
+            description="The page number to view",
+            required=False,
+            default=1,
+        ),
+    ):
+        if not await permcheck(interaction, is_staff):
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        autoposts_embed = SersiEmbed(
+            title=f"{interaction.guild.name} Temporary Roles",
+            description=f"Temporary Roles for {interaction.guild.name}",
+        )
+
+        view = PageView(
+            config=self.config,
+            base_embed=autoposts_embed,
+            fetch_function=fetch_all_temporary_roles,
+            author=interaction.user,
+            entry_form="{entry}",
+            field_title="{entries[0].list_entry_header}",
+            inline_fields=False,
+            cols=10,
+            per_col=1,
+            init_page=int(page),
+        )
+
+        await view.send_followup(interaction)
+
+    @roles.subcommand(
+        name="list_issued_temporary_roles",
+        description="List all issued temporary roles",
+    )
+    async def list_issued_temporary_roles(
+        self,
+        interaction: nextcord.Interaction,
+        role: nextcord.Role = nextcord.SlashOption(
+            description="The role to view",
+            required=False,
+        ),
+        issued_to: nextcord.Member = nextcord.SlashOption(
+            description="The member who was issued the role",
+            required=False,
+        ),
+        issued_by: nextcord.Member = nextcord.SlashOption(
+            description="The member who issued the role",
+            required=False,
+        ),
+        page: int = nextcord.SlashOption(
+            description="The page number to view",
+            required=False,
+            default=1,
+        ),
+    ):
+        if not await permcheck(interaction, is_staff):
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        autoposts_embed = SersiEmbed(
+            title=f"{interaction.guild.name} Issued Temporary Roles",
+            description=f"Issued Temporary Roles for {interaction.guild.name}",
+        )
+
+        view = PageView(
+            config=self.config,
+            base_embed=autoposts_embed,
+            fetch_function=fetch_all_issued_temporary_roles,
+            author=interaction.user,
+            entry_form="{entry}",
+            field_title="{entries[0].list_entry_header}",
+            inline_fields=False,
+            cols=10,
+            per_col=1,
+            init_page=int(page),
+            role=role if role else None,
+            issued_to=issued_to if issued_to else None,
+            issued_by=issued_by if issued_by else None,
+        )
+
+        await view.send_followup(interaction)
 
 
 def setup(bot: commands.Bot, **kwargs):
