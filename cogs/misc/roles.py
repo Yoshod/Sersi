@@ -762,15 +762,92 @@ class Roles(commands.Cog):
             ephemeral=True,
         )
 
-    @add_opt_in.on_autocomplete(name="category")
+    @add_opt_in.on_autocomplete("category")
     async def autocomplete_category(
-        interaction: nextcord.Interaction,
-        value: str,
+        self, interaction: nextcord.Interaction, category: str
     ):
         with db_session() as session:
-            categories = session.query(OptInCategories).all()
+            categories: list[OptInCategories] = (
+                session.query(OptInCategories)
+                .filter(OptInCategories.category_name.ilike(f"%{category}%"))
+                .group_by(OptInCategories.category_name)
+                .limit(25)
+                .all()
+            )
 
         return [category.category_name for category in categories]
+
+    @roles.subcommand(
+        name="remove_opt_in",
+        description="Remove a role opt-in",
+    )
+    async def remove_opt_in(
+        self,
+        interaction: nextcord.Interaction,
+        role: nextcord.Role,
+    ):
+        if not await permcheck(interaction, is_admin):
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        with db_session() as session:
+            role_exists = session.query(OptInRoles).filter_by(role_id=role.id).first()
+
+            if role_exists is None:
+                await interaction.followup.send(
+                    f"{self.config.emotes.fail} The role you have provided does not exist as an opt-in role.",
+                    ephemeral=True,
+                )
+                return
+
+            session.delete(role_exists)
+            session.commit()
+
+        await interaction.followup.send(
+            f"{self.config.emotes.success} The role has been removed as an opt-in role.",
+            ephemeral=True,
+        )
+
+    @roles.subcommand(
+        name="add_category",
+        description="Add a category for role opt-ins",
+    )
+    async def add_category(
+        self,
+        interaction: nextcord.Interaction,
+        category: str,
+        description: str,
+    ):
+        if not await permcheck(interaction, is_admin):
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        with db_session() as session:
+            category_exists = (
+                session.query(OptInCategories).filter_by(category_name=category).first()
+            )
+
+        if category_exists:
+            await interaction.followup.send(
+                f"{self.config.emotes.fail} The category you have provided already exists.",
+                ephemeral=True,
+            )
+            return
+
+        with db_session() as session:
+            opt_in_category = OptInCategories(
+                category_name=category,
+                category_description=description,
+            )
+            session.add(opt_in_category)
+            session.commit()
+
+        await interaction.followup.send(
+            f"{self.config.emotes.success} The category has been added.",
+            ephemeral=True,
+        )
 
 
 def setup(bot: commands.Bot, **kwargs):
