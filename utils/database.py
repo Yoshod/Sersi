@@ -968,11 +968,19 @@ class OptInRoles(_Base):
 
     role_id = Column(Integer, primary_key=True)
     role_name = Column(String, nullable=False)
-    role_emoji = Column(String, nullable=False)
-    role_category = Column(String, nullable=False), ForeignKey(
-        "opt_in_categories.category_name"
-    )
+    role_emoji = Column(String)
+    role_category = Column(String, nullable=False)
     required_level_role = Column(Integer)
+
+    def __repr__(self):
+        return f"{self.role_name}"
+
+    def __getattr__(self, __name: str) -> Any:
+        if __name == "list_entry_header":
+            return f"{self.role_name} ({self.role_id})"
+        raise AttributeError(
+            f"'{self.__class__.__name__}' object has no attribute '{__name}'"
+        )
 
 
 class StickyRoles(_Base):
