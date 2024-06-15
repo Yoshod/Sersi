@@ -762,6 +762,16 @@ class Roles(commands.Cog):
             ephemeral=True,
         )
 
+    @add_opt_in.on_autocomplete(name="category")
+    async def autocomplete_category(
+        interaction: nextcord.Interaction,
+        value: str,
+    ):
+        with db_session() as session:
+            categories = session.query(OptInCategories).all()
+
+        return [category.category_name for category in categories]
+
 
 def setup(bot: commands.Bot, **kwargs):
     bot.add_cog(Roles(bot, kwargs["config"]))
