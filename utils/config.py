@@ -14,7 +14,6 @@ class ConfigurationBot(YAMLWizard):
     privacy_policy: str
     wiki_header: str
     minimum_star_count: int
-    bot_id: int
     dev_mode: bool = False
 
 
