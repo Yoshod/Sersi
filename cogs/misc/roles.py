@@ -718,11 +718,9 @@ class Roles(commands.Cog):
             description="The category of the role",
             required=True,
         ),
-        required_level: int = nextcord.SlashOption(
+        required_level: nextcord.Role = nextcord.SlashOption(
             description="The required level to opt-in to the role",
             required=False,
-            default=0,
-            max_value=20,
         ),
         emoji: str = nextcord.SlashOption(
             description="The emoji to use for the role",
@@ -752,7 +750,7 @@ class Roles(commands.Cog):
                 role_name=role.name,
                 role_category=category,
                 role_emoji=emoji if emoji else None,
-                required_level=required_level,
+                required_level_role=required_level.id if required_level else None,
             )
             session.add(opt_in_role)
             session.commit()
