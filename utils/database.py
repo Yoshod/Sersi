@@ -972,7 +972,7 @@ class OptInRoles(_Base):
     role_category = Column(String, nullable=False), ForeignKey(
         "opt_in_categories.category_name"
     )
-    required_level_role = Column(Integer, nullable=False)
+    required_level_role = Column(Integer)
 
 
 class StickyRoles(_Base):
