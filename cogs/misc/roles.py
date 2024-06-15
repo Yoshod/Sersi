@@ -718,7 +718,7 @@ class Roles(commands.Cog):
             description="The category of the role",
             required=True,
         ),
-        required_level: nextcord.Role = nextcord.SlashOption(
+        required_level: nextcord.Role = nextcord.SlashOption(  # TODO: Ensure that the role provided is a level role
             description="The required level to opt-in to the role",
             required=False,
         ),
