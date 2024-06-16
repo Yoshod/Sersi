@@ -689,6 +689,43 @@ class Roles(commands.Cog):
             )
             return
 
+        forbidden_permissions = [
+            "administrator",
+            "manage_guild",
+            "manage_roles",
+            "manage_channels",
+            "manage_messages",
+            "manage_webhooks",
+            "manage_emojis",
+            "manage_nicknames",
+            "manage_threads",
+            "moderate_members",
+            "ban_members",
+            "kick_members",
+            "view_audit_log",
+            "view_guild_insights",
+            "send_tts_messages",
+            "priority_speaker",
+            "create_private_threads",
+            "create_instant_invite",
+            "create_public_threads",
+            "move_members",
+            "mute_members",
+            "deafen_members",
+        ]
+
+        has_permissions = any(
+            getattr(role.permissions, permission)
+            for permission in forbidden_permissions
+        )
+
+        if has_permissions:
+            await interaction.followup.send(
+                f"{self.config.emotes.fail} The role you have provided has forbidden permissions.",
+                ephemeral=True,
+            )
+            return
+
         with db_session() as session:
             opt_in_role = OptInRoles(
                 role_id=role.id,
