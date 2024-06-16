@@ -721,6 +721,7 @@ class Roles(commands.Cog):
         required_level: int = nextcord.SlashOption(
             description="The required level to opt-in to the role",
             required=False,
+            min_value=1,
         ),
         emoji: str = nextcord.SlashOption(
             description="The emoji to use for the role",
