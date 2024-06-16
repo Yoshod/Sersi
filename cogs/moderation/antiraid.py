@@ -267,6 +267,7 @@ class AntiRaid(commands.Cog):
                     offence="Other",
                     details=f"{raid_case.activation_id} Raid",
                     ban_type="emergency",
+                    active=True,
                 )
                 session.add(sersi_case)
                 session.commit()
