@@ -38,6 +38,9 @@ class BanUnban(commands.Cog):
                 if existing_case:
                     return
 
+                if entry.user.id == self.bot.user.id:
+                    return
+
                 sersi_case = BanCase(
                     offender=target.id,
                     moderator=entry.user.id,
@@ -85,7 +88,9 @@ class BanUnban(commands.Cog):
                     existing_case.unban_reason = entry.reason
                     session.commit()
 
-                    await entry.guild.get_channel(self.config.channels.staff.alert).send(
+                    await entry.guild.get_channel(
+                        self.config.channels.staff.alert
+                    ).send(
                         embed=SersiEmbed(
                             title="Non Sersi Unban Detected",
                             description=f"{target} was unbanned by {entry.user} with reason {entry.reason}. This unban was not processed by Sersi. The case has been marked as inactive. Please edit the case to add the reason or edit the moderator if necessary.",

@@ -140,10 +140,23 @@ class BlacklistCase(Case):
 
 
 class BanCase(Case):
+    """
+    Represents a ban case in the database.
+
+    Inherits from the `Case` class and adds additional attributes specific to ban cases.
+
+    Attributes:
+        id (str): The unique identifier of the ban case.
+        active (bool): Indicates whether the ban case is active or not.
+        details (str): Additional details or description of the ban case.
+        ban_type (str): The type of ban.
+        unbanned_by (int): The user ID of the person who unbanned the case.
+        unban_reason (str): The reason for unbanning the case.
+    """
+
     __tablename__ = "ban_cases"
 
     id = Column(String, ForeignKey("cases.id"), primary_key=True)
-
     active = Column(Boolean, default=None)
     details = Column(String)
     ban_type = Column(String)
@@ -1058,6 +1071,44 @@ class IssuedTemporaryRoles(_Base):
         raise AttributeError(
             f"'{self.__class__.__name__}' object has no attribute '{__name}'"
         )
+
+
+class RaidActivations(_Base):
+    """
+    Represents a raid activation in the database.
+
+    Attributes:
+        activation_id (int): The ID of the raid activation.
+        moderator (int): The ID of the moderator who activated the raid.
+        rule_id (int): The ID of the Discord AutoModeration rule created for the raid.
+        timestamp (datetime): The datetime when the raid was activated.
+    """
+
+    __tablename__ = "raid_activations"
+
+    activation_id = Column(String, primary_key=True, default=random_id)
+    moderator = Column(Integer, nullable=False)
+    rule_id = Column(Integer, nullable=False)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+
+
+class RaidDeactivations(_Base):
+    """
+    Represents a raid deactivation in the database.
+
+    Attributes:
+        activation_id (int): The ID of the raid activation.
+        moderator (int): The ID of the moderator who deactivated the raid.
+        timestamp (datetime): The datetime when the raid was deactivated.
+    """
+
+    __tablename__ = "raid_deactivations"
+
+    activation_id = Column(
+        String, ForeignKey("raid_activations.activation_id"), primary_key=True
+    )
+    moderator = Column(Integer, nullable=False)
+    timestamp = Column(DateTime, default=datetime.utcnow)
 
 
 def create_db_tables():
