@@ -961,7 +961,7 @@ class OptInRoles(_Base):
         role_name (str): The name of the role.
         role_emoji (str): The emoji associated with the role.
         role_category (str): The category of the role.
-        required_level_role (int): The ID of the role required to opt in to the role.
+        required_level_role (int): The role number required.
     """
 
     __tablename__ = "opt_in_roles"
