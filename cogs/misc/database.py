@@ -21,6 +21,8 @@ from utils.database import (
     create_db_tables,
     StaffBranches,
     StaffRoles,
+    OptInRoles,
+    OptInCategories,
 )
 from utils.config import Configuration
 from utils.perms import is_sersi_contributor, permcheck
@@ -145,6 +147,54 @@ class Database(commands.Cog):
 
         await interaction.followup.send(f"{self.config.emotes.success} Complete")
 
+    @database.subcommand(
+        description="Used to populate the opt-in roles table",
+    )
+    async def import_opt_in_roles(self, interaction: nextcord.Interaction):
+        if not await permcheck(interaction, is_sersi_contributor):
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        with open("files/import/optinroles.yaml", "r") as f:
+            roles = yaml.safe_load(f)
+        with db_session(interaction.user) as session:
+            for role in roles:
+                session.merge(
+                    OptInRoles(
+                        role_id=role["role_id"],
+                        role_name=role["role_name"],
+                        role_emoji=role["role_emoji"],
+                        role_category=role["role_category"],
+                        required_level_role=role["required_level_role"],
+                    )
+                )
+            session.commit()
+
+        await interaction.followup.send(f"{self.config.emotes.success} Complete")
+
+    @database.subcommand(
+        description="Used to populate the opt-in categories table",
+    )
+    async def import_opt_in_categories(self, interaction: nextcord.Interaction):
+        if not await permcheck(interaction, is_sersi_contributor):
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        with open("files/import/optincategories.yaml", "r") as f:
+            categories = yaml.safe_load(f)
+        with db_session(interaction.user) as session:
+            for category in categories:
+                session.merge(
+                    OptInCategories(
+                        category_name=category["category_name"],
+                        category_description=category["category_description"],
+                    )
+                )
+            session.commit()
+
+        await interaction.followup.send(f"{self.config.emotes.success} Complete")
 
     @database.subcommand(
         description="Used to drop a table from the Sersi Database",
