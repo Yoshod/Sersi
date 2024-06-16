@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime, timedelta, date
+from datetime import datetime, timedelta, timezone
 from typing import Any
 import random
 import re
@@ -934,7 +934,22 @@ class VoiceMessageAnalytics(_Base):
     link = Column(String, nullable=False)
     duration = Column(Integer, nullable=False)
     filesize = Column(Integer, nullable=False)
-    timestamp = Column(DateTime, default=date.today())
+    timestamp = Column(DateTime, default=datetime.now(timezone.utc))
+
+
+class OptInCategories(_Base):
+    """
+    Represents a category of opt-in roles in the database.
+
+    Attributes:
+        category_name (str): The name of the category.
+        category_description (str): The description of the category.
+    """
+
+    __tablename__ = "opt_in_categories"
+
+    category_name = Column(String, primary_key=True)
+    category_description = Column(String, nullable=False)
 
 
 class OptInRoles(_Base):
@@ -946,16 +961,26 @@ class OptInRoles(_Base):
         role_name (str): The name of the role.
         role_emoji (str): The emoji associated with the role.
         role_category (str): The category of the role.
-        required_level_role (int): The ID of the role required to opt in to the role.
+        required_level_role (int): The role number required.
     """
 
     __tablename__ = "opt_in_roles"
 
     role_id = Column(Integer, primary_key=True)
     role_name = Column(String, nullable=False)
-    role_emoji = Column(String, nullable=False)
+    role_emoji = Column(String)
     role_category = Column(String, nullable=False)
-    required_level_role = Column(Integer, nullable=False)
+    required_level_role = Column(Integer)
+
+    def __repr__(self):
+        return f"{self.role_name}"
+
+    def __getattr__(self, __name: str) -> Any:
+        if __name == "list_entry_header":
+            return f"{self.role_name} ({self.role_id})"
+        raise AttributeError(
+            f"'{self.__class__.__name__}' object has no attribute '{__name}'"
+        )
 
 
 class StickyRoles(_Base):
@@ -972,7 +997,67 @@ class StickyRoles(_Base):
 
     role_id = Column(Integer, primary_key=True)
     user_id = Column(Integer, primary_key=True)
-    leave_date = Column(DateTime, default=date.today())
+    leave_date = Column(DateTime, default=datetime.now(timezone.utc))
+
+
+class TemporaryRoles(_Base):
+    """
+    Represents a temporary role in the database.
+
+    Attributes:
+        role_id (int): The ID of the role.
+        role_name (str): The name of the role.
+        role_description (str): The description of the role.
+    """
+
+    __tablename__ = "temporary_roles"
+
+    role_id = Column(Integer, primary_key=True)
+    role_name = Column(String, nullable=False)
+    role_description = Column(String, nullable=False)
+
+    def __repr__(self):
+        return f"{self.role_description}"
+
+    def __getattr__(self, __name: str) -> Any:
+        if __name == "list_entry_header":
+            return f"{self.role_name} ({self.role_id})"
+        raise AttributeError(
+            f"'{self.__class__.__name__}' object has no attribute '{__name}'"
+        )
+
+
+class IssuedTemporaryRoles(_Base):
+    """
+    Represents a temporary role in the database.
+
+    Attributes:
+        role_id (int): The ID of the role.
+        user_id (int): The ID of the user who has the role.
+        expiry_date (datetime): The datetime when the role expires.
+        added_by (int): The ID of the user who added the role.
+        reason (str): The reason for adding the role.
+        issued_date (datetime): The datetime when the role was issued.
+    """
+
+    __tablename__ = "issued_temporary_roles"
+
+    role_id = Column(Integer, ForeignKey("temporary_roles.role_id"), primary_key=True)
+    user_id = Column(Integer, primary_key=True)
+    expiry_date = Column(DateTime, nullable=False)
+    added_by = Column(Integer, nullable=False)
+    reason = Column(String, nullable=False)
+    issued_date = Column(DateTime, default=datetime.now(timezone.utc))
+
+    def __repr__(self):
+        return f"User: <@{self.user_id}> ({self.user_id})\nRole: <@&{self.role_id}> ({self.role_id})\nExpires: {nextcord.utils.format_dt(self.expiry_date)} ({nextcord.utils.format_dt(self.expiry_date, 'R')}\nIssued by: <@{self.added_by}> ({self.added_by})\nIssue Date: {nextcord.utils.format_dt(self.issued_date)} ({nextcord.utils.format_dt(self.issued_date, 'R')})\nReason: {self.reason}"
+
+    def __getattr__(self, __name: str) -> Any:
+        if __name == "list_entry_header":
+            return f"Issued Role:"
+        raise AttributeError(
+            f"'{self.__class__.__name__}' object has no attribute '{__name}'"
+        )
 
 
 def create_db_tables():

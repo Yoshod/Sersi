@@ -15,7 +15,6 @@ bot:
     privacy_policy: "[Here](https://github.com/Yoshod/Sersi/blob/stable/PRIVACY%20POLICY.MD)"
     wiki_header: "SersiBot (contact@sersi.io)"
     minimum_star_count: 2
-    bot_id: 978259801844879373
 
 channels:
     staff:
@@ -133,6 +132,8 @@ level_roles:
     8:  1166770861064323100
     9:  1166770861064323101
     10: 1166770861081104465
+    11: 1224444231456915506
+    12: 1226305359686406174
 
 punishment roles:
     annoying:                 925191425904238592
