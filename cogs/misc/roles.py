@@ -829,6 +829,106 @@ class Roles(commands.Cog):
             ephemeral=True,
         )
 
+    @roles.subcommand(
+        name="remove_category",
+        description="Remove a category for role opt-ins",
+    )
+    async def remove_category(
+        self,
+        interaction: nextcord.Interaction,
+        category: str,
+    ):
+        if not await permcheck(interaction, is_admin):
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        with db_session() as session:
+            category_exists = (
+                session.query(OptInCategories).filter_by(category_name=category).first()
+            )
+
+            if category_exists is None:
+                await interaction.followup.send(
+                    f"{self.config.emotes.fail} The category you have provided does not exist.",
+                    ephemeral=True,
+                )
+                return
+
+            roles_in_category = (
+                session.query(OptInRoles).filter_by(role_category=category).all()
+            )
+
+            if roles_in_category:
+                await interaction.followup.send(
+                    f"{self.config.emotes.fail} The category you have provided has roles in it. Please remove the roles before removing the category.",
+                    ephemeral=True,
+                )
+                return
+
+            session.delete(category_exists)
+            session.commit()
+
+        await interaction.followup.send(
+            f"{self.config.emotes.success} The category has been removed.",
+            ephemeral=True,
+        )
+
+    @roles.subcommand(
+        name="edit_role",
+        description="Edit a role",
+    )
+    async def edit_opt_in_role(
+        self,
+        interaction: nextcord.Interaction,
+        role: nextcord.Role,
+        category: str = nextcord.SlashOption(
+            description="The category of the role",
+            required=False,
+        ),
+        emoji: str = nextcord.SlashOption(
+            description="The emoji to use for the role",
+            required=False,
+        ),
+        required_level: int = nextcord.SlashOption(
+            description="The required level to opt-in to the role",
+            required=False,
+            min_value=0,
+        ),
+    ):
+        if not await permcheck(interaction, is_admin):
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        with db_session() as session:
+            role_exists = session.query(OptInRoles).filter_by(role_id=role.id).first()
+
+        if role_exists is None:
+            await interaction.followup.send(
+                f"{self.config.emotes.fail} The role you have provided does not exist as an opt-in role.",
+                ephemeral=True,
+            )
+            return
+
+        if category:
+            role_exists.role_category = category
+
+        if emoji:
+            role_exists.role_emoji = emoji
+
+        if required_level:
+            role_exists.required_level_role = (
+                required_level if required_level > 0 else None
+            )
+
+        session.commit()
+
+        await interaction.followup.send(
+            f"{self.config.emotes.success} The role has been edited.",
+            ephemeral=True,
+        )
+
 
 def setup(bot: commands.Bot, **kwargs):
     bot.add_cog(Roles(bot, kwargs["config"]))
