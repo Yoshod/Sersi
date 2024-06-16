@@ -143,9 +143,15 @@ class AntiRaid(commands.Cog):
                 .first()
             )
 
+            raid_bans = (
+                session.query(BanCase)
+                .filter_by(details=f"{raid_case.activation_id} Raid")
+                .all()
+            )
+
         raid_embed = SersiEmbed(
             title="Raid Mode Deactivated",
-            description=f"Raid mode has been deactivated by {interaction.user.mention}.\nRaid ID: {raid_case.activation_id}",
+            description=f"Raid mode has been deactivated by {interaction.user.mention}.\nRaid ID: {raid_case.activation_id}\n\n**Bans:** {len(raid_bans)}",
             color=nextcord.Color.green(),
             thumbnail_url=self.bot.user.avatar.url,
         )
@@ -247,7 +253,7 @@ class AntiRaid(commands.Cog):
         raiders = []
         banned_raiders = []
         not_banned_raiders = []
-        for i in range(1, 11):
+        for i in range(1, 10):
             raider: nextcord.User | None = eval(f"raider_{i}")
             if raider is None:
                 break
@@ -267,7 +273,7 @@ class AntiRaid(commands.Cog):
 
             try:
                 await interaction.guild.ban(
-                    raider.id,
+                    raider,
                     reason=f"{raid_case.activation_id} Raid",
                     delete_message_days=1,
                 )
@@ -280,16 +286,14 @@ class AntiRaid(commands.Cog):
         for raider in raiders:
             if raider in banned_raiders:
                 banned_string += (
-                    f"{self.config.emotes.success} {raider.mention} ({raider.id})\n"
+                    f"{self.config.emotes.success} <@{raider}> ({raider})\n"
                 )
 
             elif raider in not_banned_raiders:
-                banned_string += (
-                    f"{self.config.emotes.fail} {raider.mention} ({raider.id})\n"
-                )
+                banned_string += f"{self.config.emotes.fail} <@{raider}> ({raider})\n"
 
             else:
-                banned_string += f"{raider.mention} ({raider.id})\n"
+                banned_string += f"<@{raider}> ({raider})\n"
 
         raid_embed = SersiEmbed(
             title="Raid Ban Processed",
