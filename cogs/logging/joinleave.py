@@ -152,15 +152,15 @@ class JoinLeave(commands.Cog):
             ).set_author(name=member, icon_url=member.display_avatar.url)
         )
 
-        if member.timeout:
+        if member.communication_disabled_until:
             with db_session() as session:
                 timeout_cases = (
                     session.query(TimeoutCase).filter_by(offender=member.id).all()
                 )
+                current_time = datetime.datetime.utcnow()
                 for case in timeout_cases:
-                    if case.planned_end > datetime.datetime.utcnow():
+                    if current_time > case.planned_end:
                         continue
-
                     else:
                         await member.guild.get_channel(
                             self.config.channels.staff.alert
