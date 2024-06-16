@@ -1,5 +1,5 @@
 from nextcord.ext import commands, tasks
-from utils.base import convert_to_timedelta, encode_button_id
+from utils.base import convert_to_timedelta, decode_button_id, encode_button_id
 from utils.config import Configuration
 import datetime
 import pytz
@@ -61,14 +61,18 @@ class Roles(commands.Cog):
             Button(
                 style=nextcord.ButtonStyle.green,
                 label="Opt In",
-                custom_id="roles-reformist_opt_in",
+                custom_id=encode_button_id(
+                    "roles", role_id=self.config.roles.reform, required_level=3
+                ),
             )
         )
         view.add_item(
             Button(
                 style=nextcord.ButtonStyle.red,
                 label="Opt Out",
-                custom_id="roles-reformist_opt_out",
+                custom_id=encode_button_id(
+                    "roles", role_id=self.config.roles.reform, required_level=3
+                ),
             )
         )
 
@@ -108,7 +112,9 @@ class Roles(commands.Cog):
                         label=role.role_name,
                         emoji=role.role_emoji,
                         custom_id=encode_button_id(
-                            "roles", role_name=role.role_name, role_id=role.role_id
+                            "roles",
+                            role_id=role.role_id,
+                            required_level=role.required_level_role,
                         ),
                     )
                 )
@@ -161,131 +167,69 @@ class Roles(commands.Cog):
     async def on_interaction(self, interaction: nextcord.Interaction):
         if interaction.data is None or interaction.data.get("custom_id") is None:
             return
-        if not interaction.data["custom_id"].startswith("roles"):
+
+        acceptable_starts = ["roles"]
+        if not interaction.data["custom_id"].startswith(tuple(acceptable_starts)):
             return
 
-        match interaction.data["custom_id"]:
-            case "roles-reformist_opt_in":
-                if blacklist_check(interaction.user, "Reformist"):
-                    await interaction.response.send_message(
-                        "You are blacklisted from the Reformist role.",
-                        ephemeral=True,
-                    )
-                    return
-                if not is_level(interaction.user, 4):
-                    await interaction.response.send_message(
-                        "You must be level 4 or above to be eligible for the reformist role.",
-                        ephemeral=True,
-                    )
-                    return
-                reformation_role = interaction.guild.get_role(
-                    self.config.roles.reform.inmate
-                )
-                if reformation_role in interaction.user.roles:
-                    await interaction.response.send_message(
-                        "You are currently in reformation and cannot opt in to the Reformist role.",
-                        ephemeral=True,
-                    )
-                    return
+        action, args, kwargs = decode_button_id(interaction.data["custom_id"])
 
-                reformist_role = interaction.guild.get_role(
-                    self.config.roles.reform.reformist
-                )
-                await interaction.user.add_roles(
-                    reformist_role,
-                    reason="Reformist role self assignment",
-                )
-                await interaction.response.send_message(
-                    "You have been given the Reformist role.",
+        await interaction.response.defer(ephemeral=True)
+
+        if action == "roles":
+            role_id = kwargs["role_id"]
+
+            print(role_id)
+
+            role = interaction.guild.get_role(int(role_id))
+
+            print(role.id)
+            print(role.name)
+
+            if role is None:
+                raise Exception("Role not found.")
+
+            member = interaction.guild.get_member(interaction.user.id)
+
+            if role in member.roles:
+                await member.remove_roles(role)
+                await interaction.followup.send(
+                    f"{self.config.emotes.success} {role.mention} has been removed.",
                     ephemeral=True,
                 )
+                return
 
-            case "roles-reformist_opt_out":
-                reformist_role = interaction.guild.get_role(
-                    self.config.roles.reform.reformist
-                )
-                await interaction.user.remove_roles(
-                    reformist_role,
-                    reason="Reformist role self assignment",
-                )
-                await interaction.response.send_message(
-                    "You have been removed from the Reformist role.",
-                    ephemeral=True,
-                )
+            if kwargs["role_id"] == self.config.roles.reform:
+                if not await blacklist_check(member):
+                    await interaction.followup.send(
+                        f"{self.config.emotes.fail} You are not blacklisted and cannot opt in to the Reformist role.",
+                        ephemeral=True,
+                    )
+                    return
 
-        # try:
-        #     dropdown_value = interaction.data["values"][0]
-        # except KeyError:
-        #     return
+            try:
+                if int(kwargs["required_level"]) > 0:
+                    if is_level(member, int(kwargs["required_level"])):
+                        await member.add_roles(role)
+                        await interaction.followup.send(
+                            f"{self.config.emotes.success} {role.mention} has been added.",
+                            ephemeral=True,
+                        )
+                        return
 
-        # match dropdown_value:
-        #     case ["gaming"]:
-        #         print("identified case")
-        #         print(self.config.opt_in_roles)
-        #         await interaction.user.add_roles(
-        #             self.config.opt_in_roles["gaming"],
-        #             reason="Sersi role self assignment",
-        #         )
-        #         print("role given")
+                    await interaction.followup.send(
+                        f"{self.config.emotes.fail} You do not have the required level to add this role. You must be at least level {kwargs['required_level']}.",
+                        ephemeral=True,
+                    )
+                    return
+            except ValueError:
+                pass
 
-        #     case ["tech"]:
-        #         await interaction.user.add_roles(
-        #             self.config.opt_in_roles["tech_compsci"],
-        #             reason="Sersi role self assignment",
-        #         )
-
-        #     case ["food"]:
-        #         await interaction.user.add_roles(
-        #             self.config.opt_in_roles["food_and_drink"],
-        #             reason="Sersi role self assignment",
-        #         )
-
-        #     case ["history"]:
-        #         await interaction.user.add_roles(
-        #             self.config.opt_in_roles["history"],
-        #             reason="Sersi role self assignment",
-        #         )
-
-        #     case ["art"]:
-        #         await interaction.user.add_roles(
-        #             self.config.opt_in_roles["art"],
-        #             reason="Sersi role self assignment",
-        #         )
-        #     case ["anime"]:
-        #         await interaction.user.add_roles(
-        #             self.config.opt_in_roles["anime"],
-        #             reason="Sersi role self assignment",
-        #         )
-
-        #     case ["furry"]:
-        #         await interaction.user.add_roles(
-        #             self.config.opt_in_roles["furry"],
-        #             reason="Sersi role self assignment",
-        #         )
-
-        #     case ["models"]:
-        #         await interaction.user.add_roles(
-        #             self.config.opt_in_roles["models"],
-        #             reason="Sersi role self assignment",
-        #         )
-
-        #     case ["shillposting"]:
-        #         await interaction.user.add_roles(
-        #             self.config.opt_in_roles["shillposting"],
-        #             reason="Sersi role self assignment",
-        #         )
-
-        #     case ["photo"]:
-        #         await interaction.user.add_roles(
-        #             self.config.opt_in_roles["photography"],
-        #             reason="Sersi role self assignment",
-        #         )
-
-        #     case ["enviro"]:
-        #         await interaction.user.add_roles(
-        #             self.config.opt_in_roles["environment"],
-        #             reason="Sersi role self assignment",
-        #         )
+            await member.add_roles(role)
+            await interaction.followup.send(
+                f"{self.config.emotes.success} {role.mention} has been added.",
+                ephemeral=True,
+            )
 
     @commands.Cog.listener()
     async def on_member_remove(self, member: nextcord.Member):
@@ -429,16 +373,6 @@ class Roles(commands.Cog):
             f"{self.config.emotes.success} The role has been added to the user.",
             ephemeral=True,
         )
-
-    @give_temporary_role.on_autocomplete("role")
-    async def role_autocomplete(interaction: nextcord.Interaction):
-        if not await permcheck(interaction, is_staff):
-            return
-
-        with db_session() as session:
-            roles = session.query(TemporaryRoles).all()
-
-        return [role.role_name for role in roles]
 
     @roles.subcommand(
         name="remove_temporary_role",
@@ -715,6 +649,285 @@ class Roles(commands.Cog):
         )
 
         await view.send_followup(interaction)
+
+    @roles.subcommand(
+        name="add_opt_in",
+        description="Make a role opt-in",
+    )
+    async def add_opt_in(
+        self,
+        interaction: nextcord.Interaction,
+        role: nextcord.Role,
+        category: str = nextcord.SlashOption(
+            description="The category of the role",
+            required=True,
+        ),
+        required_level: int = nextcord.SlashOption(
+            description="The required level to opt-in to the role",
+            required=False,
+            min_value=1,
+        ),
+        emoji: str = nextcord.SlashOption(
+            description="The emoji to use for the role",
+            required=False,
+        ),
+    ):
+        if not await permcheck(interaction, is_admin):
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        with db_session() as session:
+            category_exists = (
+                session.query(OptInCategories).filter_by(category_name=category).first()
+            )
+
+        if category_exists is None:
+            await interaction.followup.send(
+                f"{self.config.emotes.fail} The category you have provided does not exist.",
+                ephemeral=True,
+            )
+            return
+
+        forbidden_permissions = [
+            "administrator",
+            "manage_guild",
+            "manage_roles",
+            "manage_channels",
+            "manage_messages",
+            "manage_webhooks",
+            "manage_emojis",
+            "manage_nicknames",
+            "manage_threads",
+            "moderate_members",
+            "ban_members",
+            "kick_members",
+            "view_audit_log",
+            "view_guild_insights",
+            "send_tts_messages",
+            "priority_speaker",
+            "create_private_threads",
+            "create_instant_invite",
+            "create_public_threads",
+            "move_members",
+            "mute_members",
+            "deafen_members",
+        ]
+
+        has_permissions = any(
+            getattr(role.permissions, permission)
+            for permission in forbidden_permissions
+        )
+
+        if has_permissions:
+            await interaction.followup.send(
+                f"{self.config.emotes.fail} The role you have provided has forbidden permissions.",
+                ephemeral=True,
+            )
+            return
+
+        with db_session() as session:
+            opt_in_role = OptInRoles(
+                role_id=role.id,
+                role_name=role.name,
+                role_category=category,
+                role_emoji=emoji if emoji else None,
+                required_level_role=required_level if required_level else None,
+            )
+            session.add(opt_in_role)
+            session.commit()
+
+        await interaction.followup.send(
+            f"{self.config.emotes.success} The role has been added as an opt-in role.",
+            ephemeral=True,
+        )
+
+    @add_opt_in.on_autocomplete("category")
+    async def autocomplete_category(
+        self, interaction: nextcord.Interaction, category: str
+    ):
+        with db_session() as session:
+            categories: list[OptInCategories] = (
+                session.query(OptInCategories)
+                .filter(OptInCategories.category_name.ilike(f"%{category}%"))
+                .group_by(OptInCategories.category_name)
+                .limit(25)
+                .all()
+            )
+
+        return [category.category_name for category in categories]
+
+    @roles.subcommand(
+        name="remove_opt_in",
+        description="Remove a role opt-in",
+    )
+    async def remove_opt_in(
+        self,
+        interaction: nextcord.Interaction,
+        role: nextcord.Role,
+    ):
+        if not await permcheck(interaction, is_admin):
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        with db_session() as session:
+            role_exists = session.query(OptInRoles).filter_by(role_id=role.id).first()
+
+            if role_exists is None:
+                await interaction.followup.send(
+                    f"{self.config.emotes.fail} The role you have provided does not exist as an opt-in role.",
+                    ephemeral=True,
+                )
+                return
+
+            session.delete(role_exists)
+            session.commit()
+
+        await interaction.followup.send(
+            f"{self.config.emotes.success} The role has been removed as an opt-in role.",
+            ephemeral=True,
+        )
+
+    @roles.subcommand(
+        name="add_category",
+        description="Add a category for role opt-ins",
+    )
+    async def add_category(
+        self,
+        interaction: nextcord.Interaction,
+        category: str,
+        description: str,
+    ):
+        if not await permcheck(interaction, is_admin):
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        with db_session() as session:
+            category_exists = (
+                session.query(OptInCategories).filter_by(category_name=category).first()
+            )
+
+        if category_exists:
+            await interaction.followup.send(
+                f"{self.config.emotes.fail} The category you have provided already exists.",
+                ephemeral=True,
+            )
+            return
+
+        with db_session() as session:
+            opt_in_category = OptInCategories(
+                category_name=category,
+                category_description=description,
+            )
+            session.add(opt_in_category)
+            session.commit()
+
+        await interaction.followup.send(
+            f"{self.config.emotes.success} The category has been added.",
+            ephemeral=True,
+        )
+
+    @roles.subcommand(
+        name="remove_category",
+        description="Remove a category for role opt-ins",
+    )
+    async def remove_category(
+        self,
+        interaction: nextcord.Interaction,
+        category: str,
+    ):
+        if not await permcheck(interaction, is_admin):
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        with db_session() as session:
+            category_exists = (
+                session.query(OptInCategories).filter_by(category_name=category).first()
+            )
+
+            if category_exists is None:
+                await interaction.followup.send(
+                    f"{self.config.emotes.fail} The category you have provided does not exist.",
+                    ephemeral=True,
+                )
+                return
+
+            roles_in_category = (
+                session.query(OptInRoles).filter_by(role_category=category).all()
+            )
+
+            if roles_in_category:
+                await interaction.followup.send(
+                    f"{self.config.emotes.fail} The category you have provided has roles in it. Please remove the roles before removing the category.",
+                    ephemeral=True,
+                )
+                return
+
+            session.delete(category_exists)
+            session.commit()
+
+        await interaction.followup.send(
+            f"{self.config.emotes.success} The category has been removed.",
+            ephemeral=True,
+        )
+
+    @roles.subcommand(
+        name="edit_role",
+        description="Edit a role",
+    )
+    async def edit_opt_in_role(
+        self,
+        interaction: nextcord.Interaction,
+        role: nextcord.Role,
+        category: str = nextcord.SlashOption(
+            description="The category of the role",
+            required=False,
+        ),
+        emoji: str = nextcord.SlashOption(
+            description="The emoji to use for the role",
+            required=False,
+        ),
+        required_level: int = nextcord.SlashOption(
+            description="The required level to opt-in to the role",
+            required=False,
+            min_value=0,
+        ),
+    ):
+        if not await permcheck(interaction, is_admin):
+            return
+
+        await interaction.response.defer(ephemeral=True)
+
+        with db_session() as session:
+            role_exists = session.query(OptInRoles).filter_by(role_id=role.id).first()
+
+        if role_exists is None:
+            await interaction.followup.send(
+                f"{self.config.emotes.fail} The role you have provided does not exist as an opt-in role.",
+                ephemeral=True,
+            )
+            return
+
+        if category:
+            role_exists.role_category = category
+
+        if emoji:
+            role_exists.role_emoji = emoji
+
+        if required_level:
+            role_exists.required_level_role = (
+                required_level if required_level > 0 else None
+            )
+
+        session.commit()
+
+        await interaction.followup.send(
+            f"{self.config.emotes.success} The role has been edited.",
+            ephemeral=True,
+        )
 
 
 def setup(bot: commands.Bot, **kwargs):
