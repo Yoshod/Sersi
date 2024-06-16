@@ -163,10 +163,10 @@ class Staff(commands.Cog):
             return
 
         trial_moderator: nextcord.Role = interaction.guild.get_role(
-            self.config.permission_roles.trial_moderator
+            self.config.roles.staff.trial_mod
         )
         staff: nextcord.Role = interaction.guild.get_role(
-            self.config.permission_roles.staff
+            self.config.roles.staff.base
         )
         await member.add_roles(trial_moderator, reason="Sersi command", atomic=True)
         await member.add_roles(staff, reason="Sersi command", atomic=True)
@@ -190,11 +190,11 @@ class Staff(commands.Cog):
             name=interaction.user, icon_url=interaction.user.display_avatar.url
         )
 
-        await interaction.guild.get_channel(self.config.channels.logging).send(
+        await interaction.guild.get_channel(self.config.channels.log.general).send(
             embed=log_embed
         )
 
-        await interaction.guild.get_channel(self.config.channels.mod_logs).send(
+        await interaction.guild.get_channel(self.config.channels.log.mod).send(
             embed=log_embed
         )
 
@@ -214,10 +214,10 @@ class Staff(commands.Cog):
             return
 
         trial_moderator: nextcord.Role = interaction.guild.get_role(
-            self.config.permission_roles.trial_moderator
+            self.config.roles.staff.trial_mod
         )
         moderator: nextcord.Role = interaction.guild.get_role(
-            self.config.permission_roles.moderator
+            self.config.roles.staff.mod
         )
 
         if trial_moderator not in member.roles:
@@ -246,11 +246,11 @@ class Staff(commands.Cog):
             name=interaction.user, icon_url=interaction.user.display_avatar.url
         )
 
-        await interaction.guild.get_channel(self.config.channels.logging).send(
+        await interaction.guild.get_channel(self.config.channels.log.general).send(
             embed=log_embed
         )
 
-        await interaction.guild.get_channel(self.config.channels.mod_logs).send(
+        await interaction.guild.get_channel(self.config.channels.log.mod).send(
             embed=log_embed
         )
 
@@ -268,13 +268,13 @@ class Staff(commands.Cog):
             return
 
         honourable_member: nextcord.Role = interaction.guild.get_role(
-            self.config.roles.honourable_member
+            self.config.roles.staff.honourable_member
         )
         moderator: nextcord.Role = interaction.guild.get_role(
-            self.config.permission_roles.moderator
+            self.config.roles.staff.mod
         )
         staff: nextcord.Role = interaction.guild.get_role(
-            self.config.permission_roles.staff
+            self.config.roles.staff.base
         )
 
         if honourable_member not in member.roles:
@@ -306,10 +306,10 @@ class Staff(commands.Cog):
             footer="Sersi Add Trial Mod",
             author=interaction.user,
         )
-        await interaction.guild.get_channel(self.config.channels.logging).send(
+        await interaction.guild.get_channel(self.config.channels.log.general).send(
             embed=log_embed
         )
-        await interaction.guild.get_channel(self.config.channels.mod_logs).send(
+        await interaction.guild.get_channel(self.config.channels.log.mod).send(
             embed=log_embed
         )
 
@@ -327,10 +327,10 @@ class Staff(commands.Cog):
             return
 
         cet: nextcord.Role = interaction.guild.get_role(
-            self.config.permission_roles.cet
+            self.config.roles.staff.cet
         )
         staff: nextcord.Role = interaction.guild.get_role(
-            self.config.permission_roles.staff
+            self.config.roles.staff.base
         )
         await member.add_roles(cet, reason="Sersi command", atomic=True)
         await member.add_roles(staff, reason="Sersi command", atomic=True)
@@ -351,7 +351,7 @@ class Staff(commands.Cog):
             name=interaction.user, icon_url=interaction.user.display_avatar.url
         )
 
-        await interaction.guild.get_channel(self.config.channels.logging).send(
+        await interaction.guild.get_channel(self.config.channels.log.general).send(
             embed=log_embed
         )
 
@@ -417,13 +417,13 @@ class Staff(commands.Cog):
         match transfer_type:
             case "mod_to_cet":
                 await member.add_roles(
-                    interaction.guild.get_role(self.config.permission_roles.cet)
+                    interaction.guild.get_role(self.config.roles.staff.cet)
                 )
 
                 try:
                     await member.remove_roles(
                         interaction.guild.get_role(
-                            self.config.permission_roles.moderator
+                            self.config.roles.staff.mod
                         )
                     )
                 except (nextcord.Forbidden, nextcord.HTTPException, AttributeError):
@@ -432,7 +432,7 @@ class Staff(commands.Cog):
                 try:  # remove trial mod role
                     await member.remove_roles(
                         interaction.guild.get_role(
-                            self.config.permission_roles.trial_moderator
+                            self.config.roles.staff.trial_mod
                         )
                     )
 
@@ -442,7 +442,7 @@ class Staff(commands.Cog):
                 try:  # remove moderation lead role
                     await member.remove_roles(
                         interaction.guild.get_role(
-                            self.config.permission_roles.senior_moderator
+                            self.config.roles.staff.mod_lead
                         )
                     )
 
@@ -451,12 +451,12 @@ class Staff(commands.Cog):
 
             case "cet_to_mod":
                 await member.add_roles(
-                    interaction.guild.get_role(self.config.permission_roles.moderator)
+                    interaction.guild.get_role(self.config.roles.staff.mod)
                 )
 
                 try:
                     await member.remove_roles(
-                        interaction.guild.get_role(self.config.permission_roles.cet)
+                        interaction.guild.get_role(self.config.roles.staff.cet)
                     )
                 except (nextcord.Forbidden, nextcord.HTTPException, AttributeError):
                     pass
@@ -464,7 +464,7 @@ class Staff(commands.Cog):
                 try:  # remove cet lead role
                     await member.remove_roles(
                         interaction.guild.get_role(
-                            self.config.permission_roles.cet_lead
+                            self.config.roles.staff.cet_lead
                         )
                     )
 
@@ -486,11 +486,11 @@ class Staff(commands.Cog):
             },
         )
 
-        await interaction.guild.get_channel(self.config.channels.logging).send(
+        await interaction.guild.get_channel(self.config.channels.log.general).send(
             embed=log_embed
         )
 
-        await interaction.guild.get_channel(self.config.channels.mod_logs).send(
+        await interaction.guild.get_channel(self.config.channels.log.mod).send(
             embed=log_embed
         )
 
@@ -570,7 +570,7 @@ class Staff(commands.Cog):
             if bypass_reason:
                 await interaction.followup.send(embed=log_embed)
 
-            channel = interaction.guild.get_channel(self.config.channels.logging)
+            channel = interaction.guild.get_channel(self.config.channels.log.general)
             await channel.send(embed=log_embed)
 
             with db_session(interaction.user) as session:
@@ -629,7 +629,7 @@ class Staff(commands.Cog):
 
         try:
             await member.add_roles(
-                interaction.guild.get_role(self.config.roles.honourable_member)
+                interaction.guild.get_role(self.config.roles.staff.honourable_member)
             )
         except (nextcord.Forbidden, nextcord.HTTPException, AttributeError):
             pass
@@ -647,11 +647,11 @@ class Staff(commands.Cog):
             },
         )
 
-        await interaction.guild.get_channel(self.config.channels.logging).send(
+        await interaction.guild.get_channel(self.config.channels.log.general).send(
             embed=log_embed
         )
 
-        await interaction.guild.get_channel(self.config.channels.mod_logs).send(
+        await interaction.guild.get_channel(self.config.channels.log.mod).send(
             embed=log_embed
         )
 
@@ -759,7 +759,7 @@ class Staff(commands.Cog):
             return
 
         honourable_member: nextcord.Role = interaction.guild.get_role(
-            self.config.roles.honourable_member
+            self.config.roles.staff.honourable_member
         )
 
         if honourable_member not in member.roles:
@@ -801,10 +801,10 @@ class Staff(commands.Cog):
                 name=interaction.user, icon_url=interaction.user.display_avatar.url
             )
 
-            await interaction.guild.get_channel(self.config.channels.logging).send(
+            await interaction.guild.get_channel(self.config.channels.log.general).send(
                 embed=log_embed
             )
-            await interaction.guild.get_channel(self.config.channels.mod_logs).send(
+            await interaction.guild.get_channel(self.config.channels.log.mod).send(
                 embed=log_embed
             )
 
@@ -818,7 +818,7 @@ class Staff(commands.Cog):
             author=interaction.user,
         )
 
-        vote_channel = self.config.channels.staff_votes
+        vote_channel = self.config.channels.staff.staff_votes
 
         vote_message = await interaction.guild.get_channel(vote_channel).send(
             embed=vote_embed
@@ -943,13 +943,13 @@ class Staff(commands.Cog):
         role: str = SlashOption(
             description="Role the member had",
             choices={
-                "Administrator": str(CONFIG.permission_roles.dark_moderator),
-                "Compliance Officer": str(CONFIG.permission_roles.compliance),
-                "Moderation Lead": str(CONFIG.permission_roles.senior_moderator),
-                "Moderator": str(CONFIG.permission_roles.moderator),
-                "Trial Moderator": str(CONFIG.permission_roles.trial_moderator),
-                "CET Lead": str(CONFIG.permission_roles.cet_lead),
-                "CET": str(CONFIG.permission_roles.cet),
+                "Administrator": str(CONFIG.roles.staff.admin),
+                "Compliance Officer": str(CONFIG.roles.staff.compliance),
+                "Moderation Lead": str(CONFIG.roles.staff.mod_lead),
+                "Moderator": str(CONFIG.roles.staff.mod),
+                "Trial Moderator": str(CONFIG.roles.staff.trial_mod),
+                "CET Lead": str(CONFIG.roles.staff.cet_lead),
+                "CET": str(CONFIG.roles.staff.cet),
             },
         ),
         added_by: nextcord.Member = SlashOption(
@@ -1431,7 +1431,7 @@ class Staff(commands.Cog):
             thumbnail_url=interaction.user.display_avatar.url,
         )
 
-        await interaction.guild.get_channel(self.config.channels.logging).send(
+        await interaction.guild.get_channel(self.config.channels.log.general).send(
             embed=log_embed
         )
 
@@ -1570,14 +1570,14 @@ class Staff(commands.Cog):
                 f"{self.config.emotes.success} You have been forced to be available for {available_timedelta}."
             )
 
-        await interaction.guild.get_channel(self.config.channels.logging).send(
+        await interaction.guild.get_channel(self.config.channels.log.general).send(
             embed=SersiEmbed(
                 title="Forced Availability Set",
                 description=f"{interaction.user.mention} has been forced to be available for {available_timedelta}.",
             )
         )
 
-        await interaction.guild.get_channel(self.config.channels.mod_logs).send(
+        await interaction.guild.get_channel(self.config.channels.log.mod).send(
             embed=SersiEmbed(
                 title="Forced Availability Set",
                 description=f"{interaction.user.mention} has been forced to be available for {available_timedelta}.",
@@ -1675,7 +1675,7 @@ class Staff(commands.Cog):
                 description=f"{interaction.user.mention} has been forced to be unavailable for {unavailable_timedelta}.",
             )
 
-            interaction.guild.get_channel(self.config.channels.moderator_review).send(
+            interaction.guild.get_channel(self.config.channels.staff.mod_review).send(
                 embed=unavailability_log_embed,
             )
 
@@ -1694,14 +1694,14 @@ class Staff(commands.Cog):
                             f"{interaction.user.mention} has been forced to be unavailable for {unavailable_timedelta}."
                         )
 
-        await interaction.guild.get_channel(self.config.channels.logging).send(
+        await interaction.guild.get_channel(self.config.channels.log.general).send(
             embed=SersiEmbed(
                 title="Forced Unavailability Set",
                 description=f"{interaction.user.mention} has been forced to be unavailable for {unavailable_timedelta}.",
             )
         )
 
-        await interaction.guild.get_channel(self.config.channels.mod_logs).send(
+        await interaction.guild.get_channel(self.config.channels.log.mod).send(
             embed=SersiEmbed(
                 title="Forced Unavailability Set",
                 description=f"{interaction.user.mention} has been forced to be unavailable for {unavailable_timedelta}.",
@@ -1748,14 +1748,14 @@ class Staff(commands.Cog):
             f"{self.config.emotes.success} Forced availability or unavailability has been expired."
         )
 
-        await interaction.guild.get_channel(self.config.channels.logging).send(
+        await interaction.guild.get_channel(self.config.channels.log.general).send(
             embed=SersiEmbed(
                 title="Forced Availability/Unavailability Expired",
                 description=f"{interaction.user.mention} has expired their forced availability or unavailability.",
             )
         )
 
-        await interaction.guild.get_channel(self.config.channels.mod_logs).send(
+        await interaction.guild.get_channel(self.config.channels.log.mod).send(
             embed=SersiEmbed(
                 title="Forced Availability/Unavailability Expired",
                 description=f"{interaction.user.mention} has expired their forced availability or unavailability.",
@@ -1805,7 +1805,7 @@ class Staff(commands.Cog):
             ]
 
             member = guild.get_member(case.offender)
-        honourable_member = guild.get_role(self.config.roles.honourable_member)
+        honourable_member = guild.get_role(self.config.roles.staff.honourable_member)
 
         await member.remove_roles(
             honourable_member, reason="Honoured member removal vote", atomic=True
@@ -1823,8 +1823,8 @@ class Staff(commands.Cog):
             },
         )
 
-        await guild.get_channel(self.config.channels.logging).send(embed=log_embed)
-        await guild.get_channel(self.config.channels.mod_logs).send(embed=log_embed)
+        await guild.get_channel(self.config.channels.log.general).send(embed=log_embed)
+        await guild.get_channel(self.config.channels.log.mod).send(embed=log_embed)
 
     @commands.Cog.listener()
     async def on_interaction(self, interaction: nextcord.Interaction):
@@ -1969,7 +1969,7 @@ class Staff(commands.Cog):
 
     @commands.Cog.listener()
     async def on_role_add(self, member: nextcord.Member, role: nextcord.Role):
-        if role.id != self.config.roles.available_mod:
+        if role.id != self.config.roles.staff.available_mod:
             return
 
         logging_embed = SersiEmbed(
@@ -1980,11 +1980,11 @@ class Staff(commands.Cog):
 
         guild = self.bot.get_guild(self.config.guilds.main)
 
-        await guild.get_channel(self.config.channels.logging).send(embed=logging_embed)
+        await guild.get_channel(self.config.channels.log.general).send(embed=logging_embed)
 
     @commands.Cog.listener()
     async def on_role_remove(self, member: nextcord.Member, role: nextcord.Role):
-        if role.id != self.config.roles.available_mod:
+        if role.id != self.config.roles.staff.available_mod:
             return
 
         logging_embed = SersiEmbed(
@@ -1995,7 +1995,7 @@ class Staff(commands.Cog):
 
         guild = self.bot.get_guild(self.config.guilds.main)
 
-        await guild.get_channel(self.config.channels.logging).send(embed=logging_embed)
+        await guild.get_channel(self.config.channels.log.general).send(embed=logging_embed)
 
 
 def setup(bot: commands.Bot, **kwargs):

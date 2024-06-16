@@ -19,7 +19,7 @@ class Threads(commands.Cog):
             ).flatten()
         )[0]
 
-        await thread.guild.get_channel(self.config.channels.channel_logs).send(
+        await thread.guild.get_channel(self.config.channels.log.channels).send(
             embed=SersiEmbed(
                 description="A Thread was created",
                 fields={
@@ -41,7 +41,7 @@ class Threads(commands.Cog):
             ).flatten()
         )[0]
 
-        await thread.guild.get_channel(self.config.channels.channel_logs).send(
+        await thread.guild.get_channel(self.config.channels.log.channels).send(
             embed=SersiEmbed(
                 description="A Thread was deleted",
                 fields={
@@ -69,7 +69,7 @@ class Threads(commands.Cog):
         for attribute, value in log.after:
             after_values += f"{attribute}: {value}\n"
 
-        await after.guild.get_channel(self.config.channels.channel_logs).send(
+        await after.guild.get_channel(self.config.channels.log.channels).send(
             embed=SersiEmbed(
                 description="A Thread was updated",
                 fields={

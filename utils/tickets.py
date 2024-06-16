@@ -72,15 +72,15 @@ def ticket_log_channel(
 ) -> nextcord.TextChannel:
     match escalation_level:
         case "Moderator":
-            return config.channels.mod_ticket_logs
+            return config.channels.log.mod_ticket
         case "Moderation Lead":
-            return config.channels.senior_ticket_logs
+            return config.channels.log.mod_lead_ticket
         case "Community Engagement":
-            return config.channels.cet_ticket_logs
+            return config.channels.log.cet_ticket
         case "Community Engagement Lead":
-            return config.channels.cet_lead_ticket_logs
+            return config.channels.log.cet_lead_ticket
         case _:
-            return config.channels.admin_ticket_logs
+            return config.channels.log.admin_ticket
 
 
 def ticket_overwrites(
@@ -102,10 +102,10 @@ def ticket_overwrites(
             overwrites.update(
                 {
                     guild.get_role(
-                        config.permission_roles.moderator
+                        config.roles.staff.mod
                     ): nextcord.PermissionOverwrite(read_messages=True),
                     guild.get_role(
-                        config.permission_roles.trial_moderator
+                        config.roles.staff.trial_mod
                     ): nextcord.PermissionOverwrite(read_messages=True),
                 }
             )
@@ -114,7 +114,7 @@ def ticket_overwrites(
             overwrites.update(
                 {
                     guild.get_role(
-                        config.permission_roles.senior_moderator
+                        config.roles.staff.mod_lead
                     ): nextcord.PermissionOverwrite(read_messages=True),
                 }
             )
@@ -123,7 +123,7 @@ def ticket_overwrites(
             overwrites.update(
                 {
                     guild.get_role(
-                        config.permission_roles.cet
+                        config.roles.staff.cet
                     ): nextcord.PermissionOverwrite(read_messages=True),
                 }
             )
@@ -132,7 +132,7 @@ def ticket_overwrites(
             overwrites.update(
                 {
                     guild.get_role(
-                        config.permission_roles.cet_lead
+                        config.roles.staff.cet_lead
                     ): nextcord.PermissionOverwrite(read_messages=True),
                 }
             )
@@ -141,7 +141,7 @@ def ticket_overwrites(
             overwrites.update(
                 {
                     guild.get_role(
-                        config.permission_roles.dark_moderator
+                        config.roles.staff.admin
                     ): nextcord.PermissionOverwrite(read_messages=True)
                 }
             )
@@ -161,19 +161,19 @@ async def ticket_create(
     match ticket_type:
         case "Moderator":
             type_name = "mod"
-            ping = config.permission_roles.moderator
+            ping = config.roles.staff.mod
         case "Moderation Lead":
             type_name = "mod-lead"
-            ping = config.permission_roles.moderator
+            ping = config.roles.staff.mod
         case "Community Engagement":
             type_name = "cet"
-            ping = config.permission_roles.cet
+            ping = config.roles.staff.cet
         case "Community Engagement Lead":
             type_name = "cet-lead"
-            ping = config.permission_roles.cet
+            ping = config.roles.staff.cet
         case "Administrator":
             type_name = "admin"
-            ping = config.permission_roles.dark_moderator
+            ping = config.roles.staff.admin
 
     channel_category = nextcord.utils.get(guild.categories, name="STAFF SUPPORT")
 

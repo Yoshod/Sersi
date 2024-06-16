@@ -28,7 +28,7 @@ class NicknameLock(commands.Cog):
             await after.edit(nick=before.nick, reason="Nickname Lock")
 
             # logging
-            await after.guild.get_channel(self.config.channels.logging).send(
+            await after.guild.get_channel(self.config.channels.log.general).send(
                 embed=SersiEmbed(
                     title="Nickname Change prevented",
                     footer="Sersi Nickname Lock",

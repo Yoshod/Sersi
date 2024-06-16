@@ -117,7 +117,7 @@ class ErrorHandling(commands.Cog):
             f"An error occurred while executing slash command: {error}"
         )
 
-        channel = self.error_guild.get_channel(self.config.channels.errors)
+        channel = self.error_guild.get_channel(self.config.channels.dev.errors)
         if channel is None:
             return
 
@@ -210,7 +210,7 @@ class ErrorHandling(commands.Cog):
 
         error_logger.exception(f"An error occurred while executing command: {error}")
 
-        channel = self.error_guild.get_channel(self.config.channels.errors)
+        channel = self.error_guild.get_channel(self.config.channels.dev.errors)
         if channel is None:
             await ctx.send(f"Error while executing command: `{error}`")
         else:
