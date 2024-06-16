@@ -2,151 +2,151 @@
   role_name: Gaming Opt-In
   role_emoji: 🎮
   role_category: Hobbies
-  required_level_role:
+  required_level_role: 0
 
 - role_id: 960558399471378483
   role_name: TechCompsci Opt-In
   role_emoji: 💻
   role_category: Hobbies
-  required_level_role:
+  required_level_role: 0
 
 - role_id: 960558452109885450
   role_name: Food & House Opt-In
   role_emoji: 🍹
   role_category: Hobbies
-  required_level_role:
+  required_level_role: 0
 
 - role_id: 960558507403382784
   role_name: History Opt-In
   role_emoji: 🏰
   role_category: Hobbies
-  required_level_role:
+  required_level_role: 0
 
 - role_id: 960558557332406293
   role_name: Art Writing Creativity Opt-In
   role_emoji: 🎨
   role_category: Arts & Media
-  required_level_role:
+  required_level_role: 0
 
 - role_id: 960558615209582672
   role_name: Anime Manga Opt-In
   role_emoji: 🌸
   role_category: Hobbies
-  required_level_role:
+  required_level_role: 0
 
 - role_id: 960558657672732712
   role_name: Furry Opt-In
   role_emoji: 🐾
   role_category: Hobbies
-  required_level_role:
+  required_level_role: 0
 
 - role_id: 960558722839642212
   role_name: Models Opt-In
   role_emoji: 🖌
   role_category: Arts & Media
-  required_level_role:
+  required_level_role: 0
 
 - role_id: 960558757463605298
   role_name: Shillposting Opt-In
   role_emoji: 💶
   role_category: Hobbies
-  required_level_role: 909608028586782800
+  required_level_role: 3
 
 - role_id: 1003725859695370260
   role_name: Photography Opt-In
   role_emoji: 📸
   role_category: Arts & Media
-  required_level_role:
+  required_level_role: 0
 
 - role_id: 960558800442646578
   role_name: Media Opt-In
   role_emoji: 🎥
   role_category: Arts & Media
-  required_level_role:
+  required_level_role: 0
 
 - role_id: 1028238676230164592
   role_name: Environment Opt-In
   role_emoji: 🌳
   role_category: Social Issues
-  required_level_role:
+  required_level_role: 0
 
 - role_id: 1022904633733161050
   role_name: Any/All
   role_emoji: 1056558565378232361
   role_category: Pronouns
-  required_level_role:
+  required_level_role: 0
 
 - role_id: 875863712228065320
   role_name: He/Him
   role_emoji: 1056558568960167986
   role_category: Pronouns
-  required_level_role:
+  required_level_role: 0
 
 - role_id: 1056304257151799426
   role_name: He/They
   role_emoji: 1056558571128623154
   role_category: Pronouns
-  required_level_role:
+  required_level_role: 0
 
 - role_id: 875863713419251733
   role_name: They/Them
   role_emoji: 1056558580364496957
   role_category: Pronouns
-  required_level_role:
+  required_level_role: 0
 
 - role_id: 1056303887340032051
   role_name: She/They
   role_emoji: 1056558578355413044
   role_category: Pronouns
-  required_level_role:
+  required_level_role: 0
 
 - role_id: 875863712840433714
   role_name: She/Her
   role_emoji: 1056558576837087353
   role_category: Pronouns
-  required_level_role:
+  required_level_role: 0
 
 - role_id: 960542826607829086
   role_name: Ask for Pronouns
   role_emoji: 1056558567043379200
   role_category: Pronouns
-  required_level_role:
+  required_level_role: 0
 
 - role_id: 875863713830289418
   role_name: Questioning Pronouns
   role_emoji: 1056558574974808074
   role_category: Pronouns
-  required_level_role:
+  required_level_role: 0
 
 - role_id: 960882838960484352
   role_name: Nouns Only
   role_emoji: 1056558573313851432
   role_category: Pronouns
-  required_level_role:
+  required_level_role: 0
 
 - role_id: 960543703276081162
   role_name: Dude+
   role_emoji: 
   role_category: Gendered Terms
-  required_level_role:
+  required_level_role: 0
 
 - role_id: 960543733970010194
   role_name: Dude-
   role_emoji: 
   role_category: Gendered Terms
-  required_level_role:
+  required_level_role: 0
 
 - role_id: 960543769667731546
   role_name: Guys+
   role_emoji: 
   role_category: Gendered Terms
-  required_level_role:
+  required_level_role: 0
 
 - role_id: 960543792971276389
   role_name: Guys-
   role_emoji: 
   role_category: Gendered Terms
-  required_level_role:
+  required_level_role: 0
 
 - role_id: 943550814591524924
   role_name: PC
@@ -158,154 +158,154 @@
   role_name: PS5
   role_emoji: 🎮
   role_category: Gaming Platforms
-  required_level_role:
+  required_level_role: 0
 
 - role_id: 943550921747607562
   role_name: PS4
   role_emoji: 🎮
   role_category: Gaming Platforms
-  required_level_role:
+  required_level_role: 0
 
 - role_id: 943551257103179786
   role_name: Xbox Series X|S
   role_emoji: 🎮
   role_category: Gaming Platforms
-  required_level_role:
+  required_level_role: 0
 
 - role_id: 943551063351513170
   role_name: Xbox One
   role_emoji: 🎮
   role_category: Gaming Platforms
-  required_level_role:
+  required_level_role: 0
 
 - role_id: 943551414129549383
   role_name: Nintendo Switch
   role_emoji: 🎮
   role_category: Gaming Platforms
-  required_level_role:
+  required_level_role: 0
 
 - role_id: 907477356736835594
   role_name: Light Red
   role_emoji:
   role_category: Colours
-  required_level_role: 909607701070352434
+  required_level_role: 1
 
 - role_id: 907477163194859531
   role_name: Red
   role_emoji:
   role_category: Colours
-  required_level_role: 909607701070352434
+  required_level_role: 1
 
 - role_id: 907477398587584562
   role_name: Dark Red
   role_emoji:
   role_category: Colours
-  required_level_role: 909607701070352434
+  required_level_role: 1
 
 - role_id: 907479247403245589
   role_name: Light Orange
   role_emoji:
   role_category: Colours
-  required_level_role: 909607701070352434
+  required_level_role: 1
 
 - role_id: 907479226813407273
   role_name: Orange
   role_emoji:
   role_category: Colours
-  required_level_role: 909607701070352434
+  required_level_role: 1
 
 - role_id: 907479198950654032
   role_name: Dark Orange
   role_emoji:
   role_category: Colours
-  required_level_role: 909607701070352434
+  required_level_role: 1
 
 - role_id: 907480040906829826
   role_name: Light Yellow
   role_emoji:
   role_category: Colours
-  required_level_role: 909607701070352434
+  required_level_role: 1
 
 - role_id: 907480067700043779
   role_name: Yellow
   role_emoji:
   role_category: Colours
-  required_level_role: 909607701070352434
+  required_level_role: 1
 
 - role_id: 907480130589429810
   role_name: Dark Yellow
   role_emoji:
   role_category: Colours
-  required_level_role: 909607701070352434
+  required_level_role: 1
 
 - role_id: 907480595406409770
   role_name: Light Green
   role_emoji:
   role_category: Colours
-  required_level_role: 909607701070352434
+  required_level_role: 1
 
 - role_id: 907480679984533554
   role_name: Green
   role_emoji:
   role_category: Colours
-  required_level_role: 909607701070352434
+  required_level_role: 1
 
 - role_id: 907480696002584576
   role_name: Dark Green
   role_emoji:
   role_category: Colours
-  required_level_role: 909607701070352434
+  required_level_role: 1
 
 - role_id: 907481462297739274
   role_name: Light Blue
   role_emoji:
   role_category: Colours
-  required_level_role: 909607701070352434
+  required_level_role: 1
 
 - role_id: 907481518321049620
   role_name: Blue
   role_emoji:
   role_category: Colours
-  required_level_role: 909607701070352434
+  required_level_role: 1
 
 - role_id: 907481541184208946
   role_name: Dark Blue
   role_emoji:
   role_category: Colours
-  required_level_role: 909607701070352434
+  required_level_role: 1
 
 - role_id: 907481918830952509
   role_name: Light Purple
   role_emoji:
   role_category: Colours
-  required_level_role: 909607701070352434
+  required_level_role: 1
 
 - role_id: 907481952527982602
   role_name: Purple
   role_emoji:
   role_category: Colours
-  required_level_role: 909607701070352434
+  required_level_role: 1
 
 - role_id: 907481968848015370
   role_name: Dark Purple
   role_emoji:
   role_category: Colours
-  required_level_role: 909607701070352434
+  required_level_role: 1
 
 - role_id: 907482004977762304
   role_name: Light Pink
   role_emoji:
   role_category: Colours
-  required_level_role: 909607701070352434
+  required_level_role: 1
 
 - role_id: 907482032471433217
   role_name: Pink
   role_emoji:
   role_category: Colours
-  required_level_role: 909607701070352434
+  required_level_role: 1
 
 - role_id: 907482050464993331
   role_name: Dark Pink
   role_emoji:
   role_category: Colours
-  required_level_role: 909607701070352434
+  required_level_role: 1
