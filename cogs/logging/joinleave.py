@@ -158,14 +158,13 @@ class JoinLeave(commands.Cog):
                     session.query(TimeoutCase).filter_by(offender=member.id).all()
                 )
                 for case in timeout_cases:
-                    if (
-                        case.actual_end is None
-                        and case.planned_end > datetime.datetime.utcnow()
-                    ):
+                    if case.planned_end > datetime.datetime.utcnow():
                         continue
 
                     else:
-                        await member.guild.get_channel(self.config.channels.staff.alert).send(
+                        await member.guild.get_channel(
+                            self.config.channels.staff.alert
+                        ).send(
                             embed=SersiEmbed(
                                 title="Timed Out User Left",
                                 description=f"{member.mention} ({member.id}) has left the server while still being timed out. The timeout was set to end at {format_dt(case.planned_end, 'F')}. The time remaining was {format_dt(case.planned_end, 'R')}",
