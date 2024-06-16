@@ -152,7 +152,7 @@ class JoinLeave(commands.Cog):
             ).set_author(name=member, icon_url=member.display_avatar.url)
         )
 
-        if member.communication_disabled_until:
+        if member.communication_disabled_until is not None:
             with db_session() as session:
                 timeout_cases = (
                     session.query(TimeoutCase).filter_by(offender=member.id).all()
