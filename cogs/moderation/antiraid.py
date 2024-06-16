@@ -71,9 +71,7 @@ class AntiRaid(commands.Cog):
                     regex_patterns=[".*"]
                 ),
                 enabled=True,
-                exempt_roles=[
-                    interaction.guild.get_role(self.config.permission_roles.moderator)
-                ],
+                exempt_roles=[interaction.guild.get_role(self.config.roles.staff.mod)],
                 reason="Raid Mode",
             )
 
@@ -99,8 +97,8 @@ class AntiRaid(commands.Cog):
             ephemeral=True,
         )
 
-        await interaction.guild.get_channel(self.config.channels.alert).send(
-            f"**RAID MODE ACTIVATED:** {interaction.guild.get_role(self.config.permission_roles.moderator).mention}",
+        await interaction.guild.get_channel(self.config.channels.staff.alert).send(
+            f"**RAID MODE ACTIVATED:** {interaction.guild.get_role(self.config.roles.staff.mod).mention}",
             embed=raid_embed,
         )
 
@@ -157,8 +155,8 @@ class AntiRaid(commands.Cog):
             ephemeral=True,
         )
 
-        await interaction.guild.get_channel(self.config.channels.alert).send(
-            f"{interaction.guild.get_role(self.config.permission_roles.moderator).mention}",
+        await interaction.guild.get_channel(self.config.channels.staff.alert).send(
+            f"{interaction.guild.get_role(self.config.roles.staff.mod).mention}",
             embed=raid_embed,
         )
 
@@ -306,17 +304,17 @@ class AntiRaid(commands.Cog):
             ephemeral=True,
         )
 
-        await interaction.guild.get_channel(self.config.channels.alert).send(
+        await interaction.guild.get_channel(self.config.channels.staff.alert).send(
             "**RAID BAN:**",
             embed=raid_embed,
         )
 
-        await interaction.guild.get_channel(self.config.channels.logging).send(
+        await interaction.guild.get_channel(self.config.channels.log.general).send(
             "**RAID BAN:**",
             embed=raid_embed,
         )
 
-        await interaction.guild.get_channel(self.config.channels.mod_logs).send(
+        await interaction.guild.get_channel(self.config.channels.log.mod).send(
             "**RAID BAN:**",
             embed=raid_embed,
         )
