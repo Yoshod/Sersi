@@ -5,6 +5,7 @@ from nextcord.ui import Button, View
 
 from utils.config import Configuration
 from utils.database import db_session, TrackingMessages
+import urllib.parse
 
 
 class TrackingUrls(commands.Cog):
@@ -26,43 +27,51 @@ class TrackingUrls(commands.Cog):
             if session.query(TrackingMessages).filter_by(message_id=message.id).first():
                 return
 
-        tracking_string_detected = False
+        cleaned_urls = []
 
-        clean_urls = []
-
-        acceptable_urls = [
-            "watch?v=",
-            "media.discordapp.net",
-        ]
+        tracking_regex = r"(utm_source=|utm_medium=|utm_campaign=|gclid=|fbclid=|si=)"
 
         for url in urls:
-            if "?" in url and not any(
-                acceptable_urls in url for acceptable_urls in acceptable_urls
-            ):
-                url = url.split("?")[0]
-                tracking_string_detected = True
-                clean_urls.append(f"<{url}>")
+            parsed_url = urllib.parse.urlparse(url)
 
-        if tracking_string_detected:
-            with db_session() as session:
-                session.add(TrackingMessages(message_id=message.id))
-                session.commit()
+            if parsed_url.query:
+                valid_params = []
+                for param in parsed_url.query.split("&"):
+                    if not re.search(tracking_regex, param):
+                        valid_params.append(param)
 
-            learn_more_button = Button(
-                label="Learn More",
-                style=nextcord.ButtonStyle.grey,
-                custom_id="tracking_learn_more",
-                emoji="❓",
-            )
+                cleaned_url = (
+                    f"{parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path}"
+                )
+                if valid_params:
+                    cleaned_url += f"?{'&'.join(valid_params)}"
 
-            view = View(timeout=None, auto_defer=False)
-            view.add_item(learn_more_button)
+                if cleaned_url != url:
+                    cleaned_urls.append(f"<{cleaned_url}>")
 
-            await message.reply(
-                f"Potential tracking strings were detected in your message. Here are the cleaned URL(s):\n{', '.join(clean_urls)}",
-                mention_author=False,
-                view=view,
-            )
+        if not cleaned_urls:
+            return
+
+        with db_session() as session:
+            tracking_message = TrackingMessages(message_id=message.id)
+            session.add(tracking_message)
+            session.commit()
+
+        learn_more_button = Button(
+            label="Learn More",
+            style=nextcord.ButtonStyle.grey,
+            custom_id="tracking_learn_more",
+            emoji="❓",
+        )
+
+        view = View(timeout=None, auto_defer=False)
+        view.add_item(learn_more_button)
+
+        await message.reply(
+            f"Potential tracking strings were detected in your message. Here are the cleaned URL(s):\n{', '.join(cleaned_urls)}",
+            mention_author=False,
+            view=view,
+        )
 
         return
 
