@@ -110,7 +110,11 @@ class Roles(commands.Cog):
                     Button(
                         style=nextcord.ButtonStyle.blurple,
                         label=role.role_name,
-                        emoji=role.role_emoji,
+                        emoji=(
+                            role.role_emoji
+                            if not isinstance(role.role_emoji, type(int))
+                            else None
+                        ),
                         custom_id=encode_button_id(
                             "roles",
                             role_id=role.role_id,
