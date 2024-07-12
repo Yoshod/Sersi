@@ -9,6 +9,10 @@ from chat_exporter import export
 
 from utils.config import Configuration
 
+import logging
+
+error_logger = logging.getLogger("error_logger")
+
 
 def get_discord_timestamp(time: datetime, *, relative: bool = False) -> str:
     if relative:
@@ -228,7 +232,7 @@ async def make_transcript(
             await to_channel.send(file=transcript_file, embed=embed)
 
     except nextcord.HTTPException:
-        raise RuntimeError("Unable to send transcript.")
+        error_logger.exception("Failed to send transcript")
 
     return transcript
 
