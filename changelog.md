@@ -27,6 +27,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 - The bot will no longer send a message when a potential slur is declared a False Positive
+- A log will now be sent to the Mog Log channel when a Note is created
 
 ### Fixed
 - Fixed a bug where daily moderation statistics would not be sent after a change of month
