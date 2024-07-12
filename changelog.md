@@ -24,6 +24,10 @@ All notable changes to this project will be documented in this file.
     - '/roles remove_temporary_role' - Removes a temporary role from a user
     - '/roles list_temporary_roles' - Lists all temporary roles
     - '/roles list_issued_temporary_roles' - Lists all temporary roles issued to a user
+- Added a new anti-raid suite with the `/raid` top-level command
+    - `raid declare` - Declares a raid allowing the use of the following commands. It also prevents all users except for moderators from sending messages
+    - `raid ban` - A mass ban command that will allow the banning of up to 10 users at once
+    - `raid deactivate` - Deactivates the raid mode
 
 ### Changed
 - The bot will no longer send a message when a potential slur is declared a False Positive
