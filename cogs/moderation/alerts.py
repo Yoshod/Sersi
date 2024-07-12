@@ -8,7 +8,6 @@ from utils.base import sanitize_mention, get_message_from_url
 from utils.config import Configuration
 from utils.database import db_session, SlurUsageCase, BadFaithPingCase, Alert
 from utils.perms import is_mod, permcheck
-from utils.sersi_embed import SersiEmbed
 
 
 class Alerts(commands.Cog):
@@ -122,22 +121,6 @@ class Alerts(commands.Cog):
                     inline=False,
                 )
                 embed.color = nextcord.Color.red()
-
-                false_positive_embed: nextcord.Embed = SersiEmbed(
-                    title="Marked as False Positive",
-                    description=embed.description,
-                    color=nextcord.Color.red(),
-                    fields={
-                        "Slurs Found": slurs,
-                    },
-                ).set_author(
-                    name=interaction.user.display_name,
-                    icon_url=interaction.user.avatar.url,
-                )
-
-                await interaction.guild.get_channel(
-                    self.config.channels.staff.false_positives
-                ).send(embed=false_positive_embed)
 
             case "alert_bad_faith_ping":
                 embed.add_field(

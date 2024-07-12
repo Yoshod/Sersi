@@ -26,6 +26,7 @@ All notable changes to this project will be documented in this file.
     - '/roles list_issued_temporary_roles' - Lists all temporary roles issued to a user
 
 ### Changed
+- The bot will no longer send a message when a potential slur is declared a False Positive
 
 ### Fixed
 - Fixed a bug where daily moderation statistics would not be sent after a change of month
