@@ -14,7 +14,7 @@ class Photos(commands.Cog):
         """photography channel new post routing."""
 
         # ignore if message is not in photography channel
-        if message.channel.id != self.config.channels.photography:
+        if message.channel.id != self.config.channels.misc.photography:
             return
 
         elif message.author.bot: # ignores message if message is by bot

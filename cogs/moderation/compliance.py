@@ -322,8 +322,36 @@ class Compliance(commands.Cog):
             return
 
         start_date = datetime.datetime.today().replace(
-            day=datetime.datetime.today().day - 1, hour=0, minute=0, second=0
+            day=(
+                datetime.datetime.today().day - 1
+                if datetime.datetime.today().day > 1
+                else datetime.datetime.today().day
+            ),
+            hour=0,
+            minute=0,
+            second=0,
         )
+
+        if datetime.datetime.now().day == 1:
+            if datetime.datetime.now().month == 1:
+                start_date = datetime.datetime.now().replace(
+                    year=datetime.datetime.now().year - 1,
+                    month=12,
+                    day=1,
+                    hour=0,
+                    minute=0,
+                    second=0,
+                )
+
+            else:
+                start_date = datetime.datetime.now().replace(
+                    month=datetime.datetime.now().month - 1,
+                    day=1,
+                    hour=0,
+                    minute=0,
+                    second=0,
+                )
+
         end_date = datetime.datetime.today().replace(hour=0, minute=0, second=0)
         report: ModerationReport = await get_moderation_report(start_date, end_date)
 
@@ -331,11 +359,11 @@ class Compliance(commands.Cog):
             report, start_date, end_date, "Daily Moderation Report"
         )
 
-        await self.bot.get_channel(self.config.channels.compliance_review).send(
+        await self.bot.get_channel(self.config.channels.staff.compliance_review).send(
             embed=embed
         )
 
-        await self.bot.get_channel(self.config.channels.alert).send(embed=embed)
+        await self.bot.get_channel(self.config.channels.staff.alert).send(embed=embed)
 
         if datetime.datetime.now().day == 1:
             if datetime.datetime.now().month == 1:
@@ -390,11 +418,11 @@ class Compliance(commands.Cog):
                 report, start_date, end_date, "Monthly Moderation Report"
             )
 
-            await self.bot.get_channel(self.config.channels.compliance_review).send(
+            await self.bot.get_channel(self.config.channels.staff.compliance_review).send(
                 embed=embed
             )
 
-            await self.bot.get_channel(self.config.channels.alert).send(embed=embed)
+            await self.bot.get_channel(self.config.channels.staff.alert).send(embed=embed)
 
         if datetime.datetime.now().day == 1 and datetime.datetime.now().month == 1:
             start_date = datetime.datetime.now().replace(
@@ -411,11 +439,11 @@ class Compliance(commands.Cog):
                 report, start_date, end_date, "Yearly Moderation Report"
             )
 
-            await self.bot.get_channel(self.config.channels.compliance_review).send(
+            await self.bot.get_channel(self.config.channels.staff.compliance_review).send(
                 embed=embed
             )
 
-            await self.bot.get_channel(self.config.channels.alert).send(embed=embed)
+            await self.bot.get_channel(self.config.channels.staff.alert).send(embed=embed)
 
 
 def setup(bot: commands.Bot, **kwargs):

@@ -26,7 +26,7 @@ class Invites(commands.Cog):
             self.invite_regex.search(message.content).group(0)
         )
 
-        await message.guild.get_channel(self.config.channels.alert).send(
+        await message.guild.get_channel(self.config.channels.staff.alert).send(
             embed=SersiEmbed(
                 title="Discord Invite Detected",
                 fields={

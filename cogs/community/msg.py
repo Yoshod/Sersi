@@ -33,7 +33,7 @@ class Messages(commands.Cog):
             f"{self.sersisuccess} Direct Message sent to {recipient}!"
         )
 
-        channel = self.bot.get_channel(self.config.channels.logging)
+        channel = self.bot.get_channel(self.config.channels.log.general)
         logging = nextcord.Embed(
             title="DM Sent",
             description="A DM has been sent.",

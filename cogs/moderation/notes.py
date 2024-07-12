@@ -50,6 +50,15 @@ class NoteModal(nextcord.ui.Modal):
             ephemeral=True,
         )
 
+        await self.message.guild.get_channel(self.config.channels.log.mod).send(
+            embed=SersiEmbed(
+                title="Note Created",
+                description=f"{interaction.user.mention} ({interaction.user.id}) has created a note on {self.message.author.mention} ({self.message.author.id}).",
+                fields={"Note Remarks": self.note_remarks.value},
+                footer="Sersi Note Logging",
+            )
+        )
+
 
 class Notes(commands.Cog):
     def __init__(self, bot: commands.Bot, config: Configuration):
@@ -94,6 +103,15 @@ class Notes(commands.Cog):
 
         await interaction.followup.send(
             f"{self.config.emotes.success} The note on {noted.mention} has been successfully created."
+        )
+
+        await interaction.guild.get_channel(self.config.channels.log.mod).send(
+            embed=SersiEmbed(
+                title="Note Created",
+                description=f"{interaction.user.mention} ({interaction.user.id}) has created a note on {noted.mention} ({noted.id}).",
+                fields={"Note Remarks": note},
+                footer="Sersi Note Logging",
+            )
         )
 
     @notes.subcommand(description="Used to get a note by its ID")
@@ -254,7 +272,7 @@ class Notes(commands.Cog):
             logging_embed.set_thumbnail(user.display_avatar.url)
 
             logging_channel = interaction.guild.get_channel(
-                self.config.channels.logging
+                self.config.channels.log.general
             )
 
             await logging_channel.send(embed=logging_embed)
@@ -291,7 +309,7 @@ class Notes(commands.Cog):
             logging_embed.set_thumbnail(interaction.user.display_avatar.url)
 
             logging_channel = interaction.guild.get_channel(
-                self.config.channels.logging
+                self.config.channels.log.general
             )
 
             await logging_channel.send(embed=logging_embed)
@@ -312,7 +330,7 @@ class Notes(commands.Cog):
             return
 
         await interaction.response.send_modal(NoteModal(self.config, message))
-    
+
     @commands.Cog.listener()
     async def on_interaction(self, interaction: nextcord.Interaction):
         try:

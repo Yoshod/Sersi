@@ -30,13 +30,13 @@ class ModPing(commands.Cog):
             await message.channel.send(embed=response_embed)
             await message.channel.send(
                 message.guild.get_role(
-                    self.config.permission_roles.trial_moderator
+                    self.config.roles.staff.trial_mod
                 ).mention,
                 delete_after=1,
             )
 
             # notification for mods
-            channel = self.bot.get_channel(self.config.channels.alert)
+            channel = self.bot.get_channel(self.config.channels.staff.alert)
             alert_embed: nextcord.Embed = SersiEmbed(
                 title="Moderator Ping",
                 description="A moderation role has been pinged, please investigate the ping and take action as appropriate.",

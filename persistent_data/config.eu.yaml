@@ -6,7 +6,7 @@ bot:
     status: "Sword and shield"
     port:   8113 # 8074 for live, 8113 for unstable
     minimum caps length: 8
-    version: "5.2.3"
+    version: "5.3.0"
     git_url: "https://github.com/Yoshod/Sersi"
     authors:
         - "• hekkland `261870562798731266`"
@@ -17,52 +17,56 @@ bot:
     minimum_star_count: 2
 
 channels:
-    alert:                    1166770862150651976
-    logging:                  1166770864423964788
-    false positives:          1166770862150651982
-    mod_logs:                 1166770864595943516
-    reformation:              1166770864197468235
-    reformation_info:         1166770864197468233
-    dm_forward:                                 0
-    errors:                    987397664280817754
-    teachers_lounge:          1166770864197468235
-    reform public log:        1166770864197468234
-    photography:              1166770863387983918
-    tamper_logs:              1166770864595943519
-    logging_category:         1166770864197468238
-    admin_ticket_logs:        1166770862989524993
-    senior_ticket_logs:       1166770862989524992
-    mod_ticket_logs:          1166770862846906488
-    cet_ticket_logs:          0
-    cet_lead_ticket_logs:     0
-    mod applications:         1166770861878018144
-    cet applications:         1166770861878018139
-    role_logs:                1166770864423964786
-    ageverification:          1166770862607827066
-    deleted_messages:         1166770864423964789
-    deleted_images:           1166770864423964791
-    edited_messages:          1166770864423964790
-    joinleave:                1166770864423964787
-    channel_logs:             1166770864423964784
-    guild_logs:               1166770864197468241
-    user_chanes:              1166770864423964793
-    ban_unban:                1166770864595943515
-    voice_logs:               1166770864595943517
-    automod_logs:             1166770864595943518
-    compliance_review:        1166770862150651977
-    dark_mod_review:          1166770862150651978
-    senior_mod_review:        1166770862150651979
-    moderator_review:         1166770862150651980
-    moderation_votes:         1166770862150651976
-    suggestion_discussion:    1166770862989525000
-    suggestion_voting:        1166770862989524999
-    suggestion_review:        1166770862435876978
-    staff_votes:                                0
-    cet_votes:                                  0
-    afk_voice: 0
-    bug_reports:             1226988081106653365
-    feature_requests:        1226988167215845406
-    starboard:               1166770862989524998
+    staff:
+        alert:              1166770862150651976
+        false_positives:    1166770862150651982
+        mod_applications:   1166770861878018144
+        cet_applications:   1166770861878018139
+        age_verification:   1166770862607827066
+        compliance_review:  1166770862150651977
+        admin_review:       1166770862150651978
+        mod_lead_review:    1166770862150651979
+        mod_review:         1166770862150651980
+        mod_votes:          1166770862150651976
+        staff_votes:                          0
+        cet_votes:                            0
+    dev:
+        errors:              987397664280817754
+        bug_reports:        1226988081106653365
+        feature_requests:   1226988167215845406
+    log:
+        logging_category:   1166770864197468238
+        general:            1166770864423964788
+        mod:                1166770864595943516
+        tamper:             1166770864595943519
+        admin_ticket:       1166770862989524993
+        senior_ticket:      1166770862989524992
+        mod_ticket:         1166770862846906488
+        cet_ticket:         1166770862846906489
+        cet_lead_ticket:    1166770862846906490
+        deleted_messages:   1166770864423964789
+        roles:              1166770864423964786
+        deleted_images:     1166770864423964791
+        edited_messages:    1166770864423964790
+        join_leave:         1166770864423964787
+        channels:           1166770864423964784
+        guild:              1166770864197468241
+        user_chanes:        1166770864423964793
+        ban_unban:          1166770864595943515
+        voice:              1166770864595943517
+        automod:            1166770864595943518
+    reform:
+        info:               878292548785958982
+        teachers_lounge:    1166770864197468235
+        public_log:         1166770864197468234
+    suggestions:
+        discussion: 1166770862989525000
+        voting:     1166770862989524999
+        review:     1166770862435876978
+    misc:
+        photography:    1166770863387983918
+        afk_voice:      1139655531770937384
+        starboard:      1166770862989524998
 
 ignored_categories:
     - IMPORTANT STUFF
@@ -78,16 +82,30 @@ ignored_channels:
     bot-commands: 1166770862989525001
 
 roles:
-    reformation:                1166770861148213305
-    reformed:                   1166770861148213298
-    probation:                  1166770861148213304
-    never_mod:                  1166770860904943713
-    civil_engineering_initiate: 1166770861039173747
-    newbie:                     1166770861039173748
-    honourable_member:          1166770861169197149
-    adult_access:               1166770860787515426
-    adult_verified:             1166770860787515425
-    available_mod:              1212898557737173043
+    staff:
+        base:              1166770861169197147
+        admin:              1166770861232099369
+        trial_mod:          1166770861211123719
+        mod:                1166770861211123720
+        mod_lead:           1166770861211123721
+        available_mod:      1212898557737173043
+        cet:                1166770861169197155
+        cet_lead:           1166770861211123712
+        compliance:         1166770861211123713
+        sersi_contributor:  1166770861169197153
+        honourable_member:  1166770861169197149
+    access:
+        basic:  1166770860787515426
+        newbie: 1166770861039173748
+        adult:  1166770860787515425
+    reform:
+        reformist:  1166770861148213305
+        inmate:     1166770861148213304
+        reformed:   1166770861148213298
+    misc:
+        probation:      1166770861148213304
+        never_mod:      1166770860904943713
+        adult_verified: 1166770860787515425
 
 opt_in_roles:
     gaming:         1166770860980437040
@@ -103,18 +121,6 @@ opt_in_roles:
     photography:    1166770860946899052
     environment:    1166770860946899050
 
-permission_roles:
-    staff:             1166770861169197147
-    reformist:         1166770861169197148
-    sersi_contributor: 1166770861169197153
-    trial_moderator:   1166770861211123719
-    moderator:         1166770861211123720
-    senior_moderator:  1166770861211123721
-    dark_moderator:    1166770861232099369
-    cet:               1166770861169197155
-    cet_lead:          1166770861211123712
-    compliance:        1166770861211123713
-
 level_roles:
     1:  1166770861064323093
     2:  1166770861064323094
@@ -126,6 +132,8 @@ level_roles:
     8:  1166770861064323100
     9:  1166770861064323101
     10: 1166770861081104465
+    11: 1224444231456915506
+    12: 1226305359686406174
 
 punishment roles:
     annoying:                 925191425904238592
@@ -167,3 +175,6 @@ voting:
         group: staff
         duration: 168
         supermajority: true
+
+automoderation:
+    max_mentions: 2

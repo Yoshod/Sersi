@@ -2,45 +2,38 @@
 
 All notable changes to this project will be documented in this file.
 
-## [5.2.3] - 2024-04-??
+## [5.3.0] - 2024-07-12
 
 ### Added
-- Added new xp types (community, event, moderation)
-- Having suggestion approved and voted on and implemented awards the suggester xp, voting on suggestions also awards xp
-- Added a Starboard to the bot.
-    - When a post gets a minimum amount of stars it will be posted to the starboard.
-    - When a post goes below a minimum amount of stars it will be removed from the starboard.
-    - A post can be starred either from the post itself or the starboard. This is checked for duplicates.
-    - Members with posts on the starboard receive xp for each star
-- Added a command `\starboard` to manage the starboard.
-    - `ignore` - Ignore a channel from the starboard.
-    - `unignore` - Unignore a channel from the starboard.
-- Added a feedback system to the bot.
-    - When feedback is received it will be sent to either a feature request or bug report channel in the development server.
-    - These can be responded by the developers.
-    - They can Approved which will automatically create a feature request or bug report on the GitHub repository.
-    - They can Denied which will close the feedback.
-    - A user can be banned from sending feedback.
-- Added a command `\feedback` to give feedback to the bot.
-    - `bug_report` - Report a bug.
-    - `feature_request` - Request a feature.
-- Added a Welcome DM system.
-    - When a user joins the server they will receive a DM from the bot.
-    - This DM will have different contents depending on whether:
-        - The user has joined the server for the first time.
-        - The user has joined the server before.
-        - The user has joined the server before and is timedout.
-- Added a feature where if there are any potential tracking strings in a URL the bot will reply (non-ping) with the cleaned URL.
-- Polls now contain a pie chart
+- Added voice message text transcription feature
+- Timers can now be cancelled via `/timer cancel` command
+- WhoIs embed now includes the user's roles
+- WhoIs embed now has a button to bring up the user's levelling embed
+- Added MassPing detection
+    - If a user tries to ping more than 6 users the user will be warned. Further attempts will result in a timeout.
+- When a user leaves the server the bot will now store their roles and will restore them if they rejoin within 28 days
+- Added a `/roles` top-level command
+    - '/roles add_opt_in' - Allows you to make a role opt-in
+    - '/roles remove_opt_in' - Removes the role from the opt-in list
+    - '/roles edit_role' - Allows you to edit details about an opt-in role
+    - '/roles add_category' - Allows you to create a category for opt-in roles
+    - '/roles remove_category' - Allows you to remove a category
+    - '/roles create_temporary_role' - Allows you to create a temporary role
+    - '/roles unmake_temporary_role' - Removes the temporary role status from a role
+    - '/roles give_temporary_role' - Adds a temporary role to a user
+    - '/roles remove_temporary_role' - Removes a temporary role from a user
+    - '/roles list_temporary_roles' - Lists all temporary roles
+    - '/roles list_issued_temporary_roles' - Lists all temporary roles issued to a user
+- Added a new anti-raid suite with the `/raid` top-level command
+    - `raid declare` - Declares a raid allowing the use of the following commands. It also prevents all users except for moderators from sending messages
+    - `raid ban` - A mass ban command that will allow the banning of up to 10 users at once
+    - `raid deactivate` - Deactivates the raid mode
 
 ### Changed
-- Suggestions are now automatically upvoted by the suggester
-- Multiple choices polls now display % of people who picked a given option
-- Reformation inamates are no longer allowed to be a reformist at the same time
-    - reformist role is removed upon when sent to reformation
-    - can no longer opt-in to the reformist role while in reformation
-- Timeouts cases created via non Sersi timeout detections will now gather data from the Audit Logs to determine the Moderator and Reason
+- The bot will no longer send a message when a potential slur is declared a False Positive
+- A log will now be sent to the Mog Log channel when a Note is created
 
 ### Fixed
-- Fixed a bug where users with previous expired timeout cases would still strigger "Timed Out User Left" alerts
-- Fixed a bug where trying to remove a timeout using an invalid case ID would cause the bot to error
+- Fixed a bug where daily moderation statistics would not be sent after a change of month
+- Fixed a bug where the bot would sometimes not be able to close a ticket
+- Fixed a bug where a user who is timed out as part of a ban vote would trigger the "Timed Out by Non-Sersi" message

@@ -108,7 +108,7 @@ class Jokes(commands.Cog):
 
         await interaction.response.defer(ephemeral=False)
 
-        nevermod_role = interaction.guild.get_role(self.config.roles.never_mod)
+        nevermod_role = interaction.guild.get_role(self.config.roles.misc.never_mod)
 
         if self_nevermod:
             await interaction.user.add_roles(

@@ -141,7 +141,7 @@ class Channels(commands.Cog):
 
         logging_embed.add_id_field({"Channel": channel.id, "User": log.user.id})
 
-        await channel.guild.get_channel(self.config.channels.channel_logs).send(
+        await channel.guild.get_channel(self.config.channels.log.channels).send(
             embed=logging_embed
         )
 
@@ -179,7 +179,7 @@ class Channels(commands.Cog):
 
         logging_embed.add_id_field({"Channel": channel.id, "User": log.user.id})
 
-        await channel.guild.get_channel(self.config.channels.channel_logs).send(
+        await channel.guild.get_channel(self.config.channels.log.channels).send(
             embed=logging_embed
         )
 
@@ -208,7 +208,7 @@ class Channels(commands.Cog):
             if abs(after.position - before.position) <= 1:
                 return
 
-            await after.guild.get_channel(self.config.channels.channel_logs).send(
+            await after.guild.get_channel(self.config.channels.log.channels).send(
                 embed=SersiEmbed(
                     description=f"{type(after).__name__} {after.mention} was moved",
                     fields={
@@ -233,7 +233,7 @@ class Channels(commands.Cog):
                 for attribute, value in log.before:
                     before_values = f"{before_values}__{attribute}__: {value}\n"
 
-                await after.guild.get_channel(self.config.channels.channel_logs).send(
+                await after.guild.get_channel(self.config.channels.log.channels).send(
                     embed=SersiEmbed(
                         description=f"{type(log.target).__name__} {log.target.mention} was updated",
                         fields={
@@ -249,7 +249,7 @@ class Channels(commands.Cog):
 
             case nextcord.AuditLogAction.overwrite_create:
 
-                await after.guild.get_channel(self.config.channels.channel_logs).send(
+                await after.guild.get_channel(self.config.channels.log.channels).send(
                     embed=SersiEmbed(
                         description=f"Overwrite for {type(log.target).__name__} {log.target.mention} created",
                         fields={
@@ -293,7 +293,7 @@ class Channels(commands.Cog):
                 if not before_values or not after_values:
                     return
 
-                await after.guild.get_channel(self.config.channels.channel_logs).send(
+                await after.guild.get_channel(self.config.channels.log.channels).send(
                     embed=SersiEmbed(
                         description=f"Overwrite for {type(log.target).__name__} {log.target.mention} updated",
                         fields={
@@ -321,7 +321,7 @@ class Channels(commands.Cog):
                         for permission in permission:
                             before_values = f"{before_values}{self.config.emotes.success} `{permission}`\n"
 
-                await after.guild.get_channel(self.config.channels.channel_logs).send(
+                await after.guild.get_channel(self.config.channels.log.channels).send(
                     embed=SersiEmbed(
                         description=f"Overwrite for {type(log.target).__name__} {log.target.mention} deleted",
                         fields={

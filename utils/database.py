@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 import random
 import re
@@ -140,10 +140,23 @@ class BlacklistCase(Case):
 
 
 class BanCase(Case):
+    """
+    Represents a ban case in the database.
+
+    Inherits from the `Case` class and adds additional attributes specific to ban cases.
+
+    Attributes:
+        id (str): The unique identifier of the ban case.
+        active (bool): Indicates whether the ban case is active or not.
+        details (str): Additional details or description of the ban case.
+        ban_type (str): The type of ban.
+        unbanned_by (int): The user ID of the person who unbanned the case.
+        unban_reason (str): The reason for unbanning the case.
+    """
+
     __tablename__ = "ban_cases"
 
     id = Column(String, ForeignKey("cases.id"), primary_key=True)
-
     active = Column(Boolean, default=None)
     details = Column(String)
     ban_type = Column(String)
@@ -219,10 +232,22 @@ class TimeoutCase(Case):
 
 
 class WarningCase(Case):
+    """
+    Represents a warning case in the database.
+
+    Inherits from the `Case` class and adds additional attributes specific to warning cases.
+
+    Attributes:
+        id (str): The primary key of the warning case.
+        active (bool): Indicates whether the warning case is active or not.
+        details (str): Additional details about the warning case.
+        deactivated_by (int): The user ID of the person who deactivated the warning case.
+        deactivate_reason (str): The reason for deactivating the warning case.
+    """
+
     __tablename__ = "warning_cases"
 
     id = Column(String, ForeignKey("cases.id"), primary_key=True)
-
     active = Column(Boolean, default=True)
     details = Column(String)
     deactivated_by = Column(Integer)
@@ -898,6 +923,192 @@ class TrackingMessages(_Base):
     __tablename__ = "tracking_messages"
 
     message_id = Column(Integer, primary_key=True)
+
+
+class VoiceMessageAnalytics(_Base):
+    """
+    Represents a voice message in the database.
+
+    Attributes:
+        message_id (int): The ID of the message.
+        author (int): The ID of the author of the message.
+        channel (int): The ID of the channel where the message was posted.
+        link (str): The link to the voice message.
+        duration (int): The duration of the voice message.
+        filesize (int): The size of the voice message file.
+        timestamp (datetime): The datetime when the voice message was created.
+    """
+
+    __tablename__ = "voice_message_analytics"
+
+    message_id = Column(Integer, primary_key=True)
+    author = Column(Integer, nullable=False)
+    channel = Column(Integer, nullable=False)
+    link = Column(String, nullable=False)
+    duration = Column(Integer, nullable=False)
+    filesize = Column(Integer, nullable=False)
+    timestamp = Column(DateTime, default=datetime.now(timezone.utc))
+
+
+class OptInCategories(_Base):
+    """
+    Represents a category of opt-in roles in the database.
+
+    Attributes:
+        category_name (str): The name of the category.
+        category_description (str): The description of the category.
+    """
+
+    __tablename__ = "opt_in_categories"
+
+    category_name = Column(String, primary_key=True)
+    category_description = Column(String, nullable=False)
+
+
+class OptInRoles(_Base):
+    """
+    Represents a role that users can opt in to in the database.
+
+    Attributes:
+        role_id (int): The ID of the role.
+        role_name (str): The name of the role.
+        role_emoji (str): The emoji associated with the role.
+        role_category (str): The category of the role.
+        required_level_role (int): The role number required.
+    """
+
+    __tablename__ = "opt_in_roles"
+
+    role_id = Column(Integer, primary_key=True)
+    role_name = Column(String, nullable=False)
+    role_emoji = Column(String)
+    role_category = Column(String, nullable=False)
+    required_level_role = Column(Integer)
+
+    def __repr__(self):
+        return f"{self.role_name}"
+
+    def __getattr__(self, __name: str) -> Any:
+        if __name == "list_entry_header":
+            return f"{self.role_name} ({self.role_id})"
+        raise AttributeError(
+            f"'{self.__class__.__name__}' object has no attribute '{__name}'"
+        )
+
+
+class StickyRoles(_Base):
+    """
+    Represents a sticky role in the database.
+
+    Attributes:
+        role_id (int): The ID of the role.
+        user_id (int): The ID of the user who has the role.
+        leave_date (datetime): The datetime when the user left the server.
+    """
+
+    __tablename__ = "sticky_roles"
+
+    role_id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, primary_key=True)
+    leave_date = Column(DateTime, default=datetime.now(timezone.utc))
+
+
+class TemporaryRoles(_Base):
+    """
+    Represents a temporary role in the database.
+
+    Attributes:
+        role_id (int): The ID of the role.
+        role_name (str): The name of the role.
+        role_description (str): The description of the role.
+    """
+
+    __tablename__ = "temporary_roles"
+
+    role_id = Column(Integer, primary_key=True)
+    role_name = Column(String, nullable=False)
+    role_description = Column(String, nullable=False)
+
+    def __repr__(self):
+        return f"{self.role_description}"
+
+    def __getattr__(self, __name: str) -> Any:
+        if __name == "list_entry_header":
+            return f"{self.role_name} ({self.role_id})"
+        raise AttributeError(
+            f"'{self.__class__.__name__}' object has no attribute '{__name}'"
+        )
+
+
+class IssuedTemporaryRoles(_Base):
+    """
+    Represents a temporary role in the database.
+
+    Attributes:
+        role_id (int): The ID of the role.
+        user_id (int): The ID of the user who has the role.
+        expiry_date (datetime): The datetime when the role expires.
+        added_by (int): The ID of the user who added the role.
+        reason (str): The reason for adding the role.
+        issued_date (datetime): The datetime when the role was issued.
+    """
+
+    __tablename__ = "issued_temporary_roles"
+
+    role_id = Column(Integer, ForeignKey("temporary_roles.role_id"), primary_key=True)
+    user_id = Column(Integer, primary_key=True)
+    expiry_date = Column(DateTime, nullable=False)
+    added_by = Column(Integer, nullable=False)
+    reason = Column(String, nullable=False)
+    issued_date = Column(DateTime, default=datetime.now(timezone.utc))
+
+    def __repr__(self):
+        return f"User: <@{self.user_id}> ({self.user_id})\nRole: <@&{self.role_id}> ({self.role_id})\nExpires: {nextcord.utils.format_dt(self.expiry_date)} ({nextcord.utils.format_dt(self.expiry_date, 'R')}\nIssued by: <@{self.added_by}> ({self.added_by})\nIssue Date: {nextcord.utils.format_dt(self.issued_date)} ({nextcord.utils.format_dt(self.issued_date, 'R')})\nReason: {self.reason}"
+
+    def __getattr__(self, __name: str) -> Any:
+        if __name == "list_entry_header":
+            return f"Issued Role:"
+        raise AttributeError(
+            f"'{self.__class__.__name__}' object has no attribute '{__name}'"
+        )
+
+
+class RaidActivations(_Base):
+    """
+    Represents a raid activation in the database.
+
+    Attributes:
+        activation_id (int): The ID of the raid activation.
+        moderator (int): The ID of the moderator who activated the raid.
+        rule_id (int): The ID of the Discord AutoModeration rule created for the raid.
+        timestamp (datetime): The datetime when the raid was activated.
+    """
+
+    __tablename__ = "raid_activations"
+
+    activation_id = Column(String, primary_key=True, default=random_id)
+    moderator = Column(Integer, nullable=False)
+    rule_id = Column(Integer, nullable=False)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+
+
+class RaidDeactivations(_Base):
+    """
+    Represents a raid deactivation in the database.
+
+    Attributes:
+        activation_id (int): The ID of the raid activation.
+        moderator (int): The ID of the moderator who deactivated the raid.
+        timestamp (datetime): The datetime when the raid was deactivated.
+    """
+
+    __tablename__ = "raid_deactivations"
+
+    activation_id = Column(
+        String, ForeignKey("raid_activations.activation_id"), primary_key=True
+    )
+    moderator = Column(Integer, nullable=False)
+    timestamp = Column(DateTime, default=datetime.utcnow)
 
 
 def create_db_tables():

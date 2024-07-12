@@ -54,7 +54,7 @@ class BanSystem(commands.Cog):
             footer="Sersi Moderation Peer Review",
         )
 
-        channel = self.bot.get_channel(self.config.channels.logging)
+        channel = self.bot.get_channel(self.config.channels.log.general)
         await channel.send(embed=logging_embed)
 
         add_response_time(interaction.message)
@@ -82,7 +82,7 @@ class BanSystem(commands.Cog):
             footer="Sersi Moderation Peer Review",
         )
 
-        channel = self.bot.get_channel(self.config.channels.logging)
+        channel = self.bot.get_channel(self.config.channels.log.general)
         await channel.send(embed=logging_embed)
 
         add_response_time(interaction.message)
@@ -156,11 +156,11 @@ class BanSystem(commands.Cog):
                 )
 
                 logging_channel = interaction.guild.get_channel(
-                    self.config.channels.logging
+                    self.config.channels.log.general
                 )
 
                 mega_admin_role = interaction.guild.get_role(
-                    self.config.permission_roles.dark_moderator
+                    self.config.roles.staff.admin
                 )
 
                 await logging_channel.send(
@@ -290,10 +290,10 @@ class BanSystem(commands.Cog):
                     session.commit()
 
                     channel = self.bot.get_channel(
-                        self.config.channels.moderation_votes
+                        self.config.channels.staff.mod_votes
                     )
                     vote_message = await channel.send(
-                        f"<@&{self.config.permission_roles.moderator}> <@&{self.config.permission_roles.trial_moderator}>",
+                        f"<@&{self.config.roles.staff.mod}> <@&{self.config.roles.staff.trial_mod}>",
                         embed=vote_embed,
                         view=VoteView(vote_type, vote_case),
                     )
@@ -356,10 +356,10 @@ class BanSystem(commands.Cog):
                         sersi_case, interaction=interaction, config=self.config
                     )
 
-                await interaction.guild.get_channel(self.config.channels.mod_logs).send(
+                await interaction.guild.get_channel(self.config.channels.log.mod).send(
                     embed=logging_embed
                 )
-                await interaction.guild.get_channel(self.config.channels.logging).send(
+                await interaction.guild.get_channel(self.config.channels.log.general).send(
                     embed=logging_embed
                 )
 
@@ -566,13 +566,13 @@ class BanSystem(commands.Cog):
             color=nextcord.Color.from_rgb(0, 0, 0),
         )
 
-        channel = self.bot.get_channel(self.config.channels.alert)
+        channel = self.bot.get_channel(self.config.channels.staff.alert)
         await channel.send(embed=embed)
 
-        channel = self.bot.get_channel(self.config.channels.logging)
+        channel = self.bot.get_channel(self.config.channels.log.general)
         await channel.send(embed=embed)
 
-        channel = self.bot.get_channel(self.config.channels.mod_logs)
+        channel = self.bot.get_channel(self.config.channels.log.mod)
         await channel.send(embed=embed)
 
 

@@ -79,7 +79,7 @@ class SlurDetection(commands.Cog):
         self.slur_detector.add_slur(slur)
 
         # logging
-        await self.bot.get_channel(self.config.channels.logging).send(
+        await self.bot.get_channel(self.config.channels.log.general).send(
             embed=SersiEmbed(
                 title="Slur Added",
                 description="A new slur has been added to the filter.",
@@ -128,16 +128,14 @@ class SlurDetection(commands.Cog):
 
         with db_session() as session:
             session.add(
-                Goodword(
-                    goodword=word, slur=related, added_by=interaction.user.id
-                )
+                Goodword(goodword=word, slur=related, added_by=interaction.user.id)
             )
             session.commit()
 
         self.slur_detector.add_goodword(related, word)
 
         # logging
-        await self.bot.get_channel(self.config.channels.logging).send(
+        await self.bot.get_channel(self.config.channels.log.general).send(
             embed=SersiEmbed(
                 title="Goodword Added",
                 description="A new goodword has been added to the whitelist.",
@@ -202,11 +200,11 @@ class SlurDetection(commands.Cog):
             if bypass_reason and is_dark_mod(interaction.user):
                 embed_fields["Dual Custody Bypass Reason"] = bypass_reason
             else:
-                embed_fields[
-                    "Confirming Moderator:"
-                ] = f"{confirming_moderator.mention} ({confirming_moderator.id})"
+                embed_fields["Confirming Moderator:"] = (
+                    f"{confirming_moderator.mention} ({confirming_moderator.id})"
+                )
 
-            channel = self.bot.get_channel(self.config.channels.logging)
+            channel = self.bot.get_channel(self.config.channels.log.general)
             embed_var = SersiEmbed(
                 title="Slur Removed",
                 description="A slur has been removed from the filter.",
@@ -262,7 +260,7 @@ class SlurDetection(commands.Cog):
         self.slur_detector.remove_goodword(slur, word)
 
         # logging
-        await self.bot.get_channel(self.config.channels.logging).send(
+        await self.bot.get_channel(self.config.channels.log.general).send(
             embed=SersiEmbed(
                 title="Goodword Removed",
                 description="A goodword has been removed from the filter.",
@@ -371,7 +369,7 @@ class SlurDetection(commands.Cog):
         return prev_offences
 
     @commands.Cog.listener()
-    async def on_message(self, message: nextcord.Message):
+    async def on_message(self, message: nextcord.Message, *args, **kwargs):
         if ignored_message(self.config, message):
             return
 
@@ -403,7 +401,7 @@ class SlurDetection(commands.Cog):
             icon_url=str(message.author.avatar.url),
         )
 
-        alert = await self.bot.get_channel(self.config.channels.alert).send(
+        alert = await self.bot.get_channel(self.config.channels.staff.alert).send(
             embed=embed, view=AlertView(AlertType.Slur, message.author)
         )
 
@@ -438,7 +436,7 @@ class SlurDetection(commands.Cog):
             icon_url=str(after.avatar.url),
         )
 
-        alert = await self.bot.get_channel(self.config.channels.alert).send(
+        alert = await self.bot.get_channel(self.config.channels.staff.alert).send(
             embed=embed, view=AlertView(AlertType.Slur, after)
         )
 
@@ -473,7 +471,7 @@ class SlurDetection(commands.Cog):
             icon_url=str(after.avatar.url),
         )
 
-        alert = await self.bot.get_channel(self.config.channels.alert).send(
+        alert = await self.bot.get_channel(self.config.channels.staff.alert).send(
             embed=embed, view=AlertView(AlertType.Slur, after.id)
         )
 
@@ -508,7 +506,7 @@ class SlurDetection(commands.Cog):
             icon_url=str(after.avatar.url),
         )
 
-        alert = await self.bot.get_channel(self.config.channels.alert).send(
+        alert = await self.bot.get_channel(self.config.channels.staff.alert).send(
             embed=embed, view=AlertView(AlertType.Slur, after)
         )
 
