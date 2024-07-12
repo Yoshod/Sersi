@@ -457,6 +457,9 @@ class TimeoutSystem(commands.Cog):
                     ).flatten()
                 )[0]
 
+                if log.user.id == self.bot.user.id and log.target.id == after.id:
+                    return
+
                 if case is None or case.planned_end < datetime.utcnow():
                     sersi_case = TimeoutCase(
                         offender=after.id,

@@ -30,3 +30,4 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - Fixed a bug where daily moderation statistics would not be sent after a change of month
 - Fixed a bug where the bot would sometimes not be able to close a ticket
+- Fixed a bug where a user who is timed out as part of a ban vote would trigger the "Timed Out by Non-Sersi" message
