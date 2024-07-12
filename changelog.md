@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [5.3.0] - 2024-06-??
+## [5.3.0] - 2024-07-12
 
 ### Added
 - Added voice message text transcription feature
