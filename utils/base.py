@@ -223,8 +223,12 @@ async def make_transcript(
         filename=f"transcript-{from_channel.name}.html",
     )
 
-    if to_channel is not None:
-        await to_channel.send(file=transcript_file, embed=embed)
+    try:
+        if to_channel is not None:
+            await to_channel.send(file=transcript_file, embed=embed)
+
+    except nextcord.HTTPException:
+        raise nextcord.HTTPException("Failed to send transcript.")
 
     return transcript
 
