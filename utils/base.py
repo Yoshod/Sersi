@@ -228,7 +228,7 @@ async def make_transcript(
             await to_channel.send(file=transcript_file, embed=embed)
 
     except nextcord.HTTPException:
-        raise nextcord.HTTPException("Failed to send transcript.")
+        raise RuntimeError("Unable to send transcript.")
 
     return transcript
 
