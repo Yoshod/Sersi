@@ -112,7 +112,7 @@ class Roles(commands.Cog):
                         label=role.role_name,
                         emoji=(
                             role.role_emoji
-                            if not isinstance(role.role_emoji, type(int))
+                            if not isinstance(role.role_emoji, int)
                             else None
                         ),
                         custom_id=encode_button_id(
