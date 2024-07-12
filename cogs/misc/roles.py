@@ -106,22 +106,32 @@ class Roles(commands.Cog):
 
             view = View(auto_defer=False)
             for role in category_roles:  # Filthy code
-                view.add_item(
-                    Button(
-                        style=nextcord.ButtonStyle.blurple,
-                        label=role.role_name,
-                        emoji=(
-                            role.role_emoji
-                            if not isinstance(role.role_emoji, int)
-                            else None
-                        ),
-                        custom_id=encode_button_id(
-                            "roles",
-                            role_id=role.role_id,
-                            required_level=role.required_level_role,
-                        ),
+                try:
+                    view.add_item(
+                        Button(
+                            style=nextcord.ButtonStyle.blurple,
+                            label=role.role_name,
+                            emoji=role.role_emoji,
+                            custom_id=encode_button_id(
+                                "roles",
+                                role_id=role.role_id,
+                                required_level=role.required_level_role,
+                            ),
+                        )
                     )
-                )
+
+                except nextcord.HTTPException:
+                    view.add_item(
+                        Button(
+                            style=nextcord.ButtonStyle.blurple,
+                            label=role.role_name,
+                            custom_id=encode_button_id(
+                                "roles",
+                                role_id=role.role_id,
+                                required_level=role.required_level_role,
+                            ),
+                        )
+                    )
 
             await ctx.send(
                 embed=embed,
