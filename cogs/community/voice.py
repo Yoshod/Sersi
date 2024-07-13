@@ -31,7 +31,7 @@ def check_if_voice_message_eligible(message: nextcord.Message, config: Configura
         today = today.replace(hour=0, minute=0, second=0, microsecond=0)
 
         voice_messages_today = session.query(VoiceMessageAnalytics).filter(
-            VoiceMessageAnalytics.timestamp == today,
+            VoiceMessageAnalytics.timestamp >= today,
         )
 
     author_voice_messages_seconds = 0
@@ -136,7 +136,7 @@ class Voice(commands.Cog):
 
         with db_session(interaction.user) as session:
             voice_messages_today = session.query(VoiceMessageAnalytics).filter(
-                VoiceMessageAnalytics.timestamp == today,
+                VoiceMessageAnalytics.timestamp >= today,
             )
 
         global_voice_messages_seconds = 0
@@ -178,7 +178,7 @@ class Voice(commands.Cog):
 
         with db_session(interaction.user) as session:
             voice_messages_today = session.query(VoiceMessageAnalytics).filter(
-                VoiceMessageAnalytics.timestamp == today,
+                VoiceMessageAnalytics.timestamp >= today,
                 VoiceMessageAnalytics.author == user.id,
             )
 
