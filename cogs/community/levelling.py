@@ -511,7 +511,7 @@ class Levelling(commands.Cog):
                     xp = 10
 
                 if member.premium_since:
-                    booster_xp = int((xp * 0.25) + 0.5)
+                    booster_xp = int((xp * 0.5) + 0.5)
                     await self.earn_xp(member, int(booster_xp), XPType.BOOST)
 
                 await self.earn_xp(member, xp, XPType.VOICE)
@@ -546,7 +546,7 @@ class Levelling(commands.Cog):
             xp += 5
 
         if message.author.premium_since:
-            booster_xp = int((xp * 0.10) + 0.5)
+            booster_xp = int((xp * 0.5) + 0.5)
             await self.earn_xp(message.author, int(booster_xp), XPType.BOOST)
 
         await self.earn_xp(message.author, xp, XPType.MESSAGE)
@@ -562,7 +562,7 @@ class Levelling(commands.Cog):
             return
 
         if member.premium_since:
-            await self.earn_xp(member, int((amount * 0.25) + 0.5), XPType.BOOST)
+            await self.earn_xp(member, int((amount * 0.5) + 0.5), XPType.BOOST)
 
     @commands.Cog.listener()
     async def on_remove_xp(self, member: nextcord.Member, amount: int, type: str):
@@ -571,7 +571,7 @@ class Levelling(commands.Cog):
             return
 
         if member.premium_since:
-            await self.lose_xp(member, int((amount * 0.25) + 0.5), XPType.BOOST)
+            await self.lose_xp(member, int((amount * 0.5) + 0.5), XPType.BOOST)
 
     @commands.Cog.listener()
     async def on_interaction(self, interaction: nextcord.Interaction):
