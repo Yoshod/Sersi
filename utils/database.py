@@ -1111,5 +1111,40 @@ class RaidDeactivations(_Base):
     timestamp = Column(DateTime, default=datetime.utcnow)
 
 
+class ModerationDashboards(_Base):
+    """
+    Represents a moderation dashboard in the database.
+
+    Attributes:
+        message_id (int): The ID of the message containing the dashboard.
+        channel_id (int): The ID of the channel where the dashboard is posted.
+    """
+
+    __tablename__ = "moderation_dashboards"
+
+    message_id = Column(Integer, primary_key=True)
+    channel_id = Column(Integer, nullable=False)
+
+
+class PendingAlerts(_Base):
+    """
+    Represents a pending alert in the database.
+
+    Attributes:
+        alert_type (str): The type of the alert.
+        alert_json (str): The JSON representation of the alert.
+        timestamp (datetime): The datetime when the alert was created.
+    """
+
+    __tablename__ = "pending_alerts"
+
+    alert_type = Column(
+        String,
+        nullable=False,
+    )
+    embed_json = Column(String, primary_key=True)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+
+
 def create_db_tables():
     _Base.metadata.create_all(_engine)

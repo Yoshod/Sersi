@@ -6,7 +6,12 @@ from nextcord.ext import commands, tasks
 from utils.alerts import AlertType, AlertView, get_alert_type, add_response_time
 from utils.base import sanitize_mention, get_message_from_url
 from utils.config import Configuration
-from utils.database import db_session, SlurUsageCase, BadFaithPingCase, Alert
+from utils.database import (
+    db_session,
+    SlurUsageCase,
+    BadFaithPingCase,
+    Alert,
+)
 from utils.perms import is_mod, permcheck
 
 
