@@ -234,6 +234,28 @@ class AvailabilityView(nextcord.ui.View):
 
 @dataclass
 class ModerationReport:
+    """
+    Represents a moderation report containing various statistics related to moderation actions.
+
+    Attributes:
+        total_cases (int): The total number of moderation cases.
+        total_warnings (int): The total number of warnings issued.
+        total_timeouts (int): The total number of timeouts given.
+        total_bans (int): The total number of bans issued.
+        total_ban_votes (int): The total number of ban votes.
+        total_reformations (int): The total number of reformations.
+        total_reviews (int): The total number of reviews conducted.
+        total_approved_reviews (int): The total number of reviews approved.
+        total_alerts (int): The total number of alerts generated.
+        average_completion_time (int): The average time taken to complete a moderation case.
+        total_slur_alerts (int): The total number of slur alerts.
+        total_slur_cases (int): The total number of moderation cases involving slurs.
+        total_ping_alerts (int): The total number of ping alerts.
+        tickets_created (int): The total number of tickets created.
+        tickets_open (int): The total number of tickets currently open.
+        tickets_closed (int): The total number of tickets closed.
+    """
+
     total_cases: int
     total_warnings: int
     total_timeouts: int
@@ -248,6 +270,7 @@ class ModerationReport:
     total_slur_cases: int
     total_ping_alerts: int
     tickets_created: int
+    tickets_open: int
     tickets_closed: int
 
 
@@ -344,6 +367,13 @@ async def get_moderation_report(
             .filter(Ticket.created <= end_date)
             .count()
         )
+        tickets_open = (
+            session.query(Ticket)
+            .filter(Ticket.created >= start_date)
+            .filter(Ticket.created <= end_date)
+            .filter(Ticket.closed is None)
+            .count()
+        )
         tickets_closed = (
             session.query(Ticket)
             .filter(Ticket.closed >= start_date)
@@ -386,6 +416,7 @@ async def get_moderation_report(
         total_ping_alerts=total_ping_alerts,
         average_completion_time=average_completion_time,
         tickets_created=tickets_created,
+        tickets_open=tickets_open,
         tickets_closed=tickets_closed,
     )
 
@@ -700,8 +731,9 @@ def get_availability_day_of_week(day: str):
     with db_session() as session:
         timeslots: list[ModeratorAvailability] = (
             session.query(ModeratorAvailability)
-                .filter_by(window_type="Timeslot")
-                .filter(or_(
+            .filter_by(window_type="Timeslot")
+            .filter(
+                or_(
                     and_(
                         ModeratorAvailability.start >= day_no * 1440,
                         ModeratorAvailability.start <= (day_no + 1) * 1440,
@@ -719,9 +751,10 @@ def get_availability_day_of_week(day: str):
                         day_no == 7,
                         ModeratorAvailability.start >= 0,
                         ModeratorAvailability.start <= 1440,
-                    )
-                ))
-                .all()
+                    ),
+                )
+            )
+            .all()
         )
 
         availability_times = [0 for _ in range(24)]
@@ -770,3 +803,52 @@ def get_availability_day_of_week_embed(
         title=f"{day} Availability",
         description=availability_string,
     )
+
+
+async def gather_moderation_dashboard_data(
+    guild: nextcord.Guild, config: Configuration
+):
+    availability_report = get_availability_report(guild)
+    moderation_report: ModerationReport = await get_moderation_report(
+        datetime.datetime.today().replace(hour=0, minute=0, second=0),
+        datetime.datetime.today().replace(hour=23, minute=59, second=59),
+    )
+
+    available_mods_string = ""
+    for mod in availability_report["available_mod_ids"]:
+        available_mods_string += f"{config.emotes.blank}{config.emotes.blank}<@{mod}>\n"
+
+    mods_without_availability_setup_string = ""
+    for mod in availability_report["mods_without_availability_setup"]:
+        mods_without_availability_setup_string += (
+            f"{config.emotes.blank}{config.emotes.blank}<@{mod}>\n"
+        )
+
+    embed = SersiEmbed(
+        title=f"Moderation Dashboard {datetime.datetime.today().strftime('%d/%m/%Y')}",
+        description=f"**Moderator Availability**:\n{config.emotes.blank}**Total Moderators**: {str(len(availability_report['all_mod_ids']))}\n{config.emotes.blank}**Available Moderators**: {availability_report['available_mod_count']}\n{config.emotes.blank}**Currently Available**:\n{available_mods_string.rstrip()}\n{config.emotes.blank}**Availability Not Setup**:\n{mods_without_availability_setup_string.rstrip()}\n\n**Moderation Figures**:\n{config.emotes.blank}**Total Cases**: {moderation_report.total_cases}\n{config.emotes.blank}{config.emotes.blank}**Total Warnings**: {moderation_report.total_warnings}\n{config.emotes.blank}{config.emotes.blank}**Total Timeouts**: {moderation_report.total_timeouts}\n{config.emotes.blank}{config.emotes.blank}**Total Bans**: {moderation_report.total_bans}\n{config.emotes.blank}{config.emotes.blank}**Total Ban Votes**: {moderation_report.total_ban_votes}\n{config.emotes.blank}{config.emotes.blank}**Total Reformations**: {moderation_report.total_reformations}\n{config.emotes.blank}**Total Reviews**: {moderation_report.total_reviews}\n{config.emotes.blank}{config.emotes.blank}**Total Approved Reviews**: {moderation_report.total_approved_reviews}\n{config.emotes.blank}**Total Alerts**: {moderation_report.total_alerts}\n{config.emotes.blank}{config.emotes.blank}**Average Alert Response Time**: {moderation_report.average_completion_time}\n{config.emotes.blank}{config.emotes.blank}**Total Slur Alerts**: {moderation_report.total_slur_alerts}\n{config.emotes.blank}{config.emotes.blank}**Total Ping Alerts**: {moderation_report.total_ping_alerts}\n{config.emotes.blank}**Total Tickets Open**: {moderation_report.tickets_open}\n{config.emotes.blank}{config.emotes.blank}**Total Tickets Opened**: {moderation_report.tickets_created}\n{config.emotes.blank}{config.emotes.blank}**Total Tickets Closed**: {moderation_report.tickets_closed}",
+    )
+
+    return embed
+
+
+async def finalise_moderation_dashboard_data(
+    guild: nextcord.Guild, config: Configuration
+):
+    moderation_report: ModerationReport = await get_moderation_report(
+        (
+            datetime.datetime.today().replace(hour=0, minute=0, second=0)
+            - datetime.timedelta(days=1)
+        ),
+        (
+            datetime.datetime.today().replace(hour=23, minute=59, second=59)
+            - datetime.timedelta(days=1)
+        ),
+    )
+
+    embed = SersiEmbed(
+        title=f"Moderation Dashboard {(datetime.datetime.today() - datetime.timedelta(days=1)).strftime('%d/%m/%Y')}",
+        description=f"**Moderation Figures**:\n{config.emotes.blank}**Total Cases**: {moderation_report.total_cases}\n{config.emotes.blank}{config.emotes.blank}**Total Warnings**: {moderation_report.total_warnings}\n{config.emotes.blank}{config.emotes.blank}**Total Timeouts**: {moderation_report.total_timeouts}\n{config.emotes.blank}{config.emotes.blank}**Total Bans**: {moderation_report.total_bans}\n{config.emotes.blank}{config.emotes.blank}**Total Ban Votes**: {moderation_report.total_ban_votes}\n{config.emotes.blank}{config.emotes.blank}**Total Reformations**: {moderation_report.total_reformations}\n{config.emotes.blank}**Total Reviews**: {moderation_report.total_reviews}\n{config.emotes.blank}{config.emotes.blank}**Total Approved Reviews**: {moderation_report.total_approved_reviews}\n{config.emotes.blank}**Total Alerts**: {moderation_report.total_alerts}\n{config.emotes.blank}{config.emotes.blank}**Average Alert Response Time**: {moderation_report.average_completion_time}\n{config.emotes.blank}{config.emotes.blank}**Total Slur Alerts**: {moderation_report.total_slur_alerts}\n{config.emotes.blank}{config.emotes.blank}**Total Ping Alerts**: {moderation_report.total_ping_alerts}\n{config.emotes.blank}**Total Tickets Open**: {moderation_report.tickets_open}\n{config.emotes.blank}{config.emotes.blank}**Total Tickets Opened**: {moderation_report.tickets_created}\n{config.emotes.blank}{config.emotes.blank}**Total Tickets Closed**: {moderation_report.tickets_closed}",
+    )
+
+    return embed

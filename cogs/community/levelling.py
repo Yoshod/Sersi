@@ -34,6 +34,7 @@ class XPType(Enum):
     COMMUNITY = "community activity"
     EVENT = "event participation"
     MODERATION = "moderation"
+    BOOST = "server booster"
 
 
 @dataclass
@@ -509,6 +510,10 @@ class Levelling(commands.Cog):
                 else:
                     xp = 10
 
+                if member.premium_since:
+                    booster_xp = int((xp * 0.5) + 0.5)
+                    await self.earn_xp(member, int(booster_xp), XPType.BOOST)
+
                 await self.earn_xp(member, xp, XPType.VOICE)
 
         for report in self.reports.values():
@@ -540,6 +545,10 @@ class Levelling(commands.Cog):
         if message.type == nextcord.MessageType.reply:
             xp += 5
 
+        if message.author.premium_since:
+            booster_xp = int((xp * 0.5) + 0.5)
+            await self.earn_xp(message.author, int(booster_xp), XPType.BOOST)
+
         await self.earn_xp(message.author, xp, XPType.MESSAGE)
 
         self.reports[message.author.id].last_message[
@@ -549,10 +558,20 @@ class Levelling(commands.Cog):
     @commands.Cog.listener()
     async def on_add_xp(self, member: nextcord.Member, amount: int, type: str):
         await self.earn_xp(member, amount, XPType[type])
+        if XPType[type] == XPType.COMMAND:
+            return
+
+        if member.premium_since:
+            await self.earn_xp(member, int((amount * 0.5) + 0.5), XPType.BOOST)
 
     @commands.Cog.listener()
     async def on_remove_xp(self, member: nextcord.Member, amount: int, type: str):
         await self.lose_xp(member, amount, XPType[type])
+        if XPType[type] == XPType.COMMAND:
+            return
+
+        if member.premium_since:
+            await self.lose_xp(member, int((amount * 0.5) + 0.5), XPType.BOOST)
 
     @commands.Cog.listener()
     async def on_interaction(self, interaction: nextcord.Interaction):
