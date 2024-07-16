@@ -390,6 +390,7 @@ class Compliance(commands.Cog):
 
     @tasks.loop(minutes=5)
     async def update_moderation_dashboard(self):
+        print("Updating Moderation Dashboards...")
         with db_session() as session:
             dashboards = session.query(ModerationDashboards).all()
 
@@ -407,9 +408,11 @@ class Compliance(commands.Cog):
             if dashboard_message is None:
                 continue
 
-            if dashboard_message.created_at.replace(
-                hour=0, minute=0, second=0
-            ) != datetime.datetime.now().replace(hour=0, minute=0, second=0):
+            dashboard_created_at_str = dashboard_message.created_at.strftime("%Y-%m-%d")
+
+            current_time_str = datetime.datetime.now().strftime("%Y-%m-%d")
+
+            if dashboard_created_at_str != current_time_str:
                 finalised_embed = await finalise_moderation_dashboard_data(
                     guild, self.config
                 )
@@ -421,7 +424,9 @@ class Compliance(commands.Cog):
                 new_dashboard = await dashboard_message.channel.send(embed=new_embed)
 
                 with db_session() as session:
-                    dashboard.message_id = new_dashboard.id
+                    session.query(ModerationDashboards).filter_by(
+                        channel_id=dashboard.channel_id
+                    ).update({"message_id": new_dashboard.id})
                     session.commit()
 
                 continue
