@@ -392,9 +392,12 @@ async def get_moderation_report(
         if all_alerts:
             completion_times = []
             for alert in all_alerts:
-                completion_times.append(
-                    (alert.response_time - alert.creation_time).total_seconds()
-                )
+                try:
+                    completion_times.append(
+                        (alert.response_time - alert.creation_time).total_seconds()
+                    )
+                except TypeError:
+                    continue
 
             average_completion_time = int(sum(completion_times) / len(completion_times))
 
