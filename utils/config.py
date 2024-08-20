@@ -47,7 +47,7 @@ class ConfigurationLoggingChannels(YAMLWizard):
     mod: int
     tamper: int
     admin_ticket: int
-    senior_ticket: int
+    mod_lead_ticket: int
     mod_ticket: int
     cet_ticket: int
     cet_lead_ticket: int
