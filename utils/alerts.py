@@ -11,6 +11,7 @@ class AlertType(enum.Enum):
     Slur = "Slur Detected"
     Ping = "Staff Role Ping"
     Toxic = "Toxic Message"
+    Silence = "Voice Message Silence"
 
 
 class AlertView(nextcord.ui.View):
@@ -71,9 +72,7 @@ class AlertView(nextcord.ui.View):
                     custom_id=encode_button_id(
                         "cases",
                         user=encode_snowflake(user.id),
-                        type="Slur Usage"
-                        if alert_type == AlertType.Slur
-                        else "Ping",
+                        type="Slur Usage" if alert_type == AlertType.Slur else "Ping",
                     ),
                     row=1,
                 ),

@@ -4,10 +4,12 @@ import os
 import time
 import datetime
 from pydub import AudioSegment
+from pydub.silence import detect_silence
 from nextcord.ext import commands
 from openai import OpenAI
 import discordTokens
 
+from utils.alerts import AlertType, AlertView, create_alert_log
 from utils.config import Configuration
 from utils.perms import permcheck, is_staff, blacklist_check
 from utils.sersi_embed import SersiEmbed
@@ -56,6 +58,30 @@ def check_if_voice_message_eligible(message: nextcord.Message, config: Configura
         return False, reason
 
     return True, None
+
+
+def check_is_hot_mic(
+    file_path: str,
+    silence_threshold: int = -40,
+    min_silence_len: int = 1000,
+    hot_mic_threshold: float = 0.9,
+):
+    audio = AudioSegment.from_wav(file_path)
+
+    silences = detect_silence(
+        audio, min_silence_len=min_silence_len, silence_thresh=silence_threshold
+    )
+
+    total_duration = len(audio)
+
+    total_silence_duration = sum([end - start for start, end in silences])
+
+    silence_ratio = total_silence_duration / total_duration
+
+    if silence_ratio > hot_mic_threshold:
+        return True
+
+    return False
 
 
 class Voice(commands.Cog):
@@ -381,7 +407,43 @@ class Voice(commands.Cog):
             message.content = transcription.text
             self.bot.dispatch("message", message)
 
-            await message.reply(f"**Transcription:**\n{transcription.text}")
+            transcription_embed = nextcord.Embed(
+                description=f"**Transcription:**\n{transcription.text}",
+            )
+            transcription_embed.set_author(
+                name=message.author.display_name,
+                icon_url=message.author.display_avatar.url,
+            )
+            transcription_embed.set_footer(
+                text=f"Voice Message | {message.author.id}",
+            )
+
+            await message.reply(embed=transcription_embed)
+
+            if check_is_hot_mic(
+                f"{GRANDPARENT_DIR}/files/TempAudio/{filename[:-4]}.wav"
+            ):
+                await message.reply(
+                    f"{self.sersifail} This voice message has been detected as being mostly silence. If you are doing this intentionally, you may be subject to moderation action.",
+                    delete_after=5,
+                )
+
+                channel = self.bot.get_channel(self.config.channels.staff.alert)
+                alert_embed: nextcord.Embed = SersiEmbed(
+                    title="Voice Message Silence Detection",
+                    description="A voice message has been detected as being mostly silence.",
+                    fields={
+                        "Channel:": message.channel.mention,
+                        "User:": message.author.mention,
+                        "URL:": message.jump_url,
+                    },
+                    footer="Sersi Voice Message Silence Detection",
+                )
+
+                alert = await channel.send(
+                    embed=alert_embed, view=AlertView(AlertType.Silence, message.author)
+                )
+                create_alert_log(message=alert, alert_type=AlertType.Silence)
 
             os.remove(f"{GRANDPARENT_DIR}/files/TempAudio/{filename[:-4]}.wav")
 
