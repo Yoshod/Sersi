@@ -31,6 +31,7 @@ class ConfigurationStaffChannels(YAMLWizard):
     mod_votes: int
     staff_votes: int
     cet_votes: int
+    appeals: int
 
 
 @dataclass
@@ -157,6 +158,7 @@ class ConfigurationGuilds(YAMLWizard):
     # The guild ID of the main server.
     main: int
     errors: int
+    appeals: int
 
 
 @dataclass

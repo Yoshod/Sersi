@@ -30,6 +30,7 @@ channels:
         mod_votes:          1166770862150651976
         staff_votes:                          0
         cet_votes:                            0
+        appeals:            1166770861878018142
     dev:
         errors:              987397664280817754
         bug_reports:        1226988081106653365
@@ -152,6 +153,7 @@ emotes:
 guilds:
     main:   1166770860787515422
     errors: 977377117895536640
+    appeals: 963568193635496037
 
 voting:
     reform-free:

@@ -26,6 +26,37 @@ from utils.review import create_alert
 from utils.voting import VoteView, vote_planned_end
 
 
+def ban_dm(
+    guild_name: str, offence: str, details: str, icon_url: str, appeal_server: str
+):
+    return SersiEmbed(
+        title=f"You have been banned in {guild_name}!",
+        description=f"You have been banned in {guild_name}. The details about the ban are "
+        "below. If you would like to appeal your ban you can do so:\n"
+        f"[Please join the Appeals Server to Appeal]({appeal_server})",
+        fields={
+            "Offence:": f"`{offence}`",
+            "Detail:": f"`{details}`",
+        },
+        footer="Sersi Ban",
+    ).set_thumbnail(icon_url)
+
+
+class BanAppealView(nextcord.ui.View):
+    def __init__(self, config: Configuration):
+        super().__init__(timeout=None)
+        self.config = config
+
+    @nextcord.ui.button(label="Appeal", style=nextcord.ButtonStyle.primary)
+    async def appeal(
+        self, button: nextcord.ui.Button, interaction: nextcord.Interaction
+    ):
+        await interaction.response.send_message(
+            f"Please join the Appeals Server to Appeal: {self.config.invites.appeals}",
+            ephemeral=True,
+        )
+
+
 class BanSystem(commands.Cog):
     def __init__(self, bot: commands.Bot, config: Configuration):
         self.bot = bot
@@ -289,9 +320,7 @@ class BanSystem(commands.Cog):
                     session.add(vote_case)
                     session.commit()
 
-                    channel = self.bot.get_channel(
-                        self.config.channels.staff.mod_votes
-                    )
+                    channel = self.bot.get_channel(self.config.channels.staff.mod_votes)
                     vote_message = await channel.send(
                         f"<@&{self.config.roles.staff.mod}> <@&{self.config.roles.staff.trial_mod}>",
                         embed=vote_embed,
@@ -324,17 +353,13 @@ class BanSystem(commands.Cog):
 
                 try:
                     await offender.send(
-                        embed=SersiEmbed(
-                            title=f"You have been banned in {interaction.guild.name}!",
-                            description=f"You have been banned in {interaction.guild.name}. The details about the ban are "
-                            "below. If you would like to appeal your ban you can do so:\n"
-                            "https://appeals.wickbot.com",
-                            fields={
-                                "Offence:": f"`{sersi_case.offence}`",
-                                "Detail:": f"`{sersi_case.details}`",
-                            },
-                            footer="Sersi Ban",
-                        ).set_thumbnail(interaction.guild.icon.url)
+                        embed=ban_dm(
+                            interaction.guild.name,
+                            offence,
+                            detail,
+                            interaction.guild.icon.url,
+                            self.config.invites.appeals,
+                        )
                     )
                     not_sent = False
 
@@ -359,9 +384,9 @@ class BanSystem(commands.Cog):
                 await interaction.guild.get_channel(self.config.channels.log.mod).send(
                     embed=logging_embed
                 )
-                await interaction.guild.get_channel(self.config.channels.log.general).send(
-                    embed=logging_embed
-                )
+                await interaction.guild.get_channel(
+                    self.config.channels.log.general
+                ).send(embed=logging_embed)
 
                 result: nextcord.WebhookMessage = await interaction.followup.send(
                     embed=SersiEmbed(
@@ -531,17 +556,13 @@ class BanSystem(commands.Cog):
 
             try:
                 await user.send(
-                    embed=SersiEmbed(
-                        title=f"You have been banned in {guild.name}!",
-                        description=f"You have been banned in {guild.name}. The details about the ban are "
-                        "below. If you would like to appeal your ban you can do so:\n"
-                        "https://appeals.wickbot.com",
-                        fields={
-                            "Offence:": f"`{case.offence}`",
-                            "Detail:": f"`{case.details}`",
-                        },
-                        footer="Sersi Ban",
-                    ).set_thumbnail(guild.icon.url)
+                    embed=ban_dm(
+                        guild.name,
+                        case.offence,
+                        case.details,
+                        guild.icon.url,
+                        self.config.invites.appeals,
+                    )
                 )
 
             except (nextcord.Forbidden, nextcord.HTTPException, AttributeError):

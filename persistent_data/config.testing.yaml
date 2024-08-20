@@ -30,6 +30,7 @@ channels:
         mod_votes:          0
         staff_votes:        0
         cet_votes:          0
+        appeals:            0
     dev:
         errors:              987397664280817754
         bug_reports:        1226988081106653365
@@ -143,6 +144,7 @@ invites:
 guilds:
     main: 977377117895536640
     errors: 977377117895536640
+    appeals: 963568193635496037
 
 punishment roles:
     annoying:                 1023985995898683463

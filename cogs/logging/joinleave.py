@@ -72,6 +72,9 @@ class JoinLeave(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self, member: nextcord.Member):
+        if member.guild.id != self.config.guilds.main:
+            return
+
         invite: nextcord.Invite = await self.get_invite_used(member)
         inviter = invite.inviter if invite else None
 
