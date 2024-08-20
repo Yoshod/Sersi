@@ -1,6 +1,9 @@
 import nextcord
 from nextcord.ext import commands
 
+import discordTokens
+from openai import OpenAI
+
 from utils.alerts import create_alert_log, AlertType, AlertView
 from utils.sersi_embed import SersiEmbed
 from utils.base import (
@@ -29,11 +32,42 @@ class ModPing(commands.Cog):
             )
             await message.channel.send(embed=response_embed)
             await message.channel.send(
-                message.guild.get_role(
-                    self.config.roles.staff.trial_mod
-                ).mention,
+                message.guild.get_role(self.config.roles.staff.trial_mod).mention,
                 delete_after=1,
             )
+
+            # last 100 messages in the channel in user: message format
+            messages = []
+            async for message in message.channel.history(limit=100):
+                if message.author.bot:
+                    continue
+
+                messages.append(
+                    f"NEW MESSAGE - {message.author.name}: {message.content}"
+                )
+
+            messages_content = "\n".join(messages)
+
+            client = OpenAI(api_key=discordTokens.getOpenAIApiKey())
+
+            try:
+                completion = client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": "You are a moderation assistant tool in a Discord server. The moderation team has been pinged and will investigate the ping when able to do so. Examine the messages below to provide context to the moderation team. Reply with: **Summary of Discussion**: <summary>, **Likely Reason for Mod Ping**: <reason>. Keep it concise, to the point, professional, and never recommend any action to the moderation team.",
+                        },
+                        {"role": "user", "content": messages_content},
+                    ],
+                )
+            except Exception:
+                completion = None
+
+            if completion:
+                await message.guild.owner.send(
+                    f"**Mod Ping Detected**\n\n**AI Response**\n\n{completion.choices[0].message.content}"
+                )
 
             # notification for mods
             channel = self.bot.get_channel(self.config.channels.staff.alert)
@@ -49,7 +83,9 @@ class ModPing(commands.Cog):
                 footer="Sersi Moderator Ping Detection",
             )
 
-            alert = await channel.send(embed=alert_embed, view=AlertView(AlertType.Ping, message.author))
+            alert = await channel.send(
+                embed=alert_embed, view=AlertView(AlertType.Ping, message.author)
+            )
             create_alert_log(message=alert, alert_type=AlertType.Ping)
 
 
