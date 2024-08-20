@@ -385,20 +385,6 @@ class Voice(commands.Cog):
 
             os.remove(f"{GRANDPARENT_DIR}/files/TempAudio/{filename[:-4]}.wav")
 
-            with db_session(message.author) as session:
-                session.add(
-                    VoiceMessageAnalytics(
-                        message_id=message.id,
-                        author=message.author.id,
-                        channel=message.channel.id,
-                        link=message.jump_url,
-                        duration=duration,
-                        filesize=filesize,
-                    )
-                )
-
-                session.commit()
-
 
 def setup(bot: commands.Bot, **kwargs):
     bot.add_cog(Voice(bot, kwargs["config"]))
