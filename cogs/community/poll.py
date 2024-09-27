@@ -1,3 +1,6 @@
+from datetime import datetime
+
+
 import io
 import nextcord
 import nextcord.ui
@@ -5,8 +8,10 @@ import matplotlib.pyplot as plt
 from nextcord.ext import commands
 from matplotlib import colors
 
+from utils.base import parse_timedelta
 from utils.sersi_embed import SersiEmbed
 from utils.config import Configuration
+from utils.database import db_session, Poll, PollVote
 
 
 class DropdownMenu(nextcord.ui.Select):
@@ -86,6 +91,8 @@ class Choose(commands.Cog):
         self.bot = bot
         self.config = config
 
+        # self.polls: dict[int: tuple[int, int, str]] = {}
+
     @nextcord.slash_command(
         dm_permission=False,
         guild_ids=[1166770860787515422, 977377117895536640, 856262303795380224],
@@ -111,6 +118,16 @@ class Choose(commands.Cog):
         option8: str = nextcord.SlashOption(required=False),
         option9: str = nextcord.SlashOption(required=False),
         option10: str = nextcord.SlashOption(required=False),
+        duration: int = nextcord.SlashOption(
+            description="The duration of the poll",
+            min_value=1,
+            required=False,
+        ),
+        duration_unit: str = nextcord.SlashOption(
+            description="The unit of the duration",
+            choices={"Minutes": "m", "Hours": "h", "Days": "d"},
+            required=False,
+        ),
     ):
         await interaction.response.defer()
 
@@ -148,7 +165,7 @@ class Choose(commands.Cog):
         for option in options:
             fields[option] = "*No Votes Yet*"
 
-        await interaction.send(
+        poll = await interaction.send(
             embed=SersiEmbed(
                 title=query,
                 footer=f"Poll by {interaction.user.display_name}",
@@ -156,6 +173,45 @@ class Choose(commands.Cog):
             ),
             view=dropdown_menu,
         )
+
+        with db_session() as session:
+            poll = Poll(
+                message_id=poll.id,
+                channel_id=poll.channel.id,
+                guild_id=poll.guild.id,
+                query=query,
+                options=options,
+            )
+
+            if duration_unit:
+                poll.planned_end = datetime.now() + parse_timedelta(
+                    f"{duration or 1}{duration_unit}"
+                )
+
+            session.add(poll)
+            session.commit()
+
+    @poll.subcommand(description="Ends a poll and displays the results")
+    async def end(self, interaction: nextcord.Interaction, poll: int):
+        if poll not in self.polls:
+            await interaction.send(
+                f"{self.config.emotes.fail} Poll not found.", ephemeral=True
+            )
+            return
+
+        message = self.bot.get_channel(interaction.channel_id).get_partial_message(poll)
+        await message.edit(view=None)
+
+        await interaction.response.send_message(
+            "Poll ended.",
+            ephemeral=True,
+        )
+
+    @end.on_autocomplete("poll")
+    async def autocomplete_poll(
+        self, interaction: nextcord.Interaction, value: str
+    ) -> list[str]:
+        return [str(poll) for poll in self.polls if value in str(poll)]
 
 
 def setup(bot: commands.Bot, **kwargs):

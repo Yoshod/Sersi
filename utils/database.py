@@ -1146,5 +1146,33 @@ class PendingAlerts(_Base):
     timestamp = Column(DateTime, default=datetime.utcnow)
 
 
+class Poll(_Base):
+    poll_id = Column(Integer, primary_key=True)
+    author = Column(Integer, nullable=False)
+    channel = Column(Integer, nullable=False)
+    query = Column(String, nullable=False)
+    options = Column(String, nullable=False)
+    active = Column(Boolean, default=True)
+    planned_end = Column(DateTime, nullable=False)
+
+    created = Column(DateTime, default=datetime.utcnow)
+    modified = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    ended = Column(DateTime)
+
+    @property
+    def opt_dict(self) -> dict:
+        return json.loads(self.options)
+
+    @opt_dict.setter
+    def opt_dict(self, value: dict) -> None:
+        self.options = json.dumps(value)
+
+
+class PollVote(_Base):
+    poll_id = Column(Integer, ForeignKey("polls.poll_id"), primary_key=True)
+    user_id = Column(Integer, primary_key=True)
+    vote = Column(Integer, nullable=False)
+
+
 def create_db_tables():
     _Base.metadata.create_all(_engine)
