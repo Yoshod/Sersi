@@ -36,14 +36,22 @@ class ModPing(commands.Cog):
                 delete_after=1,
             )
 
+            original_message = message
+
             # last 100 messages in the channel in user: message format
             messages = []
+            authors = {}
+            counter = 0
             async for message in message.channel.history(limit=100):
                 if message.author.bot:
                     continue
 
+                if message.author.name not in authors.keys():
+                    authors[message.author.name] = counter
+                    counter += 1
+
                 messages.append(
-                    f"NEW MESSAGE - {message.author.name}: {message.content}"
+                    f"NEW MESSAGE - {authors[message.author.name]}: {message.content}"
                 )
 
             messages_content = "\n".join(messages)
@@ -56,7 +64,7 @@ class ModPing(commands.Cog):
                     messages=[
                         {
                             "role": "system",
-                            "content": "You are a moderation assistant tool in a Discord server. The moderation team has been pinged and will investigate the ping when able to do so. Examine the messages below to provide context to the moderation team. Reply with: **Summary of Discussion**: <summary>, **Likely Reason for Mod Ping**: <reason>. Keep it concise, to the point, professional, and never recommend any action to the moderation team.",
+                            "content": "You are a moderation assistant tool in a Discord server. The moderation team has been pinged and will investigate the ping when able to do so. Examine the messages below to provide context to the moderation team. Reply with: **Summary of Discussion**: <summary>, **Likely Reason for Mod Ping**: <reason>. Keep it concise, to the point, professional, and never recommend any action to the moderation team.You should refer to users by their number before the colon in the message.",
                         },
                         {"role": "user", "content": messages_content},
                     ],
@@ -66,7 +74,11 @@ class ModPing(commands.Cog):
 
             if completion:
                 await message.guild.owner.send(
-                    f"**Mod Ping Detected**\n\n**AI Response**\n\n{completion.choices[0].message.content}"
+                    f"**Mod Ping Detected**\n\n**AI Response**\n\n{completion.choices[0].message.content}",
+                    embed=SersiEmbed(
+                        title="Authors",
+                        description=f"The following authors were detected in the last 100 messages in the channel:\n\n{authors}",
+                    ),
                 )
 
             # notification for mods
@@ -75,10 +87,10 @@ class ModPing(commands.Cog):
                 title="Moderator Ping",
                 description="A moderation role has been pinged, please investigate the ping and take action as appropriate.",
                 fields={
-                    "Channel:": message.channel.mention,
-                    "User:": message.author.mention,
-                    "Context:": message.content,
-                    "URL:": message.jump_url,
+                    "Channel:": original_message.channel.mention,
+                    "User:": original_message.author.mention,
+                    "Context:": original_message.content,
+                    "URL:": original_message.jump_url,
                 },
                 footer="Sersi Moderator Ping Detection",
             )
