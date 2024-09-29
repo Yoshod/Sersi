@@ -616,7 +616,7 @@ class Suggestions(commands.Cog):
         await ctx.send(
             embed=SersiEmbed(
                 title="Submit a Suggestion",
-                description="Submit a suggestion to the Community Engagement Team for review. Please ensure that your suggestion is well thought out and detailed.",
+                description="Submit a suggestion to the Community Engagement Team for review. Please ensure that your suggestion is well thought out and detailed. Please keep your suggestion to one specific action of change, and avoid submitting multiple suggestions in one. If you have a suggestion that is related to another, or would require multiple changes, please submit them separately.",
             ),
             view=SubmitASuggestionView(),
         )
