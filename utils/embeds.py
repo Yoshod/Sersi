@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 import nextcord
 from utils.base import get_page
-from utils.database import db_session, Autopost
+from utils.database import db_session, Autopost, TemporaryRoles, IssuedTemporaryRoles
 from utils.sersi_embed import SersiEmbed
 from utils.config import Configuration
 
@@ -66,9 +66,7 @@ async def determine_embed_type(
 
     match embed_type:
         case "moderator":
-            role: nextcord.Role = interaction.guild.get_role(
-                config.permission_roles.moderator
-            )
+            role: nextcord.Role = interaction.guild.get_role(config.roles.staff.mod)
 
             announcement_embed.colour = role.colour
             if role.icon:
@@ -79,9 +77,7 @@ async def determine_embed_type(
                 announcement_embed.set_author(name="Moderator Announcement")
 
         case "admin":
-            role: nextcord.Role = interaction.guild.get_role(
-                config.permission_roles.dark_moderator
-            )
+            role: nextcord.Role = interaction.guild.get_role(config.roles.staff.admin)
 
             announcement_embed.colour = role.colour
             if role.icon:
@@ -92,9 +88,7 @@ async def determine_embed_type(
                 announcement_embed.set_author(name="Administration Announcement")
 
         case "cet":
-            role: nextcord.Role = interaction.guild.get_role(
-                config.permission_roles.cet
-            )
+            role: nextcord.Role = interaction.guild.get_role(config.roles.staff.cet)
 
             announcement_embed.colour = role.colour
             if role.icon:
@@ -136,3 +130,57 @@ def fetch_all_autoposts(
             repr(autopost)
 
         return page_autoposts, page, pages
+
+
+def fetch_all_temporary_roles(
+    config: Configuration,
+    page: int,
+    per_page: int,
+):
+    with db_session() as session:
+        _query = session.query(TemporaryRoles)
+
+        temporary_roles = _query.order_by(TemporaryRoles.role_id).all()
+
+        if not temporary_roles:
+            return None, 0, 0
+
+        page_temporary_roles, page, pages = get_page(temporary_roles, page, per_page)
+        for temporary_role in page_temporary_roles:
+            repr(temporary_role)
+
+        return page_temporary_roles, page, pages
+
+
+def fetch_all_issued_temporary_roles(
+    config: Configuration,
+    page: int,
+    per_page: int,
+    role: nextcord.Role | None,
+    issued_to: nextcord.Member | None,
+    issued_by: nextcord.Member | None,
+):
+    with db_session() as session:
+        _query = session.query(IssuedTemporaryRoles)
+
+        if role:
+            _query = _query.filter_by(role_id=role.id)
+
+        if issued_to:
+            _query = _query.filter_by(user_id=issued_to.id)
+
+        if issued_by:
+            _query = _query.filter_by(added_by=issued_by.id)
+
+        issued_temporary_roles = _query.order_by(IssuedTemporaryRoles.issued_date).all()
+
+        if not issued_temporary_roles:
+            return None, 0, 0
+
+        page_issued_temporary_roles, page, pages = get_page(
+            issued_temporary_roles, page, per_page
+        )
+        for issued_temporary_role in page_issued_temporary_roles:
+            repr(issued_temporary_role)
+
+        return page_issued_temporary_roles, page, pages

@@ -8,6 +8,7 @@ from utils.database import (
     BanCase,
     BlacklistCase,
     Note,
+    VoiceMessageAnalytics,
 )
 from utils.sersi_embed import SersiEmbed
 from utils.staff import StaffDataButton, ModerationDataButton, determine_staff_member
@@ -45,6 +46,16 @@ class WhoisWarningsButton(nextcord.ui.Button):
         )
 
 
+class WhoIsLevellingButton(nextcord.ui.Button):
+    def __init__(self, user_id: int):
+        super().__init__(
+            style=nextcord.ButtonStyle.blurple,
+            label="Levelling",
+            custom_id=encode_button_id("levelling", user=encode_snowflake(user_id)),
+            disabled=False,
+        )
+
+
 class WhoisView(nextcord.ui.View):
     def __init__(self, user_id: int):
         super().__init__(timeout=None, auto_defer=False)
@@ -55,6 +66,8 @@ class WhoisView(nextcord.ui.View):
         if determine_staff_member(user_id):
             self.add_item(StaffDataButton(user_id))
             self.add_item(ModerationDataButton(user_id))
+
+        self.add_item(WhoIsLevellingButton(user_id))
 
 
 def _get_user_ban(user_id: int) -> BanCase | None:
@@ -86,6 +99,17 @@ async def create_whois_embed(
         )
 
         user_notes = session.query(Note).filter_by(member=user.id).count()
+
+        voice_messages = session.query(VoiceMessageAnalytics).filter_by(author=user.id)
+
+    total_voice_messages_seconds = 0
+    for voice_message in voice_messages:
+        total_voice_messages_seconds += voice_message.duration
+
+    total_voice_messages_minutes = total_voice_messages_seconds / 60
+    total_cost = total_voice_messages_minutes * 0.006
+
+    total_voice_messages_count = voice_messages.count()
 
     try:
         if user.communication_disabled_until:
@@ -130,7 +154,8 @@ async def create_whois_embed(
             title=f"Whois {user.display_name}?",
             fields={
                 "General Information": f"{config.emotes.blank}**Username**: {user.name}\n{config.emotes.blank}**Global Name**: {user.global_name}\n{config.emotes.blank}**Nickname**: {user.nick}\n{config.emotes.blank}**User ID**: {user.id}\n{config.emotes.blank}**Mention**: {user.mention}\n{config.emotes.blank}**Creation Date**: <t:{int(user.created_at.timestamp())}:R>\n{config.emotes.blank}**Join Date**: <t:{int(user.joined_at.timestamp())}:R>",
-                "Sersi Information": f"{config.emotes.blank}**Active Warns**: {user_warns}\n{config.emotes.blank}**Notes**: {user_notes}\n{config.emotes.blank}**Ban Vote**: {config.emotes.success if ban_vote else config.emotes.fail}\n{config.emotes.blank}{timeout_string}{blacklists_string}",
+                "Sersi Information": f"{config.emotes.blank}**Active Warns**: {user_warns}\n{config.emotes.blank}**Notes**: {user_notes}\n{config.emotes.blank}**Ban Vote**: {config.emotes.success if ban_vote else config.emotes.fail}\n{config.emotes.blank}{timeout_string}{blacklists_string}{config.emotes.blank}**Voice Messages**: {total_voice_messages_count} ({total_voice_messages_minutes:.2f} minutes, ${total_cost:.2f})",
+                "Role Information": f"{config.emotes.blank}**Roles**: {', '.join([role.mention for role in user.roles])}",
             },
         )
         whois_embed.set_footer(text="Sersi Whois - Server Member")
@@ -141,7 +166,7 @@ async def create_whois_embed(
             title=f"Whois {user.display_name}?",
             fields={
                 "General Information": f"{config.emotes.blank}**Username**: {user.name}\n{config.emotes.blank}**Global Name**: {user.global_name}\n{config.emotes.blank}**User ID**: {user.id}\n{config.emotes.blank}**Creation Date**: <t:{int(user.created_at.timestamp())}:R>",
-                "Sersi Information": f"{config.emotes.blank}**Active Warns**: {user_warns}\n{config.emotes.blank}**Notes**: {user_notes}\n{timeout_string}{blacklists_string}",
+                "Sersi Information": f"{config.emotes.blank}**Active Warns**: {user_warns}\n{config.emotes.blank}**Notes**: {user_notes}\n{timeout_string}{blacklists_string}{config.emotes.blank}**Voice Messages**: {total_voice_messages_count} ({total_voice_messages_minutes:.2f} minutes, ${total_cost:.2f})",
             },
         )
         whois_embed.set_footer(text="Sersi Whois - Not a Server Member")

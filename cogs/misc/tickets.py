@@ -781,11 +781,11 @@ class TicketingSystem(commands.Cog):
 
             match ticket.escalation_level:
                 case "Moderator" | "Moderation Lead":
-                    ping = f"<@&{self.config.permission_roles.moderator}>"
+                    ping = f"<@&{self.config.roles.staff.mod}>"
                 case "Community Engagement" | "Community Engagement Lead":
-                    ping = f"<@&{self.config.permission_roles.ce}>"
+                    ping = f"<@&{self.config.roles.staff.cet}>"
                 case _:
-                    ping = f"<@&{self.config.permission_roles.staff}>"
+                    ping = f"<@&{self.config.roles.staff.base}>"
 
             await log_channel.send(
                 f"{self.config.emotes.fail} {ping} Ticket channel for `{ticket.id}` has been deleted without closing, please investigate.",

@@ -1,3 +1,5 @@
+from functools import reduce
+
 import nextcord
 
 from nextcord.ext import commands
@@ -61,7 +63,6 @@ class Config(commands.Cog):
                 "ignored_channels",
                 "ignored_categories",
                 "roles",
-                "permission_roles",
                 "punishment_roles",
                 "opt_in_roles",
                 "level_roles",
@@ -106,9 +107,16 @@ class Config(commands.Cog):
         config_dict = {}
         match config_section:
             case "channels":
+                print(self.config.channels.__dict__)
                 config_dict = {
                     name: eval_channel(id)
-                    for name, id in self.config.channels.__dict__.items()
+                    for name, id in reduce(
+                        lambda a, b: {**a, **b},
+                        [
+                            subcategory.__dict__
+                            for subcategory in self.config.channels.__dict__.values()
+                        ],
+                    ).items()
                 }
             case "ignored_channels":
                 config_dict = {
@@ -122,12 +130,13 @@ class Config(commands.Cog):
             case "roles":
                 config_dict = {
                     name: eval_role(id)
-                    for name, id in self.config.roles.__dict__.items()
-                }
-            case "permission_roles":
-                config_dict = {
-                    name: eval_role(id)
-                    for name, id in self.config.permission_roles.__dict__.items()
+                    for name, id in reduce(
+                        lambda a, b: {**a, **b},
+                        [
+                            subcategory.__dict__
+                            for subcategory in self.config.roles.__dict__.values()
+                        ],
+                    ).items()
                 }
             case "punishment_roles":
                 config_dict = {
@@ -168,42 +177,42 @@ class Config(commands.Cog):
 
         await interaction.followup.send(embeds=embeds)
 
-    @configuration.subcommand(
-        description="Select a channel to set in config",
-    )
-    async def set_channel(
-        self,
-        interaction: nextcord.Interaction,
-        setting: str = nextcord.SlashOption(
-            description="Setting to set",
-        ),
-        channel: nextcord.TextChannel = nextcord.SlashOption(
-            description="Channel to set"
-        ),
-    ):
-        if not await permcheck(interaction, is_admin):
-            return
+    # @configuration.subcommand(
+    #     description="Select a channel to set in config",
+    # )
+    # async def set_channel(
+    #     self,
+    #     interaction: nextcord.Interaction,
+    #     setting: str = nextcord.SlashOption(
+    #         description="Setting to set",
+    #     ),
+    #     channel: nextcord.TextChannel = nextcord.SlashOption(
+    #         description="Channel to set"
+    #     ),
+    # ):
+    #     if not await permcheck(interaction, is_admin):
+    #         return
 
-        self.set_config("channels", setting, channel)
+    #     self.set_config("channels", setting, channel)
 
-        await interaction.response.send_message(
-            f"{self.config.emotes.success} Channel set to {channel.mention} for `{setting}`."
-        )
+    #     await interaction.response.send_message(
+    #         f"{self.config.emotes.success} Channel set to {channel.mention} for `{setting}`."
+    #     )
 
-    @set_channel.on_autocomplete("setting")
-    async def set_channel_setting(
-        self, interaction: nextcord.Interaction, setting: str
-    ):
-        if not is_admin(interaction.user):
-            return
+    # @set_channel.on_autocomplete("setting")
+    # async def set_channel_setting(
+    #     self, interaction: nextcord.Interaction, setting: str
+    # ):
+    #     if not is_admin(interaction.user):
+    #         return
 
-        await interaction.response.send_autocomplete(
-            [
-                name
-                for name in self.config.channels.__dict__.keys()
-                if name.startswith(setting or "")
-            ][:25]
-        )
+    #     await interaction.response.send_autocomplete(
+    #         [
+    #             name
+    #             for name in self.config.channels.__dict__.keys()
+    #             if name.startswith(setting or "")
+    #         ][:25]
+    #     )
 
     @configuration.subcommand()
     async def ignored(self, interaction: nextcord.Interaction):
@@ -335,69 +344,36 @@ class Config(commands.Cog):
             ][:25]
         )
 
-    @configuration.subcommand(description="Select a role to set in config")
-    async def set_role(
-        self,
-        interaction: nextcord.Interaction,
-        setting: str = nextcord.SlashOption(
-            description="Setting to set",
-        ),
-        role: nextcord.Role = nextcord.SlashOption(description="Role to set"),
-    ):
-        if not await permcheck(interaction, is_admin):
-            return
+    # @configuration.subcommand(description="Select a role to set in config")
+    # async def set_role(
+    #     self,
+    #     interaction: nextcord.Interaction,
+    #     setting: str = nextcord.SlashOption(
+    #         description="Setting to set",
+    #     ),
+    #     role: nextcord.Role = nextcord.SlashOption(description="Role to set"),
+    # ):
+    #     if not await permcheck(interaction, is_admin):
+    #         return
 
-        self.set_config("roles", setting, role)
+    #     self.set_config("roles", setting, role)
 
-        await interaction.response.send_message(
-            f"{self.config.emotes.success} Role set to {role.mention} for `{setting}`."
-        )
+    #     await interaction.response.send_message(
+    #         f"{self.config.emotes.success} Role set to {role.mention} for `{setting}`."
+    #     )
 
-    @set_role.on_autocomplete("setting")
-    async def set_role_setting(self, interaction: nextcord.Interaction, setting):
-        if not is_admin(interaction.user):
-            return
+    # @set_role.on_autocomplete("setting")
+    # async def set_role_setting(self, interaction: nextcord.Interaction, setting):
+    #     if not is_admin(interaction.user):
+    #         return
 
-        await interaction.response.send_autocomplete(
-            [
-                name
-                for name in self.config.roles.__dict__.keys()
-                if name.startswith(setting or "")
-            ][:25]
-        )
-
-    @configuration.subcommand(description="Select a role to set as permission role")
-    async def set_permission_role(
-        self,
-        interaction: nextcord.Interaction,
-        setting: str = nextcord.SlashOption(
-            description="Setting to set",
-        ),
-        role: nextcord.Role = nextcord.SlashOption(description="Role to set"),
-    ):
-        if not await permcheck(interaction, is_admin):
-            return
-
-        self.set_config("permission_roles", setting, role)
-
-        await interaction.response.send_message(
-            f"{self.config.emotes.success} Role set to {role.mention} for `{setting}`."
-        )
-
-    @set_permission_role.on_autocomplete("setting")
-    async def set_permission_role_setting(
-        self, interaction: nextcord.Interaction, setting: str
-    ):
-        if not is_admin(interaction.user):
-            return
-
-        await interaction.response.send_autocomplete(
-            [
-                name
-                for name in self.config.permission_roles.__dict__.keys()
-                if name.startswith(setting or "")
-            ][:25]
-        )
+    #     await interaction.response.send_autocomplete(
+    #         [
+    #             name
+    #             for name in self.config.roles.__dict__.keys()
+    #             if name.startswith(setting or "")
+    #         ][:25]
+    #     )
 
     @configuration.subcommand()
     async def punishment_roles(self, interaction: nextcord.Interaction):
@@ -541,7 +517,7 @@ class Config(commands.Cog):
         await interaction.response.send_message(
             f"{self.config.emotes.success} Config reloaded."
         )
-    
+
     @configuration.subcommand(description="Select a level role to set in config")
     async def set_level_role(
         self,

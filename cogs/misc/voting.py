@@ -57,7 +57,7 @@ class Voting(commands.Cog):
         )
 
         # logging
-        channel = self.bot.get_channel(self.config.channels.logging)
+        channel = self.bot.get_channel(self.config.channels.log.general)
         await channel.send(
             embed=SersiEmbed(
                 title="Redo Vote Action",
@@ -108,13 +108,13 @@ class Voting(commands.Cog):
                 if vote_type.supermajority:
                     match vote_type.group:
                         case "staff":
-                            role_id = self.config.permission_roles.staff
+                            role_id = self.config.roles.staff.base
                         case "mod":
-                            role_id = self.config.permission_roles.moderator
+                            role_id = self.config.roles.staff.mod
                         case "cet":
-                            role_id = self.config.permission_roles.cet
+                            role_id = self.config.roles.staff.cet
                         case _:
-                            role_id = self.config.permission_roles.dark_moderator
+                            role_id = self.config.roles.staff.admin
 
                     threshold = (
                         len(
@@ -260,9 +260,9 @@ class Voting(commands.Cog):
         if (
             message.channel.id
             not in [
-                self.config.channels.moderation_votes,
-                self.config.channels.staff_votes,
-                self.config.channels.cet_votes,
+                self.config.channels.staff.mod_votes,
+                self.config.channels.staff.staff_votes,
+                self.config.channels.staff.cet_votes,
             ]
             or message.author.id != self.bot.user.id
         ):

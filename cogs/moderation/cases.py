@@ -272,7 +272,9 @@ class Cases(commands.Cog):
 
         logging_embed.set_thumbnail(interaction.user.display_avatar.url)
 
-        logging_channel = interaction.guild.get_channel(self.config.channels.logging)
+        logging_channel = interaction.guild.get_channel(
+            self.config.channels.log.general
+        )
 
         await logging_channel.send(embed=logging_embed)
 
@@ -324,7 +326,7 @@ class Cases(commands.Cog):
             logging_embed.set_thumbnail(interaction.user.display_avatar.url)
 
             logging_channel = interaction.guild.get_channel(
-                self.config.channels.logging
+                self.config.channels.log.general
             )
 
             await logging_channel.send(embed=logging_embed)
@@ -349,7 +351,7 @@ class Cases(commands.Cog):
             logging_embed.set_thumbnail(interaction.user.display_avatar.url)
 
             logging_channel = interaction.guild.get_channel(
-                self.config.channels.logging
+                self.config.channels.log.general
             )
 
             await logging_channel.send(embed=logging_embed)
@@ -381,7 +383,7 @@ class Cases(commands.Cog):
         moderator: nextcord.Member = nextcord.SlashOption(
             name="moderator",
             description="The moderator who is responsible for the case",
-            required=False,
+            required=True,
         ),
         offence: str = nextcord.SlashOption(
             name="offence",
@@ -1036,7 +1038,7 @@ class Cases(commands.Cog):
         offence_added_log.set_footer(text="Sersi Offences")
 
         logging_channel: nextcord.TextChannel = interaction.guild.get_channel(
-            self.config.channels.logging
+            self.config.channels.log.general
         )
 
         await logging_channel.send(embed=offence_added_log)

@@ -97,11 +97,11 @@ class Deletions(commands.Cog):
                     )
                 )
 
-        await message.guild.get_channel(self.config.channels.deleted_messages).send(
+        await message.guild.get_channel(self.config.channels.log.deleted_messages).send(
             embeds=[logging_embed, *further_images]
         )
         if message_has_images:
-            await message.guild.get_channel(self.config.channels.deleted_images).send(
+            await message.guild.get_channel(self.config.channels.log.deleted_images).send(
                 embeds=[logging_embed, *further_images]
             )
 
@@ -115,7 +115,7 @@ class Deletions(commands.Cog):
             .flatten()
         )[0]
 
-        await messages[0].guild.get_channel(self.config.channels.deleted_messages).send(
+        await messages[0].guild.get_channel(self.config.channels.log.deleted_messages).send(
             embed=SersiEmbed(
                 description="Bulk Message deletion",
                 fields={

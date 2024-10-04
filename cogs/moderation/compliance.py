@@ -6,6 +6,8 @@ from utils.base import decode_button_id, decode_snowflake
 
 from utils.config import Configuration
 from utils.compliance import (
+    finalise_moderation_dashboard_data,
+    gather_moderation_dashboard_data,
     get_moderation_report,
     get_moderation_report_embed,
     ModerationReport,
@@ -17,6 +19,7 @@ from utils.compliance import (
     get_availability_day_of_week,
     get_availability_day_of_week_embed,
 )
+from utils.database import ModerationDashboards, db_session
 from utils.help import verify_author
 
 from utils.perms import is_mod, permcheck, is_admin, is_mod_lead
@@ -30,14 +33,17 @@ class Compliance(commands.Cog):
 
         if self.bot.is_ready():
             self.compliance_report_loop.start()
+            self.update_moderation_dashboard.start()
 
     def cog_unload(self):
         self.compliance_report_loop.cancel()
+        self.update_moderation_dashboard.cancel()
 
     @commands.Cog.listener()
     async def on_ready(self):
         await asyncio.sleep(5)
         self.compliance_report_loop.start()
+        self.update_moderation_dashboard.start()
 
     @nextcord.slash_command(
         dm_permission=False,
@@ -50,6 +56,43 @@ class Compliance(commands.Cog):
     @moderation_report.subcommand()
     async def create(self, interaction: nextcord.Interaction):
         pass
+
+    @create.subcommand(description="Create a moderation dashboard.")
+    async def dashboard(self, interaction: nextcord.Interaction):
+        if not await permcheck(interaction, is_admin):
+            return
+
+        with db_session() as session:
+            dashboard = (
+                session.query(ModerationDashboards)
+                .filter_by(channel_id=interaction.channel.id)
+                .first()
+            )
+
+        if dashboard is not None:
+            await interaction.response.send_message(
+                f"{self.config.emotes.fail} A Moderation Dashboard already exists in this channel.",
+                ephemeral=True,
+            )
+            return
+
+        await interaction.response.defer()
+
+        embed = await gather_moderation_dashboard_data(interaction.guild, self.config)
+
+        message = await interaction.channel.send(embed=embed)
+
+        await interaction.followup.send(
+            f"{self.config.emotes.success} A Moderation Dashboard has been created in this channel.",
+            ephemeral=True,
+        )
+
+        with db_session() as session:
+            dashboard = ModerationDashboards(
+                channel_id=interaction.channel.id, message_id=message.id
+            )
+            session.add(dashboard)
+            session.commit()
 
     @create.subcommand(description="Create a moderation report by date.")
     async def custom(
@@ -272,6 +315,35 @@ class Compliance(commands.Cog):
             embed=get_moderation_leaderboard_embed(interaction, case_type)
         )
 
+    @moderation_report.subcommand()
+    async def remove(self, interaction: nextcord.Interaction):
+        pass
+
+    @remove.subcommand(description="Remove a moderation dashboard.")
+    async def mod_dashboard(self, interaction: nextcord.Interaction):
+        if not await permcheck(interaction, is_admin):
+            return
+
+        with db_session() as session:
+            dashboard = (
+                session.query(ModerationDashboards)
+                .filter_by(channel_id=interaction.channel.id)
+                .first()
+            )
+
+        if dashboard is None:
+            await interaction.response.send_message(
+                f"{self.config.emotes.fail} A Moderation Dashboard does not exist in this channel.",
+                ephemeral=True,
+            )
+            return
+
+        await interaction.response.defer()
+
+        with db_session() as session:
+            session.delete(dashboard)
+            session.commit()
+
     @commands.Cog.listener()
     async def on_interaction(self, interaction: nextcord.Interaction):
         if interaction.data is None or interaction.data.get("custom_id") is None:
@@ -316,14 +388,88 @@ class Compliance(commands.Cog):
 
             await message.delete()
 
+    @tasks.loop(minutes=5)
+    async def update_moderation_dashboard(self):
+        print("Updating Moderation Dashboards...")
+        with db_session() as session:
+            dashboards = session.query(ModerationDashboards).all()
+
+        if not dashboards:
+            return
+
+        guild = self.bot.get_guild(self.config.guilds.main)
+
+        for dashboard in dashboards:
+            channel = guild.get_channel(dashboard.channel_id)
+            if channel is None:
+                continue
+
+            dashboard_message = await channel.fetch_message(dashboard.message_id)
+            if dashboard_message is None:
+                continue
+
+            dashboard_created_at_str = dashboard_message.created_at.strftime("%Y-%m-%d")
+
+            current_time_str = datetime.datetime.now().strftime("%Y-%m-%d")
+
+            if dashboard_created_at_str != current_time_str:
+                finalised_embed = await finalise_moderation_dashboard_data(
+                    guild, self.config
+                )
+
+                await dashboard_message.edit(embed=finalised_embed)
+
+                new_embed = await gather_moderation_dashboard_data(guild, self.config)
+
+                new_dashboard = await dashboard_message.channel.send(embed=new_embed)
+
+                with db_session() as session:
+                    session.query(ModerationDashboards).filter_by(
+                        channel_id=dashboard.channel_id
+                    ).update({"message_id": new_dashboard.id})
+                    session.commit()
+
+                continue
+
+            embed = await gather_moderation_dashboard_data(guild, self.config)
+            await dashboard_message.edit(embed=embed)
+
     @tasks.loop(hours=1)
     async def compliance_report_loop(self):
         if datetime.datetime.now().hour != 6:
             return
 
         start_date = datetime.datetime.today().replace(
-            day=datetime.datetime.today().day - 1, hour=0, minute=0, second=0
+            day=(
+                datetime.datetime.today().day - 1
+                if datetime.datetime.today().day > 1
+                else datetime.datetime.today().day
+            ),
+            hour=0,
+            minute=0,
+            second=0,
         )
+
+        if datetime.datetime.now().day == 1:
+            if datetime.datetime.now().month == 1:
+                start_date = datetime.datetime.now().replace(
+                    year=datetime.datetime.now().year - 1,
+                    month=12,
+                    day=1,
+                    hour=0,
+                    minute=0,
+                    second=0,
+                )
+
+            else:
+                start_date = datetime.datetime.now().replace(
+                    month=datetime.datetime.now().month - 1,
+                    day=1,
+                    hour=0,
+                    minute=0,
+                    second=0,
+                )
+
         end_date = datetime.datetime.today().replace(hour=0, minute=0, second=0)
         report: ModerationReport = await get_moderation_report(start_date, end_date)
 
@@ -331,11 +477,11 @@ class Compliance(commands.Cog):
             report, start_date, end_date, "Daily Moderation Report"
         )
 
-        await self.bot.get_channel(self.config.channels.compliance_review).send(
+        await self.bot.get_channel(self.config.channels.staff.compliance_review).send(
             embed=embed
         )
 
-        await self.bot.get_channel(self.config.channels.alert).send(embed=embed)
+        await self.bot.get_channel(self.config.channels.staff.alert).send(embed=embed)
 
         if datetime.datetime.now().day == 1:
             if datetime.datetime.now().month == 1:
@@ -390,11 +536,13 @@ class Compliance(commands.Cog):
                 report, start_date, end_date, "Monthly Moderation Report"
             )
 
-            await self.bot.get_channel(self.config.channels.compliance_review).send(
+            await self.bot.get_channel(
+                self.config.channels.staff.compliance_review
+            ).send(embed=embed)
+
+            await self.bot.get_channel(self.config.channels.staff.alert).send(
                 embed=embed
             )
-
-            await self.bot.get_channel(self.config.channels.alert).send(embed=embed)
 
         if datetime.datetime.now().day == 1 and datetime.datetime.now().month == 1:
             start_date = datetime.datetime.now().replace(
@@ -411,11 +559,13 @@ class Compliance(commands.Cog):
                 report, start_date, end_date, "Yearly Moderation Report"
             )
 
-            await self.bot.get_channel(self.config.channels.compliance_review).send(
+            await self.bot.get_channel(
+                self.config.channels.staff.compliance_review
+            ).send(embed=embed)
+
+            await self.bot.get_channel(self.config.channels.staff.alert).send(
                 embed=embed
             )
-
-            await self.bot.get_channel(self.config.channels.alert).send(embed=embed)
 
 
 def setup(bot: commands.Bot, **kwargs):

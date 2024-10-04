@@ -18,111 +18,125 @@ class ConfigurationBot(YAMLWizard):
 
 
 @dataclass
-class ConfigurationChannels(YAMLWizard):
-    # moderator sided channels
-    alert: int  # Receives alerts regarding moderation pings and slurs.
-    logging: int
+class ConfigurationStaffChannels(YAMLWizard):
+    alert: int
     false_positives: int
-    mod_logs: int
-    dm_forward: int
     mod_applications: int
     cet_applications: int
-    ageverification: int
+    age_verification: int
     compliance_review: int
-    dark_mod_review: int
-    senior_mod_review: int
-    moderator_review: int
-    moderation_votes: int
+    admin_review: int
+    mod_lead_review: int
+    mod_review: int
+    mod_votes: int
     staff_votes: int
     cet_votes: int
+
+
+@dataclass
+class ConfigurationDevChannels(YAMLWizard):
+    errors: int
     bug_reports: int
     feature_requests: int
 
-    # debugging channels
-    errors: int
 
-    # user sided channels
-    photography: int
-
-    # reformation related channels
-    reformation_info: int
-    teachers_lounge: int
-    reform_public_log: int
-
-    # logging
+@dataclass
+class ConfigurationLoggingChannels(YAMLWizard):
     logging_category: int
-    tamper_logs: int
-    admin_ticket_logs: int
-    senior_ticket_logs: int
-    mod_ticket_logs: int
-    cet_ticket_logs: int
-    cet_lead_ticket_logs: int
+    general: int
+    mod: int
+    tamper: int
+    admin_ticket: int
+    mod_lead_ticket: int
+    mod_ticket: int
+    cet_ticket: int
+    cet_lead_ticket: int
     deleted_messages: int
-    role_logs: int
-    deleted_messages: int
+    roles: int
     deleted_images: int
     edited_messages: int
-    joinleave: int
-    channel_logs: int
-    guild_logs: int
+    join_leave: int
+    channels: int
+    guild: int
     user_chanes: int
     ban_unban: int
-    voice_logs: int
-    automod_logs: int
+    voice: int
+    automod: int
 
-    # suggestions
-    suggestion_discussion: int
-    suggestion_voting: int
-    suggestion_review: int
 
+@dataclass
+class ConfigurationReformationChannels(YAMLWizard):
+    info: int
+    teachers_lounge: int
+    public_log: int
+
+
+@dataclass
+class ConfigurationSuggestionsChannels(YAMLWizard):
+    discussion: int
+    voting: int
+    review: int
+
+
+@dataclass
+class ConfigurationMiscChannels(YAMLWizard):
+    photography: int
     afk_voice: int
-
     starboard: int
 
 
 @dataclass
-class ConfigurationRoles(YAMLWizard):
-    # reformation roles
-    reformation: int
-    reformed: int
-
-    # The role assigned to users under probation.
-    probation: int
-
-    # joke roles
-    never_mod: int
-
-    # basic human rights role
-    civil_engineering_initiate: int
-
-    # newbie roles
-    newbie: int
-
-    # former moderator role
-    honourable_member: int
-
-    adult_access: int
-    adult_verified: int
-
-    available_mod: int
+class ConfigurationChannels(YAMLWizard):
+    staff: ConfigurationStaffChannels
+    dev: ConfigurationDevChannels
+    log: ConfigurationLoggingChannels
+    reform: ConfigurationReformationChannels
+    suggestions: ConfigurationSuggestionsChannels
+    misc: ConfigurationMiscChannels
 
 
 @dataclass
-class ConfigurationPermissionRoles(YAMLWizard):
-    # The permission roles IDs saved as integers.
-
-    staff: int
-    reformist: int
-    sersi_contributor: int
+class ConfigurationStaffRoles(YAMLWizard):
+    base: int
+    admin: int
+    trial_mod: int
+    mod: int
+    mod_lead: int
+    available_mod: int
     cet: int
     cet_lead: int
     compliance: int
+    sersi_contributor: int
+    honourable_member: int
 
-    # AMAB: all mods are bastards ;)
-    trial_moderator: int
-    moderator: int
-    senior_moderator: int
-    dark_moderator: int  # AKA: super-duper mega administrators
+
+@dataclass
+class ConfigurationAccessRoles(YAMLWizard):
+    basic: int
+    newbie: int
+    adult: int
+
+
+@dataclass
+class ConfigurationReformationRoles(YAMLWizard):
+    reformist: int
+    inmate: int
+    reformed: int
+
+
+@dataclass
+class ConfigurationMiscRoles(YAMLWizard):
+    probation: int
+    never_mod: int
+    adult_verified: int
+
+
+@dataclass
+class ConfigurationRoles(YAMLWizard):
+    staff: ConfigurationStaffRoles
+    access: ConfigurationAccessRoles
+    reform: ConfigurationReformationRoles
+    misc: ConfigurationMiscRoles
 
 
 @dataclass
@@ -160,6 +174,11 @@ class VoteType(YAMLWizard):
     end_on_threshold: bool = True
 
 
+@dataclass
+class ConfigurationAutomoderation(YAMLWizard):
+    max_mentions: int
+
+
 @dataclass(frozen=True)
 class Configuration(YAMLWizard):
     bot: ConfigurationBot
@@ -168,12 +187,12 @@ class Configuration(YAMLWizard):
     ignored_categories: list[str]
     roles: ConfigurationRoles
     opt_in_roles: dict[str, int]
-    permission_roles: ConfigurationPermissionRoles
     punishment_roles: dict[str, int]
     level_roles: dict[int, int]
     emotes: ConfigurationEmotes
     guilds: ConfigurationGuilds
     voting: dict[str, VoteType]
+    automoderation: ConfigurationAutomoderation
 
 
 class Configurator:

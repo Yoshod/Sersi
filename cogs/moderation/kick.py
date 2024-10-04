@@ -60,11 +60,11 @@ class KickSystem(commands.Cog):
             )
 
             logging_channel = interaction.guild.get_channel(
-                self.config.channels.logging
+                self.config.channels.log.general
             )
 
             mega_admin_role = interaction.guild.get_role(
-                self.config.permission_roles.dark_moderator
+                self.config.roles.staff.admin
             )
 
             await logging_channel.send(
@@ -148,10 +148,10 @@ class KickSystem(commands.Cog):
             logging_embed = create_case_embed(
                 get_case_by_id(self.config, case.id, False), interaction, self.config
             )
-            await interaction.guild.get_channel(self.config.channels.logging).send(
+            await interaction.guild.get_channel(self.config.channels.log.general).send(
                 embed=logging_embed
             )
-            await interaction.guild.get_channel(self.config.channels.mod_logs).send(
+            await interaction.guild.get_channel(self.config.channels.log.mod).send(
                 embed=logging_embed
             )
 

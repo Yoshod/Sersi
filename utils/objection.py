@@ -49,7 +49,7 @@ class ObjectionButton(nextcord.ui.Button):
             review_case = session.query(PeerReview).filter_by(id=review_case.id).first()
 
         # Logging
-        await interaction.guild.get_channel(self.config.channels.logging).send(
+        await interaction.guild.get_channel(self.config.channels.log.general).send(
             embed=SersiEmbed(
                 title="Moderation Action Objected To",
                 description="A Moderator Action has been objected to by a moderator in response to a report.",
@@ -101,7 +101,7 @@ class ApprovalButton(nextcord.ui.Button):
             review_case = session.query(PeerReview).filter_by(id=review_case.id).first()
 
         # Logging
-        await interaction.guild.get_channel(self.config.channels.logging).send(
+        await interaction.guild.get_channel(self.config.channels.log.general).send(
             embed=SersiEmbed(
                 title="Moderation Action Approved",
                 description="A Moderator Action has been approved by a moderator in response to a report.",
@@ -129,15 +129,15 @@ class AlertView(nextcord.ui.View):
 
     async def interaction_check(self, interaction: nextcord.Interaction) -> bool:
         match self.reviewer.id:
-            case self.config.permission_roles.compliance:
+            case self.config.roles.staff.compliance:
                 return await permcheck(interaction, is_compliance)
-            case self.config.permission_roles.dark_moderator:
+            case self.config.roles.staff.admin:
                 if interaction.user.id == self.sersi_case.moderator:
                     return False
                 return await permcheck(interaction, is_admin)
-            case self.config.permission_roles.senior_moderator:
+            case self.config.roles.staff.mod_lead:
                 return await permcheck(interaction, is_mod_lead)
-            case self.config.permission_roles.moderator:
+            case self.config.roles.staff.mod:
                 return await permcheck(interaction, is_full_mod)
             case _:
                 return False

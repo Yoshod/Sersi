@@ -139,7 +139,7 @@ class DualCustodyView(View):
                     )
                     await interaction.message.edit(embed=new_embed)
 
-                channel = bot.get_channel(config.channels.alert)
+                channel = bot.get_channel(config.channels.staff.alert)
                 view = DualCustodyView(cb_confirm, interaction.user, perms)
                 await view.send_dialogue(channel, embed=dialog_embed)
 

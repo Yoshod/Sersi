@@ -50,7 +50,7 @@ class TimeoutSystem(commands.Cog):
             footer="Sersi Moderation Peer Review",
         )
 
-        channel = self.bot.get_channel(self.config.channels.logging)
+        channel = self.bot.get_channel(self.config.channels.log.general)
         await channel.send(embed=logging_embed)
 
         add_response_time(interaction.message)
@@ -78,7 +78,7 @@ class TimeoutSystem(commands.Cog):
             footer="Sersi Moderation Peer Review",
         )
 
-        channel = self.bot.get_channel(self.config.channels.logging)
+        channel = self.bot.get_channel(self.config.channels.log.general)
         await channel.send(embed=logging_embed)
 
         add_response_time(interaction.message)
@@ -172,8 +172,8 @@ class TimeoutSystem(commands.Cog):
                 f"({offender.id}) despite being outranked!",
             )
 
-            await interaction.guild.get_channel(self.config.channels.logging).send(
-                content=f"**ALERT:** {interaction.guild.get_role(self.config.permission_roles.dark_moderator).mention}",
+            await interaction.guild.get_channel(self.config.channels.log.general).send(
+                content=f"**ALERT:** {interaction.guild.get_role(self.config.roles.staff.admin).mention}",
                 embed=warning_alert,
             )
 
@@ -275,10 +275,10 @@ class TimeoutSystem(commands.Cog):
             case, interaction=interaction, config=self.config
         )
 
-        await interaction.guild.get_channel(self.config.channels.mod_logs).send(
+        await interaction.guild.get_channel(self.config.channels.log.mod).send(
             embed=logging_embed
         )
-        await interaction.guild.get_channel(self.config.channels.logging).send(
+        await interaction.guild.get_channel(self.config.channels.log.general).send(
             embed=logging_embed
         )
 
@@ -391,10 +391,10 @@ class TimeoutSystem(commands.Cog):
         except nextcord.HTTPException:
             pass
 
-        await interaction.guild.get_channel(self.config.channels.mod_logs).send(
+        await interaction.guild.get_channel(self.config.channels.log.mod).send(
             embed=logging_embed
         )
-        await interaction.guild.get_channel(self.config.channels.logging).send(
+        await interaction.guild.get_channel(self.config.channels.log.general).send(
             embed=logging_embed
         )
 
@@ -457,6 +457,9 @@ class TimeoutSystem(commands.Cog):
                     ).flatten()
                 )[0]
 
+                if log.user.id == self.bot.user.id and log.target.id == after.id:
+                    return
+
                 if case is None or case.planned_end < datetime.utcnow():
                     sersi_case = TimeoutCase(
                         offender=after.id,
@@ -484,10 +487,10 @@ class TimeoutSystem(commands.Cog):
                 footer="Sersi Timeout",
             )
 
-            await self.bot.get_channel(self.config.channels.logging).send(
+            await self.bot.get_channel(self.config.channels.log.general).send(
                 embed=logging_embed
             )
-            await self.bot.get_channel(self.config.channels.alert).send(
+            await self.bot.get_channel(self.config.channels.staff.alert).send(
                 embed=logging_embed
             )
 
@@ -521,10 +524,10 @@ class TimeoutSystem(commands.Cog):
                         footer="Sersi Timeout",
                     )
 
-                    await self.bot.get_channel(self.config.channels.logging).send(
+                    await self.bot.get_channel(self.config.channels.log.general).send(
                         embed=logging_embed
                     )
-                    await self.bot.get_channel(self.config.channels.alert).send(
+                    await self.bot.get_channel(self.config.channels.staff.alert).send(
                         embed=logging_embed
                     )
 

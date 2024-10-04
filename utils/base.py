@@ -9,6 +9,10 @@ from chat_exporter import export
 
 from utils.config import Configuration
 
+import logging
+
+error_logger = logging.getLogger("error_logger")
+
 
 def get_discord_timestamp(time: datetime, *, relative: bool = False) -> str:
     if relative:
@@ -62,10 +66,10 @@ async def ban(
 
 def modmention_check(config: Configuration, message: str) -> bool:
     modmentions: list[str] = [
-        f"<@&{config.permission_roles.trial_moderator}>",
-        f"<@&{config.permission_roles.moderator}>",
-        f"<@&{config.permission_roles.senior_moderator}>",
-        f"<@&{config.permission_roles.dark_moderator}>",
+        f"<@&{config.roles.staff.trial_mod}>",
+        f"<@&{config.roles.staff.mod}>",
+        f"<@&{config.roles.staff.mod_lead}>",
+        f"<@&{config.roles.staff.admin}>",
     ]
 
     for modmention in modmentions:
@@ -223,8 +227,12 @@ async def make_transcript(
         filename=f"transcript-{from_channel.name}.html",
     )
 
-    if to_channel is not None:
-        await to_channel.send(file=transcript_file, embed=embed)
+    try:
+        if to_channel is not None:
+            await to_channel.send(file=transcript_file, embed=embed)
+
+    except nextcord.HTTPException:
+        error_logger.exception("Failed to send transcript")
 
     return transcript
 

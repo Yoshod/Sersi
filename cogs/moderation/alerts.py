@@ -6,9 +6,13 @@ from nextcord.ext import commands, tasks
 from utils.alerts import AlertType, AlertView, get_alert_type, add_response_time
 from utils.base import sanitize_mention, get_message_from_url
 from utils.config import Configuration
-from utils.database import db_session, SlurUsageCase, BadFaithPingCase, Alert
+from utils.database import (
+    db_session,
+    SlurUsageCase,
+    BadFaithPingCase,
+    Alert,
+)
 from utils.perms import is_mod, permcheck
-from utils.sersi_embed import SersiEmbed
 
 
 class Alerts(commands.Cog):
@@ -49,7 +53,7 @@ class Alerts(commands.Cog):
                 continue
 
             await message.reply(
-                f"<@&{self.config.permission_roles.moderator}> This alert has not had a recorded response for {time_since_alert.seconds//3600} hours.",
+                f"<@&{self.config.roles.staff.mod}> This alert has not had a recorded response for {time_since_alert.seconds//3600} hours.",
             )
 
     @commands.Cog.listener()
@@ -123,22 +127,6 @@ class Alerts(commands.Cog):
                 )
                 embed.color = nextcord.Color.red()
 
-                false_positive_embed: nextcord.Embed = SersiEmbed(
-                    title="Marked as False Positive",
-                    description=embed.description,
-                    color=nextcord.Color.red(),
-                    fields={
-                        "Slurs Found": slurs,
-                    },
-                ).set_author(
-                    name=interaction.user.display_name,
-                    icon_url=interaction.user.avatar.url,
-                )
-
-                await interaction.guild.get_channel(
-                    self.config.channels.false_positives
-                ).send(embed=false_positive_embed)
-
             case "alert_bad_faith_ping":
                 embed.add_field(
                     name="Ping Deemed as Bad Faith by:",
@@ -172,7 +160,7 @@ class Alerts(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message_delete(self, message: nextcord.Message):
-        if message.channel.id != self.config.channels.alert:
+        if message.channel.id != self.config.channels.staff.alert:
             return
 
         new_message: nextcord.Message = await message.channel.send(
