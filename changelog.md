@@ -2,14 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
-## [5.3.1] - 2024-07-16
+## [5.4.0] - 2024-??-??
 
 ### Added
-- Moderation Dashboard which can be created via the `/moderation_report create dashboard` command
-- Users who are server boosters will now gain 50% more XP
+- New rules post which can be posted by the bot using the `s!rules_embeds` old style command
+- New `ATTRIBUTIONS.md` file for attributions of some assets used by the bot
 
 ### Changed
-- When a user's adult channels application is bypassed, the DM will reflect that the verification was bypassed
+- Updates to the `PRIVACY POLICY.md` file. See the file for more information.
 
 ### Fixed
-- Made the 'Moderator' argument required in the `/cases edit` command
+- 
