@@ -311,6 +311,8 @@ class SlowmodeCog(commands.Cog):
             fields=None,
         )
 
+        await channel.edit(slowmode_delay=0)
+
         await channel.send(embed=slowmode_alert)
 
     @slowmode.subcommand(
@@ -442,9 +444,9 @@ class SlowmodeCog(commands.Cog):
                         },
                     )
 
-                    await channel.guild.get_channel(self.config.channels.log.general).send(
-                        embed=slowmode_log
-                    )
+                    await channel.guild.get_channel(
+                        self.config.channels.log.general
+                    ).send(embed=slowmode_log)
 
                     await channel.guild.get_channel(self.config.channels.log.mod).send(
                         embed=slowmode_log
