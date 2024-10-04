@@ -829,7 +829,7 @@ class Suggestions(commands.Cog):
                     await interaction.response.send_modal(
                         SuggestionReviewModal(
                             self.config, False, kwargs["suggestion_id"]
-                        ),
+                        )
                     )
 
         elif action == "suggestion_mark":
