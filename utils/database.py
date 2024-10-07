@@ -1147,11 +1147,14 @@ class PendingAlerts(_Base):
 
 
 class Poll(_Base):
+    __tablename__ = "polls"
+
     poll_id = Column(Integer, primary_key=True)
+    poll_url = Column(String, nullable=False)
     author = Column(Integer, nullable=False)
-    channel = Column(Integer, nullable=False)
     query = Column(String, nullable=False)
     options = Column(String, nullable=False)
+    multiple = Column(Boolean, default=False)
     active = Column(Boolean, default=True)
     planned_end = Column(DateTime, nullable=False)
 
@@ -1160,15 +1163,17 @@ class Poll(_Base):
     ended = Column(DateTime)
 
     @property
-    def opt_dict(self) -> dict:
+    def opt_list(self) -> list:
         return json.loads(self.options)
 
-    @opt_dict.setter
-    def opt_dict(self, value: dict) -> None:
+    @opt_list.setter
+    def opt_list(self, value: list) -> None:
         self.options = json.dumps(value)
 
 
 class PollVote(_Base):
+    __tablename__ = "poll_votes"
+
     poll_id = Column(Integer, ForeignKey("polls.poll_id"), primary_key=True)
     user_id = Column(Integer, primary_key=True)
     vote = Column(Integer, nullable=False)

@@ -14,84 +14,10 @@ from utils.config import Configuration
 from utils.database import db_session, Poll, PollVote
 
 
-class DropdownMenu(nextcord.ui.Select):
-    def __init__(self, choices: list[str], max_values: int = 1):
-        if max_values == 1:
-            super().__init__(
-                placeholder="Pick One",
-                options=[nextcord.SelectOption(label=option) for option in choices],
-            )
-        else:
-            super().__init__(
-                placeholder="Pick Multiple",
-                options=[nextcord.SelectOption(label=option) for option in choices],
-            )
-        self.state: dict[int : list[str]] = {}
-        self.choices = choices
-        self.max_values = max_values
-
-    async def callback(self, interaction: nextcord.Interaction) -> None:
-        self.state[interaction.user.id] = self.values
-
-        result_embed: nextcord.Embed = interaction.message.embeds[0]
-        while result_embed.fields:
-            result_embed.remove_field(0)
-
-        all_votes: list[str] = []
-        for user_id in self.state:
-            all_votes.extend(self.state[user_id])
-
-        eval_bar_width: int = 20
-        for option in self.choices:
-            percentage: float = all_votes.count(option) / len(self.state)
-            bar_filled: int = round(percentage * eval_bar_width)
-
-            bar = f"{'█'*bar_filled}{'░'*(eval_bar_width-bar_filled)} {round(percentage*100, 2)}% ({all_votes.count(option)} votes)"
-
-            result_embed.add_field(name=option, value=bar, inline=False)
-
-        # make a graph using matplotlib
-        poll_data = [all_votes.count(choice) for choice in self.choices]
-
-        label_gen = (label for label in self.choices if all_votes.count(label) > 0)
-        plt.figure(figsize=(4, 4))
-        plt.pie(
-            poll_data,
-            colors=colors.TABLEAU_COLORS,
-            autopct=lambda pct: f"{next(label_gen)}" if pct > 0 else "",
-            startangle=90,
-            counterclock=False,
-            radius=1.2,
-        )
-
-        # make the background transparent
-        plt.gca().set_facecolor("none")
-        plt.gcf().set_facecolor("none")
-        plt.gca().set_axis_off()
-        plt.gca().set_xticks([])
-        plt.gca().set_yticks([])
-        plt.gca().set_frame_on(False)
-
-        plt.tight_layout()
-
-        buf = io.BytesIO()
-        plt.savefig(buf, format="png")
-        plt.close()
-        buf.seek(0)
-
-        result_embed.set_image(url="attachment://poll.png")
-
-        await interaction.message.edit(
-            embed=result_embed, file=nextcord.File(buf, filename="poll.png")
-        )
-
-
 class Choose(commands.Cog):
     def __init__(self, bot: commands.Bot, config: Configuration):
         self.bot = bot
         self.config = config
-
-        # self.polls: dict[int: tuple[int, int, str]] = {}
 
     @nextcord.slash_command(
         dm_permission=False,
@@ -153,12 +79,19 @@ class Choose(commands.Cog):
             )
             return
 
-        if multiple_choice:
-            selection = DropdownMenu(options, len(options))
-        else:
-            selection = DropdownMenu(options)
+        selection = nextcord.ui.Select(
+            custom_id="poll_vote",
+            placeholder=f"Pick {'Multiple' if multiple_choice else 'One'}",
+            options=[
+                nextcord.SelectOption(
+                    label=option, value=str(1 << index if multiple_choice else index),
+                )
+                for index, option in enumerate(options)
+            ],
+            max_values=len(options) if multiple_choice else 1,
+        )
 
-        dropdown_menu = nextcord.ui.View(timeout=None)
+        dropdown_menu = nextcord.ui.View(timeout=None, auto_defer=False)
         dropdown_menu.add_item(selection)
 
         fields: dict[str:str] = {}
@@ -176,17 +109,15 @@ class Choose(commands.Cog):
 
         with db_session() as session:
             poll = Poll(
-                message_id=poll.id,
-                channel_id=poll.channel.id,
-                guild_id=poll.guild.id,
+                poll_id=poll.id,
+                poll_url=poll.jump_url,
+                author=interaction.user.id,
                 query=query,
-                options=options,
+                planned_end=datetime.now()
+                + parse_timedelta(f"{duration or 1}{duration_unit or 'd'}"),
             )
 
-            if duration_unit:
-                poll.planned_end = datetime.now() + parse_timedelta(
-                    f"{duration or 1}{duration_unit}"
-                )
+            poll.opt_list = options
 
             session.add(poll)
             session.commit()
@@ -211,7 +142,112 @@ class Choose(commands.Cog):
     async def autocomplete_poll(
         self, interaction: nextcord.Interaction, value: str
     ) -> list[str]:
-        return [str(poll) for poll in self.polls if value in str(poll)]
+        return [str(poll) for poll in [] if value in str(poll)]
+
+    @commands.Cog.listener()
+    async def on_interaction(self, interaction: nextcord.Interaction):
+        if interaction.data is None or interaction.data.get("custom_id") is None:
+            return
+
+        if not interaction.data["custom_id"] == "poll_vote":
+            return
+
+        if not interaction.response.is_done():
+            await interaction.response.defer(ephemeral=True)
+
+        with db_session() as session:
+            poll = (
+                session.query(Poll).filter_by(poll_id=interaction.message.id).first()
+            )
+            if not poll:
+                await interaction.send(
+                    f"{self.config.emotes.fail} Poll not found.",
+                    ephemeral=True,
+                )
+                return
+
+            if (
+                not poll.active
+                or poll.planned_end
+                and poll.planned_end < datetime.now()
+            ):
+                await interaction.send(
+                    f"{self.config.emotes.fail} Poll has ended.",
+                    ephemeral=True,
+                )
+                return
+
+            vote = PollVote(
+                poll_id=poll.poll_id,
+                user_id=interaction.user.id,
+                vote=sum([int(v) for v in interaction.data["values"]]),
+            )
+
+            session.merge(vote)
+            session.commit()
+
+            await interaction.send(
+                f"{self.config.emotes.success} Vote registered.",
+                ephemeral=True,
+            )
+
+            votes = session.query(PollVote).filter_by(poll_id=poll.poll_id).all()
+
+        result_embed: nextcord.Embed = interaction.message.embeds[0]
+        while result_embed.fields:
+            result_embed.remove_field(0)
+
+        all_votes: dict[str, int] = {option: 0 for option in poll.opt_list}
+        for vote in votes:
+            for index, option in enumerate(poll.opt_list):
+                if poll.multiple and vote.vote & (1 << index):
+                    all_votes[option] += 1
+                elif not poll.multiple and vote.vote == index:
+                    all_votes[option] += 1
+
+        eval_bar_width: int = 20
+        for option in poll.opt_list:
+            percentage: float = all_votes[option] / len(votes)
+            bar_filled: int = round(percentage * eval_bar_width)
+
+            bar = f"{'█'*bar_filled}{'░'*(eval_bar_width-bar_filled)} {round(percentage*100, 2)}% ({all_votes[option]} votes)"
+
+            result_embed.add_field(name=option, value=bar, inline=False)
+
+        # make a graph using matplotlib
+        poll_data = [all_votes[opt] for opt in poll.opt_list]
+
+        label_gen = (label for label in poll.opt_list if all_votes[label] > 0)
+        plt.figure(figsize=(4, 4))
+        plt.pie(
+            poll_data,
+            colors=colors.TABLEAU_COLORS,
+            autopct=lambda pct: f"{next(label_gen)}" if pct > 0 else "",
+            startangle=90,
+            counterclock=False,
+            radius=1.2,
+        )
+
+        # make the background transparent
+        plt.gca().set_facecolor("none")
+        plt.gcf().set_facecolor("none")
+        plt.gca().set_axis_off()
+        plt.gca().set_xticks([])
+        plt.gca().set_yticks([])
+        plt.gca().set_frame_on(False)
+
+        plt.tight_layout()
+
+        buf = io.BytesIO()
+        plt.savefig(buf, format="png")
+        plt.close()
+        buf.seek(0)
+
+        result_embed.set_image(url="attachment://poll.png")
+
+        await interaction.message.edit(
+            embed=result_embed, file=nextcord.File(buf, filename="poll.png")
+        )
 
 
 def setup(bot: commands.Bot, **kwargs):
