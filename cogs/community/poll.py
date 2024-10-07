@@ -118,6 +118,8 @@ class Choose(commands.Cog):
             )
 
             poll.opt_list = options
+            if multiple_choice:
+                poll.multiple = True
 
             session.add(poll)
             session.commit()
