@@ -109,6 +109,8 @@ class Guilds(BaseGlobal):
 
 
 ### Guild Database Tables ###
+def create_db_tables():
+    BaseGlobal.metadata.create_all(global_engine)
 
-BaseGlobal.metadata.create_all(global_engine)
-guild_db_manager = GuildDatabaseManager()
+    global guild_db_manager
+    guild_db_manager = GuildDatabaseManager()
