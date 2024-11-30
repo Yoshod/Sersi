@@ -1,0 +1,45 @@
+import os
+import logging
+
+from nextcord.ext import commands
+
+logger = logging.getLogger()
+
+
+async def load_all_cogs(bot: commands.Bot, *, data_folder: str):
+    for root, dirs, files in os.walk("./cogs"):
+        for filename in files:
+            if filename.endswith(".py"):
+                cog_category = root[2:].replace(os.sep, ".")
+
+                logging.info(f"Loading {cog_category}.{filename[:-3]}...")
+
+                try:
+                    bot.load_extension(
+                        f"{cog_category}.{filename[:-3]}",
+                        extras={"data_folder": data_folder},
+                    )
+                except commands.errors.ExtensionFailed:
+                    logging.exception(f"Could not load {cog_category}.{filename[:-3]}.")
+    if bot.is_ready():
+        await bot.sync_all_application_commands()
+
+
+async def reload_all_cogs(bot: commands.Bot, *, data_folder: str):
+    for root, dirs, files in os.walk("../cogs"):
+        for filename in files:
+            if filename.endswith(".py"):
+                nroot = root[2:].replace(os.sep, ".")
+
+                logging.info(f"Reloading {nroot}.{filename[:-3]}...")
+
+                bot.unload_extension(f"{nroot}.{filename[:-3]}")
+                try:
+                    bot.load_extension(
+                        f"{nroot}.{filename[:-3]}",
+                        extras={"data_folder": data_folder},
+                    )
+                except commands.errors.ExtensionFailed:
+                    logging.exception(f"Could not load {nroot}.{filename[:-3]}.")
+    if bot.is_ready():
+        await bot.sync_all_application_commands()
