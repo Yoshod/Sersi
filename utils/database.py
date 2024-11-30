@@ -93,6 +93,7 @@ class Guilds(BaseGlobal):
         was_premium (bool): Indicates if the guild was previously premium. Defaults to False.
         is_testing (bool): Indicates if the guild is in testing mode. Defaults to False.
         is_banned (bool): Indicates if the guild is banned. Defaults to False.
+        finished_setup (bool): Indicates if the guild has finished setup. Defaults to False.
         join_date (datetime): The date the bot joined the guild. Defaults to the current time.
         leave_date (datetime): The date the bot left the guild.
     """
@@ -104,8 +105,26 @@ class Guilds(BaseGlobal):
     was_premium = Column(Boolean, default=False)
     is_testing = Column(Boolean, default=False)
     is_banned = Column(Boolean, default=False)
+    finished_setup = Column(Boolean, default=False)
     join_date = Column(DateTime, default=datetime.now(timezone.utc))
     leave_date = Column(DateTime)
+
+
+class Modules(BaseGuild):
+    """
+    Represents a Modules table in the database.
+
+    Whether a module is enabled or not determines which commands are available to the guild.
+
+    Attributes:
+        module_name (str): The name of the module. Primary key.
+        enabled (bool): Indicates if the module is enabled. Defaults to False.
+    """
+
+    __tablename__ = "modules"
+
+    module_name = Column(String, primary_key=True)
+    enabled = Column(Boolean, default=False)
 
 
 ### Guild Database Tables ###
