@@ -48,15 +48,16 @@ error_logger.addHandler(error_file_handler)
 async def on_ready():
     print(f"We have logged in as {bot.user}")
 
-    logging.info("\n\n=======================================")
-    logging.info("Starting bot...")
-    logging.info(f"System Version:\n{sys.version}")
-    logging.info(f"Nextcord Version:\n{nextcord.__version__}")
 
-    bot.command_prefix = "s!"
-    logging.info("Attempting to load cogs...")
-    asyncio.run(load_all_cogs(bot, data_folder=root_folder))
-    logging.info("Loaded cogs; starting to run")
+logging.info("\n\n=======================================")
+logging.info("Starting bot...")
+logging.info(f"System Version:\n{sys.version}")
+logging.info(f"Nextcord Version:\n{nextcord.__version__}")
+
+bot.command_prefix = "s!"
+logging.info("Attempting to load cogs...")
+asyncio.run(load_all_cogs(bot, root_folder))
+logging.info("Loaded cogs; starting to run")
 
 
-bot.run("your token here")
+bot.run("TOKENHERE")
