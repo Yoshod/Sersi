@@ -42,7 +42,7 @@ BaseGuild = declarative_base()
 
 def create_guild_engine(guild_id: int) -> sqlalchemy.Engine:
     """Create and configure an SQLAlchemy engine for a specific guild."""
-    db_path = f"persistent_data/sersi_{guild_id}.db"
+    db_path = f"databases/sersi_{guild_id}.db"
     engine = sqlalchemy.create_engine(f"sqlite:///{db_path}", echo=False)
 
     @event.listens_for(engine, "connect")
@@ -51,6 +51,8 @@ def create_guild_engine(guild_id: int) -> sqlalchemy.Engine:
         cursor = dbapi_connection.cursor()
         cursor.execute("PRAGMA foreign_keys=ON")
         cursor.close()
+
+    BaseGuild.metadata.create_all(engine)
 
     return engine
 
@@ -127,9 +129,214 @@ class Modules(BaseGuild):
     enabled = Column(Boolean, default=False)
 
 
+class Case(BaseGuild):
+    """
+    Represents a Case table in the database.
+
+    Attributes:
+    case_id (str): The unique identifier for the case. Primary key.
+    case_type (str): The type of case. Not nullable.
+    offence (str): The offence that was committed. Not nullable.
+    jump_url (str): The URL to jump to the message. Not nullable.
+    state (str): The state of the case. Not nullable.
+    created_at (datetime): The date and time the case was created. Not nullable.
+    modified_at (datetime): The date and time the case was last modified. Not nullable.
+    """
+
+    __tablename__ = "cases"
+
+    case_id = Column(String, primary_key=True, default=random_id)
+    case_type = Column(String, nullable=False)
+    offence = Column(String, nullable=False)
+    jump_url = Column(String, nullable=False)
+    state = Column(String, nullable=False)
+    created_at = Column(DateTime, default=datetime.now(timezone.utc))
+    modified_at = Column(DateTime, default=datetime.now(timezone.utc))
+
+    __mapper_args__ = {"polymorphic_on": type}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.id is None:
+            self.id = random_id()
+
+    def __setattr__(self, __name: str, __value: Any):
+        old_value = self.__dict__.get(__name)
+        super().__setattr__(__name, __value)
+        session: Session = Session.object_session(self)
+        if session and old_value != __value:
+            session.add(
+                CaseAudit(
+                    id=random_id(),
+                    case_id=self.id,
+                    field=__name,
+                    old_value=old_value,
+                    new_value=__value,
+                    author=session.owner_id,
+                )
+            )
+
+    def __getattr__(self, __name: str) -> Any:
+        if __name == "list_entry_header":
+            return f"__{self.id}__ <t:{int(self.created_at.timestamp())}:R>"
+        raise AttributeError(
+            f"'{self.__class__.__name__}' object has no attribute '{__name}'"
+        )
+
+    def __repr__(self):
+        return f"*{self.case_type}* `{self.offence or 'N/A'}`"
+
+
+class CaseAudit(_Base):
+    __tablename__ = "cases_audit"
+
+    id = Column(String, primary_key=True)
+    case_id = Column(String, ForeignKey("cases.id", ondelete="CASCADE"), nullable=False)
+
+    field = Column(String, nullable=False)
+    old_value = Column(String)
+    new_value = Column(String)
+
+    author = Column(Integer)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f"<t:{int(self.timestamp.timestamp())}:R> {self.field}"
+
+
+class WarningCase(Case):
+    __tablename__ = "warning_cases"
+
+    case_id = Column(String, ForeignKey("cases.id"), primary_key=True)
+    justification = Column(String, nullable=False)
+
+
+class TimeoutCase(Case):
+    __tablename__ = "timeout_cases"
+
+    case_id = Column(String, ForeignKey("cases.id"), primary_key=True)
+    justification = Column(String, nullable=False)
+    scheduled_end = Column(DateTime, nullable=False)
+    actual_end = Column(DateTime)
+
+
+class BanCase(Case):
+    __tablename__ = "ban_cases"
+
+    case_id = Column(String, ForeignKey("cases.id"), primary_key=True)
+    justification = Column(String, nullable=False)
+    ban_type = Column(String, nullable=False)
+
+
+class ReformationCase(Case):
+    __tablename__ = "reformation_cases"
+
+    case_id = Column(String, ForeignKey("cases.id"), primary_key=True)
+    justification = Column(String, nullable=False)
+    cell_id = Column(Integer, nullable=False)
+
+
+class BlacklistCase(Case):
+    __tablename__ = "blacklist_cases"
+
+    case_id = Column(String, ForeignKey("cases.id"), primary_key=True)
+    justification = Column(String, nullable=False)
+    blacklist_type = Column(String, nullable=False)
+
+
+class KickCase(Case):
+    __tablename__ = "kick_cases"
+
+    case_id = Column(String, ForeignKey("cases.id"), primary_key=True)
+    justification = Column(String, nullable=False)
+
+
+class RaidCase(Case):
+    __tablename__ = "raid_cases"
+
+    case_id = Column(String, ForeignKey("cases.id"), primary_key=True)
+
+
+class CaseModerators(BaseGuild):
+    """
+    Represents a CaseModerators table in the database.
+
+    Attributes:
+        case_id (str): The case ID. Primary key. Foreign key to cases.
+        relation_to_case (str): The relation of the moderator to the case. Primary key. Accepts:
+            - creation
+            - approval
+            - objection
+            - edit
+            - deactivation
+            - archival
+            - deletion
+        moderator_id (int): The moderator ID. Primary key.
+    """
+
+    __tablename__ = "case_moderators"
+
+    case_id = Column(String, ForeignKey("cases.id"), primary_key=True)
+    relation_to_case = Column(String, primary_key=True)
+    moderator_id = Column(Integer, primary_key=True)
+
+
+class CaseReviews(BaseGuild):
+    """
+    Represents a CaseReviews table in the database.
+
+    Attributes:
+        case_id (str): The case ID. Primary key. Foreign key to cases.
+        reviewer_id (int): The reviewer ID. Primary key.
+        review (str): The review. Not nullable.
+        timestamp (datetime): The date and time the review was made. Not nullable.
+    """
+
+    __tablename__ = "case_reviews"
+
+    case_id = Column(String, ForeignKey("cases.id"), primary_key=True)
+    reviewer_id = Column(Integer, primary_key=True)
+    outcome = Column(Boolean, nullable=False)
+    timestamp = Column(DateTime, default=datetime.now(timezone.utc))
+
+
+class CaseGroups(BaseGuild):
+    """
+    Represents a CaseGroups table in the database.
+
+    Attributes:
+        case_id (str): The case ID. Primary key. Foreign key to cases.
+        group_id (int): The group ID. Primary key.
+    """
+
+    __tablename__ = "case_groups"
+
+    case_id = Column(String, ForeignKey("cases.id"), primary_key=True)
+    group_id = Column(Integer, primary_key=True, default=random_id)
+
+
+class Raiders(BaseGuild):
+    """
+    Represents a Raiders table in the database.
+
+    Attributes:
+        case_id (str): The case ID. Primary key. Foreign key to cases.
+        raider_id (int): The raider ID. Primary key.
+    """
+
+    __tablename__ = "raiders"
+
+    case_id = Column(String, ForeignKey("cases.id"), primary_key=True)
+    raider_id = Column(Integer, primary_key=True)
+    join_time = Column(DateTime, nullable=False)
+
+
 ### Guild Database Tables ###
 def create_db_tables():
     BaseGlobal.metadata.create_all(global_engine)
 
     global guild_db_manager
     guild_db_manager = GuildDatabaseManager()
+
+
+create_db_tables()
