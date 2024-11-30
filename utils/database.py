@@ -331,6 +331,23 @@ class Raiders(BaseGuild):
     join_time = Column(DateTime, nullable=False)
 
 
+class Offences(BaseGuild):
+    """
+    Represents an Offences table in the database.
+
+    Attributes:
+        offence_name (str): The name of the offence. Primary key.
+        offence_severity (int): The severity of the offence. Not nullable. Scale of 1-10. Defaults to 1. 1 being the least severe and 10 being the most severe.
+        offence_description (str): The description of the offence. Nullable.
+    """
+
+    __tablename__ = "offences"
+
+    offence_name = Column(String, primary_key=True)
+    offence_severity = Column(Integer, nullable=False, default=1)
+    offence_description = Column(String)
+
+
 ### Guild Database Tables ###
 def create_db_tables():
     BaseGlobal.metadata.create_all(global_engine)
