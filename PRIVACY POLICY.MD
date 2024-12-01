@@ -25,6 +25,9 @@ We may share data with third-party APIs as necessary to facilitate Sersi's funct
 
 We take reasonable measures to protect your data from unauthorised access, alteration, disclosure, or destruction. However, no method of data transmission over the internet or electronic storage is 100% secure.
 
+## How long is the information stored?
+We store the information for as long as is necessary to provide the functionality of the application. This is something we review on a regular basis. We may also store the information for a longer period of time if required by law.
+
 ## What are my data protection rights?
 
 You have the following data protection rights:
@@ -45,3 +48,24 @@ Using these rights:
 All the rights above are subject to General Data Protection Regulation law. As such whether or not your exercise of these rights will be approved is contingent on them meeting the requirements to exercise these rights under the law. Should any request be considered 'manifestly unfounded' or 'excessive' we reserve the right under law to either refuse the request or charge a reasonable fee to complete the request.
 
 When making a request you must provide us with your Discord User ID and Discord Username. You will receive a Friend Request from somebody on the Sersi Team who will verify that the User ID you gave us in your email matches the User ID on the account matching the username provided. We may also send a One Time Passcode (OTP) via email and this OTP must be correctly given back to the Sersi Team Member in contact with you within ten minutes. Failure at any stage of this verification process will result in the request being denied due to not being able to confirm identity.
+
+## Children's Online Privacy Protection Act Compliance
+The application is not intended for children under the age of 13 and runs solely on the Discord platform which has a minimum age requirement of 13. We do not knowingly collect any information from anyone under 13 years of age. If we become aware that we have collected personal information from a child under the age of 13, we will immediately delete this information from our servers. If you are a parent or guardian and you are aware that your child has provided us with personal information, please contact us so that we will be able to do necessary actions.
+
+We can be contacted at the following email address:
+- Email: contact@sersi.io
+
+When making a request for data removal under COPPA you must provide us with your child's Discord User ID and Discord Username. The account will receive a friend request from somebody on the Sersi Team who will verify that the User ID you gave us in your email matches the User ID on the account matching the username provided. We may also send a One Time Passcode (OTP) via email and this OTP must be correctly given back to the Sersi Team Member in contact with you within ten minutes. Failure at any stage of this verification process will result in the request being denied due to not being able to confirm identity.
+
+Upon successful completion of the verification process, we will request via email that you provide us with a copy of your child's birth certificate or other government-issued identification to confirm the age of the child. Once this has been received and verified we will proceed with the deletion of the data as well as the email containing the identification document.
+
+## Changes to our privacy policy
+The Sersi Team keeps its privacy policy under regular review and places any updates on this web page. The privacy policy may be updated from time to time for various reasons such as changes in the law or changes in the way we operate. This may be done without notice to you. We recommend that you check this page regularly to ensure you are up to date with the latest version of the policy.
+
+This privacy policy was last updated on 1st of December 2024.
+
+## How to contact us
+If you have any questions about Sersi's privacy policy, the data we hold on you, or you would like to exercise one of your data protection rights, please do not hesitate to contact us.
+
+Email us at:
+- Email: contact@sersi.io
