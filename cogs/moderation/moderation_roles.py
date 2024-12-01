@@ -114,26 +114,75 @@ class Moderation_roles(commands.Cog):
                 remove_moderator=remove_moderator,
                 is_immune=is_immune,
                 edit_offences=edit_offences,
-                edit_Cases=edit_cases,
+                edit_cases=edit_cases,
             )
 
             session.add(new_role)
             session.commit()
 
         if same_auth_level:
-            return await interaction.followup.send(
-                embed=SersiEmbed(
-                    title="Role added",
-                    description=f"{role.mention} has been added as a moderation role with authority level {authority_level}. There is already a role with the same authority level, as such this role will not be able to issue moderation commands targeting users with the same authority level.",
-                ),
-                ephemeral=True,
+            embed_text = (
+                f"{role.mention} has been added as a moderation role with authority level {authority_level}. There is already a role with the same authority level, as such this role will not be able to issue moderation commands targeting users with the same authority level.",
             )
+        else:
+            embed_text = f"{role.mention} has been added as a moderation role."
+
+        embed = SersiEmbed(
+            title="Role added",
+            description=embed_text,
+        )
+
+        embed.add_field(
+            name="Permissions",
+            value="The following permissions have been set for this role:",
+            inline=False,
+        )
+        embed.add_field(name="Authority Level", value=str(authority_level), inline=True)
+        embed.add_field(name="Can Warn", value="Yes" if can_warn else "No", inline=True)
+        embed.add_field(
+            name="Can Timeout", value="Yes" if can_timeout else "No", inline=True
+        )
+        embed.add_field(
+            name="Can Immediate Ban",
+            value="Yes" if can_immediate_ban else "No",
+            inline=True,
+        )
+        embed.add_field(
+            name="Can Vote Ban", value="Yes" if can_vote_ban else "No", inline=True
+        )
+        embed.add_field(
+            name="Can Unban", value="Yes" if can_unban else "No", inline=True
+        )
+        embed.add_field(
+            name="Can Reform", value="Yes" if can_reform else "No", inline=True
+        )
+        embed.add_field(
+            name="Can Blacklist", value="Yes" if can_blacklist else "No", inline=True
+        )
+        embed.add_field(name="Can Kick", value="Yes" if can_kick else "No", inline=True)
+        embed.add_field(
+            name="Declare Raid", value="Yes" if declare_raid else "No", inline=True
+        )
+        embed.add_field(
+            name="Add Moderator", value="Yes" if add_moderator else "No", inline=True
+        )
+        embed.add_field(
+            name="Remove Moderator",
+            value="Yes" if remove_moderator else "No",
+            inline=True,
+        )
+        embed.add_field(
+            name="Is Immune", value="Yes" if is_immune else "No", inline=True
+        )
+        embed.add_field(
+            name="Edit Offences", value="Yes" if edit_offences else "No", inline=True
+        )
+        embed.add_field(
+            name="Edit Cases", value="Yes" if edit_cases else "No", inline=True
+        )
 
         await interaction.followup.send(
-            embed=SersiEmbed(
-                title="Role added",
-                description=f"{role.mention} has been added as a moderation role.",
-            ),
+            embed=embed,
             ephemeral=True,
         )
 
@@ -152,48 +201,63 @@ class Moderation_roles(commands.Cog):
             description="Authority level of the role",
             min_value=1,
             max_value=10,
+            required=False,
         ),
         can_warn: bool = nextcord.SlashOption(
             description="Can issue warnings",
+            required=False,
         ),
         can_timeout: bool = nextcord.SlashOption(
             description="Can timeout users",
+            required=False,
         ),
         can_immediate_ban: bool = nextcord.SlashOption(
             description="Can ban without a vote",
+            required=False,
         ),
         can_vote_ban: bool = nextcord.SlashOption(
             description="Can trigger and vote in ban votes",
+            required=False,
         ),
         can_unban: bool = nextcord.SlashOption(
             description="Can unban users",
+            required=False,
         ),
         can_reform: bool = nextcord.SlashOption(
             description="Can reform users",
+            required=False,
         ),
         can_blacklist: bool = nextcord.SlashOption(
             description="Can blacklist users",
+            required=False,
         ),
         can_kick: bool = nextcord.SlashOption(
             description="Can kick users",
+            required=False,
         ),
         declare_raid: bool = nextcord.SlashOption(
             description="Can declare a raid",
+            required=False,
         ),
         add_moderator: bool = nextcord.SlashOption(
             description="Can add moderators",
+            required=False,
         ),
         remove_moderator: bool = nextcord.SlashOption(
             description="Can remove moderators",
+            required=False,
         ),
         is_immune: bool = nextcord.SlashOption(
             description="Is immune to moderation",
+            required=False,
         ),
         edit_offences: bool = nextcord.SlashOption(
             description="Can edit offences",
+            required=False,
         ),
         edit_cases: bool = nextcord.SlashOption(
             description="Can edit cases",
+            required=False,
         ),
     ):
         await interaction.response.defer(ephemeral=True)
