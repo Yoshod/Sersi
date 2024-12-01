@@ -153,8 +153,6 @@ class Case(BaseGuild):
     created_at = Column(DateTime, default=datetime.now(timezone.utc))
     modified_at = Column(DateTime, default=datetime.now(timezone.utc))
 
-    __mapper_args__ = {"polymorphic_on": type}
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.id is None:
@@ -187,11 +185,13 @@ class Case(BaseGuild):
         return f"*{self.case_type}* `{self.offence or 'N/A'}`"
 
 
-class CaseAudit(_Base):
+class CaseAudit(BaseGuild):
     __tablename__ = "cases_audit"
 
     id = Column(String, primary_key=True)
-    case_id = Column(String, ForeignKey("cases.id", ondelete="CASCADE"), nullable=False)
+    case_id = Column(
+        String, ForeignKey("cases.case_id", ondelete="CASCADE"), nullable=False
+    )
 
     field = Column(String, nullable=False)
     old_value = Column(String)
@@ -207,14 +207,14 @@ class CaseAudit(_Base):
 class WarningCase(Case):
     __tablename__ = "warning_cases"
 
-    case_id = Column(String, ForeignKey("cases.id"), primary_key=True)
+    case_id = Column(String, ForeignKey("cases.case_id"), primary_key=True)
     justification = Column(String, nullable=False)
 
 
 class TimeoutCase(Case):
     __tablename__ = "timeout_cases"
 
-    case_id = Column(String, ForeignKey("cases.id"), primary_key=True)
+    case_id = Column(String, ForeignKey("cases.case_id"), primary_key=True)
     justification = Column(String, nullable=False)
     scheduled_end = Column(DateTime, nullable=False)
     actual_end = Column(DateTime)
@@ -223,7 +223,7 @@ class TimeoutCase(Case):
 class BanCase(Case):
     __tablename__ = "ban_cases"
 
-    case_id = Column(String, ForeignKey("cases.id"), primary_key=True)
+    case_id = Column(String, ForeignKey("cases.case_id"), primary_key=True)
     justification = Column(String, nullable=False)
     ban_type = Column(String, nullable=False)
 
@@ -231,7 +231,7 @@ class BanCase(Case):
 class ReformationCase(Case):
     __tablename__ = "reformation_cases"
 
-    case_id = Column(String, ForeignKey("cases.id"), primary_key=True)
+    case_id = Column(String, ForeignKey("cases.case_id"), primary_key=True)
     justification = Column(String, nullable=False)
     cell_id = Column(Integer, nullable=False)
 
@@ -239,7 +239,7 @@ class ReformationCase(Case):
 class BlacklistCase(Case):
     __tablename__ = "blacklist_cases"
 
-    case_id = Column(String, ForeignKey("cases.id"), primary_key=True)
+    case_id = Column(String, ForeignKey("cases.case_id"), primary_key=True)
     justification = Column(String, nullable=False)
     blacklist_type = Column(String, nullable=False)
 
@@ -247,14 +247,14 @@ class BlacklistCase(Case):
 class KickCase(Case):
     __tablename__ = "kick_cases"
 
-    case_id = Column(String, ForeignKey("cases.id"), primary_key=True)
+    case_id = Column(String, ForeignKey("cases.case_id"), primary_key=True)
     justification = Column(String, nullable=False)
 
 
 class RaidCase(Case):
     __tablename__ = "raid_cases"
 
-    case_id = Column(String, ForeignKey("cases.id"), primary_key=True)
+    case_id = Column(String, ForeignKey("cases.case_id"), primary_key=True)
 
 
 class CaseModerators(BaseGuild):
@@ -276,7 +276,7 @@ class CaseModerators(BaseGuild):
 
     __tablename__ = "case_moderators"
 
-    case_id = Column(String, ForeignKey("cases.id"), primary_key=True)
+    case_id = Column(String, ForeignKey("cases.case_id"), primary_key=True)
     relation_to_case = Column(String, primary_key=True)
     moderator_id = Column(Integer, primary_key=True)
 
@@ -294,7 +294,7 @@ class CaseReviews(BaseGuild):
 
     __tablename__ = "case_reviews"
 
-    case_id = Column(String, ForeignKey("cases.id"), primary_key=True)
+    case_id = Column(String, ForeignKey("cases.case_id"), primary_key=True)
     reviewer_id = Column(Integer, primary_key=True)
     outcome = Column(Boolean, nullable=False)
     timestamp = Column(DateTime, default=datetime.now(timezone.utc))
@@ -311,7 +311,7 @@ class CaseGroups(BaseGuild):
 
     __tablename__ = "case_groups"
 
-    case_id = Column(String, ForeignKey("cases.id"), primary_key=True)
+    case_id = Column(String, ForeignKey("cases.case_id"), primary_key=True)
     group_id = Column(Integer, primary_key=True, default=random_id)
 
 
@@ -326,7 +326,7 @@ class Raiders(BaseGuild):
 
     __tablename__ = "raiders"
 
-    case_id = Column(String, ForeignKey("cases.id"), primary_key=True)
+    case_id = Column(String, ForeignKey("cases.case_id"), primary_key=True)
     raider_id = Column(Integer, primary_key=True)
     join_time = Column(DateTime, nullable=False)
 
@@ -346,6 +346,51 @@ class Offences(BaseGuild):
     offence_name = Column(String, primary_key=True)
     offence_severity = Column(Integer, nullable=False, default=1)
     offence_description = Column(String)
+
+
+class ModeratorRoles(BaseGuild):
+    """
+    Represents a ModeratorRoles table in the database.
+
+    Attributes:
+        role_id (int): The role ID. Primary key.
+        authority_level (int): The authority level of the role. Not nullable. Minimum value of 1, maximum value of 10.
+        can_warn (bool): Indicates if the role can warn. Defaults to False.
+        can_timeout (bool): Indicates if the role can timeout. Defaults to False.
+        can_immediate_ban (bool): Indicates if the role can immediate ban. Defaults to False.
+        can_vote_ban (bool): Indicates if the role can vote ban. Defaults to False.
+        can_unban (bool): Indicates if the role can unban. Defaults to False.
+        can_reform (bool): Indicates if the role can reform. Defaults to False.
+        can_blacklist (bool): Indicates if the role can blacklist. Defaults to False.
+        can_kick (bool): Indicates if the role can kick. Defaults to False.
+        declare_raid (bool): Indicates if the role can declare a raid. Defaults to False.
+        add_moderator (bool): Indicates if the role can add moderators. Defaults to False.
+        remove_moderator (bool): Indicates if the role can remove moderators. Defaults to False.
+        is_immune (bool): Indicates if the role is immune to moderation actions. Defaults to False.
+        edit_offences (bool): Indicates if the role can edit offences. Defaults to False.
+        edit_cases (bool): Indicates if the role can edit cases. Defaults to False.
+
+
+    """
+
+    __tablename__ = "moderator_roles"
+
+    role_id = Column(Integer, primary_key=True)
+    authority_level = Column(Integer, nullable=False)
+    can_warn = Column(Boolean, default=False)
+    can_timeout = Column(Boolean, default=False)
+    can_immediate_ban = Column(Boolean, default=False)
+    can_vote_ban = Column(Boolean, default=False)
+    can_unban = Column(Boolean, default=False)
+    can_reform = Column(Boolean, default=False)
+    can_blacklist = Column(Boolean, default=False)
+    can_kick = Column(Boolean, default=False)
+    declare_raid = Column(Boolean, default=False)
+    add_moderator = Column(Boolean, default=False)
+    remove_moderator = Column(Boolean, default=False)
+    is_immune = Column(Boolean, default=False)
+    edit_offences = Column(Boolean, default=False)
+    edit_cases = Column(Boolean, default=False)
 
 
 ### Guild Database Tables ###
