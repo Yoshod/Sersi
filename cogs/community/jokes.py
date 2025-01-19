@@ -322,7 +322,7 @@ class Jokes(commands.Cog):
 
                 case r"(mrow ?)+":
                     await message.channel.send(
-                        f"Mrow? You're feeling particularly wild right now, do you? {message.author.mention}"
+                        f"Mrow? You're feeling particularly wild right now, aren't you? {message.author.mention}"
                     )
 
                 case r"(woo+f ?)+":
