@@ -34,12 +34,11 @@ def encode_button_id(label: str, *args, **kwargs) -> str:
 
 
 def decode_button_id(custom_id: str) -> tuple[str, list[str], dict[str, str]]:
-    split = custom_id.split(":")
-    label = split[0]
+    label, *split = custom_id.split(":")
     args = []
     kwargs = {}
 
-    for arg in split[1:]:
+    for arg in split:
         if "=" not in arg:
             args.append(arg)
             continue
