@@ -2,11 +2,13 @@ import asyncio
 import logging
 import os
 import sys
+
 import nextcord
-from nextcord.ext import commands
+
+from bot import SersiBot
 from utils.cogs import load_all_cogs
 
-bot = commands.Bot()
+bot = SersiBot()
 
 root_folder = os.path.dirname(os.path.realpath(__file__))
 
@@ -46,6 +48,7 @@ error_logger.addHandler(error_file_handler)
 
 @bot.event
 async def on_ready():
+    bot.error_channel = bot.get_channel(987397664280817754)
     print(f"We have logged in as {bot.user}")
 
 
