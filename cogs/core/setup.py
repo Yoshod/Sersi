@@ -16,9 +16,8 @@ class ModuleSelection(nextcord.ui.Select):
         super().__init__(
             placeholder="Select the modules you would like to enable.",
             options=[
-                nextcord.SelectOption(label="Initial Testing", value="testing"),
                 nextcord.SelectOption(label="Moderation", value="moderation"),
-                nextcord.SelectOption(label="Miscellaneous", value="misc"),
+                nextcord.SelectOption(label="Logging", value="logging"),
             ],
         )
 
@@ -99,7 +98,7 @@ class FinishSetup(nextcord.ui.Button):
             ephemeral=True,
         )
 
-        await interaction.message.edit(view=None)
+        await interaction.edit_original_message(view=None)
 
 
 class Setup(commands.Cog):
