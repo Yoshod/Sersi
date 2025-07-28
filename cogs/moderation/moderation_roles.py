@@ -11,7 +11,7 @@ class Moderation_roles(commands.Cog):
     @nextcord.slash_command(
         name="moderation_roles",
         description="Moderation roles",
-        guild_ids=[977377117895536640],
+        guild_ids=[977377117895536640, 1166770860787515422, 1383162647171567626],
     )
     async def moderation_roles(self, interaction: nextcord.Interaction):
         pass

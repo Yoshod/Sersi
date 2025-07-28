@@ -83,7 +83,7 @@ class Setup(commands.Cog):
     @nextcord.slash_command(
         name="setup",
         description="Set up the bot for your server.",
-        guild_ids=[977377117895536640],
+        guild_ids=[977377117895536640, 1166770860787515422, 1383162647171567626],
     )
     @application_checks.has_guild_permissions(administrator=True)
     async def setup(self, interaction: nextcord.Interaction):

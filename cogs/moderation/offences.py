@@ -10,7 +10,9 @@ class Offences(commands.Cog):
         self.bot = bot
 
     @nextcord.slash_command(
-        name="offences", description="Manage offences", guild_ids=[977377117895536640]
+        name="offences",
+        description="Manage offences",
+        guild_ids=[977377117895536640, 1166770860787515422, 1383162647171567626],
     )
     async def offences(self, interaction: nextcord.Interaction):
         pass
