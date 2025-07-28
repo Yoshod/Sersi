@@ -406,6 +406,34 @@ class ModeratorRoles(BaseGuild):
     edit_cases = Column(Boolean, default=False)
 
 
+class LoggingChannels(BaseGuild):
+    """
+    Represents a LoggingChannels table in the database.
+
+    Attributes:
+        channel_id (int): The channel ID. Primary key.
+        log_type (str): The type of log. Not nullable. Accepts:
+            - global
+            - public
+            - tamper
+            - moderation
+            - guild
+            - channel
+            - role
+            - join_leave
+            - voice
+            - user
+            - deleted_message
+            - deleted_image
+            - edited_message
+    """
+
+    __tablename__ = "logging_channels"
+
+    channel_id = Column(Integer, primary_key=True)
+    log_type = Column(String, primary_key=True, nullable=False)
+
+
 ### Guild Database Tables ###
 def create_db_tables():
     BaseGlobal.metadata.create_all(global_engine)
