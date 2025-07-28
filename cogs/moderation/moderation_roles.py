@@ -3,6 +3,7 @@ from nextcord.ext import commands, application_checks
 from utils.database import guild_db_manager, ModeratorRoles
 from utils.sersi_embed import SersiEmbed
 from utils.language import lang_manager
+from utils.modules import check_module_enabled
 
 
 class Moderation_roles(commands.Cog):
@@ -78,6 +79,21 @@ class Moderation_roles(commands.Cog):
         ),
     ):
         await interaction.response.defer(ephemeral=True)
+
+        if not check_module_enabled(interaction.guild.id, "moderation"):
+            return await interaction.followup.send(
+                embed=SersiEmbed(
+                    title=lang_manager.get_string(
+                        interaction.guild.id, "module_disabled.title"
+                    ),
+                    description=lang_manager.get_string(
+                        interaction.guild.id,
+                        "module_disabled.description",
+                        module_name="Moderation",
+                    ),
+                ),
+                ephemeral=True,
+            )
 
         with guild_db_manager.get_session(interaction.guild.id) as session:
             existing_role: ModeratorRoles = (

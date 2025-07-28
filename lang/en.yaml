@@ -5,6 +5,10 @@
 "yes": "Yes"
 "no": "No"
 
+module_disabled:
+  title: "Module Disabled"
+  description: "The {module_name} module is currently disabled. Please enable it to use this command."
+
 # --- Core Cogs ---
 
 # --- Moderation Cogs ---
