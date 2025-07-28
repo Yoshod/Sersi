@@ -35,9 +35,19 @@ moderation_roles:
       edit_cases: "Peut modifier les cas"
   
   edit:
-    no_changes: "Aucun changement n'a été apporté au rôle."
-    success: "{role_mention} a été modifié."
-  remove:
-    success: "{role_mention} a été retiré en tant que rôle de modération."
-  errors:
-    not_found: "{role_mention} n'est pas un rôle de modération. Veuillez utiliser la commande d'ajout pour l'ajouter."
+    no_changes:
+      title: "Aucun changement effectué"
+      description: "Aucun changement n'a été apporté au rôle."
+    success:
+      title: "Rôle modifié"
+      description: "{role_mention} a été modifié."
+    not_found:
+      title: "Rôle introuvable"
+      description: "{role_mention} n'est pas un rôle de modération. Veuillez utiliser la commande add."
+    remove:
+    success:
+      title: "Rôle retiré"
+      description: "{role_mention} a été retiré en tant que rôle de modération."
+    not_found:
+      title: "Rôle introuvable"
+      description: "{role_mention} n'est pas un rôle de modération."
