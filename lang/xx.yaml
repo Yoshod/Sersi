@@ -36,9 +36,19 @@ moderation_roles:
       edit_cases: "Can Edit Cases"
 
   edit:
-    no_changes: "No changes were made to the role."
-    success: "{role_mention} 'as been edited."
+    no_changes:
+      title: "No changes made"
+      description: "No changes were made to the role."
+    success:
+      title: "Role edited"
+      description: "{role_mention} has been edited."
+    not_found:
+      title: "Role not found"
+      description: "{role_mention} is not a moderation role. Please use the add command."
   remove:
-    success: "{role_mention} 'as been removed as a moderation role."
-  errors:
-    not_found: "{role_mention} be not a moderation role. Please use the add command to add it."
+    success:
+      title: "Role removed"
+      description: "{role_mention} has been removed as a moderation role."
+    not_found:
+      title: "Role not found"
+      description: "{role_mention} is not a moderation role."
