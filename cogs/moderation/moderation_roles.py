@@ -2,6 +2,7 @@ import nextcord
 from nextcord.ext import commands, application_checks
 from utils.database import guild_db_manager, ModeratorRoles
 from utils.sersi_embed import SersiEmbed
+from utils.language import lang_manager
 
 
 class Moderation_roles(commands.Cog):
@@ -86,8 +87,15 @@ class Moderation_roles(commands.Cog):
             if existing_role:
                 return await interaction.followup.send(
                     embed=SersiEmbed(
-                        title="Role already exists",
-                        description=f"{role.mention} is already a moderation role. Please use the edit command to modify its permissions or the remove command to remove it.",
+                        title=lang_manager.get_string(
+                            interaction.guild.id,
+                            "moderation_roles.add.already_exists_title",
+                        ),
+                        description=lang_manager.get_string(
+                            interaction.guild.id,
+                            "moderation_roles.add.already_exists_description",
+                            role_mention=role.mention,
+                        ),
                     ),
                     ephemeral=True,
                 )
@@ -121,64 +129,167 @@ class Moderation_roles(commands.Cog):
             session.commit()
 
         if same_auth_level:
-            embed_text = (
-                f"{role.mention} has been added as a moderation role with authority level {authority_level}. There is already a role with the same authority level, as such this role will not be able to issue moderation commands targeting users with the same authority level.",
+            embed_text = lang_manager.get_string(
+                interaction.guild.id,
+                "moderation_roles.add.description_warning",
+                role_mention=role.mention,
+                authority_level=authority_level,
             )
         else:
-            embed_text = f"{role.mention} has been added as a moderation role."
+            embed_text = lang_manager.get_string(
+                interaction.guild.id,
+                "moderation_roles.add.description",
+                role_mention=role.mention,
+            )
 
         embed = SersiEmbed(
-            title="Role added",
+            title=lang_manager.get_string(
+                interaction.guild.id, "moderation_roles.add.title"
+            ),
             description=embed_text,
         )
 
         embed.add_field(
-            name="Permissions",
-            value="The following permissions have been set for this role:",
+            name=lang_manager.get_string(
+                interaction.guild.id, "moderation_roles.add.fields.permissions.name"
+            ),
+            value=lang_manager.get_string(
+                interaction.guild.id, "moderation_roles.add.fields.permissions.value"
+            ),
             inline=False,
         )
-        embed.add_field(name="Authority Level", value=str(authority_level), inline=True)
-        embed.add_field(name="Can Warn", value="Yes" if can_warn else "No", inline=True)
         embed.add_field(
-            name="Can Timeout", value="Yes" if can_timeout else "No", inline=True
-        )
-        embed.add_field(
-            name="Can Immediate Ban",
-            value="Yes" if can_immediate_ban else "No",
+            name=lang_manager.get_string(
+                interaction.guild.id, "moderation_roles.add.fields.authority_level"
+            ),
+            value=str(authority_level),
             inline=True,
         )
         embed.add_field(
-            name="Can Vote Ban", value="Yes" if can_vote_ban else "No", inline=True
-        )
-        embed.add_field(
-            name="Can Unban", value="Yes" if can_unban else "No", inline=True
-        )
-        embed.add_field(
-            name="Can Reform", value="Yes" if can_reform else "No", inline=True
-        )
-        embed.add_field(
-            name="Can Blacklist", value="Yes" if can_blacklist else "No", inline=True
-        )
-        embed.add_field(name="Can Kick", value="Yes" if can_kick else "No", inline=True)
-        embed.add_field(
-            name="Declare Raid", value="Yes" if declare_raid else "No", inline=True
-        )
-        embed.add_field(
-            name="Add Moderator", value="Yes" if add_moderator else "No", inline=True
-        )
-        embed.add_field(
-            name="Remove Moderator",
-            value="Yes" if remove_moderator else "No",
+            name=lang_manager.get_string(
+                interaction.guild.id, "moderation_roles.add.fields.warn"
+            ),
+            value=lang_manager.get_string(
+                interaction.guild.id, "yes" if can_warn else "no"
+            ),
             inline=True,
         )
         embed.add_field(
-            name="Is Immune", value="Yes" if is_immune else "No", inline=True
+            name=lang_manager.get_string(
+                interaction.guild.id, "moderation_roles.add.fields.timeout"
+            ),
+            value=lang_manager.get_string(
+                interaction.guild.id, "yes" if can_timeout else "no"
+            ),
+            inline=True,
         )
         embed.add_field(
-            name="Edit Offences", value="Yes" if edit_offences else "No", inline=True
+            name=lang_manager.get_string(
+                interaction.guild.id, "moderation_roles.add.fields.immediate_ban"
+            ),
+            value=lang_manager.get_string(
+                interaction.guild.id, "yes" if can_immediate_ban else "no"
+            ),
+            inline=True,
         )
         embed.add_field(
-            name="Edit Cases", value="Yes" if edit_cases else "No", inline=True
+            name=lang_manager.get_string(
+                interaction.guild.id, "moderation_roles.add.fields.vote_ban"
+            ),
+            value=lang_manager.get_string(
+                interaction.guild.id, "yes" if can_vote_ban else "no"
+            ),
+            inline=True,
+        )
+        embed.add_field(
+            name=lang_manager.get_string(
+                interaction.guild.id, "moderation_roles.add.fields.unban"
+            ),
+            value=lang_manager.get_string(
+                interaction.guild.id, "yes" if can_unban else "no"
+            ),
+            inline=True,
+        )
+        embed.add_field(
+            name=lang_manager.get_string(
+                interaction.guild.id, "moderation_roles.add.fields.reform"
+            ),
+            value=lang_manager.get_string(
+                interaction.guild.id, "yes" if can_reform else "no"
+            ),
+            inline=True,
+        )
+        embed.add_field(
+            name=lang_manager.get_string(
+                interaction.guild.id, "moderation_roles.add.fields.blacklist"
+            ),
+            value=lang_manager.get_string(
+                interaction.guild.id, "yes" if can_blacklist else "no"
+            ),
+            inline=True,
+        )
+        embed.add_field(
+            name=lang_manager.get_string(
+                interaction.guild.id, "moderation_roles.add.fields.kick"
+            ),
+            value=lang_manager.get_string(
+                interaction.guild.id, "yes" if can_kick else "no"
+            ),
+            inline=True,
+        )
+        embed.add_field(
+            name=lang_manager.get_string(
+                interaction.guild.id, "moderation_roles.add.fields.declare_raid"
+            ),
+            value=lang_manager.get_string(
+                interaction.guild.id, "yes" if declare_raid else "no"
+            ),
+            inline=True,
+        )
+        embed.add_field(
+            name=lang_manager.get_string(
+                interaction.guild.id, "moderation_roles.add.fields.add_moderator"
+            ),
+            value=lang_manager.get_string(
+                interaction.guild.id, "yes" if add_moderator else "no"
+            ),
+            inline=True,
+        )
+        embed.add_field(
+            name=lang_manager.get_string(
+                interaction.guild.id, "moderation_roles.add.fields.remove_moderator"
+            ),
+            value=lang_manager.get_string(
+                interaction.guild.id, "yes" if remove_moderator else "no"
+            ),
+            inline=True,
+        )
+        embed.add_field(
+            name=lang_manager.get_string(
+                interaction.guild.id, "moderation_roles.add.fields.immune"
+            ),
+            value=lang_manager.get_string(
+                interaction.guild.id, "yes" if is_immune else "no"
+            ),
+            inline=True,
+        )
+        embed.add_field(
+            name=lang_manager.get_string(
+                interaction.guild.id, "moderation_roles.add.fields.edit_offences"
+            ),
+            value=lang_manager.get_string(
+                interaction.guild.id, "yes" if edit_offences else "no"
+            ),
+            inline=True,
+        )
+        embed.add_field(
+            name=lang_manager.get_string(
+                interaction.guild.id, "moderation_roles.add.fields.edit_cases"
+            ),
+            value=lang_manager.get_string(
+                interaction.guild.id, "yes" if edit_cases else "no"
+            ),
+            inline=True,
         )
 
         await interaction.followup.send(
@@ -270,8 +381,15 @@ class Moderation_roles(commands.Cog):
             if not existing_role:
                 return await interaction.followup.send(
                     embed=SersiEmbed(
-                        title="Role not found",
-                        description=f"{role.mention} is not a moderation role. Please use the add command to add it.",
+                        title=lang_manager.get_string(
+                            interaction.guild.id,
+                            "moderation_roles.edit.not_found.title",
+                        ),
+                        description=lang_manager.get_string(
+                            interaction.guild.id,
+                            "moderation_roles.edit.not_found.description",
+                            role_mention=role.mention,
+                        ),
                     ),
                     ephemeral=True,
                 )
@@ -341,8 +459,14 @@ class Moderation_roles(commands.Cog):
             if not changes_made:
                 return await interaction.followup.send(
                     embed=SersiEmbed(
-                        title="No changes made",
-                        description="No changes were made to the role.",
+                        title=lang_manager.get_string(
+                            interaction.guild.id,
+                            "moderation_roles.edit.no_changes.title",
+                        ),
+                        description=lang_manager.get_string(
+                            interaction.guild.id,
+                            "moderation_roles.edit.no_changes.description",
+                        ),
                     ),
                     ephemeral=True,
                 )
@@ -351,8 +475,14 @@ class Moderation_roles(commands.Cog):
 
         await interaction.followup.send(
             embed=SersiEmbed(
-                title="Role edited",
-                description=f"{role.mention} has been edited.",
+                title=lang_manager.get_string(
+                    interaction.guild.id, "moderation_roles.edit.success.title"
+                ),
+                description=lang_manager.get_string(
+                    interaction.guild.id,
+                    "moderation_roles.edit.success.description",
+                    role_mention=role.mention,
+                ),
             ),
             ephemeral=True,
         )
@@ -379,8 +509,15 @@ class Moderation_roles(commands.Cog):
             if not existing_role:
                 return await interaction.followup.send(
                     embed=SersiEmbed(
-                        title="Role not found",
-                        description=f"{role.mention} is not a moderation role.",
+                        title=lang_manager.get_string(
+                            interaction.guild.id,
+                            "moderation_roles.remove.not_found.title",
+                        ),
+                        description=lang_manager.get_string(
+                            interaction.guild.id,
+                            "moderation_roles.remove.not_found.description",
+                            role_mention=role.mention,
+                        ),
                     ),
                     ephemeral=True,
                 )
@@ -390,8 +527,14 @@ class Moderation_roles(commands.Cog):
 
         await interaction.followup.send(
             embed=SersiEmbed(
-                title="Role removed",
-                description=f"{role.mention} has been removed as a moderation role.",
+                title=lang_manager.get_string(
+                    interaction.guild.id, "moderation_roles.remove.success.title"
+                ),
+                description=lang_manager.get_string(
+                    interaction.guild.id,
+                    "moderation_roles.remove.success.description",
+                    role_mention=role.mention,
+                ),
             ),
             ephemeral=True,
         )
