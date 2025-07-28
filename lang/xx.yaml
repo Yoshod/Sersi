@@ -1,0 +1,44 @@
+# Sersi Pirate Speak Language File
+# Use {variable_name} for variables that will be replaced in the code.
+
+# --- Generic ---
+"yes": "Yarr"
+"no": "Nay"
+
+# --- Core Cogs ---
+
+# --- Moderation Cogs ---
+moderation_roles:
+  add:
+    title: "Role added"
+    description: "{role_mention} 'as been added as a moderation role."
+    description_warning: "{role_mention} 'as been added as a moderation role with authority level {authority_level}. There be already a role with the same authority level, so this role won't be able to issue moderation commands targetin' users with the same authority level."
+    already_exists_title: "Role already exists"
+    already_exists_description: "{role_mention} be already a moderation role. Please use the edit command to modify its permissions or the remove command to remove it."
+    fields:
+      permissions:
+        name: "Permissions"
+        value: "The followin' permissions 'ave been set for this role:"
+      authority_level: "Authority Level"
+      warn: "Can Warn"
+      timeout: "Can Timeout"
+      immediate_ban: "Can Immediate Ban"
+      vote_ban: "Can Vote Ban"
+      unban: "Can Unban"
+      reform: "Can Reform"
+      blacklist: "Can Blacklist"
+      kick: "Can Kick"
+      declare_raid: "Declare Raid"
+      add_moderator: "Add Moderator"
+      remove_moderator: "Remove Moderator"
+      immune: "Is Immune"
+      edit_offences: "Can Edit Offences"
+      edit_cases: "Can Edit Cases"
+
+  edit:
+    no_changes: "No changes were made to the role."
+    success: "{role_mention} 'as been edited."
+  remove:
+    success: "{role_mention} 'as been removed as a moderation role."
+  errors:
+    not_found: "{role_mention} be not a moderation role. Please use the add command to add it."

@@ -129,6 +129,19 @@ class Modules(BaseGuild):
     enabled = Column(Boolean, default=False)
 
 
+class Language(BaseGuild):
+    """
+    Represents a Language table in the database.
+
+    Attributes:
+        language (str): The language code. Defaults to 'en'. Primary key.
+    """
+
+    __tablename__ = "language"
+
+    language = Column(String, default="en", primary_key=True)
+
+
 class Case(BaseGuild):
     """
     Represents a Case table in the database.

@@ -1,0 +1,43 @@
+# Sersi French Language File
+# Use {variable_name} for variables that will be replaced in the code.
+
+# --- Generic ---
+"yes": "Oui"
+"no": "Non"
+
+# --- Core Cogs ---
+# --- Moderation Cogs ---
+moderation_roles:
+  add:
+    title: "Rôle ajouté"
+    description: "{role_mention} a été ajouté en tant que rôle de modération."
+    description_warning: "{role_mention} a été ajouté en tant que rôle de modération avec un niveau d'autorité {authority_level}. Il y a déjà un rôle avec le même niveau d'autorité, donc ce rôle ne pourra pas émettre de commandes de modération ciblant des utilisateurs avec le même niveau d'autorité."
+    already_exists_title: "Le rôle existe déjà"
+    already_exists_description: "{role_mention} est déjà un rôle de modération. Veuillez utiliser la commande d'édition pour modifier ses permissions ou la commande de suppression pour le retirer."
+    fields:
+      permissions:
+        name: "Permissions"
+        value: "Les permissions suivantes ont été définies pour ce rôle:"
+      authority_level: "Niveau d'autorité"
+      warn: "Peut avertir"
+      timeout: "Peut mettre en pause"
+      immediate_ban: "Peut bannir immédiatement"
+      vote_ban: "Peut voter pour bannir"
+      unban: "Peut débannir"
+      reform: "Peut réformer"
+      blacklist: "Peut mettre sur liste noire"
+      kick: "Peut expulser"
+      declare_raid: "Peut déclarer un raid"
+      add_moderator: "Peut ajouter un modérateur"
+      remove_moderator: "Peut retirer un modérateur"
+      immune: "Est immunisé"
+      edit_offences: "Peut modifier les infractions"
+      edit_cases: "Peut modifier les cas"
+  
+  edit:
+    no_changes: "Aucun changement n'a été apporté au rôle."
+    success: "{role_mention} a été modifié."
+  remove:
+    success: "{role_mention} a été retiré en tant que rôle de modération."
+  errors:
+    not_found: "{role_mention} n'est pas un rôle de modération. Veuillez utiliser la commande d'ajout pour l'ajouter."

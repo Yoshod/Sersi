@@ -5,6 +5,7 @@ from utils.database import (
     guild_db_manager,
     Guilds,
     Modules,
+    Language,
     GuildDatabaseManager,
 )
 from utils.sersi_embed import SersiEmbed
@@ -47,6 +48,31 @@ class ModuleSelection(nextcord.ui.Select):
                 "Modules have been updated for this server.",
                 ephemeral=True,
             )
+
+
+class LanguageSelection(nextcord.ui.Select):
+    def __init__(self):
+        super().__init__(
+            placeholder="Select the language for the bot.",
+            options=[
+                nextcord.SelectOption(label="English", value="en"),
+                nextcord.SelectOption(label="Français", value="fr"),
+                nextcord.SelectOption(label="Pirate Speak", value="xx"),
+            ],
+        )
+
+    async def callback(self, interaction: nextcord.Interaction):
+        selected_language = self.values[0]
+        with guild_db_manager.get_session(interaction.guild.id) as session:
+            session.query(Language).delete()
+            new_language = Language(language=selected_language)
+            session.add(new_language)
+            session.commit()
+
+        await interaction.response.send_message(
+            f"Language has been set to {selected_language}.",
+            ephemeral=True,
+        )
 
 
 class FinishSetup(nextcord.ui.Button):
@@ -111,11 +137,12 @@ class Setup(commands.Cog):
 
         embed = SersiEmbed(
             title="Bot Setup (Module Configuration)",
-            description="Welcome to the Sersi setup wizard! Firstly, select the modules from the list below that you would like to be **enabled** for your community. You can always change this later if you change your mind.",
+            description="Welcome to the Sersi setup wizard! Firstly, select the modules from the list below that you would like to be **enabled** for your community. Then pick which language you would prefer to use. You can always change these later if you change your mind.",
         )
 
         view = nextcord.ui.View()
         view.add_item(ModuleSelection())
+        view.add_item(LanguageSelection())
         view.add_item(FinishSetup())
 
         await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
