@@ -273,14 +273,9 @@ class LoggingSetup(commands.Cog):
         )
 
         await create_log(
-            guild=interaction.guild,
-            log_category="global",
-            title=lang_manager.get_string(
-                interaction.guild.id, "logging.setup.express.log_title"
-            ),
-            description=lang_manager.get_string(
-                interaction.guild.id, "logging.setup.express.log_description"
-            ),
+            interaction.guild,
+            "logging_setup_complete",
+            "global",
         )
         return
 
