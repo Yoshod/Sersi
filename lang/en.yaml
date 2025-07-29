@@ -81,6 +81,3 @@ logging:
     complete:
       title: "Logging Setup Complete"
       description: "Sersi has successfully set up the logging channels in this guild."
-
-
-      
