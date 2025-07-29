@@ -5,19 +5,24 @@
 "yes": "Oui"
 "no": "Non"
 
+module_disabled:
+  title: "Module désactivé"
+  description: "Le module {module_name} est actuellement désactivé. Veuillez l'activer pour utiliser cette commande."
+
 # --- Core Cogs ---
+
 # --- Moderation Cogs ---
 moderation_roles:
   add:
     title: "Rôle ajouté"
     description: "{role_mention} a été ajouté en tant que rôle de modération."
-    description_warning: "{role_mention} a été ajouté en tant que rôle de modération avec un niveau d'autorité {authority_level}. Il y a déjà un rôle avec le même niveau d'autorité, donc ce rôle ne pourra pas émettre de commandes de modération ciblant des utilisateurs avec le même niveau d'autorité."
-    already_exists_title: "Le rôle existe déjà"
+    description_warning: "{role_mention} a été ajouté en tant que rôle de modération avec un niveau d'autorité {authority_level}. Il existe déjà un rôle avec le même niveau d'autorité, par conséquent ce rôle ne pourra pas émettre de commandes de modération ciblant des utilisateurs avec le même niveau d'autorité."
+    already_exists_title: "Rôle déjà existant"
     already_exists_description: "{role_mention} est déjà un rôle de modération. Veuillez utiliser la commande d'édition pour modifier ses permissions ou la commande de suppression pour le retirer."
     fields:
       permissions:
         name: "Permissions"
-        value: "Les permissions suivantes ont été définies pour ce rôle:"
+        value: "Les permissions suivantes ont été définies pour ce rôle :"
       authority_level: "Niveau d'autorité"
       warn: "Peut avertir"
       timeout: "Peut mettre en pause"
@@ -27,13 +32,13 @@ moderation_roles:
       reform: "Peut réformer"
       blacklist: "Peut mettre sur liste noire"
       kick: "Peut expulser"
-      declare_raid: "Peut déclarer un raid"
-      add_moderator: "Peut ajouter un modérateur"
-      remove_moderator: "Peut retirer un modérateur"
+      declare_raid: "Déclarer un raid"
+      add_moderator: "Ajouter un modérateur"
+      remove_moderator: "Retirer un modérateur"
       immune: "Est immunisé"
       edit_offences: "Peut modifier les infractions"
       edit_cases: "Peut modifier les cas"
-  
+
   edit:
     no_changes:
       title: "Aucun changement effectué"
@@ -43,11 +48,36 @@ moderation_roles:
       description: "{role_mention} a été modifié."
     not_found:
       title: "Rôle introuvable"
-      description: "{role_mention} n'est pas un rôle de modération. Veuillez utiliser la commande add."
-    remove:
+      description: "{role_mention} n'est pas un rôle de modération. Veuillez utiliser la commande d'ajout."
+  remove:
     success:
       title: "Rôle retiré"
       description: "{role_mention} a été retiré en tant que rôle de modération."
     not_found:
       title: "Rôle introuvable"
       description: "{role_mention} n'est pas un rôle de modération."
+
+# --- Logging Cogs/Utils ---
+logging:
+  setup:
+    express:
+      forbidden: "Sersi n'a pas la permission de créer des canaux ou des catégories dans ce serveur. Veuillez vérifier les permissions et réessayer."
+      http_exception: "Une erreur HTTP s'est produite lors de la tentative de création de la catégorie de journalisation. Veuillez réessayer plus tard."
+      global_logs: "sersi-logs"
+      public_logs: "public-modlogs"
+      tamper_logs: "tamper-logs"
+      mod_logs: "mod-logs"
+      guild_logs: "guild-logs"
+      channel_logs: "channel-logs"
+      role_logs: "role-logs"
+      join_leave_logs: "join-leave-logs"
+      voice_logs: "voice-logs"
+      user_logs: "user-logs"
+      deleted_message_logs: "deleted-messages"
+      deleted_image_logs: "deleted-images"
+      edited_message_logs: "edited-messages"
+      success: "Configuration de la journalisation terminée"
+    
+    complete:
+      title: "Configuration de la journalisation terminée"
+      description: "Sersi a configuré avec succès les canaux de journalisation dans ce serveur."
