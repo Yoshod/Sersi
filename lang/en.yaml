@@ -56,3 +56,29 @@ moderation_roles:
     not_found:
       title: "Role not found"
       description: "{role_mention} is not a moderation role."
+
+# --- Logging Cogs ---
+logging:
+  setup:
+    express:
+      forbidden: "Sersi does not have permission to create channels or categories in this guild. Please check the permissions and try again."
+      http_exception: "An HTTP error occurred while trying to create the logging category. Please try again later."
+      global_logs: "sersi-logs"
+      public_logs: "public-modlogs"
+      tamper_logs: "tamper-logs"
+      mod_logs: "mod-logs"
+      guild_logs: "guild-logs"
+      channel_logs: "channel-logs"
+      role_logs: "role-logs"
+      join_leave_logs: "join-leave-logs"
+      voice_logs: "voice-logs"
+      user_logs: "user-logs"
+      deleted_message_logs: "deleted-messages"
+      deleted_image_logs: "deleted-images"
+      edited_message_logs: "edited-messages"
+      success: "Sersi Express Logging Setup completed."
+      log_title: "Sersi Express Logging Setup"
+      log_description: "Sersi has set up the logging channels in this guild."
+
+
+      

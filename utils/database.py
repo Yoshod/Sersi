@@ -411,8 +411,7 @@ class LoggingChannels(BaseGuild):
     Represents a LoggingChannels table in the database.
 
     Attributes:
-        channel_id (int): The channel ID. Primary key.
-        log_type (str): The type of log. Not nullable. Accepts:
+        log_type (str): The type of log. Primary Key. Accepts:
             - global
             - public
             - tamper
@@ -426,12 +425,13 @@ class LoggingChannels(BaseGuild):
             - deleted_message
             - deleted_image
             - edited_message
+        channel_id (int): The channel ID. Not nullable.
     """
 
     __tablename__ = "logging_channels"
 
-    channel_id = Column(Integer, primary_key=True)
     log_type = Column(String, primary_key=True, nullable=False)
+    channel_id = Column(Integer, nullable=False)
 
 
 ### Guild Database Tables ###
