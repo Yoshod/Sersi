@@ -10,6 +10,10 @@ module_disabled:
   description: "The {module_name} module is currently disabled. Please enable it to use this command."
 
 # --- Core Cogs ---
+setup:
+  finish:
+    success: "Setup has been completed. You can edit the modules and language at any time using the configure command."
+
 
 # --- Moderation Cogs ---
 moderation_roles:
