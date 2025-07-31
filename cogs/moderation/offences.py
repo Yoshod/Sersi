@@ -1,6 +1,6 @@
 import nextcord
 from nextcord.ext import commands
-from utils.database import guild_db_manager, Offences as OffencesDB
+from utils.database import SessionLocal, Offences as OffencesDB
 from utils.perms import get_permissions
 from utils.sersi_embed import SersiEmbed
 
@@ -47,8 +47,9 @@ class Offences(commands.Cog):
         await interaction.response.defer(ephemeral=True)
 
         try:
-            with guild_db_manager.get_session() as session:
+            with SessionLocal() as session:
                 new_offence = OffencesDB(
+                    guild_id=interaction.guild.id,
                     offence_name=offence_name,
                     offence_severity=offence_severity,
                     offence_description=offence_description,

@@ -1,13 +1,14 @@
 import nextcord
 from nextcord.ext import commands, application_checks
 from utils.database import (
-    guild_db_manager,
+    SessionLocal,
     LoggingChannels,
 )
 from utils.language import lang_manager
 from utils.modules import check_module_enabled
 from utils.logging import create_log
 from utils.base import encode_button_id, decode_button_id
+from utils.sersi_embed import SersiEmbed
 
 
 class TamperLogsButton(nextcord.ui.Button):
@@ -261,6 +262,22 @@ class LoggingSetup(commands.Cog):
                 ephemeral=True,
             )
 
+        with SessionLocal() as session:
+            existing_channels = (
+                session.query(LoggingChannels)
+                .filter_by(guild_id=interaction.guild.id)
+                .all()
+            )
+
+            if existing_channels:
+                return await interaction.followup.send(
+                    lang_manager.get_string(
+                        interaction.guild.id,
+                        "logging.setup.express.already_setup",
+                    ),
+                    ephemeral=True,
+                )
+
         try:
             logging_category = await interaction.guild.create_category(
                 name="Logging",
@@ -405,81 +422,94 @@ class LoggingSetup(commands.Cog):
                 ephemeral=True,
             )
 
-        with guild_db_manager.get_session(interaction.guild.id) as session:
+        with SessionLocal() as session:
             session.add(
                 LoggingChannels(
+                    guild_id=interaction.guild.id,
                     log_type="global",
                     channel_id=global_log.id,
                 )
             )
             session.add(
                 LoggingChannels(
+                    guild_id=interaction.guild.id,
                     log_type="public",
                     channel_id=public_log.id,
                 )
             )
             session.add(
                 LoggingChannels(
+                    guild_id=interaction.guild.id,
                     log_type="tamper",
                     channel_id=tamper_log.id,
                 )
             )
             session.add(
                 LoggingChannels(
+                    guild_id=interaction.guild.id,
                     log_type="moderation",
                     channel_id=mod_logs.id,
                 )
             )
             session.add(
                 LoggingChannels(
+                    guild_id=interaction.guild.id,
                     log_type="guild",
                     channel_id=guild_logs.id,
                 )
             )
             session.add(
                 LoggingChannels(
+                    guild_id=interaction.guild.id,
                     log_type="channel",
                     channel_id=channel_logs.id,
                 )
             )
             session.add(
                 LoggingChannels(
+                    guild_id=interaction.guild.id,
                     log_type="role",
                     channel_id=role_logs.id,
                 )
             )
             session.add(
                 LoggingChannels(
+                    guild_id=interaction.guild.id,
                     log_type="join_leave",
                     channel_id=join_leave_logs.id,
                 )
             )
             session.add(
                 LoggingChannels(
+                    guild_id=interaction.guild.id,
                     log_type="voice",
                     channel_id=voice_logs.id,
                 )
             )
             session.add(
                 LoggingChannels(
+                    guild_id=interaction.guild.id,
                     log_type="user",
                     channel_id=user_logs.id,
                 )
             )
             session.add(
                 LoggingChannels(
+                    guild_id=interaction.guild.id,
                     log_type="deleted_message",
                     channel_id=deleted_message_logs.id,
                 )
             )
             session.add(
                 LoggingChannels(
+                    guild_id=interaction.guild.id,
                     log_type="deleted_image",
                     channel_id=deleted_image_logs.id,
                 )
             )
             session.add(
                 LoggingChannels(
+                    guild_id=interaction.guild.id,
                     log_type="edited_message",
                     channel_id=edited_message_logs.id,
                 )
@@ -519,7 +549,15 @@ class LoggingSetup(commands.Cog):
                 ephemeral=True,
             )
 
-        view = nextcord.ui.View(timeout=None)
+        view = LoggingSetupView(interaction.guild)
+        embed = SersiEmbed(
+            title=lang_manager.get_string(
+                interaction.guild.id, "logging.setup.custom.title"
+            ),
+            description=lang_manager.get_string(
+                interaction.guild.id, "logging.setup.custom.description"
+            ),
+        )
 
 
 def setup(bot: commands.Bot):

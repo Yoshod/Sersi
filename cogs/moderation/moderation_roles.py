@@ -1,6 +1,6 @@
 import nextcord
 from nextcord.ext import commands, application_checks
-from utils.database import guild_db_manager, ModeratorRoles
+from utils.database import SessionLocal, ModeratorRoles
 from utils.sersi_embed import SersiEmbed
 from utils.language import lang_manager
 from utils.modules import check_module_enabled
@@ -95,9 +95,11 @@ class Moderation_roles(commands.Cog):
                 ephemeral=True,
             )
 
-        with guild_db_manager.get_session(interaction.guild.id) as session:
+        with SessionLocal() as session:
             existing_role: ModeratorRoles = (
-                session.query(ModeratorRoles).filter_by(role_id=role.id).first()
+                session.query(ModeratorRoles)
+                .filter_by(role_id=role.id, guild_id=interaction.guild.id)
+                .first()
             )
 
             if existing_role:
@@ -118,11 +120,14 @@ class Moderation_roles(commands.Cog):
 
             same_auth_level = (
                 session.query(ModeratorRoles)
-                .filter_by(authority_level=authority_level)
+                .filter_by(
+                    authority_level=authority_level, guild_id=interaction.guild.id
+                )
                 .first()
             )
 
             new_role = ModeratorRoles(
+                guild_id=interaction.guild.id,
                 role_id=role.id,
                 authority_level=authority_level,
                 can_warn=can_warn,
@@ -389,9 +394,11 @@ class Moderation_roles(commands.Cog):
     ):
         await interaction.response.defer(ephemeral=True)
 
-        with guild_db_manager.get_session(interaction.guild.id) as session:
+        with SessionLocal() as session:
             existing_role: ModeratorRoles = (
-                session.query(ModeratorRoles).filter_by(role_id=role.id).first()
+                session.query(ModeratorRoles)
+                .filter_by(role_id=role.id, guild_id=interaction.guild.id)
+                .first()
             )
 
             if not existing_role:
@@ -517,9 +524,11 @@ class Moderation_roles(commands.Cog):
     ):
         await interaction.response.defer(ephemeral=True)
 
-        with guild_db_manager.get_session(interaction.guild.id) as session:
+        with SessionLocal() as session:
             existing_role: ModeratorRoles = (
-                session.query(ModeratorRoles).filter_by(role_id=role.id).first()
+                session.query(ModeratorRoles)
+                .filter_by(role_id=role.id, guild_id=interaction.guild.id)
+                .first()
             )
 
             if not existing_role:

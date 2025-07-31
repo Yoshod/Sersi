@@ -1,6 +1,6 @@
 import yaml
 import os
-from utils.database import guild_db_manager, Language
+from utils.database import SessionLocal, Language
 
 
 class LanguageManager:
@@ -23,8 +23,10 @@ class LanguageManager:
         keys = key.split(".")
         guild_lang = "en"  # Default to English
 
-        with guild_db_manager.get_session(guild_id) as session:
-            result = session.query(Language.language).first()
+        with SessionLocal() as session:
+            result = (
+                session.query(Language.language).filter_by(guild_id=guild_id).first()
+            )
             if result:
                 guild_lang = result[0]
 

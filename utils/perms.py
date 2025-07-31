@@ -1,6 +1,6 @@
 import nextcord
 from nextcord.ext import commands
-from utils.database import guild_db_manager, ModeratorRoles
+from utils.database import SessionLocal, ModeratorRoles
 
 
 async def get_permissions(member: nextcord.Member):
@@ -24,9 +24,13 @@ async def get_permissions(member: nextcord.Member):
 
     role_ids = [role.id for role in member.roles]
 
-    with guild_db_manager.get_session() as session:
+    with SessionLocal() as session:
         for role in role_ids:
-            role_data = session.query(ModeratorRoles).filter_by(role_id=role).first()
+            role_data = (
+                session.query(ModeratorRoles)
+                .filter_by(role_id=role, guild_id=member.guild.id)
+                .first()
+            )
 
             if role_data is None:
                 continue

@@ -1,394 +1,717 @@
-from dataclasses import dataclass
-from datetime import datetime, timezone
-from typing import Any
+import os
 import random
-import json
+from datetime import datetime, timezone
 
-import nextcord
 import sqlalchemy
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, event
-from sqlalchemy.orm import Session, scoped_session, sessionmaker, relationship
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    ForeignKey,
+    ForeignKeyConstraint,
+    Integer,
+    BigInteger,
+    String,
+    PrimaryKeyConstraint,
+)
+from sqlalchemy.orm import scoped_session, sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
-from dataclass_wizard import JSONWizard
+from dotenv import load_dotenv
 
-from utils.base import limit_string, encode_snowflake
+from utils.base import encode_snowflake
 
 
 def random_id() -> str:
+    """Generates a random, short, unique ID."""
     return encode_snowflake(random.getrandbits(64))
 
 
-# Global database engine and base
-global_engine = sqlalchemy.create_engine(
-    "sqlite:///databases/sersi_global.db", echo=False
+# --- Database Setup ---
+# Load the DATABASE_URL from your .env file
+load_dotenv()
+DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL environment variable is not set.")
+
+# A single engine and a single Base for the entire application
+engine = sqlalchemy.create_engine(DATABASE_URL)
+Base = declarative_base()
+
+# A single sessionmaker for the entire application.
+# Use `SessionLocal()` to get a new session.
+SessionLocal = scoped_session(
+    sessionmaker(autocommit=False, autoflush=False, bind=engine)
 )
-BaseGlobal = declarative_base()
 
 
-@event.listens_for(global_engine, "connect")
-def enable_foreign_keys(dbapi_connection, connection_record):
-    """Enable foreign key constraints for SQLite."""
-    cursor = dbapi_connection.cursor()
-    cursor.execute("PRAGMA foreign_keys=ON")
-    cursor.close()
+# --- Table Definitions ---
 
 
-# Scoped session for global database
-GlobalSession = scoped_session(sessionmaker(bind=global_engine))
-
-# Guild-specific database base and manager
-BaseGuild = declarative_base()
-
-
-def create_guild_engine(guild_id: int) -> sqlalchemy.Engine:
-    """Create and configure an SQLAlchemy engine for a specific guild."""
-    db_path = f"databases/sersi_{guild_id}.db"
-    engine = sqlalchemy.create_engine(f"sqlite:///{db_path}", echo=False)
-
-    @event.listens_for(engine, "connect")
-    def enable_foreign_keys(dbapi_connection, connection_record):
-        """Enable foreign key constraints for SQLite."""
-        cursor = dbapi_connection.cursor()
-        cursor.execute("PRAGMA foreign_keys=ON")
-        cursor.close()
-
-    BaseGuild.metadata.create_all(engine)
-
-    return engine
-
-
-class GuildDatabaseManager:
-    """Manages engines and sessions for guild-specific databases."""
-
-    def __init__(self):
-        self.engines = {}
-        self.sessions = {}
-
-    def get_session(self, guild_id: int) -> Session:
-        """Get or create a session for a specific guild."""
-        if guild_id not in self.engines:
-            self.engines[guild_id] = create_guild_engine(guild_id)
-
-        if guild_id not in self.sessions:
-            SessionFactory = scoped_session(sessionmaker(bind=self.engines[guild_id]))
-            self.sessions[guild_id] = SessionFactory()
-
-        return self.sessions[guild_id]
-
-    def create_tables(self, guild_id: int):
-        """Create tables for the guild-specific database."""
-        if guild_id not in self.engines:
-            self.engines[guild_id] = create_guild_engine(guild_id)
-
-        # Ensure the tables are created
-        BaseGuild.metadata.create_all(self.engines[guild_id])
-
-
-### Global Database Tables ###
-class Guilds(BaseGlobal):
+class Guilds(Base):
     """
-    Represents a Guilds table in the database.
+    Represents the Guilds table in the database.
 
     Attributes:
-        guild_id (int): The primary key for the guild.
-        is_premium (bool): Indicates if the guild is premium. Defaults to False.
-        was_premium (bool): Indicates if the guild was previously premium. Defaults to False.
-        is_testing (bool): Indicates if the guild is in testing mode. Defaults to False.
-        is_banned (bool): Indicates if the guild is banned. Defaults to False.
-        finished_setup (bool): Indicates if the guild has finished setup. Defaults to False.
-        join_date (datetime): The date the bot joined the guild. Defaults to the current time.
-        leave_date (datetime): The date the bot left the guild.
+        __tablename__ (str): The name of the table in the database.
+        guild_id (int): The primary key of the guild.
+        is_premium (bool): Indicates whether the guild has premium status. Defaults to False.
+        was_premium (bool): Indicates whether the guild previously had premium status. Defaults to False.
+        is_testing (bool): Indicates whether the guild is in testing mode. Defaults to False.
+        is_banned (bool): Indicates whether the guild is banned. Defaults to False.
+        finished_setup (bool): Indicates whether the guild has completed the setup process. Defaults to False.
+        join_date (datetime): The date and time when the guild joined. Defaults to the current UTC time.
+        leave_date (datetime): The date and time when the guild left.
     """
 
     __tablename__ = "guilds"
-
-    guild_id = Column(Integer, primary_key=True)
+    guild_id = Column(BigInteger, primary_key=True)
     is_premium = Column(Boolean, default=False)
     was_premium = Column(Boolean, default=False)
     is_testing = Column(Boolean, default=False)
     is_banned = Column(Boolean, default=False)
     finished_setup = Column(Boolean, default=False)
-    join_date = Column(DateTime, default=datetime.now(timezone.utc))
+    join_date = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     leave_date = Column(DateTime)
 
 
-class Modules(BaseGuild):
+class Modules(Base):
     """
-    Represents a Modules table in the database.
-
-    Whether a module is enabled or not determines which commands are available to the guild.
+    Represents a database model for modules associated with a guild.
 
     Attributes:
-        module_name (str): The name of the module. Primary key.
-        enabled (bool): Indicates if the module is enabled. Defaults to False.
+        __tablename__ (str): The name of the database table, "modules".
+        guild_id (int): The ID of the guild this module is associated with.
+            This is a foreign key referencing the "guilds.guild_id" column.
+        module_name (str): The name of the module.
+        enabled (bool): Indicates whether the module is enabled. Defaults to False.
+        __table_args__ (tuple): Specifies a composite primary key constraint
+            on the "guild_id" and "module_name" columns.
     """
 
     __tablename__ = "modules"
-
-    module_name = Column(String, primary_key=True)
+    guild_id = Column(BigInteger, ForeignKey("guilds.guild_id"), index=True)
+    module_name = Column(String)
     enabled = Column(Boolean, default=False)
+    __table_args__ = (PrimaryKeyConstraint("guild_id", "module_name"),)
 
 
-class Language(BaseGuild):
+class Language(Base):
     """
-    Represents a Language table in the database.
+    Represents the language settings for a guild.
 
     Attributes:
-        language (str): The language code. Defaults to 'en'. Primary key.
+        __tablename__ (str): The name of the database table, "language".
+        guild_id (int): The ID of the guild, serving as a foreign key to the "guilds" table and a primary key for this table.
+        language (str): The language preference for the guild, defaulting to "en".
     """
 
     __tablename__ = "language"
+    guild_id = Column(BigInteger, ForeignKey("guilds.guild_id"), primary_key=True)
+    language = Column(String, default="en")
 
-    language = Column(String, default="en", primary_key=True)
 
-
-class Case(BaseGuild):
+class Case(Base):
     """
-    Represents a Case table in the database.
+    Case Table
+
+    The `Case` table serves as the central table for all moderation cases. It contains
+    information about various types of moderation actions and their associated metadata.
 
     Attributes:
-    case_id (str): The unique identifier for the case. Primary key.
-    case_type (str): The type of case. Not nullable.
-    offence (str): The offence that was committed. Not nullable.
-    jump_url (str): The URL to jump to the message. Not nullable.
-    state (str): The state of the case. Not nullable.
-    created_at (datetime): The date and time the case was created. Not nullable.
-    modified_at (datetime): The date and time the case was last modified. Not nullable.
+        __tablename__ (str): The name of the table in the database (`cases`).
+        case_id (Column): A unique identifier for the case, generated by `random_id`.
+        guild_id (Column): The ID of the guild (server) where the case occurred.
+                           This is a foreign key referencing the `guilds` table.
+        case_type (Column): The type of moderation case (e.g., warning, ban, kick).
+        offence (Column): A description of the offence or reason for the case.
+        jump_url (Column): A URL to jump to the context of the case (e.g., a message link).
+        state (Column): The current state of the case (e.g., open, closed).
+        created_at (Column): The timestamp when the case was created. Defaults to the current UTC time.
+        modified_at (Column): The timestamp when the case was last modified. Defaults to the current UTC time.
+
+    Relationships:
+        warning (relationship): A one-to-one relationship with the `WarningCase` table.
+        timeout (relationship): A one-to-one relationship with the `TimeoutCase` table.
+        ban (relationship): A one-to-one relationship with the `BanCase` table.
+        reformation (relationship): A one-to-one relationship with the `ReformationCase` table.
+        blacklist (relationship): A one-to-one relationship with the `BlacklistCase` table.
+        kick (relationship): A one-to-one relationship with the `KickCase` table.
+        raid (relationship): A one-to-one relationship with the `RaidCase` table.
+        audit_logs (relationship): A one-to-many relationship with the `CaseAudit` table.
+        moderators (relationship): A one-to-many relationship with the `CaseModerators` table.
+        reviews (relationship): A one-to-many relationship with the `CaseReviews` table.
+        groups (relationship): A one-to-many relationship with the `CaseGroups` table.
+        raiders (relationship): A one-to-many relationship with the `Raiders` table.
+
+    Primary Key:
+        The combination of `case_id` and `guild_id` serves as the primary key for the table.
+
+    Methods:
+        __repr__: Returns a string representation of the case, including its type and offence.
     """
 
     __tablename__ = "cases"
-
-    case_id = Column(String, primary_key=True, default=random_id)
+    case_id = Column(String, default=random_id)
+    guild_id = Column(BigInteger, ForeignKey("guilds.guild_id"), index=True)
     case_type = Column(String, nullable=False)
     offence = Column(String, nullable=False)
     jump_url = Column(String, nullable=False)
     state = Column(String, nullable=False)
-    created_at = Column(DateTime, default=datetime.now(timezone.utc))
-    modified_at = Column(DateTime, default=datetime.now(timezone.utc))
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+    modified_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if self.id is None:
-            self.id = random_id()
+    __table_args__ = (PrimaryKeyConstraint("case_id", "guild_id"),)
 
-    def __setattr__(self, __name: str, __value: Any):
-        old_value = self.__dict__.get(__name)
-        super().__setattr__(__name, __value)
-        session: Session = Session.object_session(self)
-        if session and old_value != __value:
-            session.add(
-                CaseAudit(
-                    id=random_id(),
-                    case_id=self.id,
-                    field=__name,
-                    old_value=old_value,
-                    new_value=__value,
-                    author=session.owner_id,
-                )
-            )
+    # Relationships to child tables
+    warning = relationship(
+        "WarningCase",
+        back_populates="case",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )
+    timeout = relationship(
+        "TimeoutCase",
+        back_populates="case",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )
+    ban = relationship(
+        "BanCase", back_populates="case", uselist=False, cascade="all, delete-orphan"
+    )
+    reformation = relationship(
+        "ReformationCase",
+        back_populates="case",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )
+    blacklist = relationship(
+        "BlacklistCase",
+        back_populates="case",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )
+    kick = relationship(
+        "KickCase", back_populates="case", uselist=False, cascade="all, delete-orphan"
+    )
+    raid = relationship(
+        "RaidCase", back_populates="case", uselist=False, cascade="all, delete-orphan"
+    )
 
-    def __getattr__(self, __name: str) -> Any:
-        if __name == "list_entry_header":
-            return f"__{self.id}__ <t:{int(self.created_at.timestamp())}:R>"
-        raise AttributeError(
-            f"'{self.__class__.__name__}' object has no attribute '{__name}'"
-        )
+    audit_logs = relationship(
+        "CaseAudit", back_populates="case", cascade="all, delete-orphan"
+    )
+    moderators = relationship(
+        "CaseModerators", back_populates="case", cascade="all, delete-orphan"
+    )
+    reviews = relationship(
+        "CaseReviews", back_populates="case", cascade="all, delete-orphan"
+    )
+    groups = relationship(
+        "CaseGroups", back_populates="case", cascade="all, delete-orphan"
+    )
+    raiders = relationship(
+        "Raiders", back_populates="case", cascade="all, delete-orphan"
+    )
 
     def __repr__(self):
         return f"*{self.case_type}* `{self.offence or 'N/A'}`"
 
 
-class CaseAudit(BaseGuild):
+# --- Case Sub-Type and Related Tables ---
+
+
+class CaseAudit(Base):
+    """
+    Represents an audit log entry for a case in the database.
+
+    Attributes:
+        id (str): The unique identifier for the audit log entry. Defaults to a randomly generated ID.
+        case_id (str): The ID of the associated case.
+        guild_id (int): The ID of the guild (server) associated with the case.
+        field (str): The name of the field that was changed. Cannot be null.
+        old_value (str): The previous value of the field before the change.
+        new_value (str): The new value of the field after the change.
+        author (int): The ID of the user who made the change.
+        timestamp (datetime): The timestamp when the change was made. Defaults to the current UTC time.
+
+    Relationships:
+        case (Case): The associated case object. This relationship is back-populated by the `audit_logs` attribute in the `Case` model.
+
+    Table Constraints:
+        __tablename__ (str): The name of the database table, "cases_audit".
+        __table_args__ (tuple): A foreign key constraint linking `case_id` and `guild_id` to the `cases` table, with cascading delete behavior.
+    """
+
     __tablename__ = "cases_audit"
-
-    id = Column(String, primary_key=True)
-    case_id = Column(
-        String, ForeignKey("cases.case_id", ondelete="CASCADE"), nullable=False
-    )
-
+    id = Column(String, primary_key=True, default=random_id)
+    case_id = Column(String)
+    guild_id = Column(BigInteger)
     field = Column(String, nullable=False)
     old_value = Column(String)
     new_value = Column(String)
-
-    author = Column(Integer)
+    author = Column(BigInteger)
     timestamp = Column(DateTime, default=datetime.utcnow)
 
-    def __repr__(self):
-        return f"<t:{int(self.timestamp.timestamp())}:R> {self.field}"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["case_id", "guild_id"],
+            ["cases.case_id", "cases.guild_id"],
+            ondelete="CASCADE",
+        ),
+    )
+    case = relationship("Case", back_populates="audit_logs")
 
 
-class WarningCase(Case):
+class WarningCase(Base):
+    """
+    Represents a warning case in the database.
+
+    Attributes:
+        case_id (str): The unique identifier for the warning case.
+        guild_id (int): The identifier of the guild associated with the warning case.
+        justification (str): The reason or justification for the warning. This field is required.
+
+    Relationships:
+        case (Case): A relationship to the `Case` model, representing the associated case.
+                     This relationship is back-populated by the `warning` attribute in the `Case` model.
+
+    Table Constraints:
+        - PrimaryKeyConstraint: Composite primary key consisting of `case_id` and `guild_id`.
+        - ForeignKeyConstraint: Composite foreign key linking `case_id` and `guild_id` to the `cases` table.
+          Deletes associated warning cases when the referenced case is deleted (CASCADE).
+    """
+
     __tablename__ = "warning_cases"
-
-    case_id = Column(String, ForeignKey("cases.case_id"), primary_key=True)
+    case_id = Column(String)
+    guild_id = Column(BigInteger)
     justification = Column(String, nullable=False)
 
+    __table_args__ = (
+        PrimaryKeyConstraint("case_id", "guild_id"),
+        ForeignKeyConstraint(
+            ["case_id", "guild_id"],
+            ["cases.case_id", "cases.guild_id"],
+            ondelete="CASCADE",
+        ),
+    )
+    case = relationship("Case", back_populates="warning")
 
-class TimeoutCase(Case):
+
+class TimeoutCase(Base):
+    """
+    Represents a timeout case in the database.
+
+    Attributes:
+        case_id (str): The unique identifier for the case.
+        guild_id (int): The identifier for the guild associated with the case.
+        justification (str): The reason or justification for the timeout. This field is required.
+        scheduled_end (datetime): The scheduled end time for the timeout. This field is required.
+        actual_end (datetime, optional): The actual end time for the timeout, if it has ended.
+
+    Relationships:
+        case (Case): A relationship to the `Case` model, representing the associated case.
+
+    Table Constraints:
+        - PrimaryKeyConstraint: Composite primary key consisting of `case_id` and `guild_id`.
+        - ForeignKeyConstraint: Composite foreign key referencing `cases.case_id` and `cases.guild_id`
+          with cascading delete behavior.
+    """
+
     __tablename__ = "timeout_cases"
-
-    case_id = Column(String, ForeignKey("cases.case_id"), primary_key=True)
+    case_id = Column(String)
+    guild_id = Column(BigInteger)
     justification = Column(String, nullable=False)
     scheduled_end = Column(DateTime, nullable=False)
     actual_end = Column(DateTime)
 
+    __table_args__ = (
+        PrimaryKeyConstraint("case_id", "guild_id"),
+        ForeignKeyConstraint(
+            ["case_id", "guild_id"],
+            ["cases.case_id", "cases.guild_id"],
+            ondelete="CASCADE",
+        ),
+    )
+    case = relationship("Case", back_populates="timeout")
 
-class BanCase(Case):
+
+class BanCase(Base):
+    """
+    Represents a ban case in the database.
+
+    Attributes:
+        case_id (str): The unique identifier for the ban case.
+        guild_id (int): The ID of the guild where the ban case occurred.
+        justification (str): The reason or justification for the ban. This field is required.
+        ban_type (str): The type of ban applied. This field is required.
+
+    Relationships:
+        case (Case): A relationship to the `Case` model, representing the associated case.
+
+    Table Constraints:
+        - PrimaryKeyConstraint: Combines `case_id` and `guild_id` as the primary key.
+        - ForeignKeyConstraint: Links `case_id` and `guild_id` to the `cases` table, with cascading delete behavior.
+    """
+
     __tablename__ = "ban_cases"
-
-    case_id = Column(String, ForeignKey("cases.case_id"), primary_key=True)
+    case_id = Column(String)
+    guild_id = Column(BigInteger)
     justification = Column(String, nullable=False)
     ban_type = Column(String, nullable=False)
 
+    __table_args__ = (
+        PrimaryKeyConstraint("case_id", "guild_id"),
+        ForeignKeyConstraint(
+            ["case_id", "guild_id"],
+            ["cases.case_id", "cases.guild_id"],
+            ondelete="CASCADE",
+        ),
+    )
+    case = relationship("Case", back_populates="ban")
 
-class ReformationCase(Case):
+
+class ReformationCase(Base):
+    """
+    ReformationCase is a SQLAlchemy model representing a table that stores information
+    about reformation cases. Each reformation case is associated with a specific case
+    and guild, and contains additional details such as justification and cell ID.
+
+    Attributes:
+        __tablename__ (str): The name of the database table ("reformation_cases").
+        case_id (str): The unique identifier for the case.
+        guild_id (int): The unique identifier for the guild associated with the case.
+        justification (str): A mandatory field providing the justification for the reformation case.
+        cell_id (int): A mandatory field representing the cell ID associated with the case.
+
+    Relationships:
+        case (Case): A relationship to the `Case` model, linking this reformation case
+            to its parent case. This relationship is bidirectional and uses the
+            `back_populates` attribute.
+
+    Constraints:
+        PrimaryKeyConstraint: A composite primary key consisting of `case_id` and `guild_id`.
+        ForeignKeyConstraint: A foreign key constraint linking `case_id` and `guild_id`
+            to the `cases` table, with cascading delete behavior.
+    """
+
     __tablename__ = "reformation_cases"
-
-    case_id = Column(String, ForeignKey("cases.case_id"), primary_key=True)
+    case_id = Column(String)
+    guild_id = Column(BigInteger)
     justification = Column(String, nullable=False)
-    cell_id = Column(Integer, nullable=False)
+    cell_id = Column(BigInteger, nullable=False)
+
+    __table_args__ = (
+        PrimaryKeyConstraint("case_id", "guild_id"),
+        ForeignKeyConstraint(
+            ["case_id", "guild_id"],
+            ["cases.case_id", "cases.guild_id"],
+            ondelete="CASCADE",
+        ),
+    )
+    case = relationship("Case", back_populates="reformation")
 
 
-class BlacklistCase(Case):
+class BlacklistCase(Base):
+    """
+    Represents a blacklist case in the database.
+
+    Attributes:
+        __tablename__ (str): The name of the table in the database.
+        case_id (str): The unique identifier for the blacklist case.
+        guild_id (int): The ID of the guild associated with the blacklist case.
+        justification (str): The reason or justification for the blacklist case. This field is required.
+        blacklist_type (str): The type of blacklist. This field is required.
+
+    Relationships:
+        case (Case): A relationship to the `Case` model, representing the associated case.
+
+    Table Constraints:
+        - PrimaryKeyConstraint: Composite primary key consisting of `case_id` and `guild_id`.
+        - ForeignKeyConstraint: Composite foreign key linking `case_id` and `guild_id` to the `cases` table, with cascading delete behavior.
+    """
+
     __tablename__ = "blacklist_cases"
-
-    case_id = Column(String, ForeignKey("cases.case_id"), primary_key=True)
+    case_id = Column(String)
+    guild_id = Column(BigInteger)
     justification = Column(String, nullable=False)
     blacklist_type = Column(String, nullable=False)
 
-
-class KickCase(Case):
-    __tablename__ = "kick_cases"
-
-    case_id = Column(String, ForeignKey("cases.case_id"), primary_key=True)
-    justification = Column(String, nullable=False)
-
-
-class RaidCase(Case):
-    __tablename__ = "raid_cases"
-
-    case_id = Column(String, ForeignKey("cases.case_id"), primary_key=True)
+    __table_args__ = (
+        PrimaryKeyConstraint("case_id", "guild_id"),
+        ForeignKeyConstraint(
+            ["case_id", "guild_id"],
+            ["cases.case_id", "cases.guild_id"],
+            ondelete="CASCADE",
+        ),
+    )
+    case = relationship("Case", back_populates="blacklist")
 
 
-class CaseModerators(BaseGuild):
+class KickCase(Base):
     """
-    Represents a CaseModerators table in the database.
+    Represents a table of kick cases in a database.
 
     Attributes:
-        case_id (str): The case ID. Primary key. Foreign key to cases.
-        relation_to_case (str): The relation of the moderator to the case. Primary key. Accepts:
-            - creation
-            - approval
-            - objection
-            - edit
-            - deactivation
-            - archival
-            - deletion
-        moderator_id (int): The moderator ID. Primary key.
+        __tablename__ (str): The name of the database table ("kick_cases").
+        case_id (Column): A string column representing the unique identifier for the case.
+        guild_id (Column): An integer column representing the unique identifier for the guild.
+        justification (Column): A string column containing the justification for the kick. This field is required.
+
+        __table_args__ (tuple):
+            - PrimaryKeyConstraint: A composite primary key constraint on "case_id" and "guild_id".
+            - ForeignKeyConstraint: A foreign key constraint linking "case_id" and "guild_id" to the "cases" table.
+              Deletes cascade when the referenced case is deleted.
+
+        case (relationship): A relationship to the "Case" model, with this model being the child in the relationship.
+    """
+
+    __tablename__ = "kick_cases"
+    case_id = Column(String)
+    guild_id = Column(BigInteger)
+    justification = Column(String, nullable=False)
+
+    __table_args__ = (
+        PrimaryKeyConstraint("case_id", "guild_id"),
+        ForeignKeyConstraint(
+            ["case_id", "guild_id"],
+            ["cases.case_id", "cases.guild_id"],
+            ondelete="CASCADE",
+        ),
+    )
+    case = relationship("Case", back_populates="kick")
+
+
+class RaidCase(Base):
+    """
+    Represents a RaidCase entity in the database.
+
+    Attributes:
+        __tablename__ (str): The name of the database table, "raid_cases".
+        case_id (str): The unique identifier for the raid case.
+        guild_id (int): The identifier for the guild associated with the raid case.
+
+    Relationships:
+        case (Case): A relationship to the `Case` entity, with bidirectional
+            back-population via the "raid" attribute.
+
+    Table Constraints:
+        - PrimaryKeyConstraint: Composite primary key consisting of "case_id" and "guild_id".
+        - ForeignKeyConstraint: Composite foreign key referencing "cases.case_id" and
+          "cases.guild_id", with cascading delete behavior.
+    """
+
+    __tablename__ = "raid_cases"
+    case_id = Column(String)
+    guild_id = Column(BigInteger)
+
+    __table_args__ = (
+        PrimaryKeyConstraint("case_id", "guild_id"),
+        ForeignKeyConstraint(
+            ["case_id", "guild_id"],
+            ["cases.case_id", "cases.guild_id"],
+            ondelete="CASCADE",
+        ),
+    )
+    case = relationship("Case", back_populates="raid")
+
+
+class CaseModerators(Base):
+    """
+    Represents the association between a case and its moderators in the database.
+
+    Attributes:
+        case_id (str): The unique identifier for the case.
+        guild_id (int): The unique identifier for the guild (server) associated with the case.
+        relation_to_case (str): The role or relationship of the moderator to the case.
+        moderator_id (int): The unique identifier for the moderator.
+
+    Table Constraints:
+        - Primary Key: A composite key consisting of `case_id`, `guild_id`, `relation_to_case`, and `moderator_id`.
+        - Foreign Key: Links `case_id` and `guild_id` to the `cases` table, with cascading delete behavior.
+
+    Relationships:
+        case: Establishes a relationship with the `Case` model, allowing access to the associated case and its moderators.
     """
 
     __tablename__ = "case_moderators"
+    case_id = Column(String)
+    guild_id = Column(BigInteger)
+    relation_to_case = Column(String)
+    moderator_id = Column(BigInteger)
 
-    case_id = Column(String, ForeignKey("cases.case_id"), primary_key=True)
-    relation_to_case = Column(String, primary_key=True)
-    moderator_id = Column(Integer, primary_key=True)
+    __table_args__ = (
+        PrimaryKeyConstraint("case_id", "guild_id", "relation_to_case", "moderator_id"),
+        ForeignKeyConstraint(
+            ["case_id", "guild_id"],
+            ["cases.case_id", "cases.guild_id"],
+            ondelete="CASCADE",
+        ),
+    )
+    case = relationship("Case", back_populates="moderators")
 
 
-class CaseReviews(BaseGuild):
+class CaseReviews(Base):
     """
-    Represents a CaseReviews table in the database.
+    Represents a review of a case in the database.
 
     Attributes:
-        case_id (str): The case ID. Primary key. Foreign key to cases.
-        reviewer_id (int): The reviewer ID. Primary key.
-        review (str): The review. Not nullable.
-        timestamp (datetime): The date and time the review was made. Not nullable.
+        __tablename__ (str): The name of the database table.
+        case_id (str): The unique identifier for the case being reviewed.
+        guild_id (int): The unique identifier for the guild associated with the case.
+        reviewer_id (int): The unique identifier for the reviewer.
+        outcome (bool): The outcome of the review (e.g., approved or rejected).
+        timestamp (datetime): The timestamp of when the review was created, defaults to the current UTC time.
+        __table_args__ (tuple): Additional table constraints, including:
+            - A composite primary key on `case_id`, `guild_id`, and `reviewer_id`.
+            - A foreign key constraint linking `case_id` and `guild_id` to the `cases` table, with cascading deletes.
+        case (relationship): A relationship to the `Case` model, allowing access to the associated case and its reviews.
     """
 
     __tablename__ = "case_reviews"
-
-    case_id = Column(String, ForeignKey("cases.case_id"), primary_key=True)
-    reviewer_id = Column(Integer, primary_key=True)
+    case_id = Column(String)
+    guild_id = Column(BigInteger)
+    reviewer_id = Column(BigInteger)
     outcome = Column(Boolean, nullable=False)
-    timestamp = Column(DateTime, default=datetime.now(timezone.utc))
+    timestamp = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    __table_args__ = (
+        PrimaryKeyConstraint("case_id", "guild_id", "reviewer_id"),
+        ForeignKeyConstraint(
+            ["case_id", "guild_id"],
+            ["cases.case_id", "cases.guild_id"],
+            ondelete="CASCADE",
+        ),
+    )
+    case = relationship("Case", back_populates="reviews")
 
 
-class CaseGroups(BaseGuild):
+class CaseGroups(Base):
     """
-    Represents a CaseGroups table in the database.
+    Represents a grouping of cases in the database.
 
     Attributes:
-        case_id (str): The case ID. Primary key. Foreign key to cases.
-        group_id (int): The group ID. Primary key.
+        __tablename__ (str): The name of the database table ("case_groups").
+        case_id (str): The ID of the case, serves as part of the composite primary key.
+        guild_id (int): The ID of the guild, serves as part of the composite primary key.
+        group_id (int): The ID of the group, serves as part of the composite primary key. Defaults to a randomly generated ID.
+        __table_args__ (tuple): Additional table arguments, including:
+            - A composite primary key constraint on "case_id", "guild_id", and "group_id".
+            - A foreign key constraint linking "case_id" and "guild_id" to the "cases" table, with cascading delete behavior.
+        case (relationship): A relationship to the "Case" model, allowing access to the associated case and enabling back-population via the "groups" attribute in the "Case" model.
     """
 
     __tablename__ = "case_groups"
+    case_id = Column(String)
+    guild_id = Column(BigInteger)
+    group_id = Column(String, default=random_id)
 
-    case_id = Column(String, ForeignKey("cases.case_id"), primary_key=True)
-    group_id = Column(Integer, primary_key=True, default=random_id)
+    __table_args__ = (
+        PrimaryKeyConstraint("case_id", "guild_id", "group_id"),
+        ForeignKeyConstraint(
+            ["case_id", "guild_id"],
+            ["cases.case_id", "cases.guild_id"],
+            ondelete="CASCADE",
+        ),
+    )
+    case = relationship("Case", back_populates="groups")
 
 
-class Raiders(BaseGuild):
+class Raiders(Base):
     """
-    Represents a Raiders table in the database.
+    Represents a Raider entity in the database.
 
     Attributes:
-        case_id (str): The case ID. Primary key. Foreign key to cases.
-        raider_id (int): The raider ID. Primary key.
+        __tablename__ (str): The name of the database table, "raiders".
+        case_id (Column): A string column representing the ID of the case.
+        guild_id (Column): An integer column representing the ID of the guild.
+        raider_id (Column): An integer column representing the ID of the raider.
+        join_time (Column): A datetime column representing the time the raider joined. This field is required.
+
+    Table Constraints:
+        __table_args__:
+            - PrimaryKeyConstraint: Ensures that the combination of "case_id", "guild_id", and "raider_id" is unique.
+            - ForeignKeyConstraint: Links "case_id" and "guild_id" to the "cases" table, with cascading delete behavior.
+
+    Relationships:
+        case (relationship): Defines a relationship to the "Case" model, with back-population through the "raiders" attribute.
     """
 
     __tablename__ = "raiders"
-
-    case_id = Column(String, ForeignKey("cases.case_id"), primary_key=True)
-    raider_id = Column(Integer, primary_key=True)
+    case_id = Column(String)
+    guild_id = Column(BigInteger)
+    raider_id = Column(BigInteger)
     join_time = Column(DateTime, nullable=False)
 
+    __table_args__ = (
+        PrimaryKeyConstraint("case_id", "guild_id", "raider_id"),
+        ForeignKeyConstraint(
+            ["case_id", "guild_id"],
+            ["cases.case_id", "cases.guild_id"],
+            ondelete="CASCADE",
+        ),
+    )
+    case = relationship("Case", back_populates="raiders")
 
-class Offences(BaseGuild):
+
+class Offences(Base):
     """
-    Represents an Offences table in the database.
+    Represents a database table for storing custom offences for each guild.
 
     Attributes:
-        offence_name (str): The name of the offence. Primary key.
-        offence_severity (int): The severity of the offence. Not nullable. Scale of 1-10. Defaults to 1. 1 being the least severe and 10 being the most severe.
-        offence_description (str): The description of the offence. Nullable.
+        guild_id (int): The ID of the guild this offence is associated with.
+                        It is a foreign key referencing the "guilds" table.
+        offence_name (str): The name of the offence.
+        offence_severity (int): The severity level of the offence. Defaults to 1.
+        offence_description (str): A description of the offence.
+
+    Table Constraints:
+        PrimaryKeyConstraint: A composite primary key consisting of "guild_id"
+                              and "offence_name".
     """
 
-    __tablename__ = "offences"
+    """Stores custom offences for each guild."""
 
-    offence_name = Column(String, primary_key=True)
+    __tablename__ = "offences"
+    guild_id = Column(BigInteger, ForeignKey("guilds.guild_id"), index=True)
+    offence_name = Column(String)
     offence_severity = Column(Integer, nullable=False, default=1)
     offence_description = Column(String)
 
+    __table_args__ = (PrimaryKeyConstraint("guild_id", "offence_name"),)
 
-class ModeratorRoles(BaseGuild):
+
+class ModeratorRoles(Base):
     """
-    Represents a ModeratorRoles table in the database.
+    ModeratorRoles is a database model that represents the roles of moderators in a guild
+    and their associated permissions. Each record corresponds to a specific role within a
+    guild and defines the actions that role is authorized to perform.
 
     Attributes:
-        role_id (int): The role ID. Primary key.
-        authority_level (int): The authority level of the role. Not nullable. Minimum value of 1, maximum value of 10.
-        can_warn (bool): Indicates if the role can warn. Defaults to False.
-        can_timeout (bool): Indicates if the role can timeout. Defaults to False.
-        can_immediate_ban (bool): Indicates if the role can immediate ban. Defaults to False.
-        can_vote_ban (bool): Indicates if the role can vote ban. Defaults to False.
-        can_unban (bool): Indicates if the role can unban. Defaults to False.
-        can_reform (bool): Indicates if the role can reform. Defaults to False.
-        can_blacklist (bool): Indicates if the role can blacklist. Defaults to False.
-        can_kick (bool): Indicates if the role can kick. Defaults to False.
-        declare_raid (bool): Indicates if the role can declare a raid. Defaults to False.
-        add_moderator (bool): Indicates if the role can add moderators. Defaults to False.
-        remove_moderator (bool): Indicates if the role can remove moderators. Defaults to False.
-        is_immune (bool): Indicates if the role is immune to moderation actions. Defaults to False.
-        edit_offences (bool): Indicates if the role can edit offences. Defaults to False.
-        edit_cases (bool): Indicates if the role can edit cases. Defaults to False.
+        guild_id (int): The ID of the guild this role belongs to. Foreign key referencing the "guilds" table.
+        role_id (int): The ID of the role within the guild.
+        authority_level (int): The level of authority assigned to the role. Higher values indicate greater authority.
+        can_warn (bool): Whether the role has permission to issue warnings. Defaults to False.
+        can_timeout (bool): Whether the role has permission to timeout users. Defaults to False.
+        can_immediate_ban (bool): Whether the role has permission to immediately ban users. Defaults to False.
+        can_vote_ban (bool): Whether the role has permission to initiate or participate in vote-based bans. Defaults to False.
+        can_unban (bool): Whether the role has permission to unban users. Defaults to False.
+        can_reform (bool): Whether the role has permission to reform users. Defaults to False.
+        can_blacklist (bool): Whether the role has permission to blacklist users. Defaults to False.
+        can_kick (bool): Whether the role has permission to kick users. Defaults to False.
+        declare_raid (bool): Whether the role has permission to declare a raid. Defaults to False.
+        add_moderator (bool): Whether the role has permission to add new moderators. Defaults to False.
+        remove_moderator (bool): Whether the role has permission to remove existing moderators. Defaults to False.
+        is_immune (bool): Whether the role is immune to moderation actions. Defaults to False.
+        edit_offences (bool): Whether the role has permission to edit offences. Defaults to False.
+        edit_cases (bool): Whether the role has permission to edit cases. Defaults to False.
 
-
+    Table Constraints:
+        PrimaryKeyConstraint: A composite primary key consisting of "guild_id" and "role_id".
     """
 
     __tablename__ = "moderator_roles"
-
-    role_id = Column(Integer, primary_key=True)
+    guild_id = Column(BigInteger, ForeignKey("guilds.guild_id"), index=True)
+    role_id = Column(BigInteger)
     authority_level = Column(Integer, nullable=False)
     can_warn = Column(Boolean, default=False)
     can_timeout = Column(Boolean, default=False)
@@ -405,41 +728,36 @@ class ModeratorRoles(BaseGuild):
     edit_offences = Column(Boolean, default=False)
     edit_cases = Column(Boolean, default=False)
 
+    __table_args__ = (PrimaryKeyConstraint("guild_id", "role_id"),)
 
-class LoggingChannels(BaseGuild):
+
+class LoggingChannels(Base):
     """
-    Represents a LoggingChannels table in the database.
+    Represents a database table for logging channels in a guild.
 
     Attributes:
-        log_type (str): The type of log. Primary Key. Accepts:
-            - global
-            - public
-            - tamper
-            - moderation
-            - guild
-            - channel
-            - role
-            - join_leave
-            - voice
-            - user
-            - deleted_message
-            - deleted_image
-            - edited_message
-        channel_id (int): The channel ID. Not nullable.
+        __tablename__ (str): The name of the table in the database.
+        guild_id (int): The ID of the guild, linked to the "guilds" table.
+        log_type (str): The type of log (e.g., "moderation", "message_delete").
+        channel_id (int): The ID of the channel where logs of the specified type are sent.
+
+    Table Constraints:
+        PrimaryKeyConstraint: A composite primary key consisting of "guild_id" and "log_type".
     """
 
     __tablename__ = "logging_channels"
+    guild_id = Column(BigInteger, ForeignKey("guilds.guild_id"), index=True)
+    log_type = Column(String, nullable=False)
+    channel_id = Column(BigInteger, nullable=False)
 
-    log_type = Column(String, primary_key=True, nullable=False)
-    channel_id = Column(Integer, nullable=False)
-
-
-### Guild Database Tables ###
-def create_db_tables():
-    BaseGlobal.metadata.create_all(global_engine)
-
-    global guild_db_manager
-    guild_db_manager = GuildDatabaseManager()
+    __table_args__ = (PrimaryKeyConstraint("guild_id", "log_type"),)
 
 
-create_db_tables()
+# --- Table Creation ---
+def create_all_tables():
+    """A function to create all the tables defined above."""
+    Base.metadata.create_all(engine)
+
+
+# This will ensure tables are created when the bot starts.
+create_all_tables()

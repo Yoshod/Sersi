@@ -1,6 +1,6 @@
 import nextcord
 from utils.sersi_embed import SersiEmbed
-from utils.database import guild_db_manager, LoggingChannels
+from utils.database import SessionLocal, LoggingChannels
 from utils.language import lang_manager
 
 
@@ -13,9 +13,11 @@ async def create_log(guild: nextcord.Guild, log_type: str, log_category: str, **
     :param log_category: The category of the log (e.g., 'global', 'guild').
     :param kwargs: Additional keyword arguments to include in the log.
     """
-    with guild_db_manager.get_session(guild.id) as session:
+    with SessionLocal() as session:
         logging_channel = (
-            session.query(LoggingChannels).filter_by(log_type=log_category).first()
+            session.query(LoggingChannels)
+            .filter_by(log_type=log_category, guild_id=guild.id)
+            .first()
         )
 
         logging_channel = guild.get_channel(logging_channel.channel_id)
