@@ -7,6 +7,228 @@ from utils.database import (
 from utils.language import lang_manager
 from utils.modules import check_module_enabled
 from utils.logging import create_log
+from utils.base import encode_button_id, decode_button_id
+
+
+class TamperLogsButton(nextcord.ui.Button):
+    def __init__(self, selected: bool = False, guild: nextcord.Guild = None):
+        super().__init__(
+            label=lang_manager.get_string(
+                guild.id, "logging.setup.buttons.tamper_logs"
+            ),
+            style=(
+                nextcord.ButtonStyle.grey
+                if not selected
+                else nextcord.ButtonStyle.green
+            ),
+            custom_id=encode_button_id("logging_setup", category="tamper_logs"),
+        )
+
+
+class GlobalLogsButton(nextcord.ui.Button):
+    def __init__(self, selected: bool = False, guild: nextcord.Guild = None):
+        super().__init__(
+            label=lang_manager.get_string(
+                guild.id, "logging.setup.buttons.global_logs"
+            ),
+            style=(
+                nextcord.ButtonStyle.grey
+                if not selected
+                else nextcord.ButtonStyle.green
+            ),
+            custom_id=encode_button_id("logging_setup", category="global_logs"),
+        )
+
+
+class PublicLogsButton(nextcord.ui.Button):
+    def __init__(self, selected: bool = False, guild: nextcord.Guild = None):
+        super().__init__(
+            label=lang_manager.get_string(
+                guild.id, "logging.setup.buttons.public_logs"
+            ),
+            style=(
+                nextcord.ButtonStyle.grey
+                if not selected
+                else nextcord.ButtonStyle.green
+            ),
+            custom_id=encode_button_id("logging_setup", category="public_logs"),
+        )
+
+
+class ModLogsButton(nextcord.ui.Button):
+    def __init__(self, selected: bool = False, guild: nextcord.Guild = None):
+        super().__init__(
+            label=lang_manager.get_string(guild.id, "logging.setup.buttons.mod_logs"),
+            style=(
+                nextcord.ButtonStyle.grey
+                if not selected
+                else nextcord.ButtonStyle.green
+            ),
+            custom_id=encode_button_id("logging_setup", category="mod_logs"),
+        )
+
+
+class GuildLogsButton(nextcord.ui.Button):
+    def __init__(self, selected: bool = False, guild: nextcord.Guild = None):
+        super().__init__(
+            label=lang_manager.get_string(guild.id, "logging.setup.buttons.guild_logs"),
+            style=(
+                nextcord.ButtonStyle.grey
+                if not selected
+                else nextcord.ButtonStyle.green
+            ),
+            custom_id=encode_button_id("logging_setup", category="guild_logs"),
+        )
+
+
+class ChannelLogsButton(nextcord.ui.Button):
+    def __init__(self, selected: bool = False, guild: nextcord.Guild = None):
+        super().__init__(
+            label=lang_manager.get_string(
+                guild.id, "logging.setup.buttons.channel_logs"
+            ),
+            style=(
+                nextcord.ButtonStyle.grey
+                if not selected
+                else nextcord.ButtonStyle.green
+            ),
+            custom_id=encode_button_id("logging_setup", category="channel_logs"),
+        )
+
+
+class RoleLogsButton(nextcord.ui.Button):
+    def __init__(self, selected: bool = False, guild: nextcord.Guild = None):
+        super().__init__(
+            label=lang_manager.get_string(guild.id, "logging.setup.buttons.role_logs"),
+            style=(
+                nextcord.ButtonStyle.grey
+                if not selected
+                else nextcord.ButtonStyle.green
+            ),
+            custom_id=encode_button_id("logging_setup", category="role_logs"),
+        )
+
+
+class JoinLeaveLogsButton(nextcord.ui.Button):
+    def __init__(self, selected: bool = False, guild: nextcord.Guild = None):
+        super().__init__(
+            label=lang_manager.get_string(
+                guild.id, "logging.setup.buttons.join_leave_logs"
+            ),
+            style=(
+                nextcord.ButtonStyle.grey
+                if not selected
+                else nextcord.ButtonStyle.green
+            ),
+            custom_id=encode_button_id("logging_setup", category="join_leave_logs"),
+        )
+
+
+class VoiceLogsButton(nextcord.ui.Button):
+    def __init__(self, selected: bool = False, guild: nextcord.Guild = None):
+        super().__init__(
+            label=lang_manager.get_string(guild.id, "logging.setup.buttons.voice_logs"),
+            style=(
+                nextcord.ButtonStyle.grey
+                if not selected
+                else nextcord.ButtonStyle.green
+            ),
+            custom_id=encode_button_id("logging_setup", category="voice_logs"),
+        )
+
+
+class UserLogsButton(nextcord.ui.Button):
+    def __init__(self, selected: bool = False, guild: nextcord.Guild = None):
+        super().__init__(
+            label=lang_manager.get_string(guild.id, "logging.setup.buttons.user_logs"),
+            style=(
+                nextcord.ButtonStyle.grey
+                if not selected
+                else nextcord.ButtonStyle.green
+            ),
+            custom_id=encode_button_id("logging_setup", category="user_logs"),
+        )
+
+
+class DeletedMessageLogsButton(nextcord.ui.Button):
+    def __init__(self, selected: bool = False, guild: nextcord.Guild = None):
+        super().__init__(
+            label=lang_manager.get_string(
+                guild.id, "logging.setup.buttons.deleted_message_logs"
+            ),
+            style=(
+                nextcord.ButtonStyle.grey
+                if not selected
+                else nextcord.ButtonStyle.green
+            ),
+            custom_id=encode_button_id(
+                "logging_setup", category="deleted_message_logs"
+            ),
+        )
+
+
+class DeletedImageLogsButton(nextcord.ui.Button):
+    def __init__(self, selected: bool = False, guild: nextcord.Guild = None):
+        super().__init__(
+            label=lang_manager.get_string(
+                guild.id, "logging.setup.buttons.deleted_image_logs"
+            ),
+            style=(
+                nextcord.ButtonStyle.grey
+                if not selected
+                else nextcord.ButtonStyle.green
+            ),
+            custom_id=encode_button_id("logging_setup", category="deleted_image_logs"),
+        )
+
+
+class EditedMessageLogsButton(nextcord.ui.Button):
+    def __init__(self, selected: bool = False, guild: nextcord.Guild = None):
+        super().__init__(
+            label=lang_manager.get_string(
+                guild.id, "logging.setup.buttons.edited_message_logs"
+            ),
+            style=(
+                nextcord.ButtonStyle.grey
+                if not selected
+                else nextcord.ButtonStyle.green
+            ),
+            custom_id=encode_button_id("logging_setup", category="edited_message_logs"),
+        )
+
+
+class ChannelSelector(nextcord.ui.ChannelSelect):
+    def __init__(self, guild: nextcord.Guild):
+        super().__init__(
+            placeholder=lang_manager.get_string(
+                guild.id, "logging.setup.select_channel"
+            ),
+            min_values=1,
+            max_values=1,
+            channel_types=[nextcord.ChannelType.text],
+        )
+
+
+class LoggingSetupView(nextcord.ui.View):
+    def __init__(self, guild: nextcord.Guild):
+        super().__init__(timeout=None)
+        self.guild = guild
+
+        self.add_item(TamperLogsButton(guild=guild))
+        self.add_item(GlobalLogsButton(guild=guild))
+        self.add_item(PublicLogsButton(guild=guild))
+        self.add_item(ModLogsButton(guild=guild))
+        self.add_item(GuildLogsButton(guild=guild))
+        self.add_item(ChannelLogsButton(guild=guild))
+        self.add_item(RoleLogsButton(guild=guild))
+        self.add_item(JoinLeaveLogsButton(guild=guild))
+        self.add_item(VoiceLogsButton(guild=guild))
+        self.add_item(UserLogsButton(guild=guild))
+        self.add_item(DeletedMessageLogsButton(guild=guild))
+        self.add_item(DeletedImageLogsButton(guild=guild))
+        self.add_item(EditedMessageLogsButton(guild=guild))
+
+        self.add_item(ChannelSelector(guild))
 
 
 class LoggingSetup(commands.Cog):
@@ -278,6 +500,26 @@ class LoggingSetup(commands.Cog):
             "global",
         )
         return
+
+    @setup_logging.subcommand(
+        name="custom",
+        description="Setup logging channels with custom names.",
+    )
+    @application_checks.has_guild_permissions(administrator=True)
+    async def custom_setup(self, interaction: nextcord.Interaction):
+        await interaction.response.defer()
+
+        if not check_module_enabled(interaction.guild.id, "logging"):
+            return await interaction.followup.send(
+                lang_manager.get_string(
+                    interaction.guild.id,
+                    "module_disabled",
+                    module_name="Logging",
+                ),
+                ephemeral=True,
+            )
+
+        view = nextcord.ui.View(timeout=None)
 
 
 def setup(bot: commands.Bot):
