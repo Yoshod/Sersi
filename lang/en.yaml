@@ -88,8 +88,8 @@ logging:
 
     custom:
       title: "Custom Logging Setup"
-      description: "You can customise the logging channels for this guild. First select a type of log to set up, then select the channel you want to use for that log type. Once you have repeated this process for all log types the Finish Setup button will become available."
-
+      description: "You can customise the logging channels for this guild. First select a type of log to set up, then select the channel you want to use for that log type. Once you have repeated this process for all log types the Finish Setup button will become available."    
+    select_channel: "Select a channel"
     global_logs:
       title: "Global"
       description: "This category contains a duplicate of all specific logs from this guild. E.g. if a user is banned, it will be logged in the global logs as well as the moderation logs."
