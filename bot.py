@@ -8,9 +8,14 @@ from utils.base import limit_string
 from utils.sersi_embed import SersiEmbed
 
 
+intents = nextcord.Intents.default()
+intents.message_content = True
+intents.members = True
+
+
 class SersiBot(Bot):
     def __init__(self):
-        super().__init__()
+        super().__init__(intents=intents)
         self.error_channel: nextcord.abc.Messageable = None
 
     async def on_error(self, event_method: str, *args: Any, **kwargs: Any) -> None:
