@@ -6,6 +6,9 @@ from utils.database import (
     Guilds,
     Modules,
     Language,
+    LoggingChannels,
+    ModeratorRoles,
+    Offences,
 )
 from utils.sersi_embed import SersiEmbed
 from utils.base import encode_button_id, decode_button_id
@@ -208,6 +211,35 @@ class Setup(commands.Cog):
         view.add_item(FinishSetup())
 
         await interaction.response.send_message(embed=embed, view=view)
+
+    @nextcord.slash_command(
+        name="dev_wipe",
+        description="Wipes the bot's database for development purposes.",
+        guild_ids=[977377117895536640, 1166770860787515422, 1383162647171567626],
+    )
+    @application_checks.is_owner()
+    async def dev_wipe(self, interaction: nextcord.Interaction):
+        """Wipe all rows from every table in the database."""
+        with SessionLocal() as session:
+            # Delete all entries from the Modules table.
+            session.query(Modules).delete()
+            # Delete all entries from the Language table.
+            session.query(Language).delete()
+            # Delete all entries from the LoggingChannels table.
+            session.query(LoggingChannels).delete()
+            # Delete all entries from the ModeratorRoles table.
+            session.query(ModeratorRoles).delete()
+            # Delete all entries from the Offences table.
+            session.query(Offences).delete()
+            # Delete all entries from the Guilds table.
+            session.query(Guilds).delete()
+            # Commit the changes to the database.
+            session.commit()
+
+        await interaction.response.send_message(
+            "The bot's database has been wiped for development purposes.",
+            ephemeral=True,
+        )
 
     @commands.Cog.listener()
     async def on_interaction(self, interaction: nextcord.Interaction):
