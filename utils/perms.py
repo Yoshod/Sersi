@@ -22,7 +22,10 @@ async def get_permissions(member: nextcord.Member):
         "edit_cases": False,
     }
 
-    role_ids = [role.id for role in member.roles]
+    try:
+        role_ids = [role.id for role in member.roles]
+    except AttributeError:
+        return permissions
 
     with SessionLocal() as session:
         for role in role_ids:
