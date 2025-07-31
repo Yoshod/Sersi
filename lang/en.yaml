@@ -85,3 +85,66 @@ logging:
     complete:
       title: "Logging Setup Complete"
       description: "Sersi has successfully set up the logging channels in this guild."
+
+    custom:
+      title: "Custom Logging Setup"
+      description: "You can customise the logging channels for this guild. First select a type of log to set up, then select the channel you want to use for that log type. Once you have repeated this process for all log types the Finish Setup button will become available."
+
+    global_logs:
+      title: "Global"
+      description: "This category contains a duplicate of all specific logs from this guild. E.g. if a user is banned, it will be logged in the global logs as well as the moderation logs."
+    public_logs:
+      title: "Public"
+      description: "This is a public version of the Moderation Logs. This channel contains moderation actions with certain information redacted, such as the Moderator's ID, and specific justifactions. This channel is meant to be used for transparency and to allow users to see moderation actions taken in the guild. If you do not want this channel, you can disable it via the configuration command."
+    tamper_logs:
+      title: "Tamper"
+      description: "This channel is used to log any tampering with server logs. This includes deleting or editing messages in the logs, as well as any other actions that may affect the integrity of the logs. Any tampered logs will be copied here, and an alert will be triggered."
+    mod_logs:
+      title: "Moderation"
+      description: "This channel is used to log all moderation actions taken in the guild. This includes all information about the moderation action."
+    guild_logs:
+      title: "Guild"
+      description: "This channel is used to log all guild-related actions, such as changes to the guild's settings, such as name."
+    channel_logs:
+      title: "Channel"
+      description: "This channel is used to log all channel-related actions, such as creation, deletion, and updates to channels."
+    role_logs:
+      title: "Role"
+      description: "This channel is used to log all role-related actions, such as creation, deletion, and updates to roles."
+    join_leave_logs:
+      title: "Join Leave"
+      description: "This channel is used to log all join and leave actions in the guild. This includes when a user joins or leaves the guild, as well as when a user is kicked or banned."
+    voice_logs:
+      title: "Voice"
+      description: "This channel is used to log all voice-related actions, such as when a user joins or leaves a voice channel, or when a user is muted or unmuted."
+    user_logs:
+      title: "User"
+      description: "This channel is used to log all user-related actions, such as when a user changes their username, avatar, or other profile information."
+    deleted_message_logs:
+      title: "Deleted Messages"
+      description: "This channel is used to log all deleted messages in the guild. This includes when a user deletes their own message, or when a message is deleted by another user or Sersi."
+    deleted_image_logs:
+      title: "Deleted Images"
+      description: "This channel is used to log all deleted images in the guild. This includes when a user deletes their own image, or when an image is deleted by another user or Sersi. Due to Discord's limitations, if an image is not cached by your client, the image will not be visible in the logs."
+    edited_message_logs:
+      title: "Edited Messages"
+      description: "This channel is used to log all edited messages in the guild. This includes when a user edits a message."
+    
+    buttons:
+      tamper_logs: "Tamper Logs"
+      global_logs: "Global Logs"
+      public_logs: "Public Moderation Logs"
+      mod_logs: "Moderation Logs"
+      guild_logs: "Guild Logs"
+      channel_logs: "Channel Logs"
+      role_logs: "Role Logs"
+      join_leave_logs: "Join/Leave Logs"
+      voice_logs: "Voice Logs"
+      user_logs: "User Logs"
+      deleted_message_logs: "Deleted Messages Logs"
+      deleted_image_logs: "Deleted Images Logs"
+      edited_message_logs: "Edited Messages Logs"
+      finish_setup: "Finish Setup"
+
+    finish:
+      success: "Logging setup has been completed. You can edit the logging channels at any time using the configure command."
