@@ -4,6 +4,7 @@ from utils.database import SessionLocal, ModeratorRoles
 from utils.sersi_embed import SersiEmbed
 from utils.language import lang_manager
 from utils.modules import check_module_enabled
+from utils.logging import create_log
 
 
 class Moderation_roles(commands.Cog):
@@ -316,6 +317,13 @@ class Moderation_roles(commands.Cog):
         await interaction.followup.send(
             embed=embed,
             ephemeral=True,
+        )
+
+        await create_log(
+            interaction.guild,
+            "moderation_role_add",
+            "moderation",
+            embed=embed,
         )
 
     @application_checks.has_guild_permissions(administrator=True)

@@ -68,4 +68,7 @@ async def create_log(guild: nextcord.Guild, log_type: str, log_category: str, **
                     ],
                 )
 
+            case "moderation_role_add":
+                embed = kwargs["embed"]
+
         return await logging_channel.send(embed=embed)
