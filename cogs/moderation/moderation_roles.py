@@ -321,8 +321,8 @@ class Moderation_roles(commands.Cog):
 
         await create_log(
             interaction.guild,
-            "moderation_role_add",
-            "moderation",
+            log_type="moderation_role_add",
+            log_category="moderation",
             embed=embed,
         )
 
