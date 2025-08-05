@@ -52,7 +52,7 @@ error_logger.addHandler(error_file_handler)
 @bot.event
 async def on_ready():
     bot.error_channel = bot.get_channel(int(os.getenv('ERROR_CHANNEL', 0)))
-    print(f"We have logged in as {bot.user}")
+    logging.info(f"We have logged in as {bot.user}")
 
 
 logging.info("\n\n=======================================")

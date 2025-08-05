@@ -1,5 +1,6 @@
 import yaml
 import os
+import logging
 
 from utils.database import SessionLocal, Language
 
@@ -39,7 +40,7 @@ class LanguageManager:
         try:
             return self.strings[lang][key]
         except (KeyError, TypeError):
-            print(f"[ERROR] Language key '{key}' not found in '{lang}.yaml'")
+            logging.error(f"Language key '{key}' not found in '{lang}.yaml'")
 
         if lang != "en":
             return self.get_key(key)
