@@ -16,7 +16,6 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import scoped_session, sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
-from dotenv import load_dotenv
 
 from utils.base import encode_snowflake
 
@@ -28,7 +27,6 @@ def random_id() -> str:
 
 # --- Database Setup ---
 # Load the DATABASE_URL from your .env file
-load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
     raise ValueError("DATABASE_URL environment variable is not set.")

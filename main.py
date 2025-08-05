@@ -4,9 +4,12 @@ import os
 import sys
 
 import nextcord
+from dotenv import load_dotenv
 
 from bot import SersiBot
 from utils.cogs import load_all_cogs
+
+load_dotenv()
 
 bot = SersiBot()
 
@@ -48,7 +51,7 @@ error_logger.addHandler(error_file_handler)
 
 @bot.event
 async def on_ready():
-    bot.error_channel = bot.get_channel(int(os.environ['ERROR_CHANNEL']))
+    bot.error_channel = bot.get_channel(int(os.getenv('ERROR_CHANNEL', 0)))
     print(f"We have logged in as {bot.user}")
 
 
@@ -57,10 +60,10 @@ logging.info("Starting bot...")
 logging.info(f"System Version:\n{sys.version}")
 logging.info(f"Nextcord Version:\n{nextcord.__version__}")
 
-bot.command_prefix = os.environ['COMMAND_PREFIX']
+bot.command_prefix = os.getenv('COMMAND_PREFIX', "s!")
 logging.info("Attempting to load cogs...")
 asyncio.run(load_all_cogs(bot, root_folder))
 logging.info("Loaded cogs; starting to run")
 
 
-bot.run(os.environ['DISCORD_TOKEN'])
+bot.run(os.getenv('DISCORD_TOKEN'))
