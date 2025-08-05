@@ -12,6 +12,8 @@ def flatten_dict(dictionary: dict, sep=".", prefix="") -> dict[str, str]:
         else:
             new_dict[prefix + sep + k if prefix else k] = v
 
+    return new_dict
+
 
 class LanguageManager:
     strings: dict[str, dict[str, str]]
