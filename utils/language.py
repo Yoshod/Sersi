@@ -7,10 +7,11 @@ from utils.database import SessionLocal, Language
 def flatten_dict(dictionary: dict, sep=".", prefix="") -> dict[str, str]:
     new_dict = dict()
     for k, v in dictionary.items():
+        key = prefix + sep + k if prefix else k
         if isinstance(v, dict):
-            new_dict.update(flatten_dict(v, sep, k))
+            new_dict.update(flatten_dict(v, sep, key))
         else:
-            new_dict[prefix + sep + k if prefix else k] = v
+            new_dict[key] = v
 
     return new_dict
 
