@@ -10,10 +10,10 @@ class SersiEmbed(nextcord.Embed):
         self,
         *,
         fields: dict[str, str] | list[dict[str, str]] = None,
-        footer: str = nextcord.embeds.EmptyEmbed,
-        footer_icon: str = nextcord.embeds.EmptyEmbed,
-        thumbnail_url: str = nextcord.embeds.EmptyEmbed,
-        author: nextcord.Member = nextcord.embeds.EmptyEmbed,
+        footer: str = None,
+        footer_icon: str = None,
+        thumbnail_url: str = None,
+        author: nextcord.Member = None,
         **kwargs,
     ):
         super().__init__(**kwargs)
